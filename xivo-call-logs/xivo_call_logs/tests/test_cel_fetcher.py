@@ -15,10 +15,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dao import cel_dao
+from hamcrest import assert_that, equal_to
+from mock import patch, Mock
+from unittest import TestCase
+
+from xivo_call_logs.cel_fetcher import CELFetcher
 
 
-class CELFetcher(object):
+class TestCELFetcher(TestCase):
+    def setUp(self):
+        self.cel_fetcher = CELFetcher()
 
-    def fetch_all(self):
-        return cel_dao.find_all()
+    def tearDown(self):
+        pass
+
+    @patch('xivo_dao.cel_dao.find_all')
+    def test_fetch_all(self, mock_cel_dao):
+        cels = mock_cel_dao.return_value = [Mock(), Mock(), Mock()]
+
+        result = self.cel_fetcher.fetch_all()
+
+        assert_that(result, equal_to(cels))
