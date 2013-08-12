@@ -29,7 +29,7 @@ class TestCELFetcher(TestCase):
     def tearDown(self):
         pass
 
-    @patch('xivo_dao.cel_dao.find_all')
+    @patch('xivo_dao.data_handler.cel.dao.find_all')
     def test_fetch_all(self, mock_cel_dao):
         cels = mock_cel_dao.return_value = [Mock(), Mock(), Mock()]
 
