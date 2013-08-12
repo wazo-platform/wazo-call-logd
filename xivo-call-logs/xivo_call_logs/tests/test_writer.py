@@ -15,10 +15,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dao.data_handler.call_log import dao as call_log_dao
+from mock import Mock, patch
+from unittest import TestCase
+
+from xivo_call_logs.writer import CallLogsWriter
 
 
-class CallLogsWriter(object):
+class TestCallLogsWriter(TestCase):
+    def setUp(self):
+        self.writer = CallLogsWriter()
 
-    def write(self, call_logs):
-        call_log_dao.create_all(call_logs)
+    def tearDown(self):
+        pass
+
+    @patch('xivo_dao.data_handler.call_log.dao.create_all')
+    def test_write(self, mock_call_logs_dao):
+        call_logs = [Mock(), Mock()]
+
+        self.writer.write(call_logs)
+
+        mock_call_logs_dao.assert_called_once_with(call_logs)
