@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from xivo_dao.data_handler.call_log import model
+from xivo_dao.data_handler.cel.event_type import CELEventType
 
 
 class CELInterpretor(object):
@@ -39,4 +40,35 @@ class CELInterpretor(object):
         return call_log
 
     def interpret_cel(self, cel, call):
+        eventtype_map = {
+            CELEventType.chan_start: self.interpret_chan_start,
+            CELEventType.answer: self.interpret_answer,
+            CELEventType.bridge_start: self.interpret_bridge_start,
+            CELEventType.hangup: self.interpret_hangup,
+            CELEventType.chan_end: self.interpret_chan_end,
+        }
+
+        eventtype = cel.eventtype
+        if eventtype in eventtype_map:
+            interpret_function = eventtype_map[eventtype]
+            return interpret_function(cel, call)
+        elif eventtype not in CELEventType.eventtype_list:
+            return self.interpret_unknown(cel, call)
+
+    def interpret_chan_start(self, cel, call):
+        raise NotImplementedError()
+
+    def interpret_answer(self, cel, call):
+        raise NotImplementedError()
+
+    def interpret_bridge_start(self, cel, call):
+        raise NotImplementedError()
+
+    def interpret_hangup(self, cel, call):
+        raise NotImplementedError()
+
+    def interpret_chan_end(self, cel, call):
+        raise NotImplementedError()
+
+    def interpret_unknown(self, cel, call):
         raise NotImplementedError()

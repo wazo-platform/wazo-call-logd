@@ -72,3 +72,28 @@ class TestCELInterpretor(TestCase):
         self.cel_interpretor.interpret_cel.assert_any_call(cel_2, call)
         assert_that(self.cel_interpretor.interpret_cel.call_count, equal_to(2))
         assert_that(result, equal_to(call))
+
+    def test_interpret_cel(self):
+        self.cel_interpretor.interpret_chan_start = Mock()
+        self.cel_interpretor.interpret_answer = Mock()
+        self.cel_interpretor.interpret_bridge_start = Mock()
+        self.cel_interpretor.interpret_hangup = Mock()
+        self.cel_interpretor.interpret_chan_end = Mock()
+        self.cel_interpretor.interpret_unknown = Mock()
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_start, CELEventType.chan_start)
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_answer, CELEventType.answer)
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_hangup, CELEventType.hangup)
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_end, CELEventType.chan_end)
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_unknown, 'unknown_eventtype')
+
+    def _assert_that_interpret_cel_calls(self, function, eventtype):
+        cel = Mock(eventtype=eventtype)
+        call = Mock(CallLog)
+        new_call = Mock(CallLog)
+        function.return_value = new_call
+
+        result = self.cel_interpretor.interpret_cel(cel, call)
+
+        function.assert_called_once_with(cel, call)
+        assert_that(result, equal_to(new_call))
