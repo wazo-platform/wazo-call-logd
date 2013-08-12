@@ -15,9 +15,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from itertools import groupby
+
 
 class CallLogsGenerator(object):
 
-    def from_cel(self):
-        raise NotImplementedError()
+    def __init__(self, cel_interpretor):
+        self.cel_interpretor = cel_interpretor
 
+    def from_cel(self, cels):
+        result = []
+        for linkedid, cels_by_call_iter in self._group_cels_by_linkedid(cels):
+            cels_by_call = list(cels_by_call_iter)
+            call = self.cel_interpretor.interpret_call(cels_by_call)
+            result.append(call)
+
+        return result
+
+    def _group_cels_by_linkedid(self, cels):
+        key_function = lambda cel: cel.linkedid
+        cels = sorted(cels, key=key_function)
+        return groupby(cels, key=key_function)
