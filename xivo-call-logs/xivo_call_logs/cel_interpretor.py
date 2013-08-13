@@ -45,7 +45,6 @@ class CELInterpretor(object):
             CELEventType.answer: self.interpret_answer,
             CELEventType.bridge_start: self.interpret_bridge_start,
             CELEventType.hangup: self.interpret_hangup,
-            CELEventType.chan_end: self.interpret_chan_end,
         }
 
         eventtype = cel.eventtype
@@ -79,9 +78,6 @@ class CELInterpretor(object):
         return call
 
     def interpret_hangup(self, cel, call):
-        raise NotImplementedError()
-
-    def interpret_chan_end(self, cel, call):
         raise NotImplementedError()
 
     def interpret_unknown(self, cel, call):

@@ -79,13 +79,11 @@ class TestCELInterpretor(TestCase):
         self.cel_interpretor.interpret_answer = Mock()
         self.cel_interpretor.interpret_bridge_start = Mock()
         self.cel_interpretor.interpret_hangup = Mock()
-        self.cel_interpretor.interpret_chan_end = Mock()
         self.cel_interpretor.interpret_unknown = Mock()
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_start, CELEventType.chan_start)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_answer, CELEventType.answer)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_hangup, CELEventType.hangup)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_end, CELEventType.chan_end)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_unknown, 'unknown_eventtype')
 
     def test_interpret_chan_start(self):
