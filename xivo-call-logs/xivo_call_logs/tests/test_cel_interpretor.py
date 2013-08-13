@@ -21,6 +21,7 @@ from mock import Mock, patch
 from unittest import TestCase
 
 from xivo_call_logs.cel_interpretor import CELInterpretor
+from xivo_call_logs.raw_call_log import RawCallLog
 from xivo_dao.data_handler.cel.event_type import CELEventType
 from xivo_dao.data_handler.call_log.model import CallLog
 
@@ -35,9 +36,10 @@ class TestCELInterpretor(TestCase):
     def test_interpret_call(self):
         cels = [Mock(), Mock()]
         filtered_cels = [Mock()]
-        expected_call_log = call_log = Mock(CallLog)
+        raw_call_log = Mock(RawCallLog)
+        expected_call_log = raw_call_log.to_call_log.return_value = Mock(CallLog)
         self.cel_interpretor.filter_cels = Mock(return_value=filtered_cels)
-        self.cel_interpretor.interpret_cels = Mock(return_value=call_log)
+        self.cel_interpretor.interpret_cels = Mock(return_value=raw_call_log)
 
         result = self.cel_interpretor.interpret_call(cels)
 
@@ -60,12 +62,12 @@ class TestCELInterpretor(TestCase):
 
         assert_that(result, equal_to(expected))
 
-    @patch('xivo_dao.data_handler.call_log.model.CallLog')
-    def test_interpret_cels(self, mock_call_log):
+    @patch('xivo_call_logs.raw_call_log.RawCallLog')
+    def test_interpret_cels(self, mock_raw_call_log):
         cels = cel_1, cel_2 = [Mock(), Mock()]
-        call = Mock(CallLog, id=1)
+        call = Mock(RawCallLog, id=1)
         self.cel_interpretor.interpret_cel = Mock(return_value=call)
-        mock_call_log.side_effect = [call, Mock(CallLog, id=2)]
+        mock_raw_call_log.side_effect = [call, Mock(RawCallLog, id=2)]
 
         result = self.cel_interpretor.interpret_cels(cels)
 
@@ -92,7 +94,7 @@ class TestCELInterpretor(TestCase):
         cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
         cel_destination_exten = cel.exten = 'destination_exten'
         cel_userfield = cel.userfield = 'userfield'
-        call = Mock(CallLog)
+        call = Mock(RawCallLog)
 
         result = self.cel_interpretor.interpret_chan_start(cel, call)
 
@@ -107,7 +109,7 @@ class TestCELInterpretor(TestCase):
     def test_interpret_answer_no_destination_yet(self):
         cel = Mock()
         cel_source_name = cel.cid_name = 'destination_exten'
-        call = Mock(CallLog, destination_exten=None)
+        call = Mock(RawCallLog, destination_exten=None)
 
         result = self.cel_interpretor.interpret_answer(cel, call)
 
@@ -117,7 +119,7 @@ class TestCELInterpretor(TestCase):
 
     def test_interpret_answer_with_destination_already_set(self):
         cel = Mock(cid_name='other_destination')
-        call = Mock(CallLog)
+        call = Mock(RawCallLog)
         call_destination = call.destination_exten = 'first_destination'
 
         result = self.cel_interpretor.interpret_answer(cel, call)
@@ -130,7 +132,7 @@ class TestCELInterpretor(TestCase):
         cel = Mock()
         source_name = cel.cid_name = 'source_name'
         source_exten = cel.cid_num = 'source_exten'
-        call = Mock(CallLog, source_name=None, source_exten=None)
+        call = Mock(RawCallLog, source_name=None, source_exten=None)
 
         result = self.cel_interpretor.interpret_bridge_start(cel, call)
 
@@ -141,7 +143,7 @@ class TestCELInterpretor(TestCase):
 
     def test_interpret_bridge_start_with_source_already_set(self):
         cel = Mock(cid_name='other_source_name', cid_num='other_source_exten')
-        call = Mock(CallLog)
+        call = Mock(RawCallLog)
         source_name = call.source_name = 'first_source_name'
         source_exten = call.source_exten = 'first_source_exten'
 
@@ -160,8 +162,8 @@ class TestCELInterpretor(TestCase):
 
     def _assert_that_interpret_cel_calls(self, function, eventtype):
         cel = Mock(eventtype=eventtype)
-        call = Mock(CallLog)
-        new_call = Mock(CallLog)
+        call = Mock(RawCallLog)
+        new_call = Mock(RawCallLog)
         function.return_value = new_call
 
         result = self.cel_interpretor.interpret_cel(cel, call)

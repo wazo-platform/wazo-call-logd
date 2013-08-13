@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dao.data_handler.call_log import model
+from xivo_call_logs import raw_call_log
 from xivo_dao.data_handler.cel.event_type import CELEventType
 
 
@@ -23,7 +23,8 @@ class CELInterpretor(object):
 
     def interpret_call(self, cels):
         filtered_cels = self.filter_cels(cels)
-        return self.interpret_cels(filtered_cels)
+        raw_call = self.interpret_cels(filtered_cels)
+        return raw_call.to_call_log()
 
     def filter_cels(self, cels):
         if not cels:
@@ -33,7 +34,7 @@ class CELInterpretor(object):
         return [cel for cel in cels if cel.uniqueid == first_unique_id]
 
     def interpret_cels(self, cels):
-        call_log = model.CallLog()
+        call_log = raw_call_log.RawCallLog()
         for cel in cels:
             call_log = self.interpret_cel(cel, call_log)
 
