@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from hamcrest import assert_that, equal_to
+import datetime
+from hamcrest import all_of, assert_that, equal_to, has_property
 from mock import Mock, patch
 from unittest import TestCase
 
@@ -86,6 +87,78 @@ class TestCELInterpretor(TestCase):
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_hangup, CELEventType.hangup)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_end, CELEventType.chan_end)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_unknown, 'unknown_eventtype')
+
+    def test_interpret_chan_start(self):
+        cel = Mock()
+        cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+        cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
+        cel_destination_exten = cel.exten = 'destination_exten'
+        cel_userfield = cel.userfield = 'userfield'
+        call = Mock(CallLog)
+
+        result = self.cel_interpretor.interpret_chan_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('date', cel_date),
+            has_property('source_name', cel_source_name),
+            has_property('source_exten', cel_source_exten),
+            has_property('destination_exten', cel_destination_exten),
+            has_property('user_field', cel_userfield)
+        ))
+
+    def test_interpret_answer_no_destination_yet(self):
+        cel = Mock()
+        cel_source_name = cel.cid_name = 'destination_exten'
+        call = Mock(CallLog, destination_exten=None)
+
+        result = self.cel_interpretor.interpret_answer(cel, call)
+
+        assert_that(result, all_of(
+            has_property('destination_exten', cel_source_name),
+        ))
+
+    def test_interpret_answer_with_destination_already_set(self):
+        cel = Mock(cid_name='other_destination')
+        call = Mock(CallLog)
+        call_destination = call.destination_exten = 'first_destination'
+
+        result = self.cel_interpretor.interpret_answer(cel, call)
+
+        assert_that(result, all_of(
+            has_property('destination_exten', call_destination),
+        ))
+
+    def test_interpret_bridge_start_with_no_source_set(self):
+        cel = Mock()
+        source_name = cel.cid_name = 'source_name'
+        source_exten = cel.cid_num = 'source_exten'
+        call = Mock(CallLog, source_name=None, source_exten=None)
+
+        result = self.cel_interpretor.interpret_bridge_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('source_name', source_name),
+            has_property('source_exten', source_exten),
+        ))
+
+    def test_interpret_bridge_start_with_source_already_set(self):
+        cel = Mock(cid_name='other_source_name', cid_num='other_source_exten')
+        call = Mock(CallLog)
+        source_name = call.source_name = 'first_source_name'
+        source_exten = call.source_exten = 'first_source_exten'
+
+        result = self.cel_interpretor.interpret_bridge_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('source_name', source_name),
+            has_property('source_exten', source_exten),
+        ))
+
+    def test_interpret_unknown_does_not_do_anything(self):
+        cel = Mock()
+        call = Mock()
+
+        self.cel_interpretor.interpret_unknown(cel, call)
 
     def _assert_that_interpret_cel_calls(self, function, eventtype):
         cel = Mock(eventtype=eventtype)

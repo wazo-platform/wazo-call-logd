@@ -56,13 +56,27 @@ class CELInterpretor(object):
             return self.interpret_unknown(cel, call)
 
     def interpret_chan_start(self, cel, call):
-        raise NotImplementedError()
+        call.date = cel.eventtime
+        call.source_name = cel.cid_name
+        call.source_exten = cel.cid_num
+        call.destination_exten = cel.exten
+        call.user_field = cel.userfield
+
+        return call
 
     def interpret_answer(self, cel, call):
-        raise NotImplementedError()
+        if not call.destination_exten:
+            call.destination_exten = cel.cid_name
+
+        return call
 
     def interpret_bridge_start(self, cel, call):
-        raise NotImplementedError()
+        if not call.source_name:
+            call.source_name = cel.cid_name
+        if not call.source_exten:
+            call.source_exten = cel.cid_num
+
+        return call
 
     def interpret_hangup(self, cel, call):
         raise NotImplementedError()
@@ -71,4 +85,4 @@ class CELInterpretor(object):
         raise NotImplementedError()
 
     def interpret_unknown(self, cel, call):
-        raise NotImplementedError()
+        pass
