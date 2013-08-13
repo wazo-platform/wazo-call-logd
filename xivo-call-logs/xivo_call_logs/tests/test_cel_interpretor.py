@@ -109,16 +109,19 @@ class TestCELInterpretor(TestCase):
     def test_interpret_answer_no_destination_yet(self):
         cel = Mock()
         cel_source_name = cel.cid_name = 'destination_exten'
+        start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
         call = Mock(RawCallLog, destination_exten=None)
 
         result = self.cel_interpretor.interpret_answer(cel, call)
 
         assert_that(result, all_of(
             has_property('destination_exten', cel_source_name),
+            has_property('communication_start', start_date),
         ))
 
     def test_interpret_answer_with_destination_already_set(self):
         cel = Mock(cid_name='other_destination')
+        start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
         call = Mock(RawCallLog)
         call_destination = call.destination_exten = 'first_destination'
 
@@ -126,6 +129,18 @@ class TestCELInterpretor(TestCase):
 
         assert_that(result, all_of(
             has_property('destination_exten', call_destination),
+            has_property('communication_start', start_date),
+        ))
+
+    def test_interpret_hangup_sets_call_end(self):
+        cel = Mock()
+        end_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+        call = Mock(CallLog)
+
+        result = self.cel_interpretor.interpret_hangup(cel, call)
+
+        assert_that(result, all_of(
+            has_property('communication_end', end_date),
         ))
 
     def test_interpret_bridge_start_with_no_source_set(self):

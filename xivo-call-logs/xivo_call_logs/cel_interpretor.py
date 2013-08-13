@@ -67,6 +67,7 @@ class CELInterpretor(object):
     def interpret_answer(self, cel, call):
         if not call.destination_exten:
             call.destination_exten = cel.cid_name
+        call.communication_start = cel.eventtime
 
         return call
 
@@ -79,7 +80,9 @@ class CELInterpretor(object):
         return call
 
     def interpret_hangup(self, cel, call):
-        raise NotImplementedError()
+        call.communication_end = cel.eventtime
+
+        return call
 
     def interpret_unknown(self, cel, call):
         pass
