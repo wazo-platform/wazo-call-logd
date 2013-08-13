@@ -15,8 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from xivo_dao.data_handler.call_log.model import CallLog
+
 
 class RawCallLog(object):
 
     def to_call_log(self):
-        raise NotImplementedError()
+        result = CallLog(
+            date=self.date,
+            source_name=self.source_name,
+            source_exten=self.source_exten,
+            destination_name=self.destination_name,
+            destination_exten=self.destination_exten,
+            user_field=self.user_field,
+            answered=self.answered,
+            duration=self.duration
+        )
+
+        return result
