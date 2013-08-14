@@ -21,6 +21,17 @@ from xivo_dao.data_handler.call_log.model import CallLog
 
 class RawCallLog(object):
 
+    def __init__(self):
+        self.date = None
+        self.source_name = None
+        self.source_exten = None
+        self.destination_name = None
+        self.destination_exten = None
+        self.user_field = None
+        self.answered = None
+        self.communication_start = None
+        self.communication_end = None
+
     def to_call_log(self):
         result = CallLog(
             date=self.date,
