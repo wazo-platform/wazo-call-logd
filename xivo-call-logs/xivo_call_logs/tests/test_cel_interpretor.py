@@ -81,12 +81,18 @@ class TestCELInterpretor(TestCase):
         self.cel_interpretor.interpret_answer = Mock()
         self.cel_interpretor.interpret_bridge_start = Mock()
         self.cel_interpretor.interpret_hangup = Mock()
-        self.cel_interpretor.interpret_unknown = Mock()
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_start, CELEventType.chan_start)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_answer, CELEventType.answer)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_hangup, CELEventType.hangup)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_unknown, 'unknown_eventtype')
+
+    def test_interpret_cel_unknown_or_ignored_event(self):
+        cel = Mock(eventtype='unknown_or_ignored_eventtype')
+        call = Mock(RawCallLog)
+
+        result = self.cel_interpretor.interpret_cel(cel, call)
+
+        assert_that(result, equal_to(call))
 
     def test_interpret_chan_start(self):
         cel = Mock()
@@ -168,12 +174,6 @@ class TestCELInterpretor(TestCase):
             has_property('source_name', source_name),
             has_property('source_exten', source_exten),
         ))
-
-    def test_interpret_unknown_does_not_do_anything(self):
-        cel = Mock()
-        call = Mock()
-
-        self.cel_interpretor.interpret_unknown(cel, call)
 
     def _assert_that_interpret_cel_calls(self, function, eventtype):
         cel = Mock(eventtype=eventtype)

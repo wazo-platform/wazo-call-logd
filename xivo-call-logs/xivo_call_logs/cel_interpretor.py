@@ -52,8 +52,8 @@ class CELInterpretor(object):
         if eventtype in eventtype_map:
             interpret_function = eventtype_map[eventtype]
             return interpret_function(cel, call)
-        elif eventtype not in CELEventType.eventtype_list:
-            return self.interpret_unknown(cel, call)
+        else:
+            return call
 
     def interpret_chan_start(self, cel, call):
         call.date = cel.eventtime
@@ -83,6 +83,3 @@ class CELInterpretor(object):
         call.communication_end = cel.eventtime
 
         return call
-
-    def interpret_unknown(self, cel, call):
-        pass
