@@ -35,4 +35,5 @@ class TestCELFetcher(TestCase):
 
         result = self.cel_fetcher.fetch_all()
 
+        mock_cel_dao.assert_called_once_with(self.cel_fetcher.CEL_LIMIT)
         assert_that(result, equal_to(cels))
