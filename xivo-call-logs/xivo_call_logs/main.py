@@ -15,6 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from xivo_call_logs.cel_fetcher import CELFetcher
+from xivo_call_logs.cel_interpretor import CELInterpretor
+from xivo_call_logs.generator import CallLogsGenerator
+from xivo_call_logs.manager import CallLogsManager
+from xivo_call_logs.writer import CallLogsWriter
+
 
 def main():
-    raise NotImplementedError()
+    cel_fetcher = CELFetcher()
+    cel_interpretor = CELInterpretor()
+    generator = CallLogsGenerator(cel_interpretor)
+    writer = CallLogsWriter()
+    manager = CallLogsManager(cel_fetcher, generator, writer)
+
+    manager.generate()
