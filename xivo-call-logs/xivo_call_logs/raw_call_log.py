@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import datetime
 from xivo_dao.data_handler.call_log.model import CallLog
 
 
@@ -33,3 +34,13 @@ class RawCallLog(object):
         )
 
         return result
+
+    @property
+    def duration(self):
+        default_value = datetime.timedelta(0)
+        if (hasattr(self, 'communication_start') and hasattr(self, 'communication_end')
+                and self.communication_start and self.communication_end):
+            duration = self.communication_end - self.communication_start
+            return max(duration, default_value)
+        else:
+            return default_value
