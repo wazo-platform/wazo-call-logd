@@ -78,10 +78,12 @@ class TestCELInterpretor(TestCase):
 
     def test_interpret_cel(self):
         self.cel_interpretor.interpret_chan_start = Mock()
+        self.cel_interpretor.interpret_app_start = Mock()
         self.cel_interpretor.interpret_answer = Mock()
         self.cel_interpretor.interpret_bridge_start = Mock()
         self.cel_interpretor.interpret_hangup = Mock()
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_start, CELEventType.chan_start)
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_app_start, CELEventType.app_start)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_answer, CELEventType.answer)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
         self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_hangup, CELEventType.hangup)
@@ -99,7 +101,6 @@ class TestCELInterpretor(TestCase):
         cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
         cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
         cel_destination_exten = cel.exten = 'destination_exten'
-        cel_userfield = cel.userfield = 'userfield'
         call = Mock(RawCallLog)
 
         result = self.cel_interpretor.interpret_chan_start(cel, call)
@@ -109,6 +110,16 @@ class TestCELInterpretor(TestCase):
             has_property('source_name', cel_source_name),
             has_property('source_exten', cel_source_exten),
             has_property('destination_exten', cel_destination_exten),
+        ))
+
+    def test_interpret_app_start(self):
+        cel = Mock()
+        cel_userfield = cel.userfield = 'userfield'
+        call = Mock(RawCallLog)
+
+        result = self.cel_interpretor.interpret_app_start(cel, call)
+
+        assert_that(result, all_of(
             has_property('user_field', cel_userfield)
         ))
 

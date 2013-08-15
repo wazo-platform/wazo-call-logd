@@ -43,6 +43,7 @@ class CELInterpretor(object):
     def interpret_cel(self, cel, call):
         eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
+            CELEventType.app_start: self.interpret_app_start,
             CELEventType.answer: self.interpret_answer,
             CELEventType.bridge_start: self.interpret_bridge_start,
             CELEventType.hangup: self.interpret_hangup,
@@ -60,6 +61,10 @@ class CELInterpretor(object):
         call.source_name = cel.cid_name
         call.source_exten = cel.cid_num
         call.destination_exten = cel.exten
+
+        return call
+
+    def interpret_app_start(self, cel, call):
         call.user_field = cel.userfield
 
         return call
