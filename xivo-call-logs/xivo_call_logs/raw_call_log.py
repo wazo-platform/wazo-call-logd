@@ -28,7 +28,7 @@ class RawCallLog(object):
         self.destination_name = None
         self.destination_exten = None
         self.user_field = None
-        self.answered = None
+        self.answered = False
         self.communication_start = None
         self.communication_end = None
 

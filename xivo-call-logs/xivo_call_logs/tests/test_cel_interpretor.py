@@ -134,6 +134,7 @@ class TestCELInterpretor(TestCase):
         assert_that(result, all_of(
             has_property('destination_exten', cel_source_name),
             has_property('communication_start', start_date),
+            has_property('answered', True),
         ))
 
     def test_interpret_answer_with_destination_already_set(self):
@@ -147,6 +148,7 @@ class TestCELInterpretor(TestCase):
         assert_that(result, all_of(
             has_property('destination_exten', call_destination),
             has_property('communication_start', start_date),
+            has_property('answered', True),
         ))
 
     def test_interpret_hangup_sets_call_end(self):

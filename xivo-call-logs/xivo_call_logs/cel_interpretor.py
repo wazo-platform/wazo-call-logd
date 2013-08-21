@@ -73,6 +73,7 @@ class CELInterpretor(object):
         if not call.destination_exten:
             call.destination_exten = cel.cid_name
         call.communication_start = cel.eventtime
+        call.answered = True
 
         return call
 
