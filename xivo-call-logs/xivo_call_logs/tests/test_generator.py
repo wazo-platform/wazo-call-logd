@@ -21,6 +21,7 @@ from unittest import TestCase
 
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.cel_interpretor import CELInterpretor
+from xivo_call_logs.exceptions import InvalidCallLogException
 
 
 class TestCallLogsGenerator(TestCase):
@@ -59,6 +60,18 @@ class TestCallLogsGenerator(TestCase):
         self.cel_interpretor.interpret_call.assert_any_call(cels_1)
         self.cel_interpretor.interpret_call.assert_any_call(cels_2)
         assert_that(result, contains(call_1, call_2))
+
+    def test_from_cel_two_calls_one_valid_one_invalid(self):
+        cels_1 = self._generate_cel_for_call('9328742934')
+        cels_2 = self._generate_cel_for_call('2707230959')
+        cels = cels_1 + cels_2
+        call_1, _ = self.cel_interpretor.interpret_call.side_effect = [Mock(), InvalidCallLogException()]
+
+        result = self.generator.from_cel(cels)
+
+        self.cel_interpretor.interpret_call.assert_any_call(cels_1)
+        self.cel_interpretor.interpret_call.assert_any_call(cels_2)
+        assert_that(result, contains(call_1))
 
     def _generate_cel_for_call(self, linked_id, cel_count=3):
         result = []

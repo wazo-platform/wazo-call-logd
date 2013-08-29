@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from itertools import groupby
+from xivo_call_logs.exceptions import InvalidCallLogException
 
 
 class CallLogsGenerator(object):
@@ -27,8 +28,11 @@ class CallLogsGenerator(object):
         result = []
         for linkedid, cels_by_call_iter in self._group_cels_by_linkedid(cels):
             cels_by_call = list(cels_by_call_iter)
-            call = self.cel_interpretor.interpret_call(cels_by_call)
-            result.append(call)
+            try:
+                call = self.cel_interpretor.interpret_call(cels_by_call)
+                result.append(call)
+            except InvalidCallLogException:
+                pass
 
         return result
 

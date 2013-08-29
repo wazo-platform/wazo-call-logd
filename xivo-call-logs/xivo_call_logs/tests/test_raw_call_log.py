@@ -21,6 +21,7 @@ from mock import Mock, PropertyMock
 from unittest import TestCase
 
 from xivo_call_logs.raw_call_log import RawCallLog
+from xivo_call_logs.exceptions import InvalidCallLogException
 
 
 class TestRawCallLog(TestCase):
@@ -52,6 +53,11 @@ class TestRawCallLog(TestCase):
             has_property('answered', self.raw_call_log.answered),
             has_property('duration', self.raw_call_log.duration)
         ))
+
+    def test_to_call_log_invalid_date(self):
+        self.raw_call_log.date = None
+
+        self.assertRaises(InvalidCallLogException, self.raw_call_log.to_call_log)
 
     def test_duration_no_start_no_end(self):
         result = self.raw_call_log.duration

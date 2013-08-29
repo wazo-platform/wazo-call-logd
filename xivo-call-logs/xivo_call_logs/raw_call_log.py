@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import datetime
+
+from xivo_call_logs.exceptions import InvalidCallLogException
 from xivo_dao.data_handler.call_log.model import CallLog
 
 
@@ -33,6 +35,9 @@ class RawCallLog(object):
         self.communication_end = None
 
     def to_call_log(self):
+        if not self.date:
+            raise InvalidCallLogException()
+
         result = CallLog(
             date=self.date,
             source_name=self.source_name,
