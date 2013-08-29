@@ -23,4 +23,4 @@ class CELFetcher(object):
     CEL_LIMIT = 20000
 
     def fetch_all(self):
-        return cel_dao.find_all(self.CEL_LIMIT)
+        return cel_dao.find_last(self.CEL_LIMIT)
