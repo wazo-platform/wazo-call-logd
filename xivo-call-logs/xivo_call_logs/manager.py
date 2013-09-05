@@ -23,7 +23,7 @@ class CallLogsManager(object):
         self.generator = generator
         self. writer = writer
 
-    def generate(self):
-        cels = self.cel_fetcher.fetch_all()
+    def generate(self, cel_count):
+        cels = self.cel_fetcher.fetch_last(cel_count)
         call_logs = self.generator.from_cel(cels)
         self.writer.write(call_logs)

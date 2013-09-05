@@ -20,7 +20,5 @@ from xivo_dao.data_handler.cel import dao as cel_dao
 
 class CELFetcher(object):
 
-    CEL_LIMIT = 20000
-
-    def fetch_all(self):
-        return cel_dao.find_last(self.CEL_LIMIT)
+    def fetch_last(self, cel_count):
+        return cel_dao.find_last(cel_count)

@@ -30,10 +30,11 @@ class TestCELFetcher(TestCase):
         pass
 
     @patch('xivo_dao.data_handler.cel.dao.find_last')
-    def test_fetch_all(self, mock_cel_dao):
+    def test_fetch_last(self, mock_cel_dao):
+        cel_count = 333
         cels = mock_cel_dao.return_value = [Mock(), Mock(), Mock()]
 
-        result = self.cel_fetcher.fetch_all()
+        result = self.cel_fetcher.fetch_last(cel_count)
 
-        mock_cel_dao.assert_called_once_with(self.cel_fetcher.CEL_LIMIT)
+        mock_cel_dao.assert_called_once_with(cel_count)
         assert_that(result, equal_to(cels))
