@@ -29,12 +29,12 @@ class TestCELFetcher(TestCase):
     def tearDown(self):
         pass
 
-    @patch('xivo_dao.data_handler.cel.dao.find_last')
-    def test_fetch_last(self, mock_cel_dao):
+    @patch('xivo_dao.data_handler.cel.dao.find_last_unprocessed')
+    def test_fetch_last_unprocessed(self, mock_cel_dao):
         cel_count = 333
         cels = mock_cel_dao.return_value = [Mock(), Mock(), Mock()]
 
-        result = self.cel_fetcher.fetch_last(cel_count)
+        result = self.cel_fetcher.fetch_last_unprocessed(cel_count)
 
         mock_cel_dao.assert_called_once_with(cel_count)
         assert_that(result, equal_to(cels))
