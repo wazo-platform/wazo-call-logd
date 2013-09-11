@@ -29,11 +29,9 @@ class TestCallLogsWriter(TestCase):
         pass
 
     @patch('xivo_dao.data_handler.call_log.dao.create_all')
-    @patch('xivo_dao.data_handler.call_log.dao.delete_all')
-    def test_write(self, mock_dao_delete, mock_dao_create):
+    def test_write(self, mock_dao_create):
         call_logs = [Mock(), Mock()]
 
         self.writer.write(call_logs)
 
         mock_dao_create.assert_called_once_with(call_logs)
-        mock_dao_delete.assert_called_once_with()
