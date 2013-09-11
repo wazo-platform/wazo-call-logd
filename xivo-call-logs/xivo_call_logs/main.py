@@ -35,7 +35,6 @@ def main():
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
 
-    print options.cel_count
     manager.generate(cel_count=options.cel_count)
 
 
