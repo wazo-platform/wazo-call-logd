@@ -22,8 +22,7 @@ from xivo_dao.data_handler.cel.event_type import CELEventType
 class CELInterpretor(object):
 
     def interpret_call(self, cels):
-        filtered_cels = self.filter_cels(cels)
-        raw_call = self.interpret_cels(filtered_cels)
+        raw_call = self.interpret_cels(cels)
         return raw_call.to_call_log()
 
     def filter_cels(self, cels):
@@ -35,7 +34,8 @@ class CELInterpretor(object):
 
     def interpret_cels(self, cels):
         call_log = raw_call_log.RawCallLog()
-        for cel in cels:
+        call_log.cel_ids = [cel.id for cel in cels]
+        for cel in self.filter_cels(cels):
             call_log = self.interpret_cel(cel, call_log)
 
         return call_log

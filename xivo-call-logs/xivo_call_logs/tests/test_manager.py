@@ -20,11 +20,11 @@ class TestCallLogsManager(TestCase):
 
     def test_generate(self):
         cel_count = 132456
-        cels = self.cel_fetcher.fetch_last.return_value = [Mock(), Mock()]
+        cels = self.cel_fetcher.fetch_last_unprocessed.return_value = [Mock(), Mock()]
         call_logs = self.generator.from_cel.return_value = [Mock(), Mock()]
 
         self.manager.generate(cel_count=cel_count)
 
-        self.cel_fetcher.fetch_last.assert_called_once_with(cel_count)
+        self.cel_fetcher.fetch_last_unprocessed.assert_called_once_with(cel_count)
         self.generator.from_cel.assert_called_once_with(cels)
         self.writer.write.assert_called_once_with(call_logs)

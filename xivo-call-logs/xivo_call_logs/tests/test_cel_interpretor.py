@@ -35,16 +35,13 @@ class TestCELInterpretor(TestCase):
 
     def test_interpret_call(self):
         cels = [Mock(), Mock()]
-        filtered_cels = [Mock()]
         raw_call_log = Mock(RawCallLog)
         expected_call_log = raw_call_log.to_call_log.return_value = Mock(CallLog)
-        self.cel_interpretor.filter_cels = Mock(return_value=filtered_cels)
         self.cel_interpretor.interpret_cels = Mock(return_value=raw_call_log)
 
         result = self.cel_interpretor.interpret_call(cels)
 
-        self.cel_interpretor.filter_cels.assert_called_once_with(cels)
-        self.cel_interpretor.interpret_cels.assert_called_once_with(filtered_cels)
+        self.cel_interpretor.interpret_cels.assert_called_once_with(cels)
         assert_that(result, equal_to(expected_call_log))
 
     def test_filter_cels_no_cels(self):
@@ -64,17 +61,21 @@ class TestCELInterpretor(TestCase):
 
     @patch('xivo_call_logs.raw_call_log.RawCallLog')
     def test_interpret_cels(self, mock_raw_call_log):
-        cels = cel_1, cel_2 = [Mock(), Mock()]
+        cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
+        filtered_cels = [cel_1, cel_3]
         call = Mock(RawCallLog, id=1)
         self.cel_interpretor.interpret_cel = Mock(return_value=call)
         mock_raw_call_log.side_effect = [call, Mock(RawCallLog, id=2)]
+        self.cel_interpretor.filter_cels = Mock(return_value=filtered_cels)
 
         result = self.cel_interpretor.interpret_cels(cels)
 
+        self.cel_interpretor.filter_cels.assert_called_once_with(cels)
         self.cel_interpretor.interpret_cel.assert_any_call(cel_1, call)
-        self.cel_interpretor.interpret_cel.assert_any_call(cel_2, call)
+        self.cel_interpretor.interpret_cel.assert_any_call(cel_3, call)
         assert_that(self.cel_interpretor.interpret_cel.call_count, equal_to(2))
-        assert_that(result, equal_to(call))
+        assert_that(result, all_of(has_property('id', call.id),
+                                   has_property('cel_ids', [cel_1.id, cel_2.id, cel_3.id])))
 
     def test_interpret_cel(self):
         self.cel_interpretor.interpret_chan_start = Mock()

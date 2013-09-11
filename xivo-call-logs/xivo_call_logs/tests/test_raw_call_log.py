@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import datetime
-from hamcrest import all_of, assert_that, equal_to, has_property
+from hamcrest import all_of, assert_that, contains, equal_to, has_property
 from mock import Mock, PropertyMock
 from unittest import TestCase
 
@@ -39,6 +39,7 @@ class TestRawCallLog(TestCase):
         self.raw_call_log.destination_exten = Mock()
         self.raw_call_log.user_field = Mock()
         self.raw_call_log.answered = Mock()
+        self.raw_call_log.cel_ids = [1, 2, 3]
         type(self.raw_call_log).duration = PropertyMock()
 
         result = self.raw_call_log.to_call_log()
@@ -53,6 +54,7 @@ class TestRawCallLog(TestCase):
             has_property('answered', self.raw_call_log.answered),
             has_property('duration', self.raw_call_log.duration)
         ))
+        assert_that(result.get_related_cels(), contains(1, 2, 3))
 
     def test_to_call_log_invalid_date(self):
         self.raw_call_log.date = None
