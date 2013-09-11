@@ -48,6 +48,7 @@ class RawCallLog(object):
             answered=self.answered,
             duration=self.duration
         )
+        result.add_related_cels(self.cel_ids)
 
         return result
 
