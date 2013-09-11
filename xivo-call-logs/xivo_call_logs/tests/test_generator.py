@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from hamcrest import assert_that, contains, equal_to
+from hamcrest import assert_that, contains, equal_to, same_instance
 from mock import Mock
 from unittest import TestCase
 
@@ -32,42 +32,52 @@ class TestCallLogsGenerator(TestCase):
     def tearDown(self):
         pass
 
-    def test_from_cel_no_cels(self):
-        cels = []
+    def test_from_cel(self):
+        self.generator.call_logs_from_cel = Mock()
+        expected_calls = self.generator.call_logs_from_cel.return_value = Mock()
+        cels = Mock()
 
         result = self.generator.from_cel(cels)
 
+        self.generator.call_logs_from_cel.assert_called_once_with(cels)
+        assert_that(result, same_instance(expected_calls))
+
+    def test_call_logs_from_cel_no_cels(self):
+        cels = []
+
+        result = self.generator.call_logs_from_cel(cels)
+
         assert_that(result, equal_to([]))
 
-    def test_from_cel_one_call(self):
+    def test_call_logs_from_cel_one_call(self):
         linkedid = '9328742934'
         cels = self._generate_cel_for_call([linkedid])
         call = self.cel_interpretor.interpret_call.return_value = Mock()
 
-        result = self.generator.from_cel(cels)
+        result = self.generator.call_logs_from_cel(cels)
 
         self.cel_interpretor.interpret_call.assert_called_once_with(cels)
         assert_that(result, contains(call))
 
-    def test_from_cel_two_calls(self):
+    def test_call_logs_from_cel_two_calls(self):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
         call_1, call_2 = self.cel_interpretor.interpret_call.side_effect = [Mock(), Mock()]
 
-        result = self.generator.from_cel(cels)
+        result = self.generator.call_logs_from_cel(cels)
 
         self.cel_interpretor.interpret_call.assert_any_call(cels_1)
         self.cel_interpretor.interpret_call.assert_any_call(cels_2)
         assert_that(result, contains(call_1, call_2))
 
-    def test_from_cel_two_calls_one_valid_one_invalid(self):
+    def test_call_logs_from_cel_two_calls_one_valid_one_invalid(self):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
         call_1, _ = self.cel_interpretor.interpret_call.side_effect = [Mock(), InvalidCallLogException()]
 
-        result = self.generator.from_cel(cels)
+        result = self.generator.call_logs_from_cel(cels)
 
         self.cel_interpretor.interpret_call.assert_any_call(cels_1)
         self.cel_interpretor.interpret_call.assert_any_call(cels_2)

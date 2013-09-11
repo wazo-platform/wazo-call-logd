@@ -25,6 +25,9 @@ class CallLogsGenerator(object):
         self.cel_interpretor = cel_interpretor
 
     def from_cel(self, cels):
+        return self.call_logs_from_cel(cels)
+
+    def call_logs_from_cel(self, cels):
         result = []
         for linkedid, cels_by_call_iter in self._group_cels_by_linkedid(cels):
             cels_by_call = list(cels_by_call_iter)
