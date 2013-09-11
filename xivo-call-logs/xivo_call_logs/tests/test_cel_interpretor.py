@@ -74,7 +74,8 @@ class TestCELInterpretor(TestCase):
         self.cel_interpretor.interpret_cel.assert_any_call(cel_1, call)
         self.cel_interpretor.interpret_cel.assert_any_call(cel_3, call)
         assert_that(self.cel_interpretor.interpret_cel.call_count, equal_to(2))
-        assert_that(result, equal_to(call))
+        assert_that(result, all_of(has_property('id', call.id),
+                                   has_property('cel_ids', [cel_1.id, cel_2.id, cel_3.id])))
 
     def test_interpret_cel(self):
         self.cel_interpretor.interpret_chan_start = Mock()

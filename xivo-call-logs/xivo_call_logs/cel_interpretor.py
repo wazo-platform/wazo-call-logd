@@ -34,7 +34,8 @@ class CELInterpretor(object):
 
     def interpret_cels(self, cels):
         call_log = raw_call_log.RawCallLog()
-        for cel in cels:
+        call_log.cel_ids = [cel.id for cel in cels]
+        for cel in self.filter_cels(cels):
             call_log = self.interpret_cel(cel, call_log)
 
         return call_log
