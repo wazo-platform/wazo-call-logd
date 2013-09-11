@@ -16,7 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import argparse
+import sys
 
+from xivo import pid_file
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_interpretor import CELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
@@ -24,9 +26,19 @@ from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
 
 DEFAULT_CEL_COUNT = 20000
+PIDFILENAME = '/var/run/xivo-call-logs.pid'
 
 
 def main():
+    if pid_file.is_already_running(PIDFILENAME):
+        print 'xivo-call-logs is already running'
+        sys.exit(1)
+
+    with pid_file.pidfile(PIDFILENAME):
+        _generate_call_logs()
+
+
+def _generate_call_logs():
     parser = argparse.ArgumentParser(description='Call logs generator')
     options = parse_args(parser)
     cel_fetcher = CELFetcher()

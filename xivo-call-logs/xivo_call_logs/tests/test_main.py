@@ -15,8 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import sys
+
 from hamcrest import assert_that, equal_to
-from mock import Mock
+from mock import Mock, patch
 from unittest import TestCase
 from xivo_call_logs import main
 
@@ -39,3 +41,28 @@ class TestMain(TestCase):
                                                     help='Minimum number of CEL entries to process')
         parser.parse_args.assert_called_once_with()
         assert_that(result, equal_to(parser.parse_args.return_value))
+
+    @patch('xivo.pid_file.is_already_running', Mock(return_value=True))
+    def test_main_already_running(self):
+        main._generate_call_logs = Mock(side_effect=AssertionError('Should not be called'))
+
+        self.assertRaises(SystemExit, main.main)
+
+    @patch('xivo.pid_file.is_already_running', Mock(return_value=False))
+    @patch('xivo.pid_file.add_pid_file', Mock())
+    def test_main_not_running(self):
+        main._generate_call_logs = Mock()
+
+        main.main()
+
+        self.assertEqual(main._generate_call_logs.call_count, 1)
+
+    @patch('xivo.pid_file.is_already_running', Mock(return_value=False))
+    @patch('xivo.pid_file.add_pid_file', Mock())
+    @patch('xivo.pid_file.remove_pid_file')
+    def test_pidfile_removed_on_error(self, mock_remove_pid_file):
+        main._generate_call_logs = Mock()
+
+        main.main()
+
+        self.assertEqual(mock_remove_pid_file.call_count, 1)
