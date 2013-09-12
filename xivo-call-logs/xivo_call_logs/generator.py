@@ -15,8 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from collections import namedtuple
 from itertools import groupby
 from xivo_call_logs.exceptions import InvalidCallLogException
+
+
+CallLogsCreation = namedtuple('CallLogsCreation', ('new_call_logs', 'call_logs_to_delete'))
 
 
 class CallLogsGenerator(object):
@@ -25,7 +29,9 @@ class CallLogsGenerator(object):
         self.cel_interpretor = cel_interpretor
 
     def from_cel(self, cels):
-        return self.call_logs_from_cel(cels)
+        call_logs_to_delete = self.call_logs_to_delete_from_cel(cels)
+        new_call_logs = self.call_logs_from_cel(cels)
+        return CallLogsCreation(new_call_logs=new_call_logs, call_logs_to_delete=call_logs_to_delete)
 
     def call_logs_from_cel(self, cels):
         result = []
@@ -38,6 +44,9 @@ class CallLogsGenerator(object):
                 pass
 
         return result
+
+    def call_logs_to_delete_from_cel(self, cels):
+        return set(cel.call_log_id for cel in cels if cel.call_log_id)
 
     def _group_cels_by_linkedid(self, cels):
         key_function = lambda cel: cel.linkedid

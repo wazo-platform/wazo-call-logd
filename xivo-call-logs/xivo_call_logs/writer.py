@@ -20,5 +20,5 @@ from xivo_dao.data_handler.call_log import dao as call_log_dao
 
 class CallLogsWriter(object):
 
-    def write(self, call_logs):
-        call_log_dao.create_all(call_logs)
+    def write(self, call_logs_creation):
+        call_log_dao.create_all(call_logs_creation.new_call_logs)

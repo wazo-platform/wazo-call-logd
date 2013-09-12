@@ -18,6 +18,7 @@
 from mock import Mock, patch
 from unittest import TestCase
 
+from xivo_call_logs.generator import CallLogsCreation
 from xivo_call_logs.writer import CallLogsWriter
 
 
@@ -30,8 +31,9 @@ class TestCallLogsWriter(TestCase):
 
     @patch('xivo_dao.data_handler.call_log.dao.create_all')
     def test_write(self, mock_dao_create):
-        call_logs = [Mock(), Mock()]
+        call_logs_creation = CallLogsCreation(new_call_logs=[Mock(), Mock()],
+                                              call_logs_to_delete=None)
 
-        self.writer.write(call_logs)
+        self.writer.write(call_logs_creation)
 
-        mock_dao_create.assert_called_once_with(call_logs)
+        mock_dao_create.assert_called_once_with(call_logs_creation.new_call_logs)
