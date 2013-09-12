@@ -34,9 +34,9 @@ class TestCallLogsGenerator(TestCase):
 
     def test_from_cel(self):
         self.generator.call_logs_from_cel = Mock()
-        self.generator.call_logs_to_delete_from_cel = Mock()
+        self.generator.list_call_log_ids = Mock()
         expected_calls = self.generator.call_logs_from_cel.return_value = Mock()
-        expected_to_delete = self.generator.call_logs_to_delete_from_cel.return_value = Mock()
+        expected_to_delete = self.generator.list_call_log_ids.return_value = Mock()
         cels = Mock()
 
         result = self.generator.from_cel(cels)
@@ -86,12 +86,12 @@ class TestCallLogsGenerator(TestCase):
         self.cel_interpretor.interpret_call.assert_any_call(cels_2)
         assert_that(result, contains(call_1))
 
-    def test_call_logs_to_delete_from_cel(self):
+    def test_list_call_log_ids(self):
         cel_1, cel_2 = Mock(call_log_id=1), Mock(call_log_id=1)
         cel_3, cel_4 = Mock(call_log_id=2), Mock(call_log_id=None)
         cels = [cel_1, cel_2, cel_3, cel_4]
 
-        result = self.generator.call_logs_to_delete_from_cel(cels)
+        result = self.generator.list_call_log_ids(cels)
 
         assert_that(result, contains_inanyorder(1, 2))
 

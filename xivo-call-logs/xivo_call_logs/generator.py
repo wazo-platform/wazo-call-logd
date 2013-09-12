@@ -29,7 +29,7 @@ class CallLogsGenerator(object):
         self.cel_interpretor = cel_interpretor
 
     def from_cel(self, cels):
-        call_logs_to_delete = self.call_logs_to_delete_from_cel(cels)
+        call_logs_to_delete = self.list_call_log_ids(cels)
         new_call_logs = self.call_logs_from_cel(cels)
         return CallLogsCreation(new_call_logs=new_call_logs, call_logs_to_delete=call_logs_to_delete)
 
@@ -45,7 +45,7 @@ class CallLogsGenerator(object):
 
         return result
 
-    def call_logs_to_delete_from_cel(self, cels):
+    def list_call_log_ids(self, cels):
         return set(cel.call_log_id for cel in cels if cel.call_log_id)
 
     def _group_cels_by_linkedid(self, cels):
