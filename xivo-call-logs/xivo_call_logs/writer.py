@@ -22,4 +22,4 @@ class CallLogsWriter(object):
 
     def write(self, call_logs_creation):
         call_log_dao.delete_from_list(call_logs_creation.call_logs_to_delete)
-        call_log_dao.create_all(call_logs_creation.new_call_logs)
+        call_log_dao.create_from_list(call_logs_creation.new_call_logs)
