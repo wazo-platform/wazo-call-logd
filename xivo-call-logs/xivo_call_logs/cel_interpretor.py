@@ -60,7 +60,7 @@ class CELInterpretor(object):
         call.date = cel.eventtime
         call.source_name = cel.cid_name
         call.source_exten = cel.cid_num
-        call.destination_exten = cel.exten
+        call.destination_exten = cel.exten if cel.exten != 's' else ''
 
         return call
 

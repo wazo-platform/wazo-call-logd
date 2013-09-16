@@ -113,6 +113,22 @@ class TestCELInterpretor(TestCase):
             has_property('destination_exten', cel_destination_exten),
         ))
 
+    def test_interpret_chan_start_with_destination_s(self):
+        cel = Mock()
+        cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+        cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
+        cel.exten = 's'
+        call = Mock(RawCallLog)
+
+        result = self.cel_interpretor.interpret_chan_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('date', cel_date),
+            has_property('source_name', cel_source_name),
+            has_property('source_exten', cel_source_exten),
+            has_property('destination_exten', ''),
+        ))
+
     def test_interpret_app_start(self):
         cel = Mock()
         cel_userfield = cel.userfield = 'userfield'
