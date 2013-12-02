@@ -20,10 +20,36 @@ from hamcrest import all_of, assert_that, equal_to, has_property, same_instance
 from mock import Mock, sentinel
 from unittest import TestCase
 
+from xivo_call_logs.cel_interpretor import AbstractCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
+from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.raw_call_log import RawCallLog
 from xivo_dao.data_handler.cel.event_type import CELEventType
 from xivo_dao.data_handler.call_log.model import CallLog
+
+
+class TestAbstractCELInterpretor(TestCase):
+    def setUp(self):
+
+        class ConcreteCELInterpretor(AbstractCELInterpretor):
+            pass
+
+        self.cel_interpretor = ConcreteCELInterpretor()
+
+    def tearDown(self):
+        pass
+
+    def test_interpret_cels(self):
+        cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
+        calls = sentinel.call_1, sentinel.call_2, sentinel.call_3, sentinel.call_4
+        self.cel_interpretor.interpret_cel = Mock(side_effect=calls[1:])
+
+        result = self.cel_interpretor.interpret_cels(cels, sentinel.call_1)
+
+        self.cel_interpretor.interpret_cel.assert_any_call(cel_1, sentinel.call_1)
+        self.cel_interpretor.interpret_cel.assert_any_call(cel_2, sentinel.call_2)
+        self.cel_interpretor.interpret_cel.assert_any_call(cel_3, sentinel.call_3)
+        assert_that(result, same_instance(sentinel.call_4))
 
 
 class TestCallerCELInterpretor(TestCase):
@@ -32,18 +58,6 @@ class TestCallerCELInterpretor(TestCase):
 
     def tearDown(self):
         pass
-
-    def test_interpret_cels(self):
-        cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
-        calls = sentinel.call_1, sentinel.call_2, sentinel.call_3, sentinel.call_4
-        self.caller_cel_interpretor.interpret_cel = Mock(side_effect=calls[1:])
-
-        result = self.caller_cel_interpretor.interpret_cels(cels, sentinel.call_1)
-
-        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_1, sentinel.call_1)
-        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_2, sentinel.call_2)
-        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_3, sentinel.call_3)
-        assert_that(result, same_instance(sentinel.call_4))
 
     def test_interpret_cel(self):
         self.caller_cel_interpretor.interpret_chan_start = Mock()
@@ -183,3 +197,11 @@ class TestCallerCELInterpretor(TestCase):
 
         function.assert_called_once_with(cel, call)
         assert_that(result, equal_to(new_call))
+
+
+class TestCalleeCELInterpretor(TestCase):
+    def setUp(self):
+        self.callee_cel_interpretor = CalleeCELInterpretor()
+
+    def tearDown(self):
+        pass

@@ -18,11 +18,15 @@
 from xivo_dao.data_handler.cel.event_type import CELEventType
 
 
-class CallerCELInterpretor(object):
+class AbstractCELInterpretor(object):
+
     def interpret_cels(self, caller_cels, call_log):
         for cel in caller_cels:
             call_log = self.interpret_cel(cel, call_log)
         return call_log
+
+
+class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_cel(self, cel, call):
         eventtype_map = {
@@ -75,6 +79,5 @@ class CallerCELInterpretor(object):
         return call
 
 
-class CalleeCELInterpretor(object):
-    def interpret_cels(cels, call_log):
-        return call_log
+class CalleeCELInterpretor(AbstractCELInterpretor):
+    pass
