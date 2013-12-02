@@ -100,10 +100,13 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result, equal_to(call))
 
     def test_interpret_chan_start(self):
+
         cel = Mock()
         cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
         cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
         cel_destination_exten = cel.exten = 'destination_exten'
+        line_identity = 'sip/asldfj'
+        cel.channame = line_identity + '-0000001'
         call = Mock(RawCallLog)
 
         result = self.caller_cel_interpretor.interpret_chan_start(cel, call)
@@ -113,6 +116,7 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_name', cel_source_name),
             has_property('source_exten', cel_source_exten),
             has_property('destination_exten', cel_destination_exten),
+            has_property('source_line_identity', line_identity),
         ))
 
     def test_interpret_chan_start_with_destination_s(self):
@@ -120,6 +124,8 @@ class TestCallerCELInterpretor(TestCase):
         cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
         cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
         cel.exten = 's'
+        line_identity = 'sip/asldfj'
+        cel.channame = line_identity + '-0000001'
         call = Mock(RawCallLog)
 
         result = self.caller_cel_interpretor.interpret_chan_start(cel, call)
@@ -129,6 +135,7 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_name', cel_source_name),
             has_property('source_exten', cel_source_exten),
             has_property('destination_exten', ''),
+            has_property('source_line_identity', line_identity),
         ))
 
     def test_interpret_app_start(self):
@@ -207,9 +214,20 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_exten', source_exten),
         ))
 
+
 class TestCalleeCELInterpretor(TestCase):
     def setUp(self):
         self.callee_cel_interpretor = CalleeCELInterpretor()
 
     def tearDown(self):
         pass
+
+    def test_interpret_chan_start(self):
+        cel = Mock()
+        line_identity = 'sip/asldfj'
+        cel.channame = line_identity + '-0000001'
+        call = Mock(RawCallLog)
+
+        result = self.callee_cel_interpretor.interpret_chan_start(cel, call)
+
+        assert_that(result, has_property('destination_line_identity', line_identity))

@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from xivo.asterisk.line_identity import identity_from_channel
 from xivo_dao.data_handler.cel.event_type import CELEventType
 
 
@@ -52,6 +53,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.source_name = cel.cid_name
         call.source_exten = cel.cid_num
         call.destination_exten = cel.exten if cel.exten != 's' else ''
+        call.source_line_identity = identity_from_channel(cel.channame)
 
         return call
 
@@ -87,3 +89,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
         }
+
+    def interpret_chan_start(self, cel, call):
+        call.destination_line_identity = identity_from_channel(cel.channame)
+
+        return call
