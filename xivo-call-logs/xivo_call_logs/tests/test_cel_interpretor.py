@@ -28,7 +28,10 @@ from xivo_dao.data_handler.call_log.model import CallLog
 
 class TestCELInterpretor(TestCase):
     def setUp(self):
-        self.cel_interpretor = CELInterpretor()
+        self.caller_cel_interpretor = Mock()
+        self.callee_cel_interpretor = Mock()
+        self.cel_interpretor = CELInterpretor(self.caller_cel_interpretor,
+                                              self.callee_cel_interpretor)
 
     def tearDown(self):
         pass
@@ -62,18 +65,16 @@ class TestCELInterpretor(TestCase):
     @patch('xivo_call_logs.raw_call_log.RawCallLog')
     def test_interpret_cels(self, mock_raw_call_log):
         cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
-        filtered_cels = [cel_1, cel_3]
+        caller_cels = [cel_1, cel_3]
         call = Mock(RawCallLog, id=1)
         self.cel_interpretor.interpret_cel = Mock(return_value=call)
         mock_raw_call_log.side_effect = [call, Mock(RawCallLog, id=2)]
-        self.cel_interpretor.filter_cels = Mock(return_value=filtered_cels)
+        self.cel_interpretor.filter_cels = Mock(return_value=caller_cels)
 
         result = self.cel_interpretor.interpret_cels(cels)
 
         self.cel_interpretor.filter_cels.assert_called_once_with(cels)
-        self.cel_interpretor.interpret_cel.assert_any_call(cel_1, call)
-        self.cel_interpretor.interpret_cel.assert_any_call(cel_3, call)
-        assert_that(self.cel_interpretor.interpret_cel.call_count, equal_to(2))
+        self.caller_cel_interpretor.interpret_cels.assert_called_once_with(caller_cels, call)
         assert_that(result, all_of(has_property('id', call.id),
                                    has_property('cel_ids', [cel_1.id, cel_2.id, cel_3.id])))
 

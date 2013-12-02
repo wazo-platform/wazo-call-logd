@@ -21,6 +21,8 @@ import sys
 from xivo import pid_file
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_interpretor import CELInterpretor
+from xivo_call_logs.cel_interpretor import CallerCELInterpretor
+from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
@@ -42,7 +44,10 @@ def _generate_call_logs():
     parser = argparse.ArgumentParser(description='Call logs generator')
     options = parse_args(parser)
     cel_fetcher = CELFetcher()
-    cel_interpretor = CELInterpretor()
+    caller_cel_interpretor = CallerCELInterpretor()
+    callee_cel_interpretor = CalleeCELInterpretor()
+    cel_interpretor = CELInterpretor(caller_cel_interpretor,
+                                     callee_cel_interpretor)
     generator = CallLogsGenerator(cel_interpretor)
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
