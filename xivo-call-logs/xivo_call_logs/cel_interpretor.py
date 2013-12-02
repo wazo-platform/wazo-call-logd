@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from itertools import groupby
+
 from xivo_call_logs import raw_call_log
 from xivo_dao.data_handler.cel.event_type import CELEventType
 
@@ -90,18 +92,20 @@ class CELInterpretor(object):
         raw_call = self.interpret_cels(cels)
         return raw_call.to_call_log()
 
-    def filter_cels(self, cels):
-        if not cels:
-            return []
-
-        first_unique_id = cels[0].uniqueid
-        return [cel for cel in cels if cel.uniqueid == first_unique_id]
-
     def interpret_cels(self, cels):
         call_log = raw_call_log.RawCallLog()
         call_log.cel_ids = [cel.id for cel in cels]
 
-        caller_cels = self.filter_cels(cels)
+        caller_cels, _ = self.split_caller_callee_cels(cels)
         self.caller_cel_interpretor.interpret_cels(caller_cels, call_log)
 
         return call_log
+
+    def split_caller_callee_cels(self, cels):
+        key_function = lambda cel: cel.uniqueid
+        sorted_cels = sorted(cels, key=key_function)
+        cels_by_uniqueid = [list(cels) for _, cels in groupby(sorted_cels, key=key_function)]
+
+        caller_cels = cels_by_uniqueid[0] if len(cels_by_uniqueid) > 0 else []
+        callee_cels = cels_by_uniqueid[1] if len(cels_by_uniqueid) > 1 else []
+        return (caller_cels, callee_cels)

@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import datetime
-from hamcrest import all_of, assert_that, equal_to, has_property, same_instance
+from hamcrest import all_of, assert_that, contains, equal_to, has_property, same_instance
 from mock import Mock, patch, sentinel
 from unittest import TestCase
 
@@ -48,33 +48,50 @@ class TestCELInterpretor(TestCase):
         self.cel_interpretor.interpret_cels.assert_called_once_with(cels)
         assert_that(result, equal_to(expected_call_log))
 
-    def test_filter_cels_no_cels(self):
+    def test_split_caller_callee_cels_no_cels(self):
         cels = []
 
-        result = self.cel_interpretor.filter_cels(cels)
+        result = self.cel_interpretor.split_caller_callee_cels(cels)
 
-        assert_that(result, equal_to([]))
+        assert_that(result, contains(contains(), contains()))
 
-    def test_filter_cels(self):
-        cels = [Mock(uniqueid=1), Mock(uniqueid=2), Mock(uniqueid=1), Mock(uniqueid=3)]
-        expected = [cel for cel in cels if cel.uniqueid == 1]
+    def test_split_caller_callee_cels_1_uniqueid(self):
+        cels = cel_1, cel_2 = [Mock(uniqueid=1), Mock(uniqueid=1)]
 
-        result = self.cel_interpretor.filter_cels(cels)
+        result = self.cel_interpretor.split_caller_callee_cels(cels)
 
-        assert_that(result, equal_to(expected))
+        assert_that(result, contains(contains(cel_1, cel_2), contains()))
+
+    def test_split_caller_callee_cels_2_uniqueids(self):
+        cels = cel_1, cel_2, cel_3, cel_4 = \
+            [Mock(uniqueid=1), Mock(uniqueid=2), Mock(uniqueid=1), Mock(uniqueid=2)]
+
+        result = self.cel_interpretor.split_caller_callee_cels(cels)
+
+        assert_that(result, contains(contains(cel_1, cel_3),
+                                     contains(cel_2, cel_4)))
+
+    def test_split_caller_callee_cels_3_uniqueids(self):
+        cels = cel_1, cel_2, cel_3 = \
+            [Mock(uniqueid=1), Mock(uniqueid=2), Mock(uniqueid=3)]
+
+        result = self.cel_interpretor.split_caller_callee_cels(cels)
+
+        assert_that(result, contains(contains(cel_1),
+                                     contains(cel_2)))
 
     @patch('xivo_call_logs.raw_call_log.RawCallLog')
     def test_interpret_cels(self, mock_raw_call_log):
         cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
         caller_cels = [cel_1, cel_3]
         call = Mock(RawCallLog, id=1)
-        self.cel_interpretor.interpret_cel = Mock(return_value=call)
         mock_raw_call_log.side_effect = [call, Mock(RawCallLog, id=2)]
-        self.cel_interpretor.filter_cels = Mock(return_value=caller_cels)
+        self.cel_interpretor.interpret_cel = Mock(return_value=call)
+        self.cel_interpretor.split_caller_callee_cels = Mock(return_value=(caller_cels, None))
 
         result = self.cel_interpretor.interpret_cels(cels)
 
-        self.cel_interpretor.filter_cels.assert_called_once_with(cels)
+        self.cel_interpretor.split_caller_callee_cels.assert_called_once_with(cels)
         self.caller_cel_interpretor.interpret_cels.assert_called_once_with(caller_cels, call)
         assert_that(result, all_of(has_property('id', call.id),
                                    has_property('cel_ids', [cel_1.id, cel_2.id, cel_3.id])))
