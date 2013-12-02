@@ -29,10 +29,17 @@ from xivo_dao.data_handler.call_log.model import CallLog
 
 
 class TestAbstractCELInterpretor(TestCase):
+
     def setUp(self):
 
         class ConcreteCELInterpretor(AbstractCELInterpretor):
-            pass
+            def __init__(self):
+                self.eventtype_map = {
+                    CELEventType.chan_start: self.chan_start,
+                    CELEventType.hangup: self.hangup,
+                }
+            chan_start = Mock()
+            hangup = Mock()
 
         self.cel_interpretor = ConcreteCELInterpretor()
 
@@ -51,25 +58,38 @@ class TestAbstractCELInterpretor(TestCase):
         self.cel_interpretor.interpret_cel.assert_any_call(cel_3, sentinel.call_3)
         assert_that(result, same_instance(sentinel.call_4))
 
+    def test_interpret_cel_known_events(self):
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.chan_start, CELEventType.chan_start)
+        self._assert_that_interpret_cel_calls(self.cel_interpretor.hangup, CELEventType.hangup)
+
+    def test_interpret_cel_unknown_events(self):
+        cel = Mock(eventtype=CELEventType.answer)
+
+        result = self.cel_interpretor.interpret_cel(cel, sentinel.call)
+
+        assert_that(result, same_instance(sentinel.call))
+        assert_that(self.cel_interpretor.chan_start.call_count, equal_to(0))
+        assert_that(self.cel_interpretor.hangup.call_count, equal_to(0))
+
+    def _assert_that_interpret_cel_calls(self, function, eventtype):
+        cel = Mock(eventtype=eventtype)
+        call = Mock(RawCallLog)
+        new_call = Mock(RawCallLog)
+        function.return_value = new_call
+
+        result = self.cel_interpretor.interpret_cel(cel, call)
+
+        function.assert_called_once_with(cel, call)
+        assert_that(result, equal_to(new_call))
+
 
 class TestCallerCELInterpretor(TestCase):
+
     def setUp(self):
         self.caller_cel_interpretor = CallerCELInterpretor()
 
     def tearDown(self):
         pass
-
-    def test_interpret_cel(self):
-        self.caller_cel_interpretor.interpret_chan_start = Mock()
-        self.caller_cel_interpretor.interpret_app_start = Mock()
-        self.caller_cel_interpretor.interpret_answer = Mock()
-        self.caller_cel_interpretor.interpret_bridge_start = Mock()
-        self.caller_cel_interpretor.interpret_hangup = Mock()
-        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_chan_start, CELEventType.chan_start)
-        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_app_start, CELEventType.app_start)
-        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_answer, CELEventType.answer)
-        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
-        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_hangup, CELEventType.hangup)
 
     def test_interpret_cel_unknown_or_ignored_event(self):
         cel = Mock(eventtype='unknown_or_ignored_eventtype')
@@ -186,18 +206,6 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_name', source_name),
             has_property('source_exten', source_exten),
         ))
-
-    def _assert_that_interpret_cel_calls(self, function, eventtype):
-        cel = Mock(eventtype=eventtype)
-        call = Mock(RawCallLog)
-        new_call = Mock(RawCallLog)
-        function.return_value = new_call
-
-        result = self.caller_cel_interpretor.interpret_cel(cel, call)
-
-        function.assert_called_once_with(cel, call)
-        assert_that(result, equal_to(new_call))
-
 
 class TestCalleeCELInterpretor(TestCase):
     def setUp(self):

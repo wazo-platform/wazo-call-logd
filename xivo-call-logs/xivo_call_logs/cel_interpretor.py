@@ -20,29 +20,32 @@ from xivo_dao.data_handler.cel.event_type import CELEventType
 
 class AbstractCELInterpretor(object):
 
+    eventtype_map = {}
+
     def interpret_cels(self, caller_cels, call_log):
         for cel in caller_cels:
             call_log = self.interpret_cel(cel, call_log)
         return call_log
 
+    def interpret_cel(self, cel, call):
+        eventtype = cel.eventtype
+        if eventtype in self.eventtype_map:
+            interpret_function = self.eventtype_map[eventtype]
+            return interpret_function(cel, call)
+        else:
+            return call
+
 
 class CallerCELInterpretor(AbstractCELInterpretor):
 
-    def interpret_cel(self, cel, call):
-        eventtype_map = {
+    def __init__(self):
+        self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.app_start: self.interpret_app_start,
             CELEventType.answer: self.interpret_answer,
             CELEventType.bridge_start: self.interpret_bridge_start,
             CELEventType.hangup: self.interpret_hangup,
         }
-
-        eventtype = cel.eventtype
-        if eventtype in eventtype_map:
-            interpret_function = eventtype_map[eventtype]
-            return interpret_function(cel, call)
-        else:
-            return call
 
     def interpret_chan_start(self, cel, call):
         call.date = cel.eventtime
@@ -80,4 +83,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
 
 class CalleeCELInterpretor(AbstractCELInterpretor):
-    pass
+    def __init__(self):
+        self.eventtype_map = {
+            CELEventType.chan_start: self.interpret_chan_start,
+        }
