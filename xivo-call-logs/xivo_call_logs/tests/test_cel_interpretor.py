@@ -79,145 +79,6 @@ class TestCELInterpretor(TestCase):
         assert_that(result, all_of(has_property('id', call.id),
                                    has_property('cel_ids', [cel_1.id, cel_2.id, cel_3.id])))
 
-    def test_interpret_cel(self):
-        self.cel_interpretor.interpret_chan_start = Mock()
-        self.cel_interpretor.interpret_app_start = Mock()
-        self.cel_interpretor.interpret_answer = Mock()
-        self.cel_interpretor.interpret_bridge_start = Mock()
-        self.cel_interpretor.interpret_hangup = Mock()
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_start, CELEventType.chan_start)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_app_start, CELEventType.app_start)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_answer, CELEventType.answer)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_hangup, CELEventType.hangup)
-
-    def test_interpret_cel_unknown_or_ignored_event(self):
-        cel = Mock(eventtype='unknown_or_ignored_eventtype')
-        call = Mock(RawCallLog)
-
-        result = self.cel_interpretor.interpret_cel(cel, call)
-
-        assert_that(result, equal_to(call))
-
-    def test_interpret_chan_start(self):
-        cel = Mock()
-        cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
-        cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
-        cel_destination_exten = cel.exten = 'destination_exten'
-        call = Mock(RawCallLog)
-
-        result = self.cel_interpretor.interpret_chan_start(cel, call)
-
-        assert_that(result, all_of(
-            has_property('date', cel_date),
-            has_property('source_name', cel_source_name),
-            has_property('source_exten', cel_source_exten),
-            has_property('destination_exten', cel_destination_exten),
-        ))
-
-    def test_interpret_chan_start_with_destination_s(self):
-        cel = Mock()
-        cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
-        cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
-        cel.exten = 's'
-        call = Mock(RawCallLog)
-
-        result = self.cel_interpretor.interpret_chan_start(cel, call)
-
-        assert_that(result, all_of(
-            has_property('date', cel_date),
-            has_property('source_name', cel_source_name),
-            has_property('source_exten', cel_source_exten),
-            has_property('destination_exten', ''),
-        ))
-
-    def test_interpret_app_start(self):
-        cel = Mock()
-        cel_userfield = cel.userfield = 'userfield'
-        call = Mock(RawCallLog)
-
-        result = self.cel_interpretor.interpret_app_start(cel, call)
-
-        assert_that(result, all_of(
-            has_property('user_field', cel_userfield)
-        ))
-
-    def test_interpret_answer_no_destination_yet(self):
-        cel = Mock()
-        cel_source_name = cel.cid_name = 'destination_exten'
-        start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
-        call = Mock(RawCallLog, destination_exten=None)
-
-        result = self.cel_interpretor.interpret_answer(cel, call)
-
-        assert_that(result, all_of(
-            has_property('destination_exten', cel_source_name),
-            has_property('communication_start', start_date),
-            has_property('answered', True),
-        ))
-
-    def test_interpret_answer_with_destination_already_set(self):
-        cel = Mock(cid_name='other_destination')
-        start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
-        call = Mock(RawCallLog)
-        call_destination = call.destination_exten = 'first_destination'
-
-        result = self.cel_interpretor.interpret_answer(cel, call)
-
-        assert_that(result, all_of(
-            has_property('destination_exten', call_destination),
-            has_property('communication_start', start_date),
-            has_property('answered', True),
-        ))
-
-    def test_interpret_hangup_sets_call_end(self):
-        cel = Mock()
-        end_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
-        call = Mock(CallLog)
-
-        result = self.cel_interpretor.interpret_hangup(cel, call)
-
-        assert_that(result, all_of(
-            has_property('communication_end', end_date),
-        ))
-
-    def test_interpret_bridge_start_with_no_source_set(self):
-        cel = Mock()
-        source_name = cel.cid_name = 'source_name'
-        source_exten = cel.cid_num = 'source_exten'
-        call = Mock(RawCallLog, source_name=None, source_exten=None)
-
-        result = self.cel_interpretor.interpret_bridge_start(cel, call)
-
-        assert_that(result, all_of(
-            has_property('source_name', source_name),
-            has_property('source_exten', source_exten),
-        ))
-
-    def test_interpret_bridge_start_with_source_already_set(self):
-        cel = Mock(cid_name='other_source_name', cid_num='other_source_exten')
-        call = Mock(RawCallLog)
-        source_name = call.source_name = 'first_source_name'
-        source_exten = call.source_exten = 'first_source_exten'
-
-        result = self.cel_interpretor.interpret_bridge_start(cel, call)
-
-        assert_that(result, all_of(
-            has_property('source_name', source_name),
-            has_property('source_exten', source_exten),
-        ))
-
-    def _assert_that_interpret_cel_calls(self, function, eventtype):
-        cel = Mock(eventtype=eventtype)
-        call = Mock(RawCallLog)
-        new_call = Mock(RawCallLog)
-        function.return_value = new_call
-
-        result = self.cel_interpretor.interpret_cel(cel, call)
-
-        function.assert_called_once_with(cel, call)
-        assert_that(result, equal_to(new_call))
-
 
 class TestCallerCELInterpretor(TestCase):
     def setUp(self):
@@ -237,3 +98,142 @@ class TestCallerCELInterpretor(TestCase):
         self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_2, sentinel.call_2)
         self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_3, sentinel.call_3)
         assert_that(result, same_instance(sentinel.call_4))
+
+    def test_interpret_cel(self):
+        self.caller_cel_interpretor.interpret_chan_start = Mock()
+        self.caller_cel_interpretor.interpret_app_start = Mock()
+        self.caller_cel_interpretor.interpret_answer = Mock()
+        self.caller_cel_interpretor.interpret_bridge_start = Mock()
+        self.caller_cel_interpretor.interpret_hangup = Mock()
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_chan_start, CELEventType.chan_start)
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_app_start, CELEventType.app_start)
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_answer, CELEventType.answer)
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_hangup, CELEventType.hangup)
+
+    def test_interpret_cel_unknown_or_ignored_event(self):
+        cel = Mock(eventtype='unknown_or_ignored_eventtype')
+        call = Mock(RawCallLog)
+
+        result = self.caller_cel_interpretor.interpret_cel(cel, call)
+
+        assert_that(result, equal_to(call))
+
+    def test_interpret_chan_start(self):
+        cel = Mock()
+        cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+        cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
+        cel_destination_exten = cel.exten = 'destination_exten'
+        call = Mock(RawCallLog)
+
+        result = self.caller_cel_interpretor.interpret_chan_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('date', cel_date),
+            has_property('source_name', cel_source_name),
+            has_property('source_exten', cel_source_exten),
+            has_property('destination_exten', cel_destination_exten),
+        ))
+
+    def test_interpret_chan_start_with_destination_s(self):
+        cel = Mock()
+        cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+        cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
+        cel.exten = 's'
+        call = Mock(RawCallLog)
+
+        result = self.caller_cel_interpretor.interpret_chan_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('date', cel_date),
+            has_property('source_name', cel_source_name),
+            has_property('source_exten', cel_source_exten),
+            has_property('destination_exten', ''),
+        ))
+
+    def test_interpret_app_start(self):
+        cel = Mock()
+        cel_userfield = cel.userfield = 'userfield'
+        call = Mock(RawCallLog)
+
+        result = self.caller_cel_interpretor.interpret_app_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('user_field', cel_userfield)
+        ))
+
+    def test_interpret_answer_no_destination_yet(self):
+        cel = Mock()
+        cel_source_name = cel.cid_name = 'destination_exten'
+        start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+        call = Mock(RawCallLog, destination_exten=None)
+
+        result = self.caller_cel_interpretor.interpret_answer(cel, call)
+
+        assert_that(result, all_of(
+            has_property('destination_exten', cel_source_name),
+            has_property('communication_start', start_date),
+            has_property('answered', True),
+        ))
+
+    def test_interpret_answer_with_destination_already_set(self):
+        cel = Mock(cid_name='other_destination')
+        start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+        call = Mock(RawCallLog)
+        call_destination = call.destination_exten = 'first_destination'
+
+        result = self.caller_cel_interpretor.interpret_answer(cel, call)
+
+        assert_that(result, all_of(
+            has_property('destination_exten', call_destination),
+            has_property('communication_start', start_date),
+            has_property('answered', True),
+        ))
+
+    def test_interpret_hangup_sets_call_end(self):
+        cel = Mock()
+        end_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+        call = Mock(CallLog)
+
+        result = self.caller_cel_interpretor.interpret_hangup(cel, call)
+
+        assert_that(result, all_of(
+            has_property('communication_end', end_date),
+        ))
+
+    def test_interpret_bridge_start_with_no_source_set(self):
+        cel = Mock()
+        source_name = cel.cid_name = 'source_name'
+        source_exten = cel.cid_num = 'source_exten'
+        call = Mock(RawCallLog, source_name=None, source_exten=None)
+
+        result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('source_name', source_name),
+            has_property('source_exten', source_exten),
+        ))
+
+    def test_interpret_bridge_start_with_source_already_set(self):
+        cel = Mock(cid_name='other_source_name', cid_num='other_source_exten')
+        call = Mock(RawCallLog)
+        source_name = call.source_name = 'first_source_name'
+        source_exten = call.source_exten = 'first_source_exten'
+
+        result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('source_name', source_name),
+            has_property('source_exten', source_exten),
+        ))
+
+    def _assert_that_interpret_cel_calls(self, function, eventtype):
+        cel = Mock(eventtype=eventtype)
+        call = Mock(RawCallLog)
+        new_call = Mock(RawCallLog)
+        function.return_value = new_call
+
+        result = self.caller_cel_interpretor.interpret_cel(cel, call)
+
+        function.assert_called_once_with(cel, call)
+        assert_that(result, equal_to(new_call))

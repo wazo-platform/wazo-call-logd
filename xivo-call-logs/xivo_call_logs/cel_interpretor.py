@@ -25,37 +25,6 @@ class CallerCELInterpretor(object):
             call_log = self.interpret_cel(cel, call_log)
         return call_log
 
-
-class CalleeCELInterpretor(object):
-    pass
-
-
-class CELInterpretor(object):
-
-    def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
-        self.caller_cel_interpretor = caller_cel_interpretor
-        self.callee_cel_interpretor = callee_cel_interpretor
-
-    def interpret_call(self, cels):
-        raw_call = self.interpret_cels(cels)
-        return raw_call.to_call_log()
-
-    def filter_cels(self, cels):
-        if not cels:
-            return []
-
-        first_unique_id = cels[0].uniqueid
-        return [cel for cel in cels if cel.uniqueid == first_unique_id]
-
-    def interpret_cels(self, cels):
-        call_log = raw_call_log.RawCallLog()
-        call_log.cel_ids = [cel.id for cel in cels]
-
-        caller_cels = self.filter_cels(cels)
-        self.caller_cel_interpretor.interpret_cels(caller_cels, call_log)
-
-        return call_log
-
     def interpret_cel(self, cel, call):
         eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
@@ -105,3 +74,34 @@ class CELInterpretor(object):
         call.communication_end = cel.eventtime
 
         return call
+
+
+class CalleeCELInterpretor(object):
+    pass
+
+
+class CELInterpretor(object):
+
+    def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
+        self.caller_cel_interpretor = caller_cel_interpretor
+        self.callee_cel_interpretor = callee_cel_interpretor
+
+    def interpret_call(self, cels):
+        raw_call = self.interpret_cels(cels)
+        return raw_call.to_call_log()
+
+    def filter_cels(self, cels):
+        if not cels:
+            return []
+
+        first_unique_id = cels[0].uniqueid
+        return [cel for cel in cels if cel.uniqueid == first_unique_id]
+
+    def interpret_cels(self, cels):
+        call_log = raw_call_log.RawCallLog()
+        call_log.cel_ids = [cel.id for cel in cels]
+
+        caller_cels = self.filter_cels(cels)
+        self.caller_cel_interpretor.interpret_cels(caller_cels, call_log)
+
+        return call_log
