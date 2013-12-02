@@ -79,7 +79,8 @@ class CallerCELInterpretor(object):
 
 
 class CalleeCELInterpretor(object):
-    pass
+    def interpret_cels(cels, call_log):
+        return call_log
 
 
 class CELInterpretor(object):
@@ -96,8 +97,9 @@ class CELInterpretor(object):
         call_log = raw_call_log.RawCallLog()
         call_log.cel_ids = [cel.id for cel in cels]
 
-        caller_cels, _ = self.split_caller_callee_cels(cels)
-        self.caller_cel_interpretor.interpret_cels(caller_cels, call_log)
+        caller_cels, callee_cels = self.split_caller_callee_cels(cels)
+        call_log = self.caller_cel_interpretor.interpret_cels(caller_cels, call_log)
+        call_log = self.callee_cel_interpretor.interpret_cels(callee_cels, call_log)
 
         return call_log
 

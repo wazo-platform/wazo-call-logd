@@ -84,17 +84,19 @@ class TestCELInterpretor(TestCase):
     def test_interpret_cels(self, mock_raw_call_log):
         cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
         caller_cels = [cel_1, cel_3]
+        callee_cels = [cel_2]
         call = Mock(RawCallLog, id=1)
         mock_raw_call_log.side_effect = [call, Mock(RawCallLog, id=2)]
-        self.cel_interpretor.interpret_cel = Mock(return_value=call)
-        self.cel_interpretor.split_caller_callee_cels = Mock(return_value=(caller_cels, None))
+        self.caller_cel_interpretor.interpret_cels = Mock(return_value=sentinel.call_caller_done)
+        self.callee_cel_interpretor.interpret_cels = Mock(return_value=sentinel.call_callee_done)
+        self.cel_interpretor.split_caller_callee_cels = Mock(return_value=(caller_cels, callee_cels))
 
         result = self.cel_interpretor.interpret_cels(cels)
 
         self.cel_interpretor.split_caller_callee_cels.assert_called_once_with(cels)
         self.caller_cel_interpretor.interpret_cels.assert_called_once_with(caller_cels, call)
-        assert_that(result, all_of(has_property('id', call.id),
-                                   has_property('cel_ids', [cel_1.id, cel_2.id, cel_3.id])))
+        self.callee_cel_interpretor.interpret_cels.assert_called_once_with(callee_cels, sentinel.call_caller_done)
+        assert_that(result, same_instance(sentinel.call_callee_done))
 
 
 class TestCallerCELInterpretor(TestCase):
