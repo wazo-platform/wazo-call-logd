@@ -16,11 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import datetime
-from hamcrest import all_of, assert_that, equal_to, has_property
-from mock import Mock, patch
+from hamcrest import all_of, assert_that, equal_to, has_property, same_instance
+from mock import Mock, patch, sentinel
 from unittest import TestCase
 
 from xivo_call_logs.cel_interpretor import CELInterpretor
+from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.raw_call_log import RawCallLog
 from xivo_dao.data_handler.cel.event_type import CELEventType
 from xivo_dao.data_handler.call_log.model import CallLog
@@ -28,7 +29,10 @@ from xivo_dao.data_handler.call_log.model import CallLog
 
 class TestCELInterpretor(TestCase):
     def setUp(self):
-        self.cel_interpretor = CELInterpretor()
+        self.caller_cel_interpretor = Mock()
+        self.callee_cel_interpretor = Mock()
+        self.cel_interpretor = CELInterpretor(self.caller_cel_interpretor,
+                                              self.callee_cel_interpretor)
 
     def tearDown(self):
         pass
@@ -62,38 +66,56 @@ class TestCELInterpretor(TestCase):
     @patch('xivo_call_logs.raw_call_log.RawCallLog')
     def test_interpret_cels(self, mock_raw_call_log):
         cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
-        filtered_cels = [cel_1, cel_3]
+        caller_cels = [cel_1, cel_3]
         call = Mock(RawCallLog, id=1)
         self.cel_interpretor.interpret_cel = Mock(return_value=call)
         mock_raw_call_log.side_effect = [call, Mock(RawCallLog, id=2)]
-        self.cel_interpretor.filter_cels = Mock(return_value=filtered_cels)
+        self.cel_interpretor.filter_cels = Mock(return_value=caller_cels)
 
         result = self.cel_interpretor.interpret_cels(cels)
 
         self.cel_interpretor.filter_cels.assert_called_once_with(cels)
-        self.cel_interpretor.interpret_cel.assert_any_call(cel_1, call)
-        self.cel_interpretor.interpret_cel.assert_any_call(cel_3, call)
-        assert_that(self.cel_interpretor.interpret_cel.call_count, equal_to(2))
+        self.caller_cel_interpretor.interpret_cels.assert_called_once_with(caller_cels, call)
         assert_that(result, all_of(has_property('id', call.id),
                                    has_property('cel_ids', [cel_1.id, cel_2.id, cel_3.id])))
 
+
+class TestCallerCELInterpretor(TestCase):
+    def setUp(self):
+        self.caller_cel_interpretor = CallerCELInterpretor()
+
+    def tearDown(self):
+        pass
+
+    def test_interpret_cels(self):
+        cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
+        calls = sentinel.call_1, sentinel.call_2, sentinel.call_3, sentinel.call_4
+        self.caller_cel_interpretor.interpret_cel = Mock(side_effect=calls[1:])
+
+        result = self.caller_cel_interpretor.interpret_cels(cels, sentinel.call_1)
+
+        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_1, sentinel.call_1)
+        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_2, sentinel.call_2)
+        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_3, sentinel.call_3)
+        assert_that(result, same_instance(sentinel.call_4))
+
     def test_interpret_cel(self):
-        self.cel_interpretor.interpret_chan_start = Mock()
-        self.cel_interpretor.interpret_app_start = Mock()
-        self.cel_interpretor.interpret_answer = Mock()
-        self.cel_interpretor.interpret_bridge_start = Mock()
-        self.cel_interpretor.interpret_hangup = Mock()
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_chan_start, CELEventType.chan_start)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_app_start, CELEventType.app_start)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_answer, CELEventType.answer)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
-        self._assert_that_interpret_cel_calls(self.cel_interpretor.interpret_hangup, CELEventType.hangup)
+        self.caller_cel_interpretor.interpret_chan_start = Mock()
+        self.caller_cel_interpretor.interpret_app_start = Mock()
+        self.caller_cel_interpretor.interpret_answer = Mock()
+        self.caller_cel_interpretor.interpret_bridge_start = Mock()
+        self.caller_cel_interpretor.interpret_hangup = Mock()
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_chan_start, CELEventType.chan_start)
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_app_start, CELEventType.app_start)
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_answer, CELEventType.answer)
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_bridge_start, CELEventType.bridge_start)
+        self._assert_that_interpret_cel_calls(self.caller_cel_interpretor.interpret_hangup, CELEventType.hangup)
 
     def test_interpret_cel_unknown_or_ignored_event(self):
         cel = Mock(eventtype='unknown_or_ignored_eventtype')
         call = Mock(RawCallLog)
 
-        result = self.cel_interpretor.interpret_cel(cel, call)
+        result = self.caller_cel_interpretor.interpret_cel(cel, call)
 
         assert_that(result, equal_to(call))
 
@@ -104,7 +126,7 @@ class TestCELInterpretor(TestCase):
         cel_destination_exten = cel.exten = 'destination_exten'
         call = Mock(RawCallLog)
 
-        result = self.cel_interpretor.interpret_chan_start(cel, call)
+        result = self.caller_cel_interpretor.interpret_chan_start(cel, call)
 
         assert_that(result, all_of(
             has_property('date', cel_date),
@@ -120,7 +142,7 @@ class TestCELInterpretor(TestCase):
         cel.exten = 's'
         call = Mock(RawCallLog)
 
-        result = self.cel_interpretor.interpret_chan_start(cel, call)
+        result = self.caller_cel_interpretor.interpret_chan_start(cel, call)
 
         assert_that(result, all_of(
             has_property('date', cel_date),
@@ -134,7 +156,7 @@ class TestCELInterpretor(TestCase):
         cel_userfield = cel.userfield = 'userfield'
         call = Mock(RawCallLog)
 
-        result = self.cel_interpretor.interpret_app_start(cel, call)
+        result = self.caller_cel_interpretor.interpret_app_start(cel, call)
 
         assert_that(result, all_of(
             has_property('user_field', cel_userfield)
@@ -146,7 +168,7 @@ class TestCELInterpretor(TestCase):
         start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
         call = Mock(RawCallLog, destination_exten=None)
 
-        result = self.cel_interpretor.interpret_answer(cel, call)
+        result = self.caller_cel_interpretor.interpret_answer(cel, call)
 
         assert_that(result, all_of(
             has_property('destination_exten', cel_source_name),
@@ -160,7 +182,7 @@ class TestCELInterpretor(TestCase):
         call = Mock(RawCallLog)
         call_destination = call.destination_exten = 'first_destination'
 
-        result = self.cel_interpretor.interpret_answer(cel, call)
+        result = self.caller_cel_interpretor.interpret_answer(cel, call)
 
         assert_that(result, all_of(
             has_property('destination_exten', call_destination),
@@ -173,7 +195,7 @@ class TestCELInterpretor(TestCase):
         end_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
         call = Mock(CallLog)
 
-        result = self.cel_interpretor.interpret_hangup(cel, call)
+        result = self.caller_cel_interpretor.interpret_hangup(cel, call)
 
         assert_that(result, all_of(
             has_property('communication_end', end_date),
@@ -185,7 +207,7 @@ class TestCELInterpretor(TestCase):
         source_exten = cel.cid_num = 'source_exten'
         call = Mock(RawCallLog, source_name=None, source_exten=None)
 
-        result = self.cel_interpretor.interpret_bridge_start(cel, call)
+        result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
 
         assert_that(result, all_of(
             has_property('source_name', source_name),
@@ -198,7 +220,7 @@ class TestCELInterpretor(TestCase):
         source_name = call.source_name = 'first_source_name'
         source_exten = call.source_exten = 'first_source_exten'
 
-        result = self.cel_interpretor.interpret_bridge_start(cel, call)
+        result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
 
         assert_that(result, all_of(
             has_property('source_name', source_name),
@@ -211,7 +233,7 @@ class TestCELInterpretor(TestCase):
         new_call = Mock(RawCallLog)
         function.return_value = new_call
 
-        result = self.cel_interpretor.interpret_cel(cel, call)
+        result = self.caller_cel_interpretor.interpret_cel(cel, call)
 
         function.assert_called_once_with(cel, call)
         assert_that(result, equal_to(new_call))

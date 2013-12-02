@@ -19,25 +19,10 @@ from xivo_call_logs import raw_call_log
 from xivo_dao.data_handler.cel.event_type import CELEventType
 
 
-class CELInterpretor(object):
-
-    def interpret_call(self, cels):
-        raw_call = self.interpret_cels(cels)
-        return raw_call.to_call_log()
-
-    def filter_cels(self, cels):
-        if not cels:
-            return []
-
-        first_unique_id = cels[0].uniqueid
-        return [cel for cel in cels if cel.uniqueid == first_unique_id]
-
-    def interpret_cels(self, cels):
-        call_log = raw_call_log.RawCallLog()
-        call_log.cel_ids = [cel.id for cel in cels]
-        for cel in self.filter_cels(cels):
+class CallerCELInterpretor(object):
+    def interpret_cels(self, caller_cels, call_log):
+        for cel in caller_cels:
             call_log = self.interpret_cel(cel, call_log)
-
         return call_log
 
     def interpret_cel(self, cel, call):
@@ -89,3 +74,34 @@ class CELInterpretor(object):
         call.communication_end = cel.eventtime
 
         return call
+
+
+class CalleeCELInterpretor(object):
+    pass
+
+
+class CELInterpretor(object):
+
+    def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
+        self.caller_cel_interpretor = caller_cel_interpretor
+        self.callee_cel_interpretor = callee_cel_interpretor
+
+    def interpret_call(self, cels):
+        raw_call = self.interpret_cels(cels)
+        return raw_call.to_call_log()
+
+    def filter_cels(self, cels):
+        if not cels:
+            return []
+
+        first_unique_id = cels[0].uniqueid
+        return [cel for cel in cels if cel.uniqueid == first_unique_id]
+
+    def interpret_cels(self, cels):
+        call_log = raw_call_log.RawCallLog()
+        call_log.cel_ids = [cel.id for cel in cels]
+
+        caller_cels = self.filter_cels(cels)
+        self.caller_cel_interpretor.interpret_cels(caller_cels, call_log)
+
+        return call_log
