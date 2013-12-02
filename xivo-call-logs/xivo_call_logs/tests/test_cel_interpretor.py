@@ -16,11 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import datetime
-from hamcrest import all_of, assert_that, equal_to, has_property
-from mock import Mock, patch
+from hamcrest import all_of, assert_that, equal_to, has_property, same_instance
+from mock import Mock, patch, sentinel
 from unittest import TestCase
 
 from xivo_call_logs.cel_interpretor import CELInterpretor
+from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.raw_call_log import RawCallLog
 from xivo_dao.data_handler.cel.event_type import CELEventType
 from xivo_dao.data_handler.call_log.model import CallLog
@@ -216,3 +217,23 @@ class TestCELInterpretor(TestCase):
 
         function.assert_called_once_with(cel, call)
         assert_that(result, equal_to(new_call))
+
+
+class TestCallerCELInterpretor(TestCase):
+    def setUp(self):
+        self.caller_cel_interpretor = CallerCELInterpretor()
+
+    def tearDown(self):
+        pass
+
+    def test_interpret_cels(self):
+        cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
+        calls = sentinel.call_1, sentinel.call_2, sentinel.call_3, sentinel.call_4
+        self.caller_cel_interpretor.interpret_cel = Mock(side_effect=calls[1:])
+
+        result = self.caller_cel_interpretor.interpret_cels(cels, sentinel.call_1)
+
+        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_1, sentinel.call_1)
+        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_2, sentinel.call_2)
+        self.caller_cel_interpretor.interpret_cel.assert_any_call(cel_3, sentinel.call_3)
+        assert_that(result, same_instance(sentinel.call_4))

@@ -20,7 +20,10 @@ from xivo_dao.data_handler.cel.event_type import CELEventType
 
 
 class CallerCELInterpretor(object):
-    pass
+    def interpret_cels(self, caller_cels, call_log):
+        for cel in caller_cels:
+            call_log = self.interpret_cel(cel, call_log)
+        return call_log
 
 
 class CalleeCELInterpretor(object):
