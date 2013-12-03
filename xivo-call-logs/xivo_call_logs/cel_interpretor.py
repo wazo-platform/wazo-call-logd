@@ -23,8 +23,8 @@ class AbstractCELInterpretor(object):
 
     eventtype_map = {}
 
-    def interpret_cels(self, caller_cels, call_log):
-        for cel in caller_cels:
+    def interpret_cels(self, cels, call_log):
+        for cel in cels:
             call_log = self.interpret_cel(cel, call_log)
         return call_log
 
