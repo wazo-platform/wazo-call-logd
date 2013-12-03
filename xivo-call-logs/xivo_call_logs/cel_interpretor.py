@@ -15,18 +15,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from xivo_call_logs import raw_call_log
+from xivo.asterisk.line_identity import identity_from_channel
 from xivo_dao.data_handler.cel.event_type import CELEventType
 
 
-class CallerCELInterpretor(object):
-    def interpret_cels(self, caller_cels, call_log):
-        for cel in caller_cels:
+class AbstractCELInterpretor(object):
+
+    eventtype_map = {}
+
+    def interpret_cels(self, cels, call_log):
+        for cel in cels:
             call_log = self.interpret_cel(cel, call_log)
         return call_log
 
     def interpret_cel(self, cel, call):
-        eventtype_map = {
+        eventtype = cel.eventtype
+        if eventtype in self.eventtype_map:
+            interpret_function = self.eventtype_map[eventtype]
+            return interpret_function(cel, call)
+        else:
+            return call
+
+
+class CallerCELInterpretor(AbstractCELInterpretor):
+
+    def __init__(self):
+        self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.app_start: self.interpret_app_start,
             CELEventType.answer: self.interpret_answer,
@@ -34,18 +48,12 @@ class CallerCELInterpretor(object):
             CELEventType.hangup: self.interpret_hangup,
         }
 
-        eventtype = cel.eventtype
-        if eventtype in eventtype_map:
-            interpret_function = eventtype_map[eventtype]
-            return interpret_function(cel, call)
-        else:
-            return call
-
     def interpret_chan_start(self, cel, call):
         call.date = cel.eventtime
         call.source_name = cel.cid_name
         call.source_exten = cel.cid_num
         call.destination_exten = cel.exten if cel.exten != 's' else ''
+        call.source_line_identity = identity_from_channel(cel.channame)
 
         return call
 
@@ -76,32 +84,13 @@ class CallerCELInterpretor(object):
         return call
 
 
-class CalleeCELInterpretor(object):
-    pass
+class CalleeCELInterpretor(AbstractCELInterpretor):
+    def __init__(self):
+        self.eventtype_map = {
+            CELEventType.chan_start: self.interpret_chan_start,
+        }
 
+    def interpret_chan_start(self, cel, call):
+        call.destination_line_identity = identity_from_channel(cel.channame)
 
-class CELInterpretor(object):
-
-    def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
-        self.caller_cel_interpretor = caller_cel_interpretor
-        self.callee_cel_interpretor = callee_cel_interpretor
-
-    def interpret_call(self, cels):
-        raw_call = self.interpret_cels(cels)
-        return raw_call.to_call_log()
-
-    def filter_cels(self, cels):
-        if not cels:
-            return []
-
-        first_unique_id = cels[0].uniqueid
-        return [cel for cel in cels if cel.uniqueid == first_unique_id]
-
-    def interpret_cels(self, cels):
-        call_log = raw_call_log.RawCallLog()
-        call_log.cel_ids = [cel.id for cel in cels]
-
-        caller_cels = self.filter_cels(cels)
-        self.caller_cel_interpretor.interpret_cels(caller_cels, call_log)
-
-        return call_log
+        return call

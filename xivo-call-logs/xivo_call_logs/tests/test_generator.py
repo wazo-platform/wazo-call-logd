@@ -20,14 +20,14 @@ from mock import Mock
 from unittest import TestCase
 
 from xivo_call_logs.generator import CallLogsGenerator
-from xivo_call_logs.cel_interpretor import CELInterpretor
+from xivo_call_logs.cel_dispatcher import CELDispatcher
 from xivo_call_logs.exceptions import InvalidCallLogException
 
 
 class TestCallLogsGenerator(TestCase):
     def setUp(self):
-        self.cel_interpretor = Mock(CELInterpretor)
-        self.generator = CallLogsGenerator(self.cel_interpretor)
+        self.cel_dispatcher = Mock(CELDispatcher)
+        self.generator = CallLogsGenerator(self.cel_dispatcher)
 
     def tearDown(self):
         pass
@@ -55,35 +55,35 @@ class TestCallLogsGenerator(TestCase):
     def test_call_logs_from_cel_one_call(self):
         linkedid = '9328742934'
         cels = self._generate_cel_for_call([linkedid])
-        call = self.cel_interpretor.interpret_call.return_value = Mock()
+        call = self.cel_dispatcher.interpret_call.return_value = Mock()
 
         result = self.generator.call_logs_from_cel(cels)
 
-        self.cel_interpretor.interpret_call.assert_called_once_with(cels)
+        self.cel_dispatcher.interpret_call.assert_called_once_with(cels)
         assert_that(result, contains(call))
 
     def test_call_logs_from_cel_two_calls(self):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1, call_2 = self.cel_interpretor.interpret_call.side_effect = [Mock(), Mock()]
+        call_1, call_2 = self.cel_dispatcher.interpret_call.side_effect = [Mock(), Mock()]
 
         result = self.generator.call_logs_from_cel(cels)
 
-        self.cel_interpretor.interpret_call.assert_any_call(cels_1)
-        self.cel_interpretor.interpret_call.assert_any_call(cels_2)
+        self.cel_dispatcher.interpret_call.assert_any_call(cels_1)
+        self.cel_dispatcher.interpret_call.assert_any_call(cels_2)
         assert_that(result, contains(call_1, call_2))
 
     def test_call_logs_from_cel_two_calls_one_valid_one_invalid(self):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1, _ = self.cel_interpretor.interpret_call.side_effect = [Mock(), InvalidCallLogException()]
+        call_1, _ = self.cel_dispatcher.interpret_call.side_effect = [Mock(), InvalidCallLogException()]
 
         result = self.generator.call_logs_from_cel(cels)
 
-        self.cel_interpretor.interpret_call.assert_any_call(cels_1)
-        self.cel_interpretor.interpret_call.assert_any_call(cels_2)
+        self.cel_dispatcher.interpret_call.assert_any_call(cels_1)
+        self.cel_dispatcher.interpret_call.assert_any_call(cels_2)
         assert_that(result, contains(call_1))
 
     def test_list_call_log_ids(self):
