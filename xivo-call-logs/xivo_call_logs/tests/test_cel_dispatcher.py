@@ -54,7 +54,8 @@ class TestCELDispatcher(TestCase):
         assert_that(result, contains(contains(), contains()))
 
     def test_split_caller_callee_cels_1_uniqueid(self):
-        cels = cel_1, cel_2 = [Mock(uniqueid=1), Mock(uniqueid=1)]
+        cels = cel_1, cel_2 = [Mock(uniqueid=1, eventtype='CHAN_START'),
+                               Mock(uniqueid=1, eventtype='APP_START')]
 
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 
@@ -62,7 +63,10 @@ class TestCELDispatcher(TestCase):
 
     def test_split_caller_callee_cels_2_uniqueids(self):
         cels = cel_1, cel_2, cel_3, cel_4 = \
-            [Mock(uniqueid=1), Mock(uniqueid=2), Mock(uniqueid=1), Mock(uniqueid=2)]
+            [Mock(uniqueid=1, eventtype='CHAN_START'),
+             Mock(uniqueid=2, eventtype='CHAN_START'),
+             Mock(uniqueid=1, eventtype='APP_START'),
+             Mock(uniqueid=2, eventtype='ANSWER')]
 
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 
@@ -71,7 +75,9 @@ class TestCELDispatcher(TestCase):
 
     def test_split_caller_callee_cels_3_uniqueids(self):
         cels = cel_1, cel_2, cel_3 = \
-            [Mock(uniqueid=1), Mock(uniqueid=2), Mock(uniqueid=3)]
+            [Mock(uniqueid=1, eventtype='CHAN_START'),
+             Mock(uniqueid=2, eventtype='CHAN_START'),
+             Mock(uniqueid=3, eventtype='CHAN_START')]
 
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 

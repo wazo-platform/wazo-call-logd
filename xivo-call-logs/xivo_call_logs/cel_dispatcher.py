@@ -18,6 +18,7 @@
 from itertools import groupby
 
 from xivo_call_logs import raw_call_log
+from xivo_dao.data_handler.cel.event_type import CELEventType
 
 
 class CELDispatcher(object):
@@ -41,10 +42,11 @@ class CELDispatcher(object):
         return call_log
 
     def split_caller_callee_cels(self, cels):
-        key_function = lambda cel: cel.uniqueid
-        sorted_cels = sorted(cels, key=key_function)
-        cels_by_uniqueid = [list(cels) for _, cels in groupby(sorted_cels, key=key_function)]
+        uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == CELEventType.chan_start]
+        caller_uniqueid = uniqueids[0] if len(uniqueids) > 0 else None
+        callee_uniqueid = uniqueids[1] if len(uniqueids) > 1 else None
 
-        caller_cels = cels_by_uniqueid[0] if len(cels_by_uniqueid) > 0 else []
-        callee_cels = cels_by_uniqueid[1] if len(cels_by_uniqueid) > 1 else []
+        caller_cels = [cel for cel in cels if cel.uniqueid == caller_uniqueid]
+        callee_cels = [cel for cel in cels if cel.uniqueid == callee_uniqueid]
+
         return (caller_cels, callee_cels)
