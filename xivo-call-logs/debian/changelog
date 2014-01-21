@@ -1,0 +1,17 @@
+xivo-call-logs (1:13.18~20130911.155139.7362f2d-2) squeeze-xivo-skaro-dev; urgency=low
+
+  * Add cron file
+
+ -- Sebastien Duthil <sduthil@avencall.com>  Wed, 11 Sep 2013 13:59:20 -0400
+
+xivo-call-logs (1:13.16~20130809.120000.0000000-2) squeeze-xivo-skaro-dev; urgency=low
+
+  * Remove useless install file
+
+ -- Sebastien Duthil <sduthil@avencall.com>  Fri, 09 Aug 2013 15:15:24 -0400
+
+xivo-call-logs (1:13.16~20130809.120000.0000000-1) squeeze-xivo-skaro-dev; urgency=low
+
+  * Initial release
+
+ -- Sebastien Duthil <sduthil@avencall.com>  Fri, 09 Aug 2013 15:07:01 -0400
