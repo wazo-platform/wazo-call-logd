@@ -12,7 +12,7 @@ def is_package(path):
     is_test_module = fnmatch.fnmatch(path, '*tests')
     return not (is_svn_dir or is_test_module)
 
-packages = [p for p, _, _ in os.walk('xivo_ami') if is_package(p)]
+packages = [p for p, _, _ in os.walk('xivo_call_logs') if is_package(p)]
 
 
 setup(
