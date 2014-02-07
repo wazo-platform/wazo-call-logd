@@ -20,7 +20,6 @@ import logging
 import signal
 
 from xivo import daemonize
-#from xivo_bus.ctl.client import BusCtlClient
 
 _LOG_FILENAME = '/var/log/xivo-call-logd.log'
 _PID_FILENAME = '/var/run/xivo-call-logd.pid'
