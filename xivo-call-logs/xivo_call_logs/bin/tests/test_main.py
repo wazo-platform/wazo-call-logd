@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013 Avencall
+# Copyright (C) 2013-2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 from hamcrest import assert_that, equal_to
 from mock import Mock, patch
 from unittest import TestCase
-from xivo_call_logs import main
+from xivo_call_logs.bin import main
 
 
 class TestMain(TestCase):
