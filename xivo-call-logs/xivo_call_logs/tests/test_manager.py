@@ -43,3 +43,14 @@ class TestCallLogsManager(TestCase):
         self.cel_fetcher.fetch_last_unprocessed.assert_called_once_with(cel_count)
         self.generator.from_cel.assert_called_once_with(cels)
         self.writer.write.assert_called_once_with(call_logs)
+
+    def test_generate_from_linked_id(self):
+        linked_id = '666'
+        cels = self.cel_fetcher.fetch_from_linked_id.return_value = [Mock()]
+        call_logs = self.generator.from_cel.return_value = [Mock()]
+
+        self.manager.generate_from_linked_id(linked_id=linked_id)
+
+        self.cel_fetcher.fetch_from_linked_id.assert_called_once_with(linked_id)
+        self.generator.from_cel.assert_called_once_with(cels)
+        self.writer.write.assert_called_once_with(call_logs)
