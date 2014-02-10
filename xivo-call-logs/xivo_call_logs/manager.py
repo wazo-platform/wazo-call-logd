@@ -27,3 +27,6 @@ class CallLogsManager(object):
         cels = self.cel_fetcher.fetch_last_unprocessed(cel_count)
         call_logs = self.generator.from_cel(cels)
         self.writer.write(call_logs)
+
+    def generate_from_linked_id(self, linked_id):
+        pass
