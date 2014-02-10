@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # Copyright (C) 2013-2014 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
@@ -23,7 +22,7 @@ class CallLogsManager(object):
         self.generator = generator
         self. writer = writer
 
-    def generate(self, cel_count):
+    def generate_from_count(self, cel_count):
         cels = self.cel_fetcher.fetch_last_unprocessed(cel_count)
         call_logs = self.generator.from_cel(cels)
         self.writer.write(call_logs)

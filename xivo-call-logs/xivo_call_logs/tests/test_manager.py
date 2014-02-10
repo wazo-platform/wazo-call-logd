@@ -33,12 +33,12 @@ class TestCallLogsManager(TestCase):
     def tearDown(self):
         pass
 
-    def test_generate(self):
+    def test_generate_from_count(self):
         cel_count = 132456
         cels = self.cel_fetcher.fetch_last_unprocessed.return_value = [Mock(), Mock()]
         call_logs = self.generator.from_cel.return_value = [Mock(), Mock()]
 
-        self.manager.generate(cel_count=cel_count)
+        self.manager.generate_from_count(cel_count=cel_count)
 
         self.cel_fetcher.fetch_last_unprocessed.assert_called_once_with(cel_count)
         self.generator.from_cel.assert_called_once_with(cels)

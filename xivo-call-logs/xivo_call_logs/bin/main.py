@@ -52,7 +52,7 @@ def _generate_call_logs():
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
 
-    manager.generate(cel_count=options.cel_count)
+    manager.generate_from_count(cel_count=options.cel_count)
 
 
 def parse_args(parser):
