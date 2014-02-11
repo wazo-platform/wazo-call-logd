@@ -28,6 +28,7 @@ class CallLogsOrchestrator(object):
     _EXCHANGE = 'xivo-ami'
     _KEY = 'cel'
     _RECONNECTION_DELAY = 5
+    _QUEUE_NAME = 'xivo-call-logd-queue'
 
     def __init__(self, bus_consumer, call_logs_manager):
         self.bus_consumer = bus_consumer
@@ -43,7 +44,9 @@ class CallLogsOrchestrator(object):
                 self._handle_unexpected_error(e)
 
     def _start_consuming_bus_events(self):
-            self.bus_consumer.add_listner(self._EXCHANGE, self._KEY, self.on_cel_event)
+            self.bus_consumer.connect()
+            self.bus_consumer.queue_declare(callback=None, queue=self._QUEUE_NAME, exclusive=True)
+            self.bus_consumer.add_binding(self._QUEUE_NAME, self._EXCHANGE, self._KEY, self.on_cel_event)
             self.bus_consumer.run()
 
     def _handle_bus_connection_error(self, e):

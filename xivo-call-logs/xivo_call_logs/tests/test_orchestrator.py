@@ -28,6 +28,7 @@ from xivo_bus.ctl.consumer import BusConsumer, BusConnectionError
 EXCHANGE = 'xivo-ami'
 KEY = 'cel'
 RECONNECTION_DELAY = 5
+QUEUE_NAME = 'xivo-call-logd-queue'
 
 
 class TestCallLogsOrchestrator(TestCase):
@@ -47,7 +48,12 @@ class TestCallLogsOrchestrator(TestCase):
     def test_when_run_then_initiate_bus_consumer(self):
         self.assertRaises(Exception, self.orchestrator.run)
 
-        self.bus_consumer_mock.add_listner.assert_called_once_with(EXCHANGE,
+        self.bus_consumer_mock.connect.assert_called_once_with()
+        self.bus_consumer_mock.queue_declare.assert_called_once_with(callback=None,
+                                                                     queue=QUEUE_NAME,
+                                                                     exclusive=True)
+        self.bus_consumer_mock.add_binding.assert_called_once_with(QUEUE_NAME,
+                                                                   EXCHANGE,
                                                                    KEY,
                                                                    self.orchestrator.on_cel_event)
         self.bus_consumer_mock.run.assert_called_once_with()
