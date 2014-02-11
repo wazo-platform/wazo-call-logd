@@ -38,10 +38,10 @@ class CallLogsOrchestrator(object):
         while True:
             try:
                 self._start_consuming_bus_events()
-            except BusConnectionError as e:
-                self._handle_bus_connection_error(e)
-            except Exception as e:
-                self._handle_unexpected_error(e)
+            except BusConnectionError:
+                self._handle_bus_connection_error()
+            except Exception:
+                self._handle_unexpected_error()
 
     def _start_consuming_bus_events(self):
             self.bus_consumer.connect()
@@ -49,15 +49,15 @@ class CallLogsOrchestrator(object):
             self.bus_consumer.add_binding(self._QUEUE_NAME, self._EXCHANGE, self._KEY, self.on_cel_event)
             self.bus_consumer.run()
 
-    def _handle_bus_connection_error(self, e):
-            logger.exception(e)
+    def _handle_bus_connection_error(self):
+            logger.exception('Bus connection error')
             self.bus_consumer.stop()
             time.sleep(self._RECONNECTION_DELAY)
 
-    def _handle_unexpected_error(self, e):
-            logger.exception(e)
+    def _handle_unexpected_error(self):
+            logger.exception('Unexpected error')
             self.bus_consumer.stop()
-            raise e
+            raise
 
     def on_cel_event(self, channel, method, header, body):
         body = json.loads(body)
