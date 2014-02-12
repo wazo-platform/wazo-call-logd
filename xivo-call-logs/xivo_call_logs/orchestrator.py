@@ -45,8 +45,7 @@ class CallLogsOrchestrator(object):
 
     def _start_consuming_bus_events(self):
             self.bus_consumer.connect()
-            self.bus_consumer.queue_declare(callback=None, queue=self._QUEUE_NAME, exclusive=True)
-            self.bus_consumer.add_binding(self._QUEUE_NAME, self._EXCHANGE, self._KEY, self.on_cel_event)
+            self.bus_consumer.add_binding(self.on_cel_event, self._QUEUE_NAME, self._EXCHANGE, self._KEY)
             self.bus_consumer.run()
 
     def _handle_bus_connection_error(self):

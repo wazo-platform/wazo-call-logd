@@ -49,13 +49,10 @@ class TestCallLogsOrchestrator(TestCase):
         self.assertRaises(Exception, self.orchestrator.run)
 
         self.bus_consumer_mock.connect.assert_called_once_with()
-        self.bus_consumer_mock.queue_declare.assert_called_once_with(callback=None,
-                                                                     queue=QUEUE_NAME,
-                                                                     exclusive=True)
-        self.bus_consumer_mock.add_binding.assert_called_once_with(QUEUE_NAME,
+        self.bus_consumer_mock.add_binding.assert_called_once_with(self.orchestrator.on_cel_event,
+                                                                   QUEUE_NAME,
                                                                    EXCHANGE,
-                                                                   KEY,
-                                                                   self.orchestrator.on_cel_event)
+                                                                   KEY)
         self.bus_consumer_mock.run.assert_called_once_with()
 
     def test_given_linkedid_end_when_on_cel_event_then_generate(self):
