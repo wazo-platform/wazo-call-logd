@@ -49,7 +49,7 @@ class CallLogsOrchestrator(object):
             self.bus_consumer.run()
 
     def _handle_bus_connection_error(self):
-            logger.exception('Bus connection error')
+            logger.warning('Bus connection error')
             self.bus_consumer.stop()
             time.sleep(self._RECONNECTION_DELAY)
 
