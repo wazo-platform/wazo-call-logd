@@ -60,6 +60,7 @@ class CallLogsOrchestrator(object):
 
     def on_cel_event(self, channel, method, header, body):
         body = json.loads(body)
+        logger.debug('Received new event : %s', body)
         if body['name'] == 'CEL' and body['data']['EventName'] == 'LINKEDID_END':
             linked_id = body['data']['LinkedID']
             self.call_logs_manager.generate_from_linked_id(linked_id)
