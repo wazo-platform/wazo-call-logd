@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class CallLogsOrchestrator(object):
 
     _EXCHANGE = 'xivo-ami'
-    _KEY = 'cel'
+    _KEY = 'CEL'
     _RECONNECTION_DELAY = 5
     _QUEUE_NAME = 'xivo-call-logd-queue'
 

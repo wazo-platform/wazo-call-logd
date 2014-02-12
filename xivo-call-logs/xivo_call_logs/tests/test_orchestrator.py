@@ -26,7 +26,7 @@ from xivo_call_logs.orchestrator import CallLogsOrchestrator
 from xivo_bus.ctl.consumer import BusConsumer, BusConnectionError
 
 EXCHANGE = 'xivo-ami'
-KEY = 'cel'
+KEY = 'CEL'
 RECONNECTION_DELAY = 5
 QUEUE_NAME = 'xivo-call-logd-queue'
 
