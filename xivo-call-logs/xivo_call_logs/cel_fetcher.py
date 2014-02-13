@@ -22,3 +22,6 @@ class CELFetcher(object):
 
     def fetch_last_unprocessed(self, cel_count):
         return cel_dao.find_last_unprocessed(cel_count)
+
+    def fetch_from_linked_id(self, linked_id):
+        return cel_dao.find_from_linked_id(linked_id)
