@@ -156,7 +156,7 @@ class TestCallerCELInterpretor(TestCase):
         cel_userfield = cel.userfield = 'userfield'
         cel_cid_name = cel.cid_name = 'Reversed'
         cel_cid_num = cel.cid_num = 'Reversed'
-        call = Mock(RawCallLog, source_name='')
+        call = Mock(RawCallLog, source_name='Original Name')
 
         result = self.caller_cel_interpretor.interpret_app_start(cel, call)
 

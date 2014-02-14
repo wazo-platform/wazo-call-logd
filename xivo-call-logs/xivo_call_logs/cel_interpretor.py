@@ -59,7 +59,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_app_start(self, cel, call):
         call.user_field = cel.userfield
-        if not call.source_name and cel.cid_name != '':
+        if cel.cid_name != '':
             call.source_name = cel.cid_name
             call.source_exten = cel.cid_num
 
