@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import datetime
-from hamcrest import all_of, assert_that, equal_to, has_property, same_instance
+from hamcrest import all_of, assert_that, equal_to, has_property, is_not, same_instance
 from mock import Mock, sentinel
 from unittest import TestCase
 
@@ -138,15 +138,33 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_line_identity', line_identity),
         ))
 
-    def test_interpret_app_start(self):
+    def test_interpret_app_start_when_cid_name_num_are_empty_then_do_not_change_source_name_exten(self):
         cel = Mock()
         cel_userfield = cel.userfield = 'userfield'
-        call = Mock(RawCallLog)
+        cel.cid_name = ''
+        cel.cid_num = ''
+        call = Mock(RawCallLog, source_name=sentinel.original_name)
 
         result = self.caller_cel_interpretor.interpret_app_start(cel, call)
 
         assert_that(result, all_of(
-            has_property('user_field', cel_userfield)
+            has_property('user_field', cel_userfield),
+            has_property('source_name', sentinel.original_name)
+        ))
+
+    def test_interpret_app_start_when_cid_name_then_replace_source_name(self):
+        cel = Mock()
+        cel_userfield = cel.userfield = 'userfield'
+        cel_cid_name = cel.cid_name = 'Reversed'
+        cel_cid_num = cel.cid_num = 'Reversed'
+        call = Mock(RawCallLog, source_name='Original Name')
+
+        result = self.caller_cel_interpretor.interpret_app_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('user_field', cel_userfield),
+            has_property('source_name', cel_cid_name),
+            has_property('source_exten', cel_cid_num)
         ))
 
     def test_interpret_answer_no_destination_yet(self):
