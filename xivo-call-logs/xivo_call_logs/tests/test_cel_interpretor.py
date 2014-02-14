@@ -138,20 +138,21 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_line_identity', line_identity),
         ))
 
-    def test_interpret_app_start_no_reverse_lookup(self):
+    def test_interpret_app_start_when_cid_name_num_are_empty_then_do_not_change_source_name_exten(self):
         cel = Mock()
         cel_userfield = cel.userfield = 'userfield'
-        cel_cid_name = cel.cid_name = ''
-        call = Mock(RawCallLog, source_name='')
+        cel.cid_name = ''
+        cel.cid_num = ''
+        call = Mock(RawCallLog, source_name=sentinel.original_name)
 
         result = self.caller_cel_interpretor.interpret_app_start(cel, call)
 
         assert_that(result, all_of(
             has_property('user_field', cel_userfield),
-            is_not(has_property('cid_name', cel_cid_name))
+            has_property('source_name', sentinel.original_name)
         ))
 
-    def test_interpret_app_start_reverse_lookup(self):
+    def test_interpret_app_start_when_cid_name_then_replace_source_name(self):
         cel = Mock()
         cel_userfield = cel.userfield = 'userfield'
         cel_cid_name = cel.cid_name = 'Reversed'
