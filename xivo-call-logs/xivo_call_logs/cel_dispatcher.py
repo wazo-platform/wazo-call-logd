@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from itertools import groupby
-
 from xivo_call_logs import raw_call_log
 from xivo_dao.data_handler.cel.event_type import CELEventType
 
