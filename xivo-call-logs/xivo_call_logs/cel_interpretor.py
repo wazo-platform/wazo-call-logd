@@ -68,7 +68,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_answer(self, cel, call):
         if not call.destination_exten:
             call.destination_exten = cel.cid_name
-        call.communication_start = cel.eventtime
+
+        if not call.communication_start:
+            call.communication_start = cel.eventtime
+        else:
+            call.communication_start = max(cel.eventtime, call.communication_start)
+
         call.answered = True
 
         return call
@@ -90,10 +95,16 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 class CalleeCELInterpretor(AbstractCELInterpretor):
     def __init__(self):
         self.eventtype_map = {
+            CELEventType.answer: self.interpret_answer,
             CELEventType.chan_start: self.interpret_chan_start,
         }
 
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
+
+        return call
+
+    def interpret_answer(self, cel, call):
+        call.communication_start = cel.eventtime
 
         return call
