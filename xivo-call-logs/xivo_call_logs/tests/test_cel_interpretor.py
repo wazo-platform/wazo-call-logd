@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import datetime
-from hamcrest import all_of, assert_that, equal_to, has_property, is_not, same_instance
+from hamcrest import all_of, assert_that, equal_to, has_property, same_instance
 from mock import Mock, sentinel
 from unittest import TestCase
 
