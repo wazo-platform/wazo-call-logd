@@ -1,6 +1,5 @@
 nose
 mock
-pika
 psycopg2
 pyhamcrest
 sqlalchemy==0.7.2

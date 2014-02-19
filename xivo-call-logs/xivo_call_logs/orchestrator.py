@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import json
 import logging
 import time
 from xivo_bus.ctl.consumer import BusConnectionError
@@ -58,10 +57,7 @@ class CallLogsOrchestrator(object):
             self.bus_consumer.stop()
             raise
 
-    def on_cel_event(self, channel, method, header, body):
-        body = json.loads(body)
-        logger.debug('Received new event : %s', body)
+    def on_cel_event(self, body):
         if body['name'] == 'CEL' and body['data']['EventName'] == 'LINKEDID_END':
             linked_id = body['data']['LinkedID']
             self.call_logs_manager.generate_from_linked_id(linked_id)
-        channel.basic_ack(delivery_tag=method.delivery_tag)

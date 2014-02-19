@@ -17,8 +17,6 @@
 
 from hamcrest import assert_that, equal_to
 from mock import Mock, sentinel, patch
-from pika.channel import Channel
-from pika.spec import Basic
 from unittest import TestCase
 
 from xivo_call_logs.manager import CallLogsManager
@@ -33,9 +31,6 @@ QUEUE_NAME = 'xivo-call-logd-queue'
 
 class TestCallLogsOrchestrator(TestCase):
     def setUp(self):
-        self.channel_mock = Mock(Channel)
-        self.method = Mock(Basic.Deliver)
-        self.method.delivery_tag = sentinel.tag
         self.bus_consumer_mock = Mock(BusConsumer)
         self.bus_consumer_mock.run.side_effect = [Exception()]
 
@@ -57,41 +52,35 @@ class TestCallLogsOrchestrator(TestCase):
 
     def test_given_linkedid_end_when_on_cel_event_then_generate(self):
         linkedid = '1391789340.26'
-        body = """
-            {
+        body = {
             "data": {
                 "EventTime": "2014-02-07 11:09:03",
-                "LinkedID": "%s",
+                "LinkedID": linkedid,
                 "UniqueID": "1391789340.26",
                 "EventName": "LINKEDID_END"
             },
             "name": "CEL"
-            }
-        """ % linkedid
+        }
 
-        self.orchestrator.on_cel_event(self.channel_mock, self.method, sentinel.header, body)
+        self.orchestrator.on_cel_event(body)
 
         self.call_logs_manager_mock.generate_from_linked_id.assert_called_once_with(linkedid)
-        self.channel_mock.basic_ack.assert_called_once_with(delivery_tag=self.method.delivery_tag)
 
     def test_given_no_linkedid_end_when_on_cel_event_then_pass(self):
         linkedid = '1391789340.26'
-        body = """
-            {
+        body = {
             "data": {
                 "EventTime": "2014-02-07 11:09:03",
-                "LinkedID": "%s",
+                "LinkedID": linkedid,
                 "UniqueID": "1391789340.26",
                 "EventName": "CHAN_START"
             },
             "name": "CEL"
-            }
-        """ % linkedid
+        }
 
-        self.orchestrator.on_cel_event(self.channel_mock, self.method, sentinel.header, body)
+        self.orchestrator.on_cel_event(body)
 
         assert_that(self.call_logs_manager_mock.generate_from_linked_id.call_count, equal_to(0))
-        self.channel_mock.basic_ack.assert_called_once_with(delivery_tag=self.method.delivery_tag)
 
     def test_given_exception_when_run_then_stop_and_raise(self):
         self.assertRaises(Exception, self.orchestrator.run)
