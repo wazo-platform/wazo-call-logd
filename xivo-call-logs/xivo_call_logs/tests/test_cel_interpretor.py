@@ -43,9 +43,6 @@ class TestAbstractCELInterpretor(TestCase):
 
         self.cel_interpretor = ConcreteCELInterpretor()
 
-    def tearDown(self):
-        pass
-
     def test_interpret_cels(self):
         cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
         calls = sentinel.call_1, sentinel.call_2, sentinel.call_3, sentinel.call_4
@@ -87,9 +84,6 @@ class TestCallerCELInterpretor(TestCase):
 
     def setUp(self):
         self.caller_cel_interpretor = CallerCELInterpretor()
-
-    def tearDown(self):
-        pass
 
     def test_interpret_cel_unknown_or_ignored_event(self):
         cel = Mock(eventtype='unknown_or_ignored_eventtype')
@@ -168,103 +162,90 @@ class TestCallerCELInterpretor(TestCase):
         ))
 
     def test_interpret_answer_no_destination_yet(self):
-        cel = Mock()
-        cel_source_name = cel.cid_name = 'destination_exten'
-        start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
-        call = Mock(RawCallLog, destination_exten=None, communication_start=None)
+        cel = Mock(cid_name=sentinel.destination_exten)
+        call = Mock(RawCallLog, destination_exten=None)
 
         result = self.caller_cel_interpretor.interpret_answer(cel, call)
 
         assert_that(result, all_of(
-            has_property('destination_exten', cel_source_name),
-            has_property('communication_start', start_date),
-            has_property('answered', True),
+            has_property('destination_exten', sentinel.destination_exten),
         ))
 
     def test_interpret_answer_with_destination_already_set(self):
-        cel = Mock(cid_name='other_destination')
-        start_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
-        call = Mock(RawCallLog, communication_start=None)
-        call_destination = call.destination_exten = 'first_destination'
+        cel = Mock(cid_name=sentinel.other_destination)
+        call = Mock(RawCallLog, destination_exten=sentinel.original_destination)
 
         result = self.caller_cel_interpretor.interpret_answer(cel, call)
 
         assert_that(result, all_of(
-            has_property('destination_exten', call_destination),
-            has_property('communication_start', start_date),
-            has_property('answered', True),
+            has_property('destination_exten', sentinel.original_destination),
         ))
 
-    def test_interpret_answer_with_callee_cels_already_generated(self):
-        caller_answer = datetime.datetime(year=2013, month=2, day=1, hour=1, minute=0, second=0)
-        callee_answer = caller_answer + datetime.timedelta(seconds=3)
-
-        cel = Mock(eventtime=caller_answer)
-        call = Mock(RawCallLog, communication_start=callee_answer, destination_exten=sentinel.exten)
-
-        result = self.caller_cel_interpretor.interpret_answer(cel, call)
-
-        assert_that(result, has_property('communication_start', callee_answer))
-
-    def test_interpret_hangup_sets_call_end(self):
-        cel = Mock()
-        end_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
+    def test_interpret_bridge_end_sets_call_end(self):
+        end_date = datetime.datetime(year=2013, month=1, day=1)
+        cel = Mock(eventtime=end_date)
         call = Mock(CallLog)
 
-        result = self.caller_cel_interpretor.interpret_hangup(cel, call)
+        result = self.caller_cel_interpretor.interpret_bridge_end(cel, call)
 
         assert_that(result, all_of(
             has_property('communication_end', end_date),
         ))
 
     def test_interpret_bridge_start_with_no_source_set(self):
-        cel = Mock()
-        source_name = cel.cid_name = 'source_name'
-        source_exten = cel.cid_num = 'source_exten'
+        cel = Mock(
+            cid_name=sentinel.source_name,
+            cid_num=sentinel.source_exten,
+        )
         call = Mock(RawCallLog, source_name=None, source_exten=None)
 
         result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
 
         assert_that(result, all_of(
-            has_property('source_name', source_name),
-            has_property('source_exten', source_exten),
+            has_property('source_name', sentinel.source_name),
+            has_property('source_exten', sentinel.source_exten),
         ))
 
-    def test_interpret_bridge_start_with_source_already_set(self):
-        cel = Mock(cid_name='other_source_name', cid_num='other_source_exten')
-        call = Mock(RawCallLog)
-        source_name = call.source_name = 'first_source_name'
-        source_exten = call.source_exten = 'first_source_exten'
+    def test_interpret_bridge_start_sets_communication_start(self):
+        cel = Mock(
+            eventtime=sentinel.eventtime,
+            cid_name=sentinel.name,
+            cid_num=sentinel.exten,
+        )
+        call = Mock(RawCallLog, source_name=None, source_exten=None)
 
         result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
 
         assert_that(result, all_of(
-            has_property('source_name', source_name),
-            has_property('source_exten', source_exten),
+            has_property('communication_start', sentinel.eventtime),
+            has_property('answered', True),
+        ))
+
+    def test_interpret_bridge_start_with_source_already_set(self):
+        cel = Mock(cid_name=sentinel.other_source_name,
+                   cid_num=sentinel.other_source_exten)
+        call = Mock(RawCallLog,
+                    source_name=sentinel.first_source_name,
+                    source_exten=sentinel.first_source_exten)
+
+        result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('source_name', sentinel.first_source_name),
+            has_property('source_exten', sentinel.first_source_exten),
         ))
 
 
 class TestCalleeCELInterpretor(TestCase):
+
     def setUp(self):
         self.callee_cel_interpretor = CalleeCELInterpretor()
 
-    def tearDown(self):
-        pass
-
     def test_interpret_chan_start(self):
-        cel = Mock()
         line_identity = 'sip/asldfj'
-        cel.channame = line_identity + '-0000001'
+        cel = Mock(channame=line_identity + '-0000001')
         call = Mock(RawCallLog)
 
         result = self.callee_cel_interpretor.interpret_chan_start(cel, call)
 
         assert_that(result, has_property('destination_line_identity', line_identity))
-
-    def test_interpret_answer(self):
-        cel = Mock(eventtime=sentinel.time)
-        call = Mock(RawCallLog, communication_start=sentinel.caller_answer_time)
-
-        result = self.callee_cel_interpretor.interpret_answer(cel, call)
-
-        assert_that(result, has_property('communication_start', sentinel.time))
