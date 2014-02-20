@@ -45,7 +45,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.app_start: self.interpret_app_start,
             CELEventType.answer: self.interpret_answer,
             CELEventType.bridge_start: self.interpret_bridge_start,
-            CELEventType.hangup: self.interpret_hangup,
+            CELEventType.bridge_end: self.interpret_bridge_end,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -69,13 +69,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.destination_exten:
             call.destination_exten = cel.cid_name
 
-        if not call.communication_start:
-            call.communication_start = cel.eventtime
-        else:
-            call.communication_start = max(cel.eventtime, call.communication_start)
-
-        call.answered = True
-
         return call
 
     def interpret_bridge_start(self, cel, call):
@@ -84,9 +77,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.source_exten:
             call.source_exten = cel.cid_num
 
+        call.communication_start = cel.eventtime
+        call.answered = True
+
         return call
 
-    def interpret_hangup(self, cel, call):
+    def interpret_bridge_end(self, cel, call):
         call.communication_end = cel.eventtime
 
         return call
@@ -95,16 +91,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 class CalleeCELInterpretor(AbstractCELInterpretor):
     def __init__(self):
         self.eventtype_map = {
-            CELEventType.answer: self.interpret_answer,
             CELEventType.chan_start: self.interpret_chan_start,
         }
 
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
-
-        return call
-
-    def interpret_answer(self, cel, call):
-        call.communication_start = cel.eventtime
 
         return call
