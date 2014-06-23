@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from hamcrest import assert_that, equal_to
-from mock import Mock, sentinel, patch
+from mock import Mock, patch
 from unittest import TestCase
 
 from xivo_call_logs.manager import CallLogsManager

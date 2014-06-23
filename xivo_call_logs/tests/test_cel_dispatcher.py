@@ -73,10 +73,11 @@ class TestCELDispatcher(TestCase):
                                      contains(cel_2, cel_4)))
 
     def test_split_caller_callee_cels_3_uniqueids(self):
-        cels = cel_1, cel_2, cel_3 = \
-            [Mock(uniqueid=1, eventtype='CHAN_START'),
-             Mock(uniqueid=2, eventtype='CHAN_START'),
-             Mock(uniqueid=3, eventtype='CHAN_START')]
+        cels = cel_1, cel_2, _ = [
+            Mock(uniqueid=1, eventtype='CHAN_START'),
+            Mock(uniqueid=2, eventtype='CHAN_START'),
+            Mock(uniqueid=3, eventtype='CHAN_START'),
+        ]
 
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 
