@@ -19,6 +19,8 @@ import argparse
 import logging
 import signal
 
+from xivo import daemonize
+from xivo.xivo_logging import setup_logging
 from xivo_bus.ctl.consumer import BusConsumer
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_dispatcher import CELDispatcher
@@ -28,7 +30,6 @@ from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.orchestrator import CallLogsOrchestrator
 from xivo_call_logs.writer import CallLogsWriter
-from xivo import daemonize
 
 _LOG_FILENAME = '/var/log/xivo-call-logd.log'
 _PID_FILENAME = '/var/run/xivo-call-logd.pid'
@@ -39,7 +40,7 @@ logger = logging.getLogger(__name__)
 def main():
     parsed_args = _parse_args()
 
-    _init_logging(parsed_args)
+    setup_logging(_LOG_FILENAME, parsed_args.foreground, parsed_args.verbose)
 
     if not parsed_args.foreground:
         daemonize.daemonize()
@@ -62,19 +63,6 @@ def _parse_args():
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='increase verbosity')
     return parser.parse_args()
-
-
-def _init_logging(parsed_args):
-    level = logging.DEBUG if parsed_args.verbose else logging.INFO
-    root_logger = logging.getLogger()
-    root_logger.setLevel(level)
-    if parsed_args.foreground:
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter('%(asctime)s (%(levelname)s): %(message)s'))
-    else:
-        handler = logging.FileHandler(_LOG_FILENAME)
-        handler.setFormatter(logging.Formatter('%(asctime)s [%(process)d] (%(levelname)s): %(message)s'))
-    root_logger.addHandler(handler)
 
 
 def _run():
