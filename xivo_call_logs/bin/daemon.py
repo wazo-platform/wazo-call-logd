@@ -19,7 +19,7 @@ import argparse
 import logging
 import signal
 
-from xivo import daemonize
+from xivo.daemonize import pidfile_context
 from xivo.xivo_logging import setup_logging
 from xivo_bus.ctl.consumer import BusConsumer
 from xivo_call_logs.cel_fetcher import CELFetcher
@@ -42,18 +42,14 @@ def main():
 
     setup_logging(_LOG_FILENAME, parsed_args.foreground, parsed_args.verbose)
 
-    if not parsed_args.foreground:
-        daemonize.daemonize()
-
-    logger.info('Starting xivo-call-logd')
-    daemonize.lock_pidfile_or_die(_PID_FILENAME)
-    try:
-        _run()
-    except Exception:
-        logger.exception('Unexpected error:')
-    finally:
-        logger.info('Stopping xivo-call-logd')
-        daemonize.unlock_pidfile(_PID_FILENAME)
+    with pidfile_context(_PID_FILENAME, parsed_args.foreground):
+        logger.info('Starting xivo-call-logd')
+        try:
+            _run()
+        except Exception:
+            logger.exception('Unexpected error:')
+        finally:
+            logger.info('Stopping xivo-call-logd')
 
 
 def _parse_args():
