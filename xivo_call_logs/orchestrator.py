@@ -43,19 +43,19 @@ class CallLogsOrchestrator(object):
                 self._handle_unexpected_error()
 
     def _start_consuming_bus_events(self):
-            self.bus_consumer.connect()
-            self.bus_consumer.add_binding(self.on_cel_event, self._QUEUE_NAME, self._EXCHANGE, self._KEY)
-            self.bus_consumer.run()
+        self.bus_consumer.connect()
+        self.bus_consumer.add_binding(self.on_cel_event, self._QUEUE_NAME, self._EXCHANGE, self._KEY)
+        self.bus_consumer.run()
 
     def _handle_bus_connection_error(self):
-            logger.warning('Bus connection error')
-            self.bus_consumer.stop()
-            time.sleep(self._RECONNECTION_DELAY)
+        logger.warning('Bus connection error')
+        self.bus_consumer.stop()
+        time.sleep(self._RECONNECTION_DELAY)
 
     def _handle_unexpected_error(self):
-            logger.exception('Unexpected error')
-            self.bus_consumer.stop()
-            raise
+        logger.exception('Unexpected error')
+        self.bus_consumer.stop()
+        raise
 
     def on_cel_event(self, body):
         if body['name'] == 'CEL' and body['data']['EventName'] == 'LINKEDID_END':
