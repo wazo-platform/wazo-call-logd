@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import argparse
-import sys
 
-from xivo import pid_file
+from xivo.daemonize import pidfile_context
+from xivo.xivo_logging import setup_logging
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_dispatcher import CELDispatcher
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
@@ -32,11 +32,8 @@ PIDFILENAME = '/var/run/xivo-call-logs.pid'
 
 
 def main():
-    if pid_file.is_already_running(PIDFILENAME):
-        print 'xivo-call-logs is already running'
-        sys.exit(1)
-
-    with pid_file.pidfile(PIDFILENAME):
+    setup_logging('/dev/null', foreground=True, debug=False)
+    with pidfile_context(PIDFILENAME, foreground=True):
         _generate_call_logs()
 
 
