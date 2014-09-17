@@ -17,7 +17,7 @@
 
 import logging
 import time
-from xivo_bus.ctl.consumer import BusConnectionError
+from xivo_bus.ctl.consumer import BusConsumerError
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class CallLogsOrchestrator(object):
         while True:
             try:
                 self._start_consuming_bus_events()
-            except BusConnectionError:
+            except BusConsumerError:
                 self._handle_bus_connection_error()
             except Exception:
                 self._handle_unexpected_error()

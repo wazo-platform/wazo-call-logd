@@ -21,7 +21,7 @@ from unittest import TestCase
 
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.orchestrator import CallLogsOrchestrator
-from xivo_bus.ctl.consumer import BusConsumer, BusConnectionError
+from xivo_bus.ctl.consumer import BusConsumer, BusConsumerError
 
 EXCHANGE = 'xivo-ami'
 KEY = 'CEL'
@@ -89,7 +89,7 @@ class TestCallLogsOrchestrator(TestCase):
 
     @patch('time.sleep')
     def test_given_bus_connection_error_when_run_then_bus_reconnect(self, sleep_mock):
-        self.bus_consumer_mock.run.side_effect = [BusConnectionError(), Exception()]
+        self.bus_consumer_mock.run.side_effect = [BusConsumerError(None), Exception()]
 
         self.assertRaises(Exception, self.orchestrator.run)
 
