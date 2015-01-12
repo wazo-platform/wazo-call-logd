@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2012-2014 Avencall
+# Copyright (C) 2012-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 
 class CallLogsOrchestrator(object):
 
-    _EXCHANGE = 'xivo-ami'
-    _KEY = 'CEL'
+    _KEY = 'ami.CEL'
     _RECONNECTION_DELAY = 5
     _QUEUE_NAME = 'xivo-call-logd-queue'
 
-    def __init__(self, bus_consumer, call_logs_manager):
+    def __init__(self, bus_consumer, call_logs_manager, config):
         self.bus_consumer = bus_consumer
         self.call_logs_manager = call_logs_manager
+        self._config = config
 
     def run(self):
         while True:
@@ -44,7 +44,10 @@ class CallLogsOrchestrator(object):
 
     def _start_consuming_bus_events(self):
         self.bus_consumer.connect()
-        self.bus_consumer.add_binding(self.on_cel_event, self._QUEUE_NAME, self._EXCHANGE, self._KEY)
+        self.bus_consumer.add_binding(self.on_cel_event,
+                                      self._QUEUE_NAME,
+                                      self._config['bus']['exchange_name'],
+                                      self._KEY)
         self.bus_consumer.run()
 
     def _handle_bus_connection_error(self):
@@ -58,6 +61,6 @@ class CallLogsOrchestrator(object):
         raise
 
     def on_cel_event(self, body):
-        if body['name'] == 'CEL' and body['data']['EventName'] == 'LINKEDID_END':
+        if body['data']['EventName'] == 'LINKEDID_END':
             linked_id = body['data']['LinkedID']
             self.call_logs_manager.generate_from_linked_id(linked_id)
