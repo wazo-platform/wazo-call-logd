@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2014 Avencall
+# Copyright (C) 2013-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,22 +23,22 @@ from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.orchestrator import CallLogsOrchestrator
 from xivo_bus.ctl.consumer import BusConsumer, BusConsumerError
 
-EXCHANGE = 'xivo-ami'
-KEY = 'CEL'
+EXCHANGE = 'xivo'
+KEY = 'ami.CEL'
 RECONNECTION_DELAY = 5
 QUEUE_NAME = 'xivo-call-logd-queue'
 
 
 class TestCallLogsOrchestrator(TestCase):
+
     def setUp(self):
         self.bus_consumer_mock = Mock(BusConsumer)
         self.bus_consumer_mock.run.side_effect = [Exception()]
 
         self.call_logs_manager_mock = Mock(CallLogsManager)
-        self.orchestrator = CallLogsOrchestrator(self.bus_consumer_mock, self.call_logs_manager_mock)
-
-    def tearDown(self):
-        pass
+        self.orchestrator = CallLogsOrchestrator(self.bus_consumer_mock,
+                                                 self.call_logs_manager_mock,
+                                                 {'bus': {'exchange_name': EXCHANGE}})
 
     def test_when_run_then_initiate_bus_consumer(self):
         self.assertRaises(Exception, self.orchestrator.run)
