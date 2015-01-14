@@ -4,15 +4,8 @@
 import fnmatch
 import os
 
-from distutils.core import setup
-
-
-def is_package(path):
-    is_svn_dir = fnmatch.fnmatch(path, '*/.svn*')
-    is_test_module = fnmatch.fnmatch(path, '*tests')
-    return not (is_svn_dir or is_test_module)
-
-packages = [p for p, _, _ in os.walk('xivo_call_logs') if is_package(p)]
+from setuptools import setup
+from setuptools import find_packages
 
 
 setup(
@@ -23,6 +16,6 @@ setup(
     author_email='dev@avencall.com',
     url='https://github.com/xivo-pbx/xivo-call-logs',
     license='GPLv3',
-    packages=packages,
+    packages=find_packages(),
     scripts=['bin/xivo-call-logs', 'bin/xivo-call-logd'],
 )
