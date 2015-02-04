@@ -23,8 +23,7 @@ from xivo.daemonize import pidfile_context
 from xivo.chain_map import ChainMap
 from xivo.config_helper import read_config_file_hierarchy
 from xivo.xivo_logging import setup_logging
-from xivo_bus.ctl.consumer import BusConsumer
-from xivo_bus.ctl.config import BusConfig
+from xivo_call_logs.bus_client import BusClient
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_dispatcher import CELDispatcher
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
@@ -99,7 +98,7 @@ def _handle_sigterm(signum, frame):
 
 
 def _init_orchestrator(config):
-    bus_consumer = BusConsumer(BusConfig(**config['bus']))
+    bus_client = BusClient(config)
     cel_fetcher = CELFetcher()
     caller_cel_interpretor = CallerCELInterpretor()
     callee_cel_interpretor = CalleeCELInterpretor()
@@ -108,7 +107,7 @@ def _init_orchestrator(config):
     generator = CallLogsGenerator(cel_dispatcher)
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
-    return CallLogsOrchestrator(bus_consumer, manager, config)
+    return CallLogsOrchestrator(bus_client, manager)
 
 
 if __name__ == '__main__':

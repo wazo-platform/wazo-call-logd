@@ -11,7 +11,7 @@ Homepage: http://xivo.io/
 Package: xivo-call-logs
 Architecture: all
 Section: python
-Depends: ${python:Depends}, ${misc:Depends}, xivo-libdao, xivo-lib-python
+Depends: ${python:Depends}, ${misc:Depends}, xivo-libdao, xivo-lib-python, python-kombu
 Description: XiVO call logs generation
  XiVO is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.

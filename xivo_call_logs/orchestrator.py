@@ -15,52 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import logging
-import time
-from xivo_bus.ctl.consumer import BusConsumerError
-
-logger = logging.getLogger(__name__)
-
 
 class CallLogsOrchestrator(object):
 
-    _KEY = 'ami.CEL'
-    _RECONNECTION_DELAY = 5
-    _QUEUE_NAME = 'xivo-call-logd-queue'
-
-    def __init__(self, bus_consumer, call_logs_manager, config):
-        self.bus_consumer = bus_consumer
-        self.call_logs_manager = call_logs_manager
-        self._config = config
+    def __init__(self, bus_client, call_logs_manager):
+        self._bus_client = bus_client
+        self._call_logs_manager = call_logs_manager
 
     def run(self):
-        while True:
-            try:
-                self._start_consuming_bus_events()
-            except BusConsumerError:
-                self._handle_bus_connection_error()
-            except Exception:
-                self._handle_unexpected_error()
-
-    def _start_consuming_bus_events(self):
-        self.bus_consumer.connect()
-        self.bus_consumer.add_binding(self.on_cel_event,
-                                      self._QUEUE_NAME,
-                                      self._config['bus']['exchange_name'],
-                                      self._KEY)
-        self.bus_consumer.run()
-
-    def _handle_bus_connection_error(self):
-        logger.warning('Bus connection error')
-        self.bus_consumer.stop()
-        time.sleep(self._RECONNECTION_DELAY)
-
-    def _handle_unexpected_error(self):
-        logger.exception('Unexpected error')
-        self.bus_consumer.stop()
-        raise
-
-    def on_cel_event(self, body):
-        if body['data']['EventName'] == 'LINKEDID_END':
-            linked_id = body['data']['LinkedID']
-            self.call_logs_manager.generate_from_linked_id(linked_id)
+        self._bus_client.run(self._call_logs_manager)
