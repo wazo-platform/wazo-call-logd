@@ -1,7 +1,5 @@
-pika
 psycopg2
 sqlalchemy==0.9.4
 git+https://github.com/xivo-pbx/xivo-lib-python.git
-git+https://github.com/xivo-pbx/xivo-bus.git
 git+https://github.com/xivo-pbx/xivo-dao.git
 kombu==2.1.8
