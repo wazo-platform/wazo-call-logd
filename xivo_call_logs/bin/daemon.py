@@ -30,7 +30,6 @@ from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
-from xivo_call_logs.orchestrator import CallLogsOrchestrator
 from xivo_call_logs.writer import CallLogsWriter
 
 _DEFAULT_CONFIG = {
@@ -85,20 +84,7 @@ def _parse_args():
 
 def _run(config):
     _init_signal()
-    orchestrator = _init_orchestrator(config)
-    orchestrator.run()
 
-
-def _init_signal():
-    signal.signal(signal.SIGTERM, _handle_sigterm)
-
-
-def _handle_sigterm(signum, frame):
-    raise SystemExit()
-
-
-def _init_orchestrator(config):
-    bus_client = BusClient(config)
     cel_fetcher = CELFetcher()
     caller_cel_interpretor = CallerCELInterpretor()
     callee_cel_interpretor = CalleeCELInterpretor()
@@ -107,7 +93,17 @@ def _init_orchestrator(config):
     generator = CallLogsGenerator(cel_dispatcher)
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
-    return CallLogsOrchestrator(bus_client, manager)
+    bus_client = BusClient(config)
+
+    bus_client.run(manager)
+
+
+def _init_signal():
+    signal.signal(signal.SIGTERM, _handle_sigterm)
+
+
+def _handle_sigterm(signum, frame):
+    raise SystemExit()
 
 
 if __name__ == '__main__':
