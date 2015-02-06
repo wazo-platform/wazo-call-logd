@@ -18,6 +18,7 @@
 import argparse
 import logging
 import signal
+import xivo_dao
 
 from xivo.daemonize import pidfile_context
 from xivo.chain_map import ChainMap
@@ -57,6 +58,8 @@ def main():
     config = ChainMap(cli_config, file_config, _DEFAULT_CONFIG)
 
     setup_logging(config['logfile'], config['foreground'], config['debug'])
+
+    xivo_dao.init_db_from_config(config)
 
     with pidfile_context(config['pidfile'], config['foreground']):
         logger.info('Starting xivo-call-logd')
