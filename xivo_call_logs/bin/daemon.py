@@ -24,15 +24,13 @@ from xivo.daemonize import pidfile_context
 from xivo.chain_map import ChainMap
 from xivo.config_helper import read_config_file_hierarchy
 from xivo.xivo_logging import setup_logging
-from xivo_bus.ctl.consumer import BusConsumer
-from xivo_bus.ctl.config import BusConfig
+from xivo_call_logs.bus_client import BusClient
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_dispatcher import CELDispatcher
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
-from xivo_call_logs.orchestrator import CallLogsOrchestrator
 from xivo_call_logs.writer import CallLogsWriter
 
 _DEFAULT_CONFIG = {
@@ -89,20 +87,7 @@ def _parse_args():
 
 def _run(config):
     _init_signal()
-    orchestrator = _init_orchestrator(config)
-    orchestrator.run()
 
-
-def _init_signal():
-    signal.signal(signal.SIGTERM, _handle_sigterm)
-
-
-def _handle_sigterm(signum, frame):
-    raise SystemExit()
-
-
-def _init_orchestrator(config):
-    bus_consumer = BusConsumer(BusConfig(**config['bus']))
     cel_fetcher = CELFetcher()
     caller_cel_interpretor = CallerCELInterpretor()
     callee_cel_interpretor = CalleeCELInterpretor()
@@ -111,7 +96,17 @@ def _init_orchestrator(config):
     generator = CallLogsGenerator(cel_dispatcher)
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
-    return CallLogsOrchestrator(bus_consumer, manager, config)
+    bus_client = BusClient(config)
+
+    bus_client.run(manager)
+
+
+def _init_signal():
+    signal.signal(signal.SIGTERM, _handle_sigterm)
+
+
+def _handle_sigterm(signum, frame):
+    raise SystemExit()
 
 
 if __name__ == '__main__':

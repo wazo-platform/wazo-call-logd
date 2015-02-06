@@ -1,7 +1,7 @@
 ﻿This package was debianized by Sebastien Duthil <sduthil@avencall.com> on
 Fri, 09 Aug 2013 14:53:37 -0500.
 
-Copyright: 2013  Avencall
+Copyright: 2013-2015  Avencall
 
 License:
 
@@ -20,4 +20,3 @@ License:
 
 On Debian systems, the complete text of the GNU General Public License
 version 3 can be found in `/usr/share/common-licenses/GPL'.
-
