@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2014 Avencall
+# Copyright (C) 2013-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -59,8 +59,10 @@ class RawCallLog(object):
     @property
     def duration(self):
         default_value = datetime.timedelta(0)
-        if (hasattr(self, 'communication_start') and hasattr(self, 'communication_end')
-                and self.communication_start and self.communication_end):
+        if (hasattr(self, 'communication_start') and
+            hasattr(self, 'communication_end') and
+            self.communication_start and
+            self.communication_end):
             duration = self.communication_end - self.communication_start
             return max(duration, default_value)
         else:
