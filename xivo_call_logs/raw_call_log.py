@@ -62,7 +62,7 @@ class RawCallLog(object):
         communication_start = getattr(self, 'communication_start')
         communication_end = getattr(self, 'communication_end')
         if communication_start and communication_end:
-            duration = self.communication_end - self.communication_start
+            duration = communication_end - communication_start
             return max(duration, default_value)
         else:
             return default_value
