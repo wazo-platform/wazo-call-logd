@@ -59,10 +59,9 @@ class RawCallLog(object):
     @property
     def duration(self):
         default_value = datetime.timedelta(0)
-        if (hasattr(self, 'communication_start') and
-            hasattr(self, 'communication_end') and
-            self.communication_start and
-            self.communication_end):
+        communication_start = getattr(self, 'communication_start')
+        communication_end = getattr(self, 'communication_end')
+        if communication_start and communication_end:
             duration = self.communication_end - self.communication_start
             return max(duration, default_value)
         else:
