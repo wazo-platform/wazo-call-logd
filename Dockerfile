@@ -34,4 +34,4 @@ WORKDIR /root
 RUN apt-get clean
 RUN rm -rf /usr/src/call-logd
 
-CMD xivo-call-logd -f -d
+CMD xivo-call-logd -f
