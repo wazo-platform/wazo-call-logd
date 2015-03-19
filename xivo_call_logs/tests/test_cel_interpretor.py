@@ -94,7 +94,6 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result, equal_to(call))
 
     def test_interpret_chan_start(self):
-
         cel = Mock()
         cel_date = cel.eventtime = datetime.datetime(year=2013, month=1, day=1)
         cel_source_name, cel_source_exten = cel.cid_name, cel.cid_num = 'source_name', 'source_exten'
@@ -233,6 +232,17 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result, all_of(
             has_property('source_name', sentinel.first_source_name),
             has_property('source_exten', sentinel.first_source_exten),
+        ))
+
+    def test_interpret_xivo_from_s(self):
+        exten = '1002'
+        cel = Mock(exten=exten)
+        call = Mock(CallLog)
+
+        result = self.caller_cel_interpretor.interpret_xivo_from_s(cel, call)
+
+        assert_that(result, all_of(
+            has_property('destination_exten', '1002'),
         ))
 
 

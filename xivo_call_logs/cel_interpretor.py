@@ -46,6 +46,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.answer: self.interpret_answer,
             CELEventType.bridge_start: self.interpret_bridge_start,
             CELEventType.bridge_end: self.interpret_bridge_end,
+            CELEventType.xivo_from_s: self.interpret_xivo_from_s,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -84,6 +85,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_bridge_end(self, cel, call):
         call.communication_end = cel.eventtime
+
+        return call
+
+    def interpret_xivo_from_s(self, cel, call):
+        call.destination_exten = cel.exten
 
         return call
 
