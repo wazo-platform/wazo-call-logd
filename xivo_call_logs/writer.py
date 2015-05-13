@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from xivo_dao.data_handler.call_log import dao as call_log_dao
+from xivo_dao.resources.call_log import dao as call_log_dao
 
 
 class CallLogsWriter(object):

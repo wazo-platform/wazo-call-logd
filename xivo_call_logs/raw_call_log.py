@@ -18,7 +18,7 @@
 import datetime
 
 from xivo_call_logs.exceptions import InvalidCallLogException
-from xivo_dao.data_handler.call_log.model import CallLog
+from xivo_dao.resources.call_log.model import CallLog
 
 
 class RawCallLog(object):
