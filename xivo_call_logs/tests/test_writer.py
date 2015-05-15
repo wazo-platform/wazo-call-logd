@@ -29,8 +29,8 @@ class TestCallLogsWriter(TestCase):
     def tearDown(self):
         pass
 
-    @patch('xivo_dao.data_handler.call_log.dao.create_from_list')
-    @patch('xivo_dao.data_handler.call_log.dao.delete_from_list')
+    @patch('xivo_dao.resources.call_log.dao.create_from_list')
+    @patch('xivo_dao.resources.call_log.dao.delete_from_list')
     def test_write(self, mock_dao_delete, mock_dao_create):
         call_logs_creation = CallLogsCreation(new_call_logs=[Mock(), Mock()],
                                               call_logs_to_delete=None)

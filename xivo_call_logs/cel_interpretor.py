@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from xivo.asterisk.line_identity import identity_from_channel
-from xivo_dao.data_handler.cel.event_type import CELEventType
+from xivo_dao.resources.cel.event_type import CELEventType
 
 
 class AbstractCELInterpretor(object):

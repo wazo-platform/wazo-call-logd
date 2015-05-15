@@ -24,8 +24,8 @@ from xivo_call_logs.cel_interpretor import AbstractCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.raw_call_log import RawCallLog
-from xivo_dao.data_handler.cel.event_type import CELEventType
-from xivo_dao.data_handler.call_log.model import CallLog
+from xivo_dao.resources.cel.event_type import CELEventType
+from xivo_dao.resources.call_log.model import CallLog
 
 
 class TestAbstractCELInterpretor(TestCase):

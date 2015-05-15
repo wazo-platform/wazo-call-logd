@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from xivo_call_logs import raw_call_log
-from xivo_dao.data_handler.cel.event_type import CELEventType
+from xivo_dao.resources.cel.event_type import CELEventType
 
 
 class CELDispatcher(object):

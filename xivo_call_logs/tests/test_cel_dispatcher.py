@@ -21,7 +21,7 @@ from unittest import TestCase
 
 from xivo_call_logs.cel_dispatcher import CELDispatcher
 from xivo_call_logs.raw_call_log import RawCallLog
-from xivo_dao.data_handler.call_log.model import CallLog
+from xivo_dao.resources.call_log.model import CallLog
 
 
 class TestCELDispatcher(TestCase):
