@@ -180,32 +180,32 @@ class TestCallerCELInterpretor(TestCase):
             has_property('destination_exten', sentinel.original_destination),
         ))
 
-    def test_interpret_bridge_end_sets_call_end(self):
+    def test_interpret_bridge_end_or_exit_sets_call_end(self):
         end_date = datetime.datetime(year=2013, month=1, day=1)
         cel = Mock(eventtime=end_date)
         call = Mock(CallLog)
 
-        result = self.caller_cel_interpretor.interpret_bridge_end(cel, call)
+        result = self.caller_cel_interpretor.interpret_bridge_end_or_exit(cel, call)
 
         assert_that(result, all_of(
             has_property('communication_end', end_date),
         ))
 
-    def test_interpret_bridge_start_with_no_source_set(self):
+    def test_interpret_bridge_start_or_enter_with_no_source_set(self):
         cel = Mock(
             cid_name=sentinel.source_name,
             cid_num=sentinel.source_exten,
         )
         call = Mock(RawCallLog, source_name=None, source_exten=None)
 
-        result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
+        result = self.caller_cel_interpretor.interpret_bridge_start_or_enter(cel, call)
 
         assert_that(result, all_of(
             has_property('source_name', sentinel.source_name),
             has_property('source_exten', sentinel.source_exten),
         ))
 
-    def test_interpret_bridge_start_sets_communication_start(self):
+    def test_interpret_bridge_start_or_enter_sets_communication_start(self):
         cel = Mock(
             eventtime=sentinel.eventtime,
             cid_name=sentinel.name,
@@ -213,21 +213,21 @@ class TestCallerCELInterpretor(TestCase):
         )
         call = Mock(RawCallLog, source_name=None, source_exten=None)
 
-        result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
+        result = self.caller_cel_interpretor.interpret_bridge_start_or_enter(cel, call)
 
         assert_that(result, all_of(
             has_property('communication_start', sentinel.eventtime),
             has_property('answered', True),
         ))
 
-    def test_interpret_bridge_start_with_source_already_set(self):
+    def test_interpret_bridge_start_or_enter_with_source_already_set(self):
         cel = Mock(cid_name=sentinel.other_source_name,
                    cid_num=sentinel.other_source_exten)
         call = Mock(RawCallLog,
                     source_name=sentinel.first_source_name,
                     source_exten=sentinel.first_source_exten)
 
-        result = self.caller_cel_interpretor.interpret_bridge_start(cel, call)
+        result = self.caller_cel_interpretor.interpret_bridge_start_or_enter(cel, call)
 
         assert_that(result, all_of(
             has_property('source_name', sentinel.first_source_name),
