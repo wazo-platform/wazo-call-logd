@@ -20,7 +20,7 @@ class CallLogsManager(object):
     def __init__(self, cel_fetcher, generator, writer):
         self.cel_fetcher = cel_fetcher
         self.generator = generator
-        self. writer = writer
+        self.writer = writer
 
     def generate_from_count(self, cel_count):
         cels = self.cel_fetcher.fetch_last_unprocessed(cel_count)
