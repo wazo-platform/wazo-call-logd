@@ -44,8 +44,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.app_start: self.interpret_app_start,
             CELEventType.answer: self.interpret_answer,
-            CELEventType.bridge_start: self.interpret_bridge_start,
-            CELEventType.bridge_end: self.interpret_bridge_end,
+            CELEventType.bridge_start: self.interpret_bridge_start_or_enter,
+            CELEventType.bridge_end: self.interpret_bridge_end_or_exit,
+            CELEventType.bridge_enter: self.interpret_bridge_start_or_enter,
+            CELEventType.bridge_exit: self.interpret_bridge_end_or_exit,
             CELEventType.xivo_from_s: self.interpret_xivo_from_s,
         }
 
@@ -72,7 +74,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         return call
 
-    def interpret_bridge_start(self, cel, call):
+    def interpret_bridge_start_or_enter(self, cel, call):
         if not call.source_name:
             call.source_name = cel.cid_name
         if not call.source_exten:
@@ -83,7 +85,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         return call
 
-    def interpret_bridge_end(self, cel, call):
+    def interpret_bridge_end_or_exit(self, cel, call):
         call.communication_end = cel.eventtime
 
         return call
