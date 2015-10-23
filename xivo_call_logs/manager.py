@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2013-2014 Avencall
+# Copyright (C) 2013-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from xivo_dao.helpers.db_utils import session_scope
+
 
 class CallLogsManager(object):
 
@@ -23,12 +25,14 @@ class CallLogsManager(object):
         self.writer = writer
 
     def generate_from_count(self, cel_count):
-        cels = self.cel_fetcher.fetch_last_unprocessed(cel_count)
-        self._generate_from_cels(cels)
+        with session_scope():
+            cels = self.cel_fetcher.fetch_last_unprocessed(cel_count)
+            self._generate_from_cels(cels)
 
     def generate_from_linked_id(self, linked_id):
-        cels = self.cel_fetcher.fetch_from_linked_id(linked_id)
-        self._generate_from_cels(cels)
+        with session_scope():
+            cels = self.cel_fetcher.fetch_from_linked_id(linked_id)
+            self._generate_from_cels(cels)
 
     def _generate_from_cels(self, cels):
         call_logs = self.generator.from_cel(cels)
