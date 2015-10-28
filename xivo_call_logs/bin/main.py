@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2012-2014 Avencall
+# Copyright (C) 2012-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
+from xivo_dao import init_db_from_config, default_config
 
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/var/run/xivo-call-logs.pid'
@@ -33,6 +34,7 @@ PIDFILENAME = '/var/run/xivo-call-logs.pid'
 
 def main():
     setup_logging('/dev/null', foreground=True, debug=False)
+    init_db_from_config(default_config())
     with pidfile_context(PIDFILENAME, foreground=True):
         _generate_call_logs()
 
