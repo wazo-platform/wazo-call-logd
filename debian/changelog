@@ -1,4 +1,4 @@
-xivo-call-logs (1:14.03~20140123.135242.a25bd9e-wheezy-2) xivo-dev; urgency=low
+xivo-call-logs (1:14.03~20140123.135242.a25bd9e) xivo-dev; urgency=low
 
   * Add init script for xivo-call-logd and adapt logrotate
 
