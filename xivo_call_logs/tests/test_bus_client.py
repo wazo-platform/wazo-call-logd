@@ -18,12 +18,12 @@
 import unittest
 import json
 
-from ..bus_client import BusClient, _CELConsumer
-from ..manager import CallLogsManager
-
 from kombu import Connection, Queue, Exchange
 from hamcrest import assert_that, equal_to
 from mock import Mock
+
+from ..bus_client import BusClient, _CELConsumer
+from ..manager import CallLogsManager
 
 
 class TestCelConsumer(unittest.TestCase):

@@ -19,6 +19,8 @@ import argparse
 
 from xivo.daemonize import pidfile_context
 from xivo.xivo_logging import setup_logging
+from xivo_dao import init_db_from_config, default_config
+
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_dispatcher import CELDispatcher
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
@@ -26,7 +28,6 @@ from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
-from xivo_dao import init_db_from_config, default_config
 
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/var/run/xivo-call-logs.pid'

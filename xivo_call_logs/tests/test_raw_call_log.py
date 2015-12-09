@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2014 Avencall
+# Copyright (C) 2013-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,9 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import datetime
+from unittest import TestCase
+
 from hamcrest import all_of, assert_that, contains, equal_to, has_property
 from mock import Mock, PropertyMock
-from unittest import TestCase
 
 from xivo_call_logs.raw_call_log import RawCallLog
 from xivo_call_logs.exceptions import InvalidCallLogException

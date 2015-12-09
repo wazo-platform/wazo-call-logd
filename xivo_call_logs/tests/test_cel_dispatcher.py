@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2014 Avencall
+# Copyright (C) 2013-2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,13 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from unittest import TestCase
+
 from hamcrest import assert_that, contains, equal_to, same_instance
 from mock import Mock, patch, sentinel
-from unittest import TestCase
+from xivo_dao.resources.call_log.model import CallLog
 
 from xivo_call_logs.cel_dispatcher import CELDispatcher
 from xivo_call_logs.raw_call_log import RawCallLog
-from xivo_dao.resources.call_log.model import CallLog
 
 
 class TestCELDispatcher(TestCase):

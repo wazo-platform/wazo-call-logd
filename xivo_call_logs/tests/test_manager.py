@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2014 Avencall
+# Copyright (C) 2015 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,8 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-from mock import Mock
 from unittest import TestCase
+
+from mock import Mock
+
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.generator import CallLogsGenerator
