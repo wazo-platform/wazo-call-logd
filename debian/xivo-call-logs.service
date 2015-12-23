@@ -1,6 +1,6 @@
 [Unit]
 Description=xivo-call-logd server
-ConditionPathExists=!/tmp/xivo-disabled
+ConditionPathExists=!/var/lib/xivo/disabled
 After=network.target asterisk.service postgresql.service
 
 [Service]
