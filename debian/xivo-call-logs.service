@@ -2,6 +2,7 @@
 Description=xivo-call-logd server
 ConditionPathExists=!/var/lib/xivo/disabled
 After=network.target asterisk.service postgresql.service
+Wants=asterisk.service postgresql.service
 
 [Service]
 Type=forking
