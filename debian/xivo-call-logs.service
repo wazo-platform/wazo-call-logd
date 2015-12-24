@@ -1,0 +1,13 @@
+[Unit]
+Description=xivo-call-logd server
+ConditionPathExists=!/var/lib/xivo/disabled
+After=network.target asterisk.service postgresql.service
+Wants=asterisk.service postgresql.service
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/xivo-call-logd
+PIDFile=/var/run/xivo-call-logd.pid
+
+[Install]
+WantedBy=multi-user.target
