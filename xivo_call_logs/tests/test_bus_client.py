@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright (C) 2015-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import unittest
-import json
 
 from kombu import Connection, Queue, Exchange
 from hamcrest import assert_that, equal_to
@@ -29,12 +28,8 @@ from ..manager import CallLogsManager
 class TestCelConsumer(unittest.TestCase):
 
     def setUp(self):
-        self.body = json.dumps({
-            'data': {
-                'EventName': 'LINKEDID_END',
-                'LinkedID': 'a-linked-id',
-            }
-        })
+        self.body = {'data': {'EventName': 'LINKEDID_END',
+                              'LinkedID': 'a-linked-id'}}
         self.call_logs_manager = Mock(CallLogsManager)
         self.consumer = _CELConsumer(Mock(Connection), Mock(Queue), self.call_logs_manager)
 
