@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2012-2015 Avencall
+# Copyright (C) 2012-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import xivo_dao
 from xivo.daemonize import pidfile_context
 from xivo.chain_map import ChainMap
 from xivo.config_helper import read_config_file_hierarchy
+from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging
 from xivo_call_logs.bus_client import BusClient
 from xivo_call_logs.cel_fetcher import CELFetcher
@@ -35,11 +36,12 @@ from xivo_call_logs.writer import CallLogsWriter
 
 _DEFAULT_CONFIG = {
     'logfile': '/var/log/xivo-call-logd.log',
-    'pidfile': '/var/run/xivo-call-logd.pid',
+    'pidfile': '/var/run/xivo-call-logd/xivo-call-logd.pid',
     'config_file': '/etc/xivo-call-logd/config.yml',
     'extra_config_files': '/etc/xivo-call-logd/conf.d',
     'foreground': False,
     'debug': False,
+    'user': 'xivo-call-logs',
     'bus': {
         'exchange_name': 'xivo',
         'exchange_type': 'topic',
@@ -56,6 +58,10 @@ def main():
     config = ChainMap(cli_config, file_config, _DEFAULT_CONFIG)
 
     setup_logging(config['logfile'], config['foreground'], config['debug'])
+
+    user = config.get('user')
+    if user:
+        change_user(user)
 
     xivo_dao.init_db_from_config(config)
 

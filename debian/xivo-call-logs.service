@@ -8,7 +8,7 @@ Wants=asterisk.service postgresql.service
 [Service]
 Type=forking
 ExecStart=/usr/bin/xivo-call-logd
-PIDFile=/var/run/xivo-call-logd.pid
+PIDFile=/var/run/xivo-call-logd/xivo-call-logd.pid
 
 [Install]
 WantedBy=multi-user.target
