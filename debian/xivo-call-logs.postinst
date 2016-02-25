@@ -12,10 +12,8 @@ OLD_PIDFILE="/var/run/$DAEMONNAME.pid"
 
 case "$1" in
 	configure)
-        #remove old pidfile created before 16.03
-        if [ -e "$OLD_PIDFILE" ]; then
-            rm -f "$OLD_PIDFILE"
-        fi
+		#remove old pidfile created before 16.03
+		rm -f "$OLD_PIDFILE"
 
 		#add user
 		if ! getent passwd $USER > /dev/null ; then
