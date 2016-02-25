@@ -78,15 +78,21 @@ def main():
 def _parse_args():
     config = {}
     parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config-file', action='store', help='The path to the config file')
     parser.add_argument('-f', '--foreground', action='store_true',
                         help='run in foreground')
+    parser.add_argument('-u', '--user', help='User to run the daemon', default=_DEFAULT_CONFIG['user'])
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='increase verbosity')
     parsed_args = parser.parse_args()
+    if parsed_args.config_file:
+        config['config_file'] = parsed_args.config_file
     if parsed_args.foreground:
         config['foreground'] = parsed_args.foreground
     if parsed_args.verbose:
         config['debug'] = parsed_args.verbose
+    if parsed_args.user:
+        config['user'] = parsed_args.user
 
     return config
 
