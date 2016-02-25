@@ -24,16 +24,16 @@ case "$1" in
 				$USER
 		fi
 
-        #setup permissions for log file
+		#setup permissions for log file
 		if [ ! -e "$LOG_FILENAME" ]; then
 			touch "$LOG_FILENAME"
-        fi
+		fi
 
 		chown $USER:$GROUP "$LOG_FILENAME"
 
-        #setup permissions for pid directory
-        mkdir -p "$PIDDIR"
-        chown $USER:$GROUP "$PIDDIR"
+		#setup permissions for pid directory
+		mkdir -p "$PIDDIR"
+		chown $USER:$GROUP "$PIDDIR"
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
