@@ -6,6 +6,9 @@
 # should be.
 extra_config_files: /etc/xivo-call-logd/conf.d/
 
+# Owner of the process
+user: xivo-call-logs
+
 # Database connection informations.
 db_uri: postgresql://asterisk:proformatique@localhost/asterisk
 
