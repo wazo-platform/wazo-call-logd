@@ -5,7 +5,6 @@ set -e
 DAEMONNAME='xivo-call-logd'
 USER='xivo-call-logs'
 GROUP=$USER
-PIDDIR="/var/run/$DAEMONNAME"
 LOG_FILENAME="/var/log/$DAEMONNAME.log"
 OLD_PIDFILE="/var/run/$DAEMONNAME.pid"
 
@@ -30,10 +29,6 @@ case "$1" in
 		fi
 
 		chown $USER:$GROUP "$LOG_FILENAME"
-
-		#setup permissions for pid directory
-		mkdir -p "$PIDDIR"
-		chown $USER:$GROUP "$PIDDIR"
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
