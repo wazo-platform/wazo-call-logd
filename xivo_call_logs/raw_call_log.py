@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2015 Avencall
+# Copyright (C) 2013-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@ class RawCallLog(object):
 
     def to_call_log(self):
         if not self.date:
+            raise InvalidCallLogException()
+        if not (self.source_name or self.source_exten):
             raise InvalidCallLogException()
 
         result = CallLog(

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2015 Avencall
+# Copyright (C) 2013-2016 Avencall
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,9 +29,6 @@ class TestRawCallLog(TestCase):
     def setUp(self):
         self.raw_call_log = RawCallLog()
 
-    def tearDown(self):
-        pass
-
     def test_to_call_log(self):
         self.raw_call_log.date = Mock()
         self.raw_call_log.source_name = Mock()
@@ -59,6 +56,12 @@ class TestRawCallLog(TestCase):
 
     def test_to_call_log_invalid_date(self):
         self.raw_call_log.date = None
+
+        self.assertRaises(InvalidCallLogException, self.raw_call_log.to_call_log)
+
+    def test_to_call_log_with_no_source(self):
+        self.raw_call_log.source_name = u''
+        self.raw_call_log.source_exten = u''
 
         self.assertRaises(InvalidCallLogException, self.raw_call_log.to_call_log)
 
