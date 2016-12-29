@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2015 Avencall
+# Copyright (C) 2013-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,20 +31,6 @@ class TestCELDispatcher(TestCase):
         self.callee_cel_interpretor = Mock()
         self.cel_dispatcher = CELDispatcher(self.caller_cel_interpretor,
                                             self.callee_cel_interpretor)
-
-    def tearDown(self):
-        pass
-
-    def test_interpret_call(self):
-        cels = [Mock(), Mock()]
-        raw_call_log = Mock(RawCallLog)
-        expected_call_log = raw_call_log.to_call_log.return_value = Mock(CallLog)
-        self.cel_dispatcher.interpret_cels = Mock(return_value=raw_call_log)
-
-        result = self.cel_dispatcher.interpret_call(cels)
-
-        self.cel_dispatcher.interpret_cels.assert_called_once_with(cels)
-        assert_that(result, equal_to(expected_call_log))
 
     def test_split_caller_callee_cels_no_cels(self):
         cels = []
@@ -84,21 +70,3 @@ class TestCELDispatcher(TestCase):
 
         assert_that(result, contains(contains(cel_1),
                                      contains(cel_2)))
-
-    @patch('xivo_call_logs.raw_call_log.RawCallLog')
-    def test_interpret_cels(self, mock_raw_call_log):
-        cels = cel_1, cel_2, cel_3 = [Mock(id=34), Mock(id=35), Mock(id=36)]
-        caller_cels = [cel_1, cel_3]
-        callee_cels = [cel_2]
-        call = Mock(RawCallLog, id=1)
-        mock_raw_call_log.side_effect = [call, Mock(RawCallLog, id=2)]
-        self.caller_cel_interpretor.interpret_cels = Mock(return_value=sentinel.call_caller_done)
-        self.callee_cel_interpretor.interpret_cels = Mock(return_value=sentinel.call_callee_done)
-        self.cel_dispatcher.split_caller_callee_cels = Mock(return_value=(caller_cels, callee_cels))
-
-        result = self.cel_dispatcher.interpret_cels(cels)
-
-        self.cel_dispatcher.split_caller_callee_cels.assert_called_once_with(cels)
-        self.caller_cel_interpretor.interpret_cels.assert_called_once_with(caller_cels, call)
-        self.callee_cel_interpretor.interpret_cels.assert_called_once_with(callee_cels, sentinel.call_caller_done)
-        assert_that(result, same_instance(sentinel.call_callee_done))

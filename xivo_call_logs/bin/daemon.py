@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2012-2016 Avencall
+# Copyright (C) 2012-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -105,7 +105,7 @@ def _run(config):
     callee_cel_interpretor = CalleeCELInterpretor()
     cel_dispatcher = CELDispatcher(caller_cel_interpretor,
                                    callee_cel_interpretor)
-    generator = CallLogsGenerator(cel_dispatcher)
+    generator = CallLogsGenerator([cel_dispatcher])
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
     bus_client = BusClient(config)
