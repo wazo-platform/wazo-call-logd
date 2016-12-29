@@ -132,3 +132,75 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         call.destination_line_identity = identity_from_channel(cel.channame)
 
         return call
+
+
+class LocalOriginateCELInterpretor(object):
+    @classmethod
+    def interpret_cels(cls, cels, call):
+        uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
+        try:
+            local_channel1, local_channel2, source_channel = starting_channels = uniqueids[:3]
+        except ValueError:  # in case a CHAN_START is missing...
+            return call
+
+        try:
+            local_channel1_start = next(cel for cel in cels if cel.uniqueid == local_channel1 and cel.eventtype == 'CHAN_START')
+            source_channel_answer = next(cel for cel in cels if cel.uniqueid == source_channel and cel.eventtype == 'ANSWER')
+            local_channel2_answer = next(cel for cel in cels if cel.uniqueid == local_channel2 and cel.eventtype == 'ANSWER')
+        except StopIteration:
+            return call
+
+        call.date = local_channel1_start.eventtime
+        call.source_name = source_channel_answer.cid_name
+        call.source_exten = source_channel_answer.cid_num
+        call.source_line_identity = identity_from_channel(source_channel_answer.channame)
+        call.destination_exten = local_channel2_answer.cid_num
+
+        local_channel1_app_start = next((cel for cel in cels if cel.uniqueid == local_channel1 and cel.eventtype == 'APP_START'), None)
+        if local_channel1_app_start:
+            call.user_field = local_channel1_app_start.userfield
+
+        other_channels_start = [cel for cel in cels if cel.uniqueid not in starting_channels and cel.eventtype == 'CHAN_START']
+        non_local_other_channels = [cel.uniqueid for cel in other_channels_start if not cel.channame.lower().startswith('local/')]
+        other_channels_bridge_enter = [cel for cel in cels if cel.uniqueid in non_local_other_channels and cel.eventtype == 'BRIDGE_ENTER']
+        destination_channel = other_channels_bridge_enter[-1].uniqueid if other_channels_bridge_enter else None
+
+        if destination_channel:
+            try:
+                destination_channel_start = next(cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'CHAN_START')
+                destination_channel_bridge_enter = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_ENTER']))
+                destination_channel_bridge_exit = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_EXIT']))
+            except StopIteration:
+                return call
+
+            call.destination_name = destination_channel_start.cid_name
+            call.destination_exten = destination_channel_start.cid_num
+            call.destination_line_identity = identity_from_channel(destination_channel_start.channame)
+            call.communication_start = destination_channel_bridge_enter.eventtime
+            call.communication_end = destination_channel_bridge_exit.eventtime
+            call.answered = True
+
+        return call
+
+    @classmethod
+    def can_interpret(cls, cels):
+        return (cls.three_channels_minimum(cels) and
+                cls.first_two_channels_are_local(cels) and
+                cls.first_channel_is_answered_before_any_other_operation(cels))
+
+    @classmethod
+    def three_channels_minimum(cls, cels):
+        channels = set(cel.uniqueid for cel in cels)
+        return len(channels) >= 3
+
+    @classmethod
+    def first_two_channels_are_local(cls, cels):
+        names = [cel.channame for cel in cels if cel.eventtype == 'CHAN_START']
+        return (names[0].lower().startswith('local/') and
+                names[1].lower().startswith('local/'))
+
+    @classmethod
+    def first_channel_is_answered_before_any_other_operation(cls, cels):
+        first_channel_cels = [cel for cel in cels if cel.uniqueid == cels[0].uniqueid]
+        return (first_channel_cels[0].eventtype == 'CHAN_START' and
+                first_channel_cels[1].eventtype == 'ANSWER')

@@ -30,6 +30,7 @@ from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
+from xivo_call_logs.cel_interpretor import LocalOriginateCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
@@ -102,6 +103,7 @@ def _run(config):
 
     cel_fetcher = CELFetcher()
     generator = CallLogsGenerator([
+        LocalOriginateCELInterpretor,
         DispatchCELInterpretor(CallerCELInterpretor(),
                                CalleeCELInterpretor())
     ])
