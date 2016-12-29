@@ -14,7 +14,7 @@ To install docker on Linux :
 
 To build the image, simply invoke
 
-    docker build -t xivo-call-logd github.com/xivo-pbx/xivo-call-logs
+    docker build -t xivo-call-logd github.com/wazo-pbx/xivo-call-logs
 
 Or directly in the sources in contribs/docker
 
