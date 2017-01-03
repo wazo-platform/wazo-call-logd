@@ -167,15 +167,17 @@ class LocalOriginateCELInterpretor(object):
 
         if destination_channel:
             try:
-                destination_channel_start = next(cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'CHAN_START')
+                # in outgoing calls, destination ANSWER event has more callerid information than START event
+                destination_channel_answer = next(cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'ANSWER')
+                # take the last bridge enter/exit to skip local channel optimization
                 destination_channel_bridge_enter = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_ENTER']))
                 destination_channel_bridge_exit = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_EXIT']))
             except StopIteration:
                 return call
 
-            call.destination_name = destination_channel_start.cid_name
-            call.destination_exten = destination_channel_start.cid_num
-            call.destination_line_identity = identity_from_channel(destination_channel_start.channame)
+            call.destination_name = destination_channel_answer.cid_name
+            call.destination_exten = destination_channel_answer.cid_num
+            call.destination_line_identity = identity_from_channel(destination_channel_answer.channame)
             call.communication_start = destination_channel_bridge_enter.eventtime
             call.communication_end = destination_channel_bridge_exit.eventtime
             call.answered = True
