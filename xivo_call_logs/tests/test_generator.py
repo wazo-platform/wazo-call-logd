@@ -30,14 +30,14 @@ from mock import patch
 from unittest import TestCase
 
 from xivo_call_logs.generator import CallLogsGenerator
-from xivo_call_logs.cel_dispatcher import CELDispatcher
+from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.exceptions import InvalidCallLogException
 
 
 class TestCallLogsGenerator(TestCase):
     def setUp(self):
-        self.cel_dispatcher = Mock(CELDispatcher)
-        self.generator = CallLogsGenerator([self.cel_dispatcher])
+        self.interpretor = Mock()
+        self.generator = CallLogsGenerator([self.interpretor])
 
     def test_from_cel(self):
         self.generator.call_logs_from_cel = Mock()
@@ -63,12 +63,12 @@ class TestCallLogsGenerator(TestCase):
     def test_call_logs_from_cel_one_call(self, raw_call_log_constructor):
         linkedid = '9328742934'
         cels = self._generate_cel_for_call([linkedid])
-        call = raw_call_log_constructor.return_value = self.cel_dispatcher.interpret_cels.return_value
+        call = raw_call_log_constructor.return_value = self.interpretor.interpret_cels.return_value
         expected_call = call.to_call_log.return_value
 
         result = self.generator.call_logs_from_cel(cels)
 
-        self.cel_dispatcher.interpret_cels.assert_called_once_with(cels, call)
+        self.interpretor.interpret_cels.assert_called_once_with(cels, call)
         assert_that(result, contains(expected_call))
 
     @patch('xivo_call_logs.raw_call_log.RawCallLog')
@@ -76,7 +76,7 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1, call_2 = self.cel_dispatcher.interpret_cels.side_effect \
+        call_1, call_2 = self.interpretor.interpret_cels.side_effect \
                        = raw_call_log_constructor.side_effect \
                        = [Mock(), Mock()]
         expected_call_1 = call_1.to_call_log.return_value
@@ -84,8 +84,8 @@ class TestCallLogsGenerator(TestCase):
 
         result = self.generator.call_logs_from_cel(cels)
 
-        self.cel_dispatcher.interpret_cels.assert_any_call(cels_1, ANY)
-        self.cel_dispatcher.interpret_cels.assert_any_call(cels_2, ANY)
+        self.interpretor.interpret_cels.assert_any_call(cels_1, ANY)
+        self.interpretor.interpret_cels.assert_any_call(cels_2, ANY)
         assert_that(result, contains_inanyorder(expected_call_1, expected_call_2))
 
     @patch('xivo_call_logs.raw_call_log.RawCallLog')
@@ -93,7 +93,7 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1, call_2 = self.cel_dispatcher.interpret_cels.side_effect \
+        call_1, call_2 = self.interpretor.interpret_cels.side_effect \
                        = raw_call_log_constructor.side_effect \
                        = [Mock(), Mock()]
         expected_call_1 = call_1.to_call_log.return_value
@@ -101,8 +101,8 @@ class TestCallLogsGenerator(TestCase):
 
         result = self.generator.call_logs_from_cel(cels)
 
-        self.cel_dispatcher.interpret_cels.assert_any_call(cels_1, ANY)
-        self.cel_dispatcher.interpret_cels.assert_any_call(cels_2, ANY)
+        self.interpretor.interpret_cels.assert_any_call(cels_1, ANY)
+        self.interpretor.interpret_cels.assert_any_call(cels_2, ANY)
         assert_that(result, contains(expected_call_1))
 
     def test_list_call_log_ids(self):

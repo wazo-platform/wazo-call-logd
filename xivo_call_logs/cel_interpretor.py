@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2014 Avencall
+# Copyright (C) 2013-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,32 @@
 
 from xivo.asterisk.line_identity import identity_from_channel
 from xivo_dao.resources.cel.event_type import CELEventType
+
+
+class DispatchCELInterpretor(object):
+
+    def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
+        self.caller_cel_interpretor = caller_cel_interpretor
+        self.callee_cel_interpretor = callee_cel_interpretor
+
+    def interpret_cels(self, cels, call_log):
+        caller_cels, callee_cels = self.split_caller_callee_cels(cels)
+        call_log = self.caller_cel_interpretor.interpret_cels(caller_cels, call_log)
+        call_log = self.callee_cel_interpretor.interpret_cels(callee_cels, call_log)
+        return call_log
+
+    def split_caller_callee_cels(self, cels):
+        uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == CELEventType.chan_start]
+        caller_uniqueid = uniqueids[0] if len(uniqueids) > 0 else None
+        callee_uniqueid = uniqueids[1] if len(uniqueids) > 1 else None
+
+        caller_cels = [cel for cel in cels if cel.uniqueid == caller_uniqueid]
+        callee_cels = [cel for cel in cels if cel.uniqueid == callee_uniqueid]
+
+        return (caller_cels, callee_cels)
+
+    def can_interpret(self):
+        return True
 
 
 class AbstractCELInterpretor(object):

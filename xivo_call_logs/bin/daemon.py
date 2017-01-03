@@ -27,7 +27,7 @@ from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging
 from xivo_call_logs.bus_client import BusClient
 from xivo_call_logs.cel_fetcher import CELFetcher
-from xivo_call_logs.cel_dispatcher import CELDispatcher
+from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
@@ -101,11 +101,10 @@ def _run(config):
     _init_signal()
 
     cel_fetcher = CELFetcher()
-    caller_cel_interpretor = CallerCELInterpretor()
-    callee_cel_interpretor = CalleeCELInterpretor()
-    cel_dispatcher = CELDispatcher(caller_cel_interpretor,
-                                   callee_cel_interpretor)
-    generator = CallLogsGenerator([cel_dispatcher])
+    generator = CallLogsGenerator([
+        DispatchCELInterpretor(CallerCELInterpretor(),
+                               CalleeCELInterpretor())
+    ])
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
     bus_client = BusClient(config)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2015 Avencall
+# Copyright (C) 2013-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,16 +18,69 @@
 import datetime
 
 from unittest import TestCase
-
-from hamcrest import all_of, assert_that, equal_to, has_property, same_instance
-from mock import Mock, sentinel
+from hamcrest import all_of
+from hamcrest import assert_that
+from hamcrest import contains
+from hamcrest import equal_to
+from hamcrest import has_property
+from hamcrest import same_instance
+from mock import Mock
+from mock import sentinel
 from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.resources.call_log.model import CallLog
 
 from xivo_call_logs.cel_interpretor import AbstractCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
+from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.raw_call_log import RawCallLog
+
+
+class TestCELDispatcher(TestCase):
+    def setUp(self):
+        self.caller_cel_interpretor = Mock()
+        self.callee_cel_interpretor = Mock()
+        self.cel_dispatcher = DispatchCELInterpretor(self.caller_cel_interpretor,
+                                                     self.callee_cel_interpretor)
+
+    def test_split_caller_callee_cels_no_cels(self):
+        cels = []
+
+        result = self.cel_dispatcher.split_caller_callee_cels(cels)
+
+        assert_that(result, contains(contains(), contains()))
+
+    def test_split_caller_callee_cels_1_uniqueid(self):
+        cels = cel_1, cel_2 = [Mock(uniqueid=1, eventtype='CHAN_START'),
+                               Mock(uniqueid=1, eventtype='APP_START')]
+
+        result = self.cel_dispatcher.split_caller_callee_cels(cels)
+
+        assert_that(result, contains(contains(cel_1, cel_2), contains()))
+
+    def test_split_caller_callee_cels_2_uniqueids(self):
+        cels = cel_1, cel_2, cel_3, cel_4 = \
+            [Mock(uniqueid=1, eventtype='CHAN_START'),
+             Mock(uniqueid=2, eventtype='CHAN_START'),
+             Mock(uniqueid=1, eventtype='APP_START'),
+             Mock(uniqueid=2, eventtype='ANSWER')]
+
+        result = self.cel_dispatcher.split_caller_callee_cels(cels)
+
+        assert_that(result, contains(contains(cel_1, cel_3),
+                                     contains(cel_2, cel_4)))
+
+    def test_split_caller_callee_cels_3_uniqueids(self):
+        cels = cel_1, cel_2, _ = [
+            Mock(uniqueid=1, eventtype='CHAN_START'),
+            Mock(uniqueid=2, eventtype='CHAN_START'),
+            Mock(uniqueid=3, eventtype='CHAN_START'),
+        ]
+
+        result = self.cel_dispatcher.split_caller_callee_cels(cels)
+
+        assert_that(result, contains(contains(cel_1),
+                                     contains(cel_2)))
 
 
 class TestAbstractCELInterpretor(TestCase):
