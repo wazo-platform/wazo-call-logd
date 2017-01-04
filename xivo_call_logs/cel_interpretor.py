@@ -41,7 +41,8 @@ class DispatchCELInterpretor(object):
 
         return (caller_cels, callee_cels)
 
-    def can_interpret(self):
+    def can_interpret(self, cels):
+        del cels
         return True
 
 
