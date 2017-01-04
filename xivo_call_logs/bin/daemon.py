@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2012-2016 Avencall
+# Copyright (C) 2012-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,9 +27,10 @@ from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging
 from xivo_call_logs.bus_client import BusClient
 from xivo_call_logs.cel_fetcher import CELFetcher
-from xivo_call_logs.cel_dispatcher import CELDispatcher
+from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
+from xivo_call_logs.cel_interpretor import LocalOriginateCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
@@ -101,11 +102,11 @@ def _run(config):
     _init_signal()
 
     cel_fetcher = CELFetcher()
-    caller_cel_interpretor = CallerCELInterpretor()
-    callee_cel_interpretor = CalleeCELInterpretor()
-    cel_dispatcher = CELDispatcher(caller_cel_interpretor,
-                                   callee_cel_interpretor)
-    generator = CallLogsGenerator(cel_dispatcher)
+    generator = CallLogsGenerator([
+        LocalOriginateCELInterpretor,
+        DispatchCELInterpretor(CallerCELInterpretor(),
+                               CalleeCELInterpretor())
+    ])
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
     bus_client = BusClient(config)

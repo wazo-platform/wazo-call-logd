@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2012-2015 Avencall
+# Copyright (C) 2012-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,9 +22,10 @@ from xivo.xivo_logging import setup_logging
 from xivo_dao import init_db_from_config, default_config
 
 from xivo_call_logs.cel_fetcher import CELFetcher
-from xivo_call_logs.cel_dispatcher import CELDispatcher
+from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
+from xivo_call_logs.cel_interpretor import LocalOriginateCELInterpretor
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
@@ -44,11 +45,11 @@ def _generate_call_logs():
     parser = argparse.ArgumentParser(description='Call logs generator')
     options = parse_args(parser)
     cel_fetcher = CELFetcher()
-    caller_cel_interpretor = CallerCELInterpretor()
-    callee_cel_interpretor = CalleeCELInterpretor()
-    cel_dispatcher = CELDispatcher(caller_cel_interpretor,
-                                   callee_cel_interpretor)
-    generator = CallLogsGenerator(cel_dispatcher)
+    generator = CallLogsGenerator([
+        LocalOriginateCELInterpretor,
+        DispatchCELInterpretor(CallerCELInterpretor(),
+                               CalleeCELInterpretor())
+    ])
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
 

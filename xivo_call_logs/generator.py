@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2014 Avencall
+# Copyright (C) 2013-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 from collections import namedtuple
 from itertools import groupby
 from xivo_call_logs.exceptions import InvalidCallLogException
+from xivo_call_logs import raw_call_log
 
 
 CallLogsCreation = namedtuple('CallLogsCreation', ('new_call_logs', 'call_logs_to_delete'))
@@ -25,8 +26,8 @@ CallLogsCreation = namedtuple('CallLogsCreation', ('new_call_logs', 'call_logs_t
 
 class CallLogsGenerator(object):
 
-    def __init__(self, cel_interpretor):
-        self.cel_interpretor = cel_interpretor
+    def __init__(self, cel_interpretors):
+        self._cel_interpretors = cel_interpretors
 
     def from_cel(self, cels):
         call_logs_to_delete = self.list_call_log_ids(cels)
@@ -37,9 +38,14 @@ class CallLogsGenerator(object):
         result = []
         for _, cels_by_call_iter in self._group_cels_by_linkedid(cels):
             cels_by_call = list(cels_by_call_iter)
+
+            call_log = raw_call_log.RawCallLog()
+            call_log.cel_ids = [cel.id for cel in cels_by_call]
+
+            interpretor = self._get_interpretor(cels_by_call)
+            call_log = interpretor.interpret_cels(cels_by_call, call_log)
             try:
-                call = self.cel_interpretor.interpret_call(cels_by_call)
-                result.append(call)
+                result.append(call_log.to_call_log())
             except InvalidCallLogException:
                 pass
 
@@ -52,3 +58,10 @@ class CallLogsGenerator(object):
         key_function = lambda cel: cel.linkedid
         cels = sorted(cels, key=key_function)
         return groupby(cels, key=key_function)
+
+    def _get_interpretor(self, cels):
+        for interpretor in self._cel_interpretors:
+            if interpretor.can_interpret(cels):
+                return interpretor
+        else:
+            raise RuntimeError('Could not find suitable interpretor in {}'.format(self._cel_interpretors))
