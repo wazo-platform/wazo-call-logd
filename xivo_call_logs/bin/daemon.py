@@ -119,6 +119,8 @@ def _init_signal():
 
 
 def _handle_sigterm(signum, frame):
+    del signum
+    del frame
     raise SystemExit()
 
 

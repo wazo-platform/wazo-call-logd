@@ -55,13 +55,15 @@ class CallLogsGenerator(object):
         return set(cel.call_log_id for cel in cels if cel.call_log_id)
 
     def _group_cels_by_linkedid(self, cels):
-        key_function = lambda cel: cel.linkedid
-        cels = sorted(cels, key=key_function)
-        return groupby(cels, key=key_function)
+        def linkedid(cel):
+            return cel.linkedid
+
+        cels = sorted(cels, key=linkedid)
+        return groupby(cels, key=linkedid)
 
     def _get_interpretor(self, cels):
         for interpretor in self._cel_interpretors:
             if interpretor.can_interpret(cels):
                 return interpretor
-        else:
-            raise RuntimeError('Could not find suitable interpretor in {}'.format(self._cel_interpretors))
+
+        raise RuntimeError('Could not find suitable interpretor in {}'.format(self._cel_interpretors))

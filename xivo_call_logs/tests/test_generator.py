@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+from unittest import TestCase
+
 from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import calling
@@ -27,10 +29,8 @@ from hamcrest import raises
 from mock import ANY
 from mock import Mock
 from mock import patch
-from unittest import TestCase
 
 from xivo_call_logs.generator import CallLogsGenerator
-from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.exceptions import InvalidCallLogException
 
 
