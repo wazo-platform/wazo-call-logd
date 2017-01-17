@@ -17,6 +17,7 @@
 
 from collections import namedtuple
 from itertools import groupby
+from operator import attrgetter
 from xivo_call_logs.exceptions import InvalidCallLogException
 from xivo_call_logs import raw_call_log
 
@@ -55,11 +56,8 @@ class CallLogsGenerator(object):
         return set(cel.call_log_id for cel in cels if cel.call_log_id)
 
     def _group_cels_by_linkedid(self, cels):
-        def linkedid(cel):
-            return cel.linkedid
-
-        cels = sorted(cels, key=linkedid)
-        return groupby(cels, key=linkedid)
+        cels = sorted(cels, key=attrgetter('linkedid'))
+        return groupby(cels, key=attrgetter('linkedid'))
 
     def _get_interpretor(self, cels):
         for interpretor in self._cel_interpretors:
