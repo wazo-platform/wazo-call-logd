@@ -18,6 +18,7 @@
 import argparse
 import logging
 import signal
+import sys
 import xivo_dao
 
 from xivo.daemonize import pidfile_context
@@ -31,39 +32,22 @@ from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.cel_interpretor import LocalOriginateCELInterpretor
+from xivo_call_logs.config import load as load_config
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
 
-_DEFAULT_CONFIG = {
-    'logfile': '/var/log/xivo-call-logd.log',
-    'pidfile': '/var/run/xivo-call-logd/xivo-call-logd.pid',
-    'config_file': '/etc/xivo-call-logd/config.yml',
-    'extra_config_files': '/etc/xivo-call-logd/conf.d',
-    'foreground': False,
-    'debug': False,
-    'user': 'xivo-call-logs',
-    'bus': {
-        'exchange_name': 'xivo',
-        'exchange_type': 'topic',
-        'exchange_durable': True,
-    },
-}
-
 logger = logging.getLogger(__name__)
 
 
-def main():
-    cli_config = _parse_args()
-    file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
-    config = ChainMap(cli_config, file_config, _DEFAULT_CONFIG)
-
-    setup_logging(config['logfile'], config['foreground'], config['debug'])
+def main(argv):
+    config = load_config(argv)
 
     user = config.get('user')
     if user:
         change_user(user)
 
+    setup_logging(config['logfile'], config['foreground'], config['debug'], config['log_level'])
     xivo_dao.init_db_from_config(config)
 
     with pidfile_context(config['pidfile'], config['foreground']):
@@ -74,28 +58,6 @@ def main():
             logger.exception('Unexpected error:')
         finally:
             logger.info('Stopping xivo-call-logd')
-
-
-def _parse_args():
-    config = {}
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config-file', action='store', help='The path to the config file')
-    parser.add_argument('-f', '--foreground', action='store_true',
-                        help='run in foreground')
-    parser.add_argument('-u', '--user', help='User to run the daemon', default=_DEFAULT_CONFIG['user'])
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='increase verbosity')
-    parsed_args = parser.parse_args()
-    if parsed_args.config_file:
-        config['config_file'] = parsed_args.config_file
-    if parsed_args.foreground:
-        config['foreground'] = parsed_args.foreground
-    if parsed_args.verbose:
-        config['debug'] = parsed_args.verbose
-    if parsed_args.user:
-        config['user'] = parsed_args.user
-
-    return config
 
 
 def _run(config):
@@ -125,4 +87,4 @@ def _handle_sigterm(signum, frame):
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
