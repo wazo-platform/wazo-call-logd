@@ -40,6 +40,9 @@ _DEFAULT_CONFIG = {
         'port': 9497,
         'verify_certificate': _CERT_FILE,
     },
+    'enabled_plugins': {
+        'api': True
+    }
 }
 
 
