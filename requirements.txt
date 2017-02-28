@@ -1,6 +1,11 @@
+git+https://github.com/wazo-pbx/xivo-lib-python.git
+git+https://github.com/wazo-pbx/xivo-dao.git
+cherrypy==3.7.0
+flask==0.10.1
+flask-restful==0.3.5
+flask-cors==1.10.3
+kombu==3.0.34
+pyopenssl==0.14  # from xivo-lib-python
 psycopg2==2.5.4
 pyyaml==3.11
 sqlalchemy==0.9.8
-git+https://github.com/wazo-pbx/xivo-lib-python.git
-git+https://github.com/wazo-pbx/xivo-dao.git
-kombu==3.0.34

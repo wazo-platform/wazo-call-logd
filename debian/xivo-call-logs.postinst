@@ -25,6 +25,7 @@ case "$1" in
 				usermod --home /var/lib/xivo-call-logs $USER
 			fi
 		fi
+		adduser --quiet $USER www-data
 
 		#setup permissions for log file
 		if [ ! -e "$LOG_FILENAME" ]; then

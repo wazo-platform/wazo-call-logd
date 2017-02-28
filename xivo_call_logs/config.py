@@ -6,8 +6,10 @@ import argparse
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import read_config_file_hierarchy
+from xivo.http_helpers import DEFAULT_CIPHERS
 from xivo.xivo_logging import get_log_level_by_name
 
+_CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _DEFAULT_CONFIG = {
     'logfile': '/var/log/xivo-call-logd.log',
     'log_level': 'info',
@@ -21,6 +23,22 @@ _DEFAULT_CONFIG = {
         'exchange_name': 'xivo',
         'exchange_type': 'topic',
         'exchange_durable': True,
+    },
+    'rest_api': {
+        'listen': '0.0.0.0',
+        'port': 9298,
+        'certificate': _CERT_FILE,
+        'private_key': '/usr/share/xivo-certs/server.key',
+        'ciphers': DEFAULT_CIPHERS,
+        'cors': {
+            'enabled': True,
+            'allow_headers': 'Content-Type'
+        },
+    },
+    'auth': {
+        'host': 'localhost',
+        'port': 9497,
+        'verify_certificate': _CERT_FILE,
     },
 }
 

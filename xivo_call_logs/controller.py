@@ -4,6 +4,9 @@
 
 import logging
 
+from threading import Thread
+
+from xivo_call_logs.core.rest_api import api, CoreRestApi
 from xivo_call_logs.bus_client import BusClient
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
@@ -29,15 +32,19 @@ class Controller(object):
         writer = CallLogsWriter()
         self.manager = CallLogsManager(cel_fetcher, generator, writer)
         self.bus_client = BusClient(config)
+        self.rest_api = CoreRestApi(config)
 
     def run(self):
         logger.info('Starting xivo-call-logd')
+        bus_consumer_thread = Thread(target=self.bus_client.run, args=[self.manager], name='bus_consumer_thread')
+        bus_consumer_thread.start()
+
         try:
-            self.bus_client.run(self.manager)
-        except Exception:
-            logger.exception('Unexpected error:')
+            self.rest_api.run()
         finally:
             logger.info('Stopping xivo-call-logd')
+            self.bus_client.stop()
+            bus_consumer_thread.join()
 
     def stop(self, reason):
         logger.warning('Stopping xivo-call-logd: %s', reason)
