@@ -15,4 +15,9 @@ setup(
     license='GPLv3',
     packages=find_packages(),
     scripts=['bin/xivo-call-logs', 'bin/xivo-call-logd'],
+    entry_points={
+        'xivo_call_logs.plugins': [
+            'api = xivo_call_logs.plugins.api.plugin:Plugin',
+        ]
+    }
 )
