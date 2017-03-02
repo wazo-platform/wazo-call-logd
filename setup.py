@@ -14,6 +14,9 @@ setup(
     url='http://wazo.community',
     license='GPLv3',
     packages=find_packages(),
+    package_data={
+        'xivo_call_logs.plugins': ['*/api.yml'],
+    },
     scripts=['bin/xivo-call-logs', 'bin/xivo-call-logd'],
     entry_points={
         'xivo_call_logs.plugins': [
