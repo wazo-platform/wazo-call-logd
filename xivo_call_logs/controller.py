@@ -50,7 +50,7 @@ class Controller(object):
 
     def stop(self, reason):
         logger.warning('Stopping xivo-call-logd: %s', reason)
-        raise SystemExit()
+        self.rest_api.stop()
 
     def _load_plugins(self, global_config):
         load_args = [{
