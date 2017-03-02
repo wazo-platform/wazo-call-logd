@@ -37,8 +37,8 @@ class BusClient(object):
         self.bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(**config['bus'])
         exchange = Exchange(config['bus']['exchange_name'],
                             type=config['bus']['exchange_type'])
-        queue = Queue(exchange=exchange, routing_key=self._KEY, exclusive=True)
-        self._consumer = _CELConsumer(queue)
+        self.queue = Queue(exchange=exchange, routing_key=self._KEY, exclusive=True)
+        self._consumer = _CELConsumer(self.queue)
 
     def run(self, call_logs_manager):
         with Connection(self.bus_url) as conn:

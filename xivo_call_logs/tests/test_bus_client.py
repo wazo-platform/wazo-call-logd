@@ -30,8 +30,8 @@ class TestCelConsumer(unittest.TestCase):
     def setUp(self):
         self.body = {'data': {'EventName': 'LINKEDID_END',
                               'LinkedID': 'a-linked-id'}}
-        self.call_logs_manager = Mock(CallLogsManager)
-        self.consumer = _CELConsumer(Mock(Connection), Mock(Queue), self.call_logs_manager)
+        self.consumer = _CELConsumer(Mock(Queue))
+        self.consumer._call_logs_manager = Mock(CallLogsManager)
 
     def test_that_message_is_acked(self):
         message = Mock()
@@ -43,7 +43,7 @@ class TestCelConsumer(unittest.TestCase):
     def test_that_the_manager_is_called(self):
         self.consumer.on_message(self.body, Mock())
 
-        self.call_logs_manager.generate_from_linked_id.assert_called_once_with('a-linked-id')
+        self.consumer._call_logs_manager.generate_from_linked_id.assert_called_once_with('a-linked-id')
 
 
 class TestBusClient(unittest.TestCase):
