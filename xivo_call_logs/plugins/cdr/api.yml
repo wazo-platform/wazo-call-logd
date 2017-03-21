@@ -1,0 +1,36 @@
+paths:
+  /cdr:
+    get:
+      summary: List CDR
+      description: '**Required ACL: `call_logd.cdr.read`'
+      tags:
+        - cdr
+      responses:
+        '200':
+          description: List CDR
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/CDR'
+definitions:
+  CDR:
+    type: object
+    properties:
+      start:
+        type: string
+        format: date-time
+      source_name:
+        type: string
+      source_extension:
+        type: string
+      destination_name:
+        type: string
+      destination_extension:
+        type: string
+      duration:
+        type: integer
+      answered:
+        type: boolean
