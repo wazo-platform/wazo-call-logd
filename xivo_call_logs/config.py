@@ -20,6 +20,10 @@ _DEFAULT_CONFIG = {
     'debug': False,
     'user': 'xivo-call-logs',
     'bus': {
+        'username': 'guest',
+        'password': 'guest',
+        'host': 'localhost',
+        'port': '5672',
         'exchange_name': 'xivo',
         'exchange_type': 'topic',
         'exchange_durable': True,
