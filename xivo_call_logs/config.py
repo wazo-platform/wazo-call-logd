@@ -41,7 +41,8 @@ _DEFAULT_CONFIG = {
         'verify_certificate': _CERT_FILE,
     },
     'enabled_plugins': {
-        'api': True
+        'api': True,
+        'cdr': True,
     }
 }
 

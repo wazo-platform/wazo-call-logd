@@ -1,0 +1,12 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - call-logd
+  environment:
+    PORTS: "9298"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
+
+call-logd:
+  image: xivo-call-logd-test
+  ports:
+    - "9298:9298"
