@@ -16,9 +16,8 @@ class IntegrationTest(AssetLaunchingTestCase):
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
     service = 'call-logd'
 
-    @classmethod
     @contextmanager
-    def auth_stopped(cls):
-        cls.stop_service('auth')
+    def auth_stopped(self):
+        self.stop_service('auth')
         yield
-        cls.start_service('auth')
+        self.start_service('auth')
