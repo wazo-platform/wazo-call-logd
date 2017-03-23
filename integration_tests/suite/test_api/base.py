@@ -13,6 +13,8 @@ from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from xivo_test_helpers.asset_launching_test_case import NoSuchService
 from xivo_test_helpers.asset_launching_test_case import NoSuchPort
 
+from .constants import VALID_TOKEN
+
 urllib3.disable_warnings()
 
 logger = logging.getLogger(__name__)
@@ -47,7 +49,10 @@ class IntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def reset_clients(cls):
         try:
-            cls.call_logd = CallLogdClient('localhost', cls.service_port(9298, 'call-logd'), verify_certificate=False)
+            cls.call_logd = CallLogdClient('localhost',
+                                           cls.service_port(9298, 'call-logd'),
+                                           verify_certificate=False,
+                                           token=VALID_TOKEN)
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
             cls.call_logd = WrongClient(name='call-logd')

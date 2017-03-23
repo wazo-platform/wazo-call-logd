@@ -8,6 +8,7 @@ from hamcrest import has_properties
 from xivo_call_logs_client.exceptions import CallLogdError
 
 from .test_api.base import IntegrationTest
+from .test_api.constants import VALID_TOKEN
 from .test_api.hamcrest.raises import raises
 from .test_api.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
 
@@ -25,8 +26,10 @@ class TestNoAuth(IntegrationTest):
             )
 
     def test_given_no_token_when_list_cdr_then_401(self):
+        self.call_logd.set_token(None)
         assert_that(
             calling(self.call_logd.cdr.list),
             raises(CallLogdError).matching(has_properties(status_code=401,
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
+        self.call_logd.set_token(VALID_TOKEN)
