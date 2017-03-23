@@ -19,6 +19,7 @@ _DEFAULT_CONFIG = {
     'foreground': False,
     'debug': False,
     'user': 'xivo-call-logs',
+    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'bus': {
         'username': 'guest',
         'password': 'guest',

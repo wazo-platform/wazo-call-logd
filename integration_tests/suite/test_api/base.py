@@ -14,6 +14,7 @@ from xivo_test_helpers.asset_launching_test_case import NoSuchService
 from xivo_test_helpers.asset_launching_test_case import NoSuchPort
 
 from .constants import VALID_TOKEN
+from .database import DbHelper
 
 urllib3.disable_warnings()
 
@@ -56,6 +57,8 @@ class IntegrationTest(AssetLaunchingTestCase):
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
             cls.call_logd = WrongClient(name='call-logd')
+
+        cls.database = DbHelper.build('asterisk', 'proformatique', 'localhost', cls.service_port(5432, 'postgres'), 'asterisk')
 
     @contextmanager
     def auth_stopped(self):

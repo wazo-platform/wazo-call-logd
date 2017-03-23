@@ -3,8 +3,9 @@ sync:
   links:
     - auth
     - call-logd
+    - postgres
   environment:
-    PORTS: "9298 9497"
+    PORTS: "9298 9497 5432"
     TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
 auth:
@@ -23,6 +24,12 @@ call-logd:
     - "./etc/xivo-call-logd:/etc/xivo-call-logd"
     - "./ssl:/usr/local/share/ssl"
   ports:
-    - "9298:9298"
+    - "9298"
   links:
     - auth
+    - postgres
+
+postgres:
+  image: wazopbx/postgres-test
+  ports:
+    - "5432"

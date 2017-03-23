@@ -6,12 +6,12 @@ from marshmallow import Schema, fields
 
 
 class CDRSchema(Schema):
-    start = fields.DateTime()
+    start = fields.DateTime(attribute='date')
     source_name = fields.String()
-    source_extension = fields.String()
+    source_extension = fields.String(attribute='source_exten')
     destination_name = fields.String()
-    destination_extension = fields.String()
-    duration = fields.Integer()
+    destination_extension = fields.String(attribute='destination_exten')
+    duration = fields.TimeDelta()
     answered = fields.Boolean()
 
 

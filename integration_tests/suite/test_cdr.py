@@ -2,10 +2,13 @@
 # Copyright 2017 The Wazo Authors  (see AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from contextlib import contextmanager
 from hamcrest import assert_that
 from hamcrest import calling
+from hamcrest import contains_inanyorder
 from hamcrest import empty
 from hamcrest import has_entry
+from hamcrest import has_entries
 from hamcrest import has_properties
 from xivo_call_logs_client.exceptions import CallLogdError
 
@@ -45,3 +48,33 @@ class TestListCDR(IntegrationTest):
         result = self.call_logd.cdr.list()
 
         assert_that(result, has_entry('items', empty()))
+
+    def test_given_call_logs_when_list_cdr_then_list_cdr(self):
+        call_logs = [
+            {'answered': True,
+             'date': '2017-03-23 00:00:00'},
+            {'answered': False,
+             'date': '2017-03-23 11:11:11'},
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list()
+
+        assert_that(result, has_entry('items', contains_inanyorder(
+            has_entries(answered=True,
+                        start='2017-03-23T00:00:00+00:00'),
+            has_entries(answered=False,
+                        start='2017-03-23T11:11:11+00:00'),
+        )))
+
+    @contextmanager
+    def call_logs(self, call_logs):
+        with self.database.queries() as queries:
+            for call_log in call_logs:
+                call_log['id'] = queries.insert_call_log(**call_log)
+
+        yield
+
+        with self.database.queries() as queries:
+            for call_log in call_logs:
+                queries.delete_call_log(call_log['id'])
