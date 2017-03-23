@@ -13,8 +13,8 @@ from xivo_call_logs_client.client import Client as CallLogdClient
 from xivo_call_logs_client.exceptions import CallLogdError
 
 from .test_api.base import IntegrationTest
-from .test_api.raises import raises_matching
-from .test_api.contains_string_ignoring_case import contains_string_ignoring_case
+from .test_api.hamcrest.raises import raises_matching
+from .test_api.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
 
 
 class TestNoAuth(IntegrationTest):
