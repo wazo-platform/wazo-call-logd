@@ -18,20 +18,16 @@ class TestNoAuth(IntegrationTest):
     asset = 'base'
 
     def test_given_no_auth_when_list_cdr_then_503(self):
-        call_logd = CallLogdClient('localhost', 9298, verify_certificate=False)
-
         with self.auth_stopped():
             assert_that(
-                calling(call_logd.cdr.list),
+                calling(self.call_logd.cdr.list),
                 raises(CallLogdError).matching(has_properties(status_code=503,
                                                               message=contains_string_ignoring_case('auth')))
             )
 
     def test_given_no_token_when_list_cdr_then_401(self):
-        call_logd = CallLogdClient('localhost', 9298, verify_certificate=False)
-
         assert_that(
-            calling(call_logd.cdr.list),
+            calling(self.call_logd.cdr.list),
             raises(CallLogdError).matching(has_properties(status_code=401,
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
