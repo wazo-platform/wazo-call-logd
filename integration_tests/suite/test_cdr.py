@@ -10,6 +10,7 @@ from hamcrest import empty
 from hamcrest import has_entry
 from hamcrest import has_entries
 from hamcrest import has_properties
+from datetime import timedelta
 from xivo_call_logs_client.exceptions import CallLogdError
 
 from .test_api.base import IntegrationTest
@@ -52,9 +53,19 @@ class TestListCDR(IntegrationTest):
     def test_given_call_logs_when_list_cdr_then_list_cdr(self):
         call_logs = [
             {'answered': True,
-             'date': '2017-03-23 00:00:00'},
+             'date': '2017-03-23 00:00:00',
+             'destination_exten': '3378',
+             'destination_name': u'dést.',
+             'duration': timedelta(seconds=87),
+             'source_exten': '7687',
+             'source_name': u'soùr.'},
             {'answered': False,
-             'date': '2017-03-23 11:11:11'},
+             'date': '2017-03-23 11:11:11',
+             'destination_exten': '8733',
+             'destination_name': u'.tsèd',
+             'duration': timedelta(seconds=78),
+             'source_exten': '7867',
+             'source_name': u'.rùos'},
         ]
 
         with self.call_logs(call_logs):
@@ -62,9 +73,19 @@ class TestListCDR(IntegrationTest):
 
         assert_that(result, has_entry('items', contains_inanyorder(
             has_entries(answered=True,
-                        start='2017-03-23T00:00:00+00:00'),
+                        start='2017-03-23T00:00:00+00:00',
+                        destination_extension='3378',
+                        destination_name=u'dést.',
+                        duration=87,
+                        source_extension='7687',
+                        source_name=u'soùr.'),
             has_entries(answered=False,
-                        start='2017-03-23T11:11:11+00:00'),
+                        start='2017-03-23T11:11:11+00:00',
+                        destination_extension='8733',
+                        destination_name=u'.tsèd',
+                        duration=78,
+                        source_extension='7867',
+                        source_name=u'.rùos'),
         )))
 
     @contextmanager
