@@ -24,6 +24,10 @@ class Raises(BaseMatcher):
         self.actual = None
         self.function = None
 
+    def matching(self, matcher):
+        self.matcher = matcher
+        return self
+
     def _matches(self, function):
         if not is_callable(function):
             return False
@@ -69,7 +73,7 @@ class Raises(BaseMatcher):
             description.append_text('%s was raised instead' % type(self.actual))
 
 
-def raises_matching(exception, matcher=None):
+def raises(exception, matcher=None):
     """Matches if the called function raised the expected exception.
     :param exception:  The class of the expected exception
     :param matcher:    Optional regular expression to match exception message.
