@@ -5,7 +5,6 @@
 from hamcrest import assert_that
 from hamcrest import calling
 from hamcrest import has_properties
-from xivo_call_logs_client.client import Client as CallLogdClient
 from xivo_call_logs_client.exceptions import CallLogdError
 
 from .test_api.base import IntegrationTest
