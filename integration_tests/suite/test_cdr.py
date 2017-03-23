@@ -2,12 +2,19 @@
 # Copyright 2017 The Wazo Authors  (see AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from hamcrest import all_of
 from hamcrest import assert_that
+from hamcrest import calling
 from hamcrest import equal_to
 from hamcrest import contains_string
+from hamcrest import has_properties
+from hamcrest import has_property
+from xivo_call_logs_client.client import Client as CallLogdClient
+from xivo_call_logs_client.exceptions import CallLogdError
 
 from .test_api.base import IntegrationTest
-from .test_api.call_logd import CallLogdClient
+from .test_api.raises import raises_matching
+from .test_api.contains_string_ignoring_case import contains_string_ignoring_case
 
 
 class TestNoAuth(IntegrationTest):
@@ -15,16 +22,22 @@ class TestNoAuth(IntegrationTest):
     asset = 'base'
 
     def test_given_no_auth_when_list_cdr_then_503(self):
-        ctid_ng = CallLogdClient('localhost', 9298)
-        with self.auth_stopped():
-            result = ctid_ng.get_cdr_result()
+        call_logd = CallLogdClient('localhost', 9298, verify_certificate=False)
 
-            assert_that(result.status_code, equal_to(503))
-            assert_that(result.json()['message'].lower(), contains_string('auth'))
+        with self.auth_stopped():
+            assert_that(
+                calling(call_logd.cdr.list),
+                raises_matching(CallLogdError, has_properties(status_code=503,
+                                                              message=contains_string_ignoring_case('auth')))
+            )
 
     def test_given_no_token_when_list_cdr_then_401(self):
-        ctid_ng = CallLogdClient('localhost', 9298)
-        result = ctid_ng.get_cdr_result()
+        call_logd = CallLogdClient('localhost', 9298, verify_certificate=False)
 
-        assert_that(result.status_code, equal_to(401))
-        assert_that(result.json()['message'].lower(), contains_string('unauthorized'))
+        assert_that(calling(call_logd.cdr.list), raises_matching(
+            CallLogdError,
+            all_of(
+                has_property('response', has_property('status_code', 401)),
+                has_property('message', contains_string_ignoring_case('unauthorized')),
+            )
+        ))
