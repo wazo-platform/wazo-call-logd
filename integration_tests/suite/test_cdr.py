@@ -4,6 +4,8 @@
 
 from hamcrest import assert_that
 from hamcrest import calling
+from hamcrest import empty
+from hamcrest import has_entry
 from hamcrest import has_properties
 from xivo_call_logs_client.exceptions import CallLogdError
 
@@ -33,3 +35,13 @@ class TestNoAuth(IntegrationTest):
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
         self.call_logd.set_token(VALID_TOKEN)
+
+
+class TestListCDR(IntegrationTest):
+
+    asset = 'base'
+
+    def test_given_no_call_logs_when_list_cdr_then_empty_list(self):
+        result = self.call_logd.cdr.list()
+
+        assert_that(result, has_entry('items', empty()))
