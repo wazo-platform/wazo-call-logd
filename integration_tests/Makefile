@@ -6,10 +6,6 @@ egg-info:
 test:
 	nosetests
 
-
-
-
-
 docker-pull:
 	docker pull n3llyb0y/wait
 	docker pull p0bailey/docker-flask
