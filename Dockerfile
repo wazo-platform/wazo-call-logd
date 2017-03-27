@@ -1,37 +1,37 @@
-## Image to build from sources
-
-FROM debian:jessie
-MAINTAINER XiVO Team "dev@avencall.com"
+FROM python:2.7.9
+MAINTAINER Wazo Maintainers <dev@wazo.community>
 
 ENV DEBIAN_FRONTEND noninteractive
-ENV HOME /root
 
 # Add dependencies
-RUN apt-get -qq update
-RUN apt-get -qq -y install \
-    git \
-    apt-utils \
-    python-pip \
-    python-dev \
-    libpq-dev \
-    libyaml-dev
+RUN apt-get -qq update \
+    && apt-get -qqy install \
+       libpq-dev \
+       libyaml-dev \
+    && apt-get -qqy autoremove \
+    && apt-get -qq clean \
+    && rm -fr /var/lib/apt/lists/*
 
 # Install xivo-call-logd
-WORKDIR /usr/src
-ADD . /usr/src/call-logd
-WORKDIR call-logd
-RUN pip install -r requirements.txt
-RUN python setup.py install
+ADD . /usr/src/xivo-call-logs
+WORKDIR /usr/src/xivo-call-logs
+RUN pip install -r requirements.txt \
+    && python setup.py install \
+    && rm -rf /usr/src/xivo-call-logs
+
 
 # Configure environment
+## Certificates
+RUN mkdir -p /usr/share/xivo-certs
+ADD ./contribs/docker/certs /usr/share/xivo-certs
+## Logs
 RUN touch /var/log/xivo-call-logd.log
+## Config
 RUN mkdir -p /etc/xivo-call-logd
-RUN mkdir /var/lib/xivo-call-logd
-RUN cp -a etc/xivo-call-logd/config.yml /etc/xivo-call-logd/
-WORKDIR /root
+ADD ./etc/xivo-call-logd/config.yml /etc/xivo-call-logd/config.yml
+## PID
+RUN mkdir /var/run/xivo-call-logd
 
-# Clean
-RUN apt-get clean
-RUN rm -rf /usr/src/call-logd
+EXPOSE 9298
 
-CMD ["xivo-call-logd", "-f"]
+CMD ["xivo-call-logd", "-fd", "-u", "root"]

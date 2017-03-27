@@ -1,0 +1,23 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - call-logd
+    - swagger-validator
+  environment:
+    PORTS: "9298 8080"
+
+call-logd:
+  image: xivo-call-logd-test
+  volumes:
+    - "../../..:/usr/src/xivo-call-logs"
+    - "./etc/xivo-call-logd:/etc/xivo-call-logd"
+    - "./ssl:/usr/local/share/ssl"
+  ports:
+    - "9298:9298"
+
+swagger-validator:
+  image: swaggerapi/swagger-validator
+  ports:
+    - "8080"
+  links:
+    - call-logd

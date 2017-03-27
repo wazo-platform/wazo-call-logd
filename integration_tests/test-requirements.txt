@@ -1,0 +1,9 @@
+git+https://github.com/wazo-pbx/xivo-call-logs-client.git
+git+https://github.com/wazo-pbx/xivo-test-helpers.git
+docker-compose
+nose
+psycopg2  # from sqlalchemy
+pyhamcrest
+requests
+sqlalchemy
+stevedore  # from xivo-call-logs-client

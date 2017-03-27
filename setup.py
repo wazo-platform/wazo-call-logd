@@ -21,6 +21,7 @@ setup(
     entry_points={
         'xivo_call_logs.plugins': [
             'api = xivo_call_logs.plugins.api.plugin:Plugin',
+            'cdr = xivo_call_logs.plugins.cdr.plugin:Plugin',
         ]
     }
 )

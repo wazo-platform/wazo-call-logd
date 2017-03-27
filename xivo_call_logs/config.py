@@ -19,7 +19,12 @@ _DEFAULT_CONFIG = {
     'foreground': False,
     'debug': False,
     'user': 'xivo-call-logs',
+    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'bus': {
+        'username': 'guest',
+        'password': 'guest',
+        'host': 'localhost',
+        'port': '5672',
         'exchange_name': 'xivo',
         'exchange_type': 'topic',
         'exchange_durable': True,
@@ -32,7 +37,7 @@ _DEFAULT_CONFIG = {
         'ciphers': DEFAULT_CIPHERS,
         'cors': {
             'enabled': True,
-            'allow_headers': 'Content-Type'
+            'allow_headers': ['Content-Type', 'X-Auth-Token'],
         },
     },
     'auth': {
@@ -41,7 +46,8 @@ _DEFAULT_CONFIG = {
         'verify_certificate': _CERT_FILE,
     },
     'enabled_plugins': {
-        'api': True
+        'api': True,
+        'cdr': True,
     }
 }
 
