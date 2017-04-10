@@ -7,4 +7,23 @@ from xivo_dao.resources.call_log import dao
 
 class CDRService(object):
     def list(self):
-        return dao.find_all()
+        return [CDR.from_call_log(call_log) for call_log in dao.find_all()]
+
+
+class CDR(object):
+
+    @classmethod
+    def from_call_log(cls, call_log):
+        result = cls()
+        for attribute in ('answered',
+                          'date',
+                          'destination_exten',
+                          'destination_name',
+                          'duration',
+                          'source_exten',
+                          'source_name'):
+            setattr(result, attribute, getattr(call_log, attribute))
+
+        result.end = call_log.date + call_log.duration
+
+        return result

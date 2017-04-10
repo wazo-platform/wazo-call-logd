@@ -74,6 +74,7 @@ class TestListCDR(IntegrationTest):
         assert_that(result, has_entry('items', contains_inanyorder(
             has_entries(answered=True,
                         start='2017-03-23T00:00:00+00:00',
+                        end='2017-03-23T00:01:27+00:00',
                         destination_extension='3378',
                         destination_name=u'dést.',
                         duration=87,
@@ -81,6 +82,7 @@ class TestListCDR(IntegrationTest):
                         source_name=u'soùr.'),
             has_entries(answered=False,
                         start='2017-03-23T11:11:11+00:00',
+                        end='2017-03-23T11:12:29+00:00',
                         destination_extension='8733',
                         destination_name=u'.tsèd',
                         duration=78,
