@@ -5,6 +5,9 @@ paths:
       description: '**Required ACL: `call_logd.cdr.read`'
       tags:
         - cdr
+      parameters:
+      - $ref: '#/parameters/startdate'
+      - $ref: '#/parameters/enddate'
       responses:
         '200':
           description: List CDR
@@ -15,6 +18,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/CDR'
+        '400':
+          $ref: '#/responses/InvalidRequest'
 definitions:
   CDR:
     type: object
@@ -37,3 +42,15 @@ definitions:
         type: integer
       answered:
         type: boolean
+  from:
+    description: Ignore CDR starting before the given date. Format YYYY-MM-DDTHH:MM:SS[.mmmuuu+ZZ:ZZ].
+    in: query
+    type: string
+    format: date-time
+    required: false
+  until:
+    description: Ignore CDR starting after the given date. Format YYYY-MM-DDTHH:MM:SS[.mmmuuu+ZZ:ZZ].
+    in: query
+    type: string
+    format: date-time
+    required: false

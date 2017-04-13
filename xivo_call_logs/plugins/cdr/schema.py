@@ -2,7 +2,6 @@
 # Copyright 2017 The Wazo Authors  (see AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from marshmallow.decorators import pre_dump
 from marshmallow import Schema, fields
 
 
@@ -17,4 +16,10 @@ class CDRSchema(Schema):
     answered = fields.Boolean()
 
 
+class CDRListRequestSchema(Schema):
+    from_ = fields.DateTime(load_from='from')
+    until = fields.DateTime()
+
+
 cdr_schema = CDRSchema()
+list_schema = CDRListRequestSchema(strict=True)

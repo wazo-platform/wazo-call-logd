@@ -13,6 +13,7 @@ from flask_restful import Resource
 from flask_cors import CORS
 from xivo.auth_verifier import AuthVerifier
 from xivo import http_helpers
+from xivo import mallow_helpers
 from xivo import rest_api_helpers
 
 VERSION = 1.0
@@ -65,7 +66,8 @@ class CoreRestApi(object):
 
 
 class ErrorCatchingResource(Resource):
-    method_decorators = ([rest_api_helpers.handle_api_exception] +
+    method_decorators = ([mallow_helpers.handle_validation_exception,
+                          rest_api_helpers.handle_api_exception] +
                          Resource.method_decorators)
 
 
