@@ -23,14 +23,14 @@ paths:
 parameters:
   from:
     name: from
-    description: Ignore CDR starting before the given date. Format YYYY-MM-DDTHH:MM:SS[.mmmuuu+ZZ:ZZ].
+    description: Ignore CDR starting before the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
     in: query
     type: string
     format: date-time
     required: false
   until:
     name: until
-    description: Ignore CDR starting after the given date. Format YYYY-MM-DDTHH:MM:SS[.mmmuuu+ZZ:ZZ].
+    description: Ignore CDR starting after the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
     in: query
     type: string
     format: date-time
