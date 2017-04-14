@@ -30,7 +30,7 @@ parameters:
     required: false
   until:
     name: until
-    description: Ignore CDR starting after the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
+    description: Ignore CDR starting at or after the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
     in: query
     type: string
     format: date-time
