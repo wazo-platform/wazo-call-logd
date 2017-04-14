@@ -5,6 +5,9 @@ paths:
       description: '**Required ACL: `call_logd.cdr.read`'
       tags:
         - cdr
+      parameters:
+      - $ref: '#/parameters/from'
+      - $ref: '#/parameters/until'
       responses:
         '200':
           description: List CDR
@@ -15,6 +18,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/CDR'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+parameters:
+  from:
+    name: from
+    description: Ignore CDR starting before the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
+    in: query
+    type: string
+    format: date-time
+    required: false
+  until:
+    name: until
+    description: Ignore CDR starting at or after the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
+    in: query
+    type: string
+    format: date-time
+    required: false
 definitions:
   CDR:
     type: object

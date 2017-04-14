@@ -70,7 +70,7 @@ class Raises(BaseMatcher):
                        .append_text(' because ')
             self.matcher.describe_mismatch(self.actual, description)
         else:
-            description.append_text('%s was raised instead' % type(self.actual))
+            description.append_text('%s was raised instead: %s' % (type(self.actual), unicode(self.actual)))
 
 
 def raises(exception, matcher=None):

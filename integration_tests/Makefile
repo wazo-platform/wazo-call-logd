@@ -1,4 +1,4 @@
-test-setup: call-logd docker-pull
+test-setup: call-logd docker-pull egg-info
 
 egg-info:
 	cd .. && python setup.py egg_info

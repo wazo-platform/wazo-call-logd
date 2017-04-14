@@ -9,6 +9,7 @@ from hamcrest import contains_inanyorder
 from hamcrest import empty
 from hamcrest import has_entry
 from hamcrest import has_entries
+from hamcrest import has_key
 from hamcrest import has_properties
 from datetime import timedelta
 from xivo_call_logs_client.exceptions import CallLogdError
@@ -88,6 +89,34 @@ class TestListCDR(IntegrationTest):
                         duration=78,
                         source_extension='7867',
                         source_name=u'.rùos'),
+        )))
+
+    def test_given_wrong_params_when_list_cdr_then_400(self):
+        wrong_params = ('abcd', '12345', '12:345', '2017-042-10')
+        for wrong_param in wrong_params:
+            assert_that(
+                calling(self.call_logd.cdr.list).with_args(from_=wrong_param),
+                raises(CallLogdError).matching(has_properties(status_code=400,
+                                                              details=has_key('from'))))
+            assert_that(
+                calling(self.call_logd.cdr.list).with_args(until=wrong_param),
+                raises(CallLogdError).matching(has_properties(status_code=400,
+                                                              details=has_key('until'))))
+
+    def test_given_call_logs_when_list_cdr_in_range_then_list_cdr_in_range(self):
+        call_logs = [
+            {'date': '2017-04-10'},
+            {'date': '2017-04-11'},
+            {'date': '2017-04-12'},
+            {'date': '2017-04-13'},
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(from_='2017-04-11', until='2017-04-13')
+
+        assert_that(result, has_entry('items', contains_inanyorder(
+            has_entries(start='2017-04-11T00:00:00+00:00'),
+            has_entries(start='2017-04-12T00:00:00+00:00'),
         )))
 
     @contextmanager
