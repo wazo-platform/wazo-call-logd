@@ -6,8 +6,8 @@ paths:
       tags:
         - cdr
       parameters:
-      - $ref: '#/parameters/startdate'
-      - $ref: '#/parameters/enddate'
+      - $ref: '#/parameters/from'
+      - $ref: '#/parameters/until'
       responses:
         '200':
           description: List CDR
@@ -20,6 +20,21 @@ paths:
                   $ref: '#/definitions/CDR'
         '400':
           $ref: '#/responses/InvalidRequest'
+parameters:
+  from:
+    name: from
+    description: Ignore CDR starting before the given date. Format YYYY-MM-DDTHH:MM:SS[.mmmuuu+ZZ:ZZ].
+    in: query
+    type: string
+    format: date-time
+    required: false
+  until:
+    name: until
+    description: Ignore CDR starting after the given date. Format YYYY-MM-DDTHH:MM:SS[.mmmuuu+ZZ:ZZ].
+    in: query
+    type: string
+    format: date-time
+    required: false
 definitions:
   CDR:
     type: object
@@ -42,15 +57,3 @@ definitions:
         type: integer
       answered:
         type: boolean
-  from:
-    description: Ignore CDR starting before the given date. Format YYYY-MM-DDTHH:MM:SS[.mmmuuu+ZZ:ZZ].
-    in: query
-    type: string
-    format: date-time
-    required: false
-  until:
-    description: Ignore CDR starting after the given date. Format YYYY-MM-DDTHH:MM:SS[.mmmuuu+ZZ:ZZ].
-    in: query
-    type: string
-    format: date-time
-    required: false
