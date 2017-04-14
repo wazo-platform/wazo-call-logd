@@ -10,8 +10,6 @@ call-logd:
   image: xivo-call-logd-test
   volumes:
     - "../../..:/usr/src/xivo-call-logs"
-    - "./etc/xivo-call-logd:/etc/xivo-call-logd"
-    - "./ssl:/usr/local/share/ssl"
   ports:
     - "9298:9298"
 
