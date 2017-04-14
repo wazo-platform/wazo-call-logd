@@ -58,7 +58,11 @@ class IntegrationTest(AssetLaunchingTestCase):
             logger.debug(e)
             cls.call_logd = WrongClient(name='call-logd')
 
-        cls.database = DbHelper.build('asterisk', 'proformatique', 'localhost', cls.service_port(5432, 'postgres'), 'asterisk')
+        try:
+            cls.database = DbHelper.build('asterisk', 'proformatique', 'localhost', cls.service_port(5432, 'postgres'), 'asterisk')
+        except (NoSuchService, NoSuchPort) as e:
+            logger.debug(e)
+            cls.call_logd = WrongClient(name='database')
 
     @contextmanager
     def auth_stopped(self):
