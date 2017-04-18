@@ -5,6 +5,7 @@
 from contextlib import contextmanager
 from hamcrest import assert_that
 from hamcrest import calling
+from hamcrest import contains
 from hamcrest import contains_inanyorder
 from hamcrest import empty
 from hamcrest import has_entry
@@ -92,7 +93,7 @@ class TestListCDR(IntegrationTest):
         )))
 
     def test_given_wrong_params_when_list_cdr_then_400(self):
-        wrong_params = ('abcd', '12345', '12:345', '2017-042-10')
+        wrong_params = ('abcd', '12:345', '2017-042-10')
         for wrong_param in wrong_params:
             assert_that(
                 calling(self.call_logd.cdr.list).with_args(from_=wrong_param),
@@ -102,6 +103,22 @@ class TestListCDR(IntegrationTest):
                 calling(self.call_logd.cdr.list).with_args(until=wrong_param),
                 raises(CallLogdError).matching(has_properties(status_code=400,
                                                               details=has_key('until'))))
+            assert_that(
+                calling(self.call_logd.cdr.list).with_args(direction=wrong_param),
+                raises(CallLogdError).matching(has_properties(status_code=400,
+                                                              details=has_key('direction'))))
+            assert_that(
+                calling(self.call_logd.cdr.list).with_args(order=wrong_param),
+                raises(CallLogdError).matching(has_properties(status_code=400,
+                                                              details=has_key('order'))))
+            assert_that(
+                calling(self.call_logd.cdr.list).with_args(limit=wrong_param),
+                raises(CallLogdError).matching(has_properties(status_code=400,
+                                                              details=has_key('limit'))))
+            assert_that(
+                calling(self.call_logd.cdr.list).with_args(offset=wrong_param),
+                raises(CallLogdError).matching(has_properties(status_code=400,
+                                                              details=has_key('offset'))))
 
     def test_given_call_logs_when_list_cdr_in_range_then_list_cdr_in_range(self):
         call_logs = [
@@ -117,6 +134,44 @@ class TestListCDR(IntegrationTest):
         assert_that(result, has_entry('items', contains_inanyorder(
             has_entries(start='2017-04-11T00:00:00+00:00'),
             has_entries(start='2017-04-12T00:00:00+00:00'),
+        )))
+
+    def test_given_call_logs_when_list_cdr_in_order_then_list_cdr_in_order(self):
+        call_logs = [
+            {'date': '2017-04-10'},
+            {'date': '2017-04-12'},
+            {'date': '2017-04-11'},
+        ]
+
+        with self.call_logs(call_logs):
+            result_asc = self.call_logd.cdr.list(order='start', direction='asc')
+            result_desc = self.call_logd.cdr.list(order='start', direction='desc')
+
+        assert_that(result_asc, has_entry('items', contains(
+            has_entries(start='2017-04-10T00:00:00+00:00'),
+            has_entries(start='2017-04-11T00:00:00+00:00'),
+            has_entries(start='2017-04-12T00:00:00+00:00'),
+        )))
+
+        assert_that(result_desc, has_entry('items', contains(
+            has_entries(start='2017-04-12T00:00:00+00:00'),
+            has_entries(start='2017-04-11T00:00:00+00:00'),
+            has_entries(start='2017-04-10T00:00:00+00:00'),
+        )))
+
+    def test_given_call_logs_when_list_cdr_with_pagination_then_list_cdr_paginated(self):
+        call_logs = [
+            {'date': '2017-04-10'},
+            {'date': '2017-04-12'},
+            {'date': '2017-04-11'},
+        ]
+
+        with self.call_logs(call_logs):
+            result_unpaginated = self.call_logd.cdr.list()
+            result_paginated = self.call_logd.cdr.list(limit=1, offset=1)
+
+        assert_that(result_paginated, has_entry('items', contains(
+            result_unpaginated['items'][1],
         )))
 
     @contextmanager

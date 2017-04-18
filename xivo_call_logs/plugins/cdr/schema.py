@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from marshmallow import Schema, fields
+from marshmallow.validate import OneOf
 
 
 class CDRSchema(Schema):
@@ -17,8 +18,12 @@ class CDRSchema(Schema):
 
 
 class CDRListRequestSchema(Schema):
-    from_ = fields.DateTime(load_from='from')
-    until = fields.DateTime()
+    from_ = fields.DateTime(load_from='from', missing=None)
+    until = fields.DateTime(missing=None)
+    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
+    order = fields.String(validate=OneOf(['start']), missing='start')
+    limit = fields.Integer(min=1, missing=None)
+    offset = fields.Integer(min=1, missing=None)
 
 
 cdr_schema = CDRSchema()

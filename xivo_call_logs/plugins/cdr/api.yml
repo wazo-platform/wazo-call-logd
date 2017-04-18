@@ -8,6 +8,10 @@ paths:
       parameters:
       - $ref: '#/parameters/from'
       - $ref: '#/parameters/until'
+      - $ref: '#/parameters/limit'
+      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/order'
+      - $ref: '#/parameters/direction'
       responses:
         '200':
           description: List CDR
@@ -35,6 +39,33 @@ parameters:
     type: string
     format: date-time
     required: false
+  limit:
+    required: false
+    name: limit
+    in: query
+    type: integer
+    description: Maximum number of items to return in the list
+  offset:
+    required: false
+    name: offset
+    in: query
+    type: integer
+    description: Number of items to skip over in the list. Useful for pagination.
+  order:
+    required: false
+    name: order
+    in: query
+    type: string
+    description: Name of the field to use for sorting the list of items returned.
+  direction:
+    required: false
+    name: direction
+    in: query
+    type: string
+    enum:
+    - asc
+    - desc
+    description: Sort list of items in 'asc' (ascending) or 'desc' (descending) order
 definitions:
   CDR:
     type: object

@@ -6,8 +6,9 @@ from xivo_dao.resources.call_log import dao
 
 
 class CDRService(object):
-    def list(self, from_=None, until=None):
-        return [CDR.from_call_log(call_log) for call_log in dao.find_all_in_period(from_, until)]
+    def list(self, from_, until, order, direction, limit, offset):
+        order = 'date' if order == 'start' else order
+        return [CDR.from_call_log(call_log) for call_log in dao.find_all_in_period(from_, until, order, direction, limit, offset)]
 
 
 class CDR(object):
