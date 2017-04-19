@@ -20,4 +20,6 @@ class CDRResource(AuthResource):
         args = list_schema.load(request.args).data
         cdrs = self.cdr_service.list(**args)
 
-        return {'items': cdr_schema.dump(cdrs, many=True).data}
+        return {'items': cdr_schema.dump(cdrs['items'], many=True).data,
+                'total': cdrs['total'],
+                'filtered': cdrs['filtered']}

@@ -22,6 +22,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/CDR'
+              total:
+                type: integer
+              filtered:
+                type: integer
         '400':
           $ref: '#/responses/InvalidRequest'
 parameters:

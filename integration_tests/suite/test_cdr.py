@@ -50,7 +50,9 @@ class TestListCDR(IntegrationTest):
     def test_given_no_call_logs_when_list_cdr_then_empty_list(self):
         result = self.call_logd.cdr.list()
 
-        assert_that(result, has_entry('items', empty()))
+        assert_that(result, has_entries(items=empty(),
+                                        filtered=0,
+                                        total=0))
 
     def test_given_call_logs_when_list_cdr_then_list_cdr(self):
         call_logs = [
@@ -73,7 +75,7 @@ class TestListCDR(IntegrationTest):
         with self.call_logs(call_logs):
             result = self.call_logd.cdr.list()
 
-        assert_that(result, has_entry('items', contains_inanyorder(
+        assert_that(result, has_entries(items=contains_inanyorder(
             has_entries(answered=True,
                         start='2017-03-23T00:00:00+00:00',
                         end='2017-03-23T00:01:27+00:00',
@@ -90,7 +92,9 @@ class TestListCDR(IntegrationTest):
                         duration=78,
                         source_extension='7867',
                         source_name=u'.rùos'),
-        )))
+        ),
+                                        filtered=2,
+                                        total=2))
 
     def test_given_wrong_params_when_list_cdr_then_400(self):
         wrong_params = ('abcd', '12:345', '2017-042-10')
@@ -131,10 +135,12 @@ class TestListCDR(IntegrationTest):
         with self.call_logs(call_logs):
             result = self.call_logd.cdr.list(from_='2017-04-11', until='2017-04-13')
 
-        assert_that(result, has_entry('items', contains_inanyorder(
+        assert_that(result, has_entries(items=contains_inanyorder(
             has_entries(start='2017-04-11T00:00:00+00:00'),
             has_entries(start='2017-04-12T00:00:00+00:00'),
-        )))
+        ),
+                                        filtered=2,
+                                        total=4))
 
     def test_given_call_logs_when_list_cdr_in_order_then_list_cdr_in_order(self):
         call_logs = [
@@ -170,7 +176,9 @@ class TestListCDR(IntegrationTest):
             result_unpaginated = self.call_logd.cdr.list()
             result_paginated = self.call_logd.cdr.list(limit=1, offset=1)
 
-        assert_that(result_paginated, has_entry('items', contains(
+        assert_that(result_paginated, has_entries(filtered=3,
+                                                  total=3,
+                                                  items=contains(
             result_unpaginated['items'][1],
         )))
 
