@@ -14,10 +14,10 @@ from hamcrest import has_key
 from hamcrest import has_properties
 from datetime import timedelta
 from xivo_call_logs_client.exceptions import CallLogdError
+from xivo_test_helpers.hamcrest.raises import raises
 
 from .test_api.base import IntegrationTest
 from .test_api.constants import VALID_TOKEN
-from .test_api.hamcrest.raises import raises
 from .test_api.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
 
 
