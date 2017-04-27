@@ -24,7 +24,7 @@ cdr_schema = CDRSchema()
 class CDRListRequestSchema(Schema):
     from_ = fields.DateTime(load_from='from', missing=None)
     until = fields.DateTime(missing=None)
-    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
+    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
     order = fields.String(validate=OneOf(cdr_schema.fields), missing='start')
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=None)
