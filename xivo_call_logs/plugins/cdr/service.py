@@ -8,7 +8,6 @@ class CDRService(object):
         self._dao = dao
 
     def list(self, from_, until, order, direction, limit, offset):
-        order = 'date' if order == 'start' else order
         call_logs = self._dao.find_all_in_period(from_, until, order, direction, limit, offset)
         count = self._dao.count_in_period(from_, until)
         return {'items': map(CDR.from_call_log, call_logs),
