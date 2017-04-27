@@ -129,6 +129,13 @@ class TestListCDR(IntegrationTest):
                 raises(CallLogdError).matching(has_properties(status_code=400,
                                                               details=has_key('offset'))))
 
+    def test_given_unsupported_params_when_list_cdr_then_400(self):
+        assert_that(
+            calling(self.call_logd.cdr.list).with_args(order='end'),
+            raises(CallLogdError).matching(has_properties(status_code=400,
+                                                          details=has_key('order'))))
+
+
     def test_given_call_logs_when_list_cdr_in_range_then_list_cdr_in_range(self):
         call_logs = [
             {'date': '2017-04-10'},
@@ -155,17 +162,17 @@ class TestListCDR(IntegrationTest):
         ]
 
         with self.call_logs(call_logs):
-            result_asc = self.call_logd.cdr.list(order='start', direction='asc')
-            result_desc = self.call_logd.cdr.list(order='start', direction='desc')
+            result_start_asc = self.call_logd.cdr.list(order='start', direction='asc')
+            result_start_desc = self.call_logd.cdr.list(order='start', direction='desc')
             result_duration = self.call_logd.cdr.list(order='duration', direction='asc')
 
-        assert_that(result_asc, has_entry('items', contains(
+        assert_that(result_start_asc, has_entry('items', contains(
             has_entries(start='2017-04-10T00:00:00+00:00'),
             has_entries(start='2017-04-11T00:00:00+00:00'),
             has_entries(start='2017-04-12T00:00:00+00:00'),
         )))
 
-        assert_that(result_desc, has_entry('items', contains(
+        assert_that(result_start_desc, has_entry('items', contains(
             has_entries(start='2017-04-12T00:00:00+00:00'),
             has_entries(start='2017-04-11T00:00:00+00:00'),
             has_entries(start='2017-04-10T00:00:00+00:00'),
