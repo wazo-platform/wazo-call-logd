@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import collections
-import yaml
 import logging
+import yaml
 
 from flask import make_response
 from flask.ext.restful import Resource
