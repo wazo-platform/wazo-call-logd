@@ -2,10 +2,13 @@
 # Copyright 2017 The Wazo Authors  (see AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import sqlalchemy as sa
+
 from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy import event
 from sqlalchemy import exc
+from sqlalchemy import sql
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import make_transient
@@ -38,6 +41,13 @@ def new_db_session(db_uri):
 
 class CallLogDAO(object):
 
+    searched_columns = (
+        CallLogSchema.source_name,
+        CallLogSchema.source_exten,
+        CallLogSchema.destination_name,
+        CallLogSchema.destination_exten,
+    )
+
     def __init__(self, Session):
         self._Session = Session
 
@@ -56,7 +66,7 @@ class CallLogDAO(object):
         finally:
             self._Session.remove()
 
-    def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None):
+    def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
@@ -64,6 +74,11 @@ class CallLogDAO(object):
                 query = query.filter(CallLogSchema.date >= start)
             if end:
                 query = query.filter(CallLogSchema.date < end)
+
+            if search:
+                filters = (sql.cast(column, sa.String).ilike('%%%s%%' % search)
+                           for column in self.searched_columns)
+                query = query.filter(sql.or_(*filters))
 
             order_field = None
             if order:
@@ -86,7 +101,7 @@ class CallLogDAO(object):
                 make_transient(call_log)
             return call_log_rows
 
-    def count_in_period(self, start=None, end=None):
+    def count_in_period(self, start=None, end=None, search=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
@@ -96,6 +111,10 @@ class CallLogDAO(object):
                 query = query.filter(CallLogSchema.date >= start)
             if end:
                 query = query.filter(CallLogSchema.date < end)
+            if search:
+                filters = (sql.cast(column, sa.String).ilike('%%%s%%' % search)
+                           for column in self.searched_columns)
+                query = query.filter(sql.or_(*filters))
             filtered = query.count()
 
         return {'total': total, 'filtered': filtered}

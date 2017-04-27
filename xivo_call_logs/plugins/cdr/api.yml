@@ -12,6 +12,7 @@ paths:
       - $ref: '#/parameters/offset'
       - $ref: '#/parameters/order'
       - $ref: '#/parameters/direction'
+      - $ref: '#/parameters/search'
       responses:
         '200':
           description: List CDR
@@ -70,6 +71,12 @@ parameters:
     - asc
     - desc
     description: Sort list of items in 'asc' (ascending) or 'desc' (descending) order
+  search:
+    required: false
+    name: required
+    in: query
+    type: string
+    description: Filter list of items
 definitions:
   CDR:
     type: object

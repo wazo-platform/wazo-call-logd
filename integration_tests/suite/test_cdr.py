@@ -200,6 +200,24 @@ class TestListCDR(IntegrationTest):
                                                       result_unpaginated['items'][1],
                                                   )))
 
+    def test_given_call_logs_when_list_cdr_with_search_then_list_matching_cdr(self):
+        call_logs = [
+            {'date': '2016-04-10'},
+            {'date': '2017-04-10'},
+            {'date': '2016-04-12', 'source_exten': 'prefix2017'},
+            {'date': '2016-04-12', 'source_name': '2017suffix'},
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(search='2017')
+
+        assert_that(result, has_entries(filtered=2,
+                                        total=4,
+                                        items=contains_inanyorder(
+                                            has_entry('source_extension', 'prefix2017'),
+                                            has_entry('source_name', '2017suffix'),
+                                        )))
+
     @contextmanager
     def call_logs(self, call_logs):
         with self.database.queries() as queries:
