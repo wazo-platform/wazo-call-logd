@@ -18,14 +18,16 @@ class CDRSchema(Schema):
     answered = fields.Boolean()
 
 
+cdr_schema = CDRSchema()
+
+
 class CDRListRequestSchema(Schema):
     from_ = fields.DateTime(load_from='from', missing=None)
     until = fields.DateTime(missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
-    order = fields.String(validate=OneOf(['start']), missing='start')
+    order = fields.String(validate=OneOf(cdr_schema.fields), missing='start')
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=None)
 
 
-cdr_schema = CDRSchema()
 list_schema = CDRListRequestSchema(strict=True)

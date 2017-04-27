@@ -149,14 +149,15 @@ class TestListCDR(IntegrationTest):
 
     def test_given_call_logs_when_list_cdr_in_order_then_list_cdr_in_order(self):
         call_logs = [
-            {'date': '2017-04-10'},
-            {'date': '2017-04-12'},
-            {'date': '2017-04-11'},
+            {'date': '2017-04-10', 'duration': timedelta(seconds=0)},
+            {'date': '2017-04-12', 'duration': timedelta(seconds=2)},
+            {'date': '2017-04-11', 'duration': timedelta(seconds=1)},
         ]
 
         with self.call_logs(call_logs):
             result_asc = self.call_logd.cdr.list(order='start', direction='asc')
             result_desc = self.call_logd.cdr.list(order='start', direction='desc')
+            result_duration = self.call_logd.cdr.list(order='duration', direction='asc')
 
         assert_that(result_asc, has_entry('items', contains(
             has_entries(start='2017-04-10T00:00:00+00:00'),
@@ -168,6 +169,12 @@ class TestListCDR(IntegrationTest):
             has_entries(start='2017-04-12T00:00:00+00:00'),
             has_entries(start='2017-04-11T00:00:00+00:00'),
             has_entries(start='2017-04-10T00:00:00+00:00'),
+        )))
+
+        assert_that(result_duration, has_entry('items', contains(
+            has_entries(duration=0),
+            has_entries(duration=1),
+            has_entries(duration=2),
         )))
 
     def test_given_call_logs_when_list_cdr_with_pagination_then_list_cdr_paginated(self):
