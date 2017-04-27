@@ -9,7 +9,7 @@ from marshmallow.validate import Range
 
 class CDRSchema(Schema):
     start = fields.DateTime(attribute='date')
-    end = fields.DateTime(attribute='end')
+    end = fields.DateTime()
     source_name = fields.String()
     source_extension = fields.String(attribute='source_exten')
     destination_name = fields.String()
