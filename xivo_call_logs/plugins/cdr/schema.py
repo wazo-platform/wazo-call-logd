@@ -4,6 +4,7 @@
 
 from marshmallow import Schema, fields
 from marshmallow.validate import OneOf
+from marshmallow.validate import Range
 
 
 class CDRSchema(Schema):
@@ -22,8 +23,8 @@ class CDRListRequestSchema(Schema):
     until = fields.DateTime(missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
     order = fields.String(validate=OneOf(['start']), missing='start')
-    limit = fields.Integer(min=1, missing=None)
-    offset = fields.Integer(min=1, missing=None)
+    limit = fields.Integer(validate=Range(min=0), missing=None)
+    offset = fields.Integer(validate=Range(min=0), missing=None)
 
 
 cdr_schema = CDRSchema()

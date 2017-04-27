@@ -97,28 +97,33 @@ class TestListCDR(IntegrationTest):
                                         total=2))
 
     def test_given_wrong_params_when_list_cdr_then_400(self):
-        wrong_params = ('abcd', '12:345', '2017-042-10')
+        wrong_params = {'abcd', '12:345', '2017-042-10'}
         for wrong_param in wrong_params:
             assert_that(
                 calling(self.call_logd.cdr.list).with_args(from_=wrong_param),
                 raises(CallLogdError).matching(has_properties(status_code=400,
                                                               details=has_key('from'))))
+        for wrong_param in wrong_params:
             assert_that(
                 calling(self.call_logd.cdr.list).with_args(until=wrong_param),
                 raises(CallLogdError).matching(has_properties(status_code=400,
                                                               details=has_key('until'))))
+        for wrong_param in wrong_params:
             assert_that(
                 calling(self.call_logd.cdr.list).with_args(direction=wrong_param),
                 raises(CallLogdError).matching(has_properties(status_code=400,
                                                               details=has_key('direction'))))
+        for wrong_param in wrong_params:
             assert_that(
                 calling(self.call_logd.cdr.list).with_args(order=wrong_param),
                 raises(CallLogdError).matching(has_properties(status_code=400,
                                                               details=has_key('order'))))
+        for wrong_param in wrong_params | {'-1'}:
             assert_that(
                 calling(self.call_logd.cdr.list).with_args(limit=wrong_param),
                 raises(CallLogdError).matching(has_properties(status_code=400,
                                                               details=has_key('limit'))))
+        for wrong_param in wrong_params | {'-1'}:
             assert_that(
                 calling(self.call_logd.cdr.list).with_args(offset=wrong_param),
                 raises(CallLogdError).matching(has_properties(status_code=400,
