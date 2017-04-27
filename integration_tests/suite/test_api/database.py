@@ -2,11 +2,15 @@
 # Copyright 2017 The Wazo Authors  (see AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import logging
+
 import sqlalchemy as sa
 
 from contextlib import contextmanager
 from datetime import timedelta
 from sqlalchemy.sql import text
+
+logger = logging.getLogger(__name__)
 
 
 class DbHelper(object):
@@ -25,6 +29,14 @@ class DbHelper(object):
     def __init__(self, uri, db):
         self.uri = uri
         self.db = db
+
+    def is_up(self):
+        try:
+            self.connect()
+            return True
+        except Exception as e:
+            logger.debug('Database is down: %s', e)
+            return False
 
     def create_engine(self, db=None, isolate=False):
         db = db or self.db

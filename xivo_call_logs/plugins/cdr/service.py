@@ -2,14 +2,15 @@
 # Copyright 2017 The Wazo Authors  (see AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from xivo_dao.resources.call_log import dao
-
 
 class CDRService(object):
+    def __init__(self, dao):
+        self._dao = dao
+
     def list(self, from_, until, order, direction, limit, offset):
         order = 'date' if order == 'start' else order
-        call_logs = dao.find_all_in_period(from_, until, order, direction, limit, offset)
-        count = dao.count_in_period(from_, until)
+        call_logs = self._dao.find_all_in_period(from_, until, order, direction, limit, offset)
+        count = self._dao.count_in_period(from_, until)
         return {'items': map(CDR.from_call_log, call_logs),
                 'filtered': count['filtered'],
                 'total': count['total']}
