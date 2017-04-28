@@ -73,7 +73,7 @@ parameters:
     description: Sort list of items in 'asc' (ascending) or 'desc' (descending) order
   search:
     required: false
-    name: required
+    name: search
     in: query
     type: string
     description: Filter list of items
