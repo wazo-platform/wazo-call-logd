@@ -2,8 +2,12 @@
 # Copyright 2015-2017 The Wazo Authors  (see AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import logging
+
 from kombu import Exchange, Connection, Queue
 from kombu.mixins import ConsumerMixin
+
+logger = logging.getLogger(__name__)
 
 
 class _CELConsumer(ConsumerMixin):
@@ -18,7 +22,9 @@ class _CELConsumer(ConsumerMixin):
 
     def on_message(self, body, message):
         if body['data']['EventName'] == 'LINKEDID_END':
-            self._call_logs_manager.generate_from_linked_id(body['data']['LinkedID'])
+            linked_id = body['data']['LinkedID']
+            logger.debug('Received LINKEDID_END: %s', linked_id)
+            self._call_logs_manager.generate_from_linked_id(linked_id)
 
         message.ack()
 

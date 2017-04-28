@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2015 Avencall
+# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ class TestCallLogsManager(TestCase):
     def test_generate_from_count(self):
         cel_count = 132456
         cels = self.cel_fetcher.fetch_last_unprocessed.return_value = [Mock(), Mock()]
-        call_logs = self.generator.from_cel.return_value = [Mock(), Mock()]
+        call_logs = self.generator.from_cel.return_value = Mock(new_call_logs=[])
 
         self.manager.generate_from_count(cel_count=cel_count)
 
@@ -49,7 +49,7 @@ class TestCallLogsManager(TestCase):
     def test_generate_from_linked_id(self):
         linked_id = '666'
         cels = self.cel_fetcher.fetch_from_linked_id.return_value = [Mock()]
-        call_logs = self.generator.from_cel.return_value = [Mock()]
+        call_logs = self.generator.from_cel.return_value = Mock(new_call_logs=[])
 
         self.manager.generate_from_linked_id(linked_id=linked_id)
 
