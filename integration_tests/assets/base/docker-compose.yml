@@ -4,8 +4,9 @@ sync:
     - auth
     - call-logd
     - postgres
+    - rabbitmq
   environment:
-    PORTS: "9298 9497 5432"
+    PORTS: "5672 9298 9497 5432"
     TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
 auth:
@@ -30,8 +31,14 @@ call-logd:
   links:
     - auth
     - postgres
+    - rabbitmq
 
 postgres:
   image: wazopbx/postgres-test
   ports:
     - "5432"
+
+rabbitmq:
+  image: rabbitmq
+  ports:
+    - "5672"

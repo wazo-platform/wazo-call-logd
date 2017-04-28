@@ -141,3 +141,111 @@ class DatabaseQueries(object):
     def delete_call_log(self, call_log_id):
         query = text("DELETE FROM call_log WHERE id = :id")
         self.connection.execute(query, id=call_log_id)
+
+    def insert_cel(
+            self,
+            eventtype,
+            eventtime,
+            uniqueid,
+            linkedid,
+            userdeftype='',
+            cid_name='default name',
+            cid_num='9999',
+            cid_ani='',
+            cid_rdnis='',
+            cid_dnid='',
+            exten='',
+            context='',
+            channame='',
+            appname='',
+            appdata='',
+            amaflags=0,
+            accountcode='',
+            peeraccount='',
+            userfield='',
+            peer='',
+            call_log_id=None,
+            extra=None,
+    ):
+        query = text("""
+        INSERT INTO cel (
+            eventtype,
+            eventtime,
+            uniqueid,
+            linkedid,
+            userdeftype,
+            cid_name,
+            cid_num,
+            cid_ani,
+            cid_rdnis,
+            cid_dnid,
+            exten,
+            context,
+            channame,
+            appname,
+            appdata,
+            amaflags,
+            accountcode,
+            peeraccount,
+            userfield,
+            peer,
+            call_log_id,
+            extra
+        )
+        VALUES (
+            :eventtype,
+            :eventtime,
+            :uniqueid,
+            :linkedid,
+            :userdeftype,
+            :cid_name,
+            :cid_num,
+            :cid_ani,
+            :cid_rdnis,
+            :cid_dnid,
+            :exten,
+            :context,
+            :channame,
+            :appname,
+            :appdata,
+            :amaflags,
+            :accountcode,
+            :peeraccount,
+            :userfield,
+            :peer,
+            :call_log_id,
+            :extra
+        )
+        RETURNING id
+        """)
+
+        cel_id = (self.connection
+                  .execute(query,
+                           eventtype=eventtype,
+                           eventtime=eventtime,
+                           uniqueid=uniqueid,
+                           linkedid=linkedid,
+                           userdeftype=userdeftype,
+                           cid_name=cid_name,
+                           cid_num=cid_num,
+                           cid_ani=cid_ani,
+                           cid_rdnis=cid_rdnis,
+                           cid_dnid=cid_dnid,
+                           exten=exten,
+                           context=context,
+                           channame=channame,
+                           appname=appname,
+                           appdata=appdata,
+                           amaflags=amaflags,
+                           accountcode=accountcode,
+                           peeraccount=peeraccount,
+                           userfield=userfield,
+                           peer=peer,
+                           call_log_id=call_log_id,
+                           extra=extra)
+                  .scalar())
+        return cel_id
+
+    def delete_cel(self, cel_id):
+        query = text("DELETE FROM cel WHERE id = :id")
+        self.connection.execute(query, id=cel_id)
