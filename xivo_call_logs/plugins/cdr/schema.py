@@ -18,6 +18,7 @@ class CDRSchema(Schema):
     destination_extension = fields.String(attribute='destination_exten')
     duration = fields.TimeDelta()
     answered = fields.Boolean()
+    user_uuid = fields.UUID()
 
 
 cdr_schema = CDRSchema()
@@ -31,6 +32,7 @@ class CDRListRequestSchema(Schema):
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=None)
     search = fields.String(missing=None)
+    user_uuid = fields.UUID(missing=None)
 
     @post_load
     def map_order_field(self, in_data):

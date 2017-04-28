@@ -90,6 +90,7 @@ class DatabaseQueries(object):
             answered=True,
             source_line_identity='sip/source',
             destination_line_identity='sip/destination',
+            user_uuid=None,
     ):
         query = text("""
         INSERT INTO call_log (
@@ -102,7 +103,8 @@ class DatabaseQueries(object):
             user_field,
             answered,
             source_line_identity,
-            destination_line_identity
+            destination_line_identity,
+            user_uuid
         )
         VALUES (
             :date,
@@ -114,7 +116,8 @@ class DatabaseQueries(object):
             :user_field,
             :answered,
             :source_line_identity,
-            :destination_line_identity
+            :destination_line_identity,
+            :user_uuid
         )
         RETURNING id
         """)
@@ -130,7 +133,8 @@ class DatabaseQueries(object):
                                 user_field=user_field,
                                 answered=answered,
                                 source_line_identity=source_line_identity,
-                                destination_line_identity=destination_line_identity)
+                                destination_line_identity=destination_line_identity,
+                                user_uuid=user_uuid)
                        .scalar())
         return call_log_id
 

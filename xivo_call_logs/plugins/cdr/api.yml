@@ -77,6 +77,12 @@ parameters:
     in: query
     type: string
     description: Filter list of items
+  user:
+    required: false
+    name: user_uuid
+    in: query
+    type: string
+    description: Show only CDR relating to this user (emitter or receiver)
 definitions:
   CDR:
     type: object
