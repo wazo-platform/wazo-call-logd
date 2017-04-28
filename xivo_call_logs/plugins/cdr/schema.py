@@ -30,6 +30,7 @@ class CDRListRequestSchema(Schema):
     order = fields.String(validate=OneOf(set(cdr_schema.fields) - {'end'}), missing='start')
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=None)
+    search = fields.String(missing=None)
 
     @post_load
     def map_order_field(self, in_data):
