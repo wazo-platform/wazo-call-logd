@@ -26,8 +26,7 @@ class CDR(object):
                           'destination_name',
                           'duration',
                           'source_exten',
-                          'source_name',
-                          'user_uuid'):
+                          'source_name'):
             setattr(result, attribute, getattr(call_log, attribute))
 
         result.end = call_log.date + call_log.duration

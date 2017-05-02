@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import event
 from sqlalchemy import exc
 from sqlalchemy import sql
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import make_transient
@@ -80,7 +81,8 @@ class CallLogDAO(object):
                            for column in self.searched_columns)
                 query = query.filter(sql.or_(*filters))
             if user_uuid:
-                query = query.filter(CallLogSchema.user_uuid == str(user_uuid))
+                query = query.options(joinedload('participants'))
+                query = query.filter(CallLogSchema.participant_user_uuids.contains(str(user_uuid)))
 
             order_field = None
             if order:
@@ -118,7 +120,7 @@ class CallLogDAO(object):
                            for column in self.searched_columns)
                 query = query.filter(sql.or_(*filters))
             if user_uuid:
-                query = query.filter(CallLogSchema.user_uuid == str(user_uuid))
+                query = query.filter(CallLogSchema.participant_user_uuids.contains(str(user_uuid)))
             filtered = query.count()
 
         return {'total': total, 'filtered': filtered}

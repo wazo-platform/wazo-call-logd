@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
-
 import sqlalchemy as sa
+import uuid
 
 from contextlib import contextmanager
 from datetime import timedelta
@@ -90,7 +90,6 @@ class DatabaseQueries(object):
             answered=True,
             source_line_identity='sip/source',
             destination_line_identity='sip/destination',
-            user_uuid=None,
     ):
         query = text("""
         INSERT INTO call_log (
@@ -103,8 +102,7 @@ class DatabaseQueries(object):
             user_field,
             answered,
             source_line_identity,
-            destination_line_identity,
-            user_uuid
+            destination_line_identity
         )
         VALUES (
             :date,
@@ -116,8 +114,7 @@ class DatabaseQueries(object):
             :user_field,
             :answered,
             :source_line_identity,
-            :destination_line_identity,
-            :user_uuid
+            :destination_line_identity
         )
         RETURNING id
         """)
@@ -133,14 +130,35 @@ class DatabaseQueries(object):
                                 user_field=user_field,
                                 answered=answered,
                                 source_line_identity=source_line_identity,
-                                destination_line_identity=destination_line_identity,
-                                user_uuid=user_uuid)
+                                destination_line_identity=destination_line_identity)
                        .scalar())
         return call_log_id
 
     def delete_call_log(self, call_log_id):
         query = text("DELETE FROM call_log WHERE id = :id")
         self.connection.execute(query, id=call_log_id)
+
+    def insert_call_log_participant(self, call_log_id, user_uuid, line_id=None):
+        uuid_ = str(uuid.uuid4())
+        query = text("""
+        INSERT INTO call_log_participant (
+            uuid,
+            call_log_id,
+            user_uuid,
+            line_id
+        )
+        VALUES (
+            :uuid,
+            :call_log_id,
+            :user_uuid,
+            :line_id
+        )
+        """)
+        self.connection.execute(query,
+                                uuid=uuid_,
+                                call_log_id=call_log_id,
+                                user_uuid=user_uuid,
+                                line_id=line_id)
 
     def insert_cel(
             self,

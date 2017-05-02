@@ -18,7 +18,6 @@ class CDRSchema(Schema):
     destination_extension = fields.String(attribute='destination_exten')
     duration = fields.TimeDelta()
     answered = fields.Boolean()
-    user_uuid = fields.UUID()
 
 
 cdr_schema = CDRSchema()
