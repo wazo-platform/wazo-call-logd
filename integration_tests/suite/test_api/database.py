@@ -4,11 +4,12 @@
 
 import logging
 import sqlalchemy as sa
-import uuid
 
 from contextlib import contextmanager
-from datetime import timedelta
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
+from xivo_dao.alchemy.call_log import CallLog
+from xivo_dao.tests.test_dao import ItemInserter
 
 logger = logging.getLogger(__name__)
 
@@ -77,88 +78,26 @@ class DatabaseQueries(object):
 
     def __init__(self, connection):
         self.connection = connection
+        self.Session = sessionmaker(bind=connection)
 
-    def insert_call_log(
-            self,
-            date,
-            source_name='source',
-            source_exten='1111',
-            destination_name='destination',
-            destination_exten='2222',
-            duration=timedelta(seconds=1),
-            user_field='',
-            answered=True,
-            source_line_identity='sip/source',
-            destination_line_identity='sip/destination',
-    ):
-        query = text("""
-        INSERT INTO call_log (
-            date,
-            source_name,
-            source_exten,
-            destination_name,
-            destination_exten,
-            duration,
-            user_field,
-            answered,
-            source_line_identity,
-            destination_line_identity
-        )
-        VALUES (
-            :date,
-            :source_name,
-            :source_exten,
-            :destination_name,
-            :destination_exten,
-            :duration,
-            :user_field,
-            :answered,
-            :source_line_identity,
-            :destination_line_identity
-        )
-        RETURNING id
-        """)
+    @contextmanager
+    def inserter(self):
+        session = self.Session()
+        yield ItemInserter(session)
+        session.commit()
 
-        call_log_id = (self.connection
-                       .execute(query,
-                                date=date,
-                                source_name=source_name,
-                                source_exten=source_exten,
-                                destination_name=destination_name,
-                                destination_exten=destination_exten,
-                                duration=duration,
-                                user_field=user_field,
-                                answered=answered,
-                                source_line_identity=source_line_identity,
-                                destination_line_identity=destination_line_identity)
-                       .scalar())
-        return call_log_id
+    def insert_call_log(self, **kwargs):
+        with self.inserter() as inserter:
+            return inserter.add_call_log(**kwargs).id
 
     def delete_call_log(self, call_log_id):
-        query = text("DELETE FROM call_log WHERE id = :id")
-        self.connection.execute(query, id=call_log_id)
+        session = self.Session()
+        session.query(CallLog).filter(CallLog.id == call_log_id).delete()
+        session.commit()
 
-    def insert_call_log_participant(self, call_log_id, user_uuid, line_id=None):
-        uuid_ = str(uuid.uuid4())
-        query = text("""
-        INSERT INTO call_log_participant (
-            uuid,
-            call_log_id,
-            user_uuid,
-            line_id
-        )
-        VALUES (
-            :uuid,
-            :call_log_id,
-            :user_uuid,
-            :line_id
-        )
-        """)
-        self.connection.execute(query,
-                                uuid=uuid_,
-                                call_log_id=call_log_id,
-                                user_uuid=user_uuid,
-                                line_id=line_id)
+    def insert_call_log_participant(self, **kwargs):
+        with self.inserter() as inserter:
+            return inserter.add_call_log_participant(**kwargs)
 
     def insert_cel(
             self,
