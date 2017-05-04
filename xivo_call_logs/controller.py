@@ -17,6 +17,7 @@ from xivo_call_logs.core.rest_api import api, CoreRestApi
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
+from xivo_confd_client import Client as Confd
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +26,11 @@ class Controller(object):
 
     def __init__(self, config):
         cel_fetcher = CELFetcher()
+        confd_client = Confd(**config['confd'])
         generator = CallLogsGenerator([
-            LocalOriginateCELInterpretor,
-            DispatchCELInterpretor(CallerCELInterpretor(),
-                                   CalleeCELInterpretor())
+            LocalOriginateCELInterpretor(confd_client),
+            DispatchCELInterpretor(CallerCELInterpretor(confd_client),
+                                   CalleeCELInterpretor(confd_client))
         ])
         writer = CallLogsWriter()
         self.manager = CallLogsManager(cel_fetcher, generator, writer)

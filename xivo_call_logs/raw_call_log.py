@@ -36,6 +36,7 @@ class RawCallLog(object):
         self.communication_end = None
         self.source_line_identity = None
         self.destination_line_identity = None
+        self.participants = []
 
     def to_call_log(self):
         if not self.date:
@@ -55,6 +56,7 @@ class RawCallLog(object):
             source_line_identity=self.source_line_identity,
             destination_line_identity=self.destination_line_identity,
         )
+        result.set_participants(self.participants)
         result.add_related_cels(self.cel_ids)
 
         return result

@@ -45,6 +45,11 @@ _DEFAULT_CONFIG = {
         'port': 9497,
         'verify_certificate': _CERT_FILE,
     },
+    'confd': {
+        'host': 'localhost',
+        'port': 9486,
+        'verify_certificate': _CERT_FILE,
+    },
     'enabled_plugins': {
         'api': True,
         'cdr': True,

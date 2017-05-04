@@ -3,10 +3,11 @@ sync:
   links:
     - auth
     - call-logd
+    - confd
     - postgres
     - rabbitmq
   environment:
-    PORTS: "5672 9298 9497 5432"
+    PORTS: "5672 9298 9486 9497 5432"
     TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
 auth:
@@ -30,8 +31,18 @@ call-logd:
     - "9298"
   links:
     - auth
+    - confd
     - postgres
     - rabbitmq
+
+confd:
+  image: p0bailey/docker-flask
+  ports:
+    - "9486"
+  volumes:
+    - "./xivo-confd:/usr/local/share/xivo-confd"
+    - "./ssl:/usr/local/share/ssl"
+  command: "python /usr/local/share/xivo-confd/mock-xivo-confd.py 9486"
 
 postgres:
   image: wazopbx/postgres-test

@@ -7,6 +7,7 @@ import sqlalchemy as sa
 
 from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import make_transient
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.tests.test_dao import ItemInserter
@@ -98,6 +99,22 @@ class DatabaseQueries(object):
     def insert_call_log_participant(self, **kwargs):
         with self.inserter() as inserter:
             return inserter.add_call_log_participant(**kwargs)
+
+    def find_last_call_log(self):
+        session = self.Session()
+        call_log = session.query(CallLog).order_by(CallLog.date).first()
+        if call_log:
+            make_transient(call_log)
+        session.commit()
+        return call_log
+
+    def get_call_log_user_uuids(self, call_log_id):
+        session = self.Session()
+        call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
+        result = tuple(call_log.participant_user_uuids)
+        session.commit()
+
+        return result
 
     def insert_cel(
             self,

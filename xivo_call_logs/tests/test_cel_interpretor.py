@@ -36,6 +36,12 @@ from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.raw_call_log import RawCallLog
 
 
+def confd_mock():
+    confd = Mock()
+    confd.lines.list.return_value = {'items': []}
+    return confd
+
+
 class TestCELDispatcher(TestCase):
     def setUp(self):
         self.caller_cel_interpretor = Mock()
@@ -138,7 +144,7 @@ class TestAbstractCELInterpretor(TestCase):
 class TestCallerCELInterpretor(TestCase):
 
     def setUp(self):
-        self.caller_cel_interpretor = CallerCELInterpretor()
+        self.caller_cel_interpretor = CallerCELInterpretor(confd_mock())
 
     def test_interpret_cel_unknown_or_ignored_event(self):
         cel = Mock(eventtype='unknown_or_ignored_eventtype')
@@ -304,7 +310,7 @@ class TestCallerCELInterpretor(TestCase):
 class TestCalleeCELInterpretor(TestCase):
 
     def setUp(self):
-        self.callee_cel_interpretor = CalleeCELInterpretor()
+        self.callee_cel_interpretor = CalleeCELInterpretor(confd_mock())
 
     def test_interpret_chan_start(self):
         line_identity = 'sip/asldfj'

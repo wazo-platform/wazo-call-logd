@@ -4,3 +4,6 @@ auth:
 db_uri: postgresql://asterisk:proformatique@postgres/asterisk
 bus:
   host: rabbitmq
+confd:
+  host: confd
+  verify_certificate: /usr/local/share/ssl/confd/server.crt
