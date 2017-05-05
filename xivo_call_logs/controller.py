@@ -5,6 +5,9 @@
 import logging
 
 from threading import Thread
+from xivo.token_renewer import TokenRenewer
+from xivo_auth_client import Client as AuthClient
+from xivo_confd_client import Client as ConfdClient
 
 from xivo_call_logs.bus_client import BusClient
 from xivo_call_logs.cel_fetcher import CELFetcher
@@ -24,16 +27,22 @@ logger = logging.getLogger(__name__)
 class Controller(object):
 
     def __init__(self, config):
+        auth_config = dict(config['auth'])
+        auth_config.pop('key_file', None)
+        auth_client = AuthClient(**auth_config)
         cel_fetcher = CELFetcher()
+        confd_client = ConfdClient(**config['confd'])
         generator = CallLogsGenerator([
-            LocalOriginateCELInterpretor,
-            DispatchCELInterpretor(CallerCELInterpretor(),
-                                   CalleeCELInterpretor())
+            LocalOriginateCELInterpretor(confd_client),
+            DispatchCELInterpretor(CallerCELInterpretor(confd_client),
+                                   CalleeCELInterpretor(confd_client))
         ])
         writer = CallLogsWriter()
         self.manager = CallLogsManager(cel_fetcher, generator, writer)
         self.bus_client = BusClient(config)
         self.rest_api = CoreRestApi(config)
+        self.token_renewer = TokenRenewer(auth_client)
+        self.token_renewer.subscribe_to_token_change(confd_client.set_token)
         self._load_plugins(config)
 
     def run(self):
@@ -42,7 +51,8 @@ class Controller(object):
         bus_consumer_thread.start()
 
         try:
-            self.rest_api.run()
+            with self.token_renewer:
+                self.rest_api.run()
         finally:
             logger.info('Stopping xivo-call-logd')
             self.bus_client.stop()

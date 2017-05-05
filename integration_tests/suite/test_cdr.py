@@ -218,11 +218,37 @@ class TestListCDR(IntegrationTest):
                                             has_entry('source_name', '2017suffix'),
                                         )))
 
+    def test_given_call_logs_when_list_cdr_of_user_then_list_cdr_of_user(self):
+        USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'
+        USER_2_UUID = 'de5ffb31-eacd-4fd7-b7e0-dd4b8676e346'
+
+        call_logs = [
+            {'date': '2017-04-10'},
+            {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-13', 'participants': [{'user_uuid': USER_2_UUID}]},
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(user_uuid=USER_1_UUID)
+
+        assert_that(result, has_entries(filtered=2,
+                                        total=4,
+                                        items=contains_inanyorder(
+                                            has_entries(start='2017-04-11T00:00:00+00:00'),
+                                            has_entries(start='2017-04-12T00:00:00+00:00'),
+                                        )))
+
     @contextmanager
     def call_logs(self, call_logs):
         with self.database.queries() as queries:
             for call_log in call_logs:
+                participants = call_log.pop('participants', [])
                 call_log['id'] = queries.insert_call_log(**call_log)
+                call_log['participants'] = participants
+                for participant in participants:
+                    queries.insert_call_log_participant(call_log_id=call_log['id'],
+                                                        **participant)
 
         yield
 

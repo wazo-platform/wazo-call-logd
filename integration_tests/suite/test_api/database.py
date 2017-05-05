@@ -3,12 +3,14 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
-
 import sqlalchemy as sa
 
 from contextlib import contextmanager
-from datetime import timedelta
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import make_transient
 from sqlalchemy.sql import text
+from xivo_dao.alchemy.call_log import CallLog
+from xivo_dao.tests.test_dao import ItemInserter
 
 logger = logging.getLogger(__name__)
 
@@ -77,63 +79,147 @@ class DatabaseQueries(object):
 
     def __init__(self, connection):
         self.connection = connection
+        self.Session = sessionmaker(bind=connection)
 
-    def insert_call_log(
+    @contextmanager
+    def inserter(self):
+        session = self.Session()
+        yield ItemInserter(session)
+        session.commit()
+
+    def insert_call_log(self, **kwargs):
+        with self.inserter() as inserter:
+            return inserter.add_call_log(**kwargs).id
+
+    def delete_call_log(self, call_log_id):
+        session = self.Session()
+        session.query(CallLog).filter(CallLog.id == call_log_id).delete()
+        session.commit()
+
+    def insert_call_log_participant(self, **kwargs):
+        with self.inserter() as inserter:
+            return inserter.add_call_log_participant(**kwargs)
+
+    def find_last_call_log(self):
+        session = self.Session()
+        call_log = session.query(CallLog).order_by(CallLog.date).first()
+        if call_log:
+            make_transient(call_log)
+        session.commit()
+        return call_log
+
+    def get_call_log_user_uuids(self, call_log_id):
+        session = self.Session()
+        call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
+        result = tuple(call_log.participant_user_uuids)
+        session.commit()
+
+        return result
+
+    def insert_cel(
             self,
-            date,
-            source_name='source',
-            source_exten='1111',
-            destination_name='destination',
-            destination_exten='2222',
-            duration=timedelta(seconds=1),
-            user_field='',
-            answered=True,
-            source_line_identity='sip/source',
-            destination_line_identity='sip/destination',
+            eventtype,
+            eventtime,
+            uniqueid,
+            linkedid,
+            userdeftype='',
+            cid_name='default name',
+            cid_num='9999',
+            cid_ani='',
+            cid_rdnis='',
+            cid_dnid='',
+            exten='',
+            context='',
+            channame='',
+            appname='',
+            appdata='',
+            amaflags=0,
+            accountcode='',
+            peeraccount='',
+            userfield='',
+            peer='',
+            call_log_id=None,
+            extra=None,
     ):
         query = text("""
-        INSERT INTO call_log (
-            date,
-            source_name,
-            source_exten,
-            destination_name,
-            destination_exten,
-            duration,
-            user_field,
-            answered,
-            source_line_identity,
-            destination_line_identity
+        INSERT INTO cel (
+            eventtype,
+            eventtime,
+            uniqueid,
+            linkedid,
+            userdeftype,
+            cid_name,
+            cid_num,
+            cid_ani,
+            cid_rdnis,
+            cid_dnid,
+            exten,
+            context,
+            channame,
+            appname,
+            appdata,
+            amaflags,
+            accountcode,
+            peeraccount,
+            userfield,
+            peer,
+            call_log_id,
+            extra
         )
         VALUES (
-            :date,
-            :source_name,
-            :source_exten,
-            :destination_name,
-            :destination_exten,
-            :duration,
-            :user_field,
-            :answered,
-            :source_line_identity,
-            :destination_line_identity
+            :eventtype,
+            :eventtime,
+            :uniqueid,
+            :linkedid,
+            :userdeftype,
+            :cid_name,
+            :cid_num,
+            :cid_ani,
+            :cid_rdnis,
+            :cid_dnid,
+            :exten,
+            :context,
+            :channame,
+            :appname,
+            :appdata,
+            :amaflags,
+            :accountcode,
+            :peeraccount,
+            :userfield,
+            :peer,
+            :call_log_id,
+            :extra
         )
         RETURNING id
         """)
 
-        call_log_id = (self.connection
-                       .execute(query,
-                                date=date,
-                                source_name=source_name,
-                                source_exten=source_exten,
-                                destination_name=destination_name,
-                                destination_exten=destination_exten,
-                                duration=duration,
-                                user_field=user_field,
-                                answered=answered,
-                                source_line_identity=source_line_identity,
-                                destination_line_identity=destination_line_identity)
-                       .scalar())
-        return call_log_id
+        cel_id = (self.connection
+                  .execute(query,
+                           eventtype=eventtype,
+                           eventtime=eventtime,
+                           uniqueid=uniqueid,
+                           linkedid=linkedid,
+                           userdeftype=userdeftype,
+                           cid_name=cid_name,
+                           cid_num=cid_num,
+                           cid_ani=cid_ani,
+                           cid_rdnis=cid_rdnis,
+                           cid_dnid=cid_dnid,
+                           exten=exten,
+                           context=context,
+                           channame=channame,
+                           appname=appname,
+                           appdata=appdata,
+                           amaflags=amaflags,
+                           accountcode=accountcode,
+                           peeraccount=peeraccount,
+                           userfield=userfield,
+                           peer=peer,
+                           call_log_id=call_log_id,
+                           extra=extra)
+                  .scalar())
+        return cel_id
 
-    def delete_call_log(self, call_log_id):
-        query = text("DELETE FROM call_log WHERE id = :id")
-        self.connection.execute(query, id=call_log_id)
+    def delete_cel(self, cel_id):
+        query = text("DELETE FROM cel WHERE id = :id")
+        self.connection.execute(query, id=cel_id)

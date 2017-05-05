@@ -15,6 +15,8 @@ from xivo_test_helpers.asset_launching_test_case import NoSuchService
 from xivo_test_helpers.asset_launching_test_case import NoSuchPort
 
 from .auth import AuthClient
+from .bus import CallLogBusClient
+from .confd import ConfdClient
 from .constants import VALID_TOKEN
 from .database import DbHelper
 
@@ -70,6 +72,14 @@ class IntegrationTest(AssetLaunchingTestCase):
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
             cls.call_logd = WrongClient(name='database')
+
+    @classmethod
+    def make_bus(cls):
+        return CallLogBusClient.from_connection_fields(port=cls.service_port(5672, 'rabbitmq'))
+
+    @classmethod
+    def make_confd(cls):
+        return ConfdClient('localhost', cls.service_port(9486, 'confd'))
 
     @contextmanager
     def auth_stopped(self):

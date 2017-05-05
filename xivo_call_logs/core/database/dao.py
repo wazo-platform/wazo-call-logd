@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import event
 from sqlalchemy import exc
 from sqlalchemy import sql
+from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import make_transient
@@ -66,7 +67,7 @@ class CallLogDAO(object):
         finally:
             self._Session.remove()
 
-    def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None):
+    def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None, user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
@@ -79,6 +80,9 @@ class CallLogDAO(object):
                 filters = (sql.cast(column, sa.String).ilike('%%%s%%' % search)
                            for column in self.searched_columns)
                 query = query.filter(sql.or_(*filters))
+            if user_uuid:
+                query = query.options(joinedload('participants'))
+                query = query.filter(CallLogSchema.participant_user_uuids.contains(str(user_uuid)))
 
             order_field = None
             if order:
@@ -101,7 +105,7 @@ class CallLogDAO(object):
                 make_transient(call_log)
             return call_log_rows
 
-    def count_in_period(self, start=None, end=None, search=None):
+    def count_in_period(self, start=None, end=None, search=None, user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
@@ -115,6 +119,8 @@ class CallLogDAO(object):
                 filters = (sql.cast(column, sa.String).ilike('%%%s%%' % search)
                            for column in self.searched_columns)
                 query = query.filter(sql.or_(*filters))
+            if user_uuid:
+                query = query.filter(CallLogSchema.participant_user_uuids.contains(str(user_uuid)))
             filtered = query.count()
 
         return {'total': total, 'filtered': filtered}

@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import logging
+
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
@@ -22,6 +24,7 @@ from xivo_call_logs.exceptions import InvalidCallLogException
 from xivo_call_logs import raw_call_log
 
 
+logger = logging.getLogger(__name__)
 CallLogsCreation = namedtuple('CallLogsCreation', ('new_call_logs', 'call_logs_to_delete'))
 
 
@@ -47,7 +50,8 @@ class CallLogsGenerator(object):
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
             try:
                 result.append(call_log.to_call_log())
-            except InvalidCallLogException:
+            except InvalidCallLogException as e:
+                logger.debug('Invalid call log detected: %s', e)
                 pass
 
         return result

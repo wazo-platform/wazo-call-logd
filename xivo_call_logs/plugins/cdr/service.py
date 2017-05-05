@@ -7,9 +7,9 @@ class CDRService(object):
     def __init__(self, dao):
         self._dao = dao
 
-    def list(self, from_, until, order, direction, limit, offset, search):
-        call_logs = self._dao.find_all_in_period(from_, until, order, direction, limit, offset, search)
-        count = self._dao.count_in_period(from_, until, search)
+    def list(self, from_, until, order, direction, limit, offset, search, user_uuid):
+        call_logs = self._dao.find_all_in_period(from_, until, order, direction, limit, offset, search, user_uuid)
+        count = self._dao.count_in_period(from_, until, search, user_uuid)
         return {'items': map(CDR.from_call_log, call_logs),
                 'filtered': count['filtered'],
                 'total': count['total']}

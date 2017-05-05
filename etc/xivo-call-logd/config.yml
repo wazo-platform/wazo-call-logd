@@ -47,3 +47,10 @@ auth:
   host: localhost
   port: 9497
   verify_certificate: /usr/share/xivo-certs/server.crt
+  key_file: /var/lib/xivo-auth-keys/xivo-call-logd-key.yml
+
+# xivo-confd (configuration daemon) connection informations.
+confd:
+  host: localhost
+  port: 9486
+  verify_certificate: /usr/share/xivo-certs/server.crt

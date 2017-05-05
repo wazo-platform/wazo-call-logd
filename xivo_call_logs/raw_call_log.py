@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2016 Avencall
+# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,12 +36,13 @@ class RawCallLog(object):
         self.communication_end = None
         self.source_line_identity = None
         self.destination_line_identity = None
+        self.participants = []
 
     def to_call_log(self):
         if not self.date:
-            raise InvalidCallLogException()
+            raise InvalidCallLogException('date not found')
         if not (self.source_name or self.source_exten):
-            raise InvalidCallLogException()
+            raise InvalidCallLogException('source name and exten not found')
 
         result = CallLog(
             date=self.date,
@@ -55,6 +56,7 @@ class RawCallLog(object):
             source_line_identity=self.source_line_identity,
             destination_line_identity=self.destination_line_identity,
         )
+        result.set_participants(self.participants)
         result.add_related_cels(self.cel_ids)
 
         return result

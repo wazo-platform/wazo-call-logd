@@ -15,8 +15,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+import logging
+
 from xivo.asterisk.line_identity import identity_from_channel
+from xivo.asterisk.protocol_interface import protocol_interface_from_channel
+from xivo.asterisk.protocol_interface import InvalidChannelError
 from xivo_dao.resources.cel.event_type import CELEventType
+from xivo_dao.alchemy.call_log_participant import CallLogParticipant
+
+logger = logging.getLogger(__name__)
+
+
+def find_participant(confd, channame, role):
+    try:
+        protocol, line_name = protocol_interface_from_channel(channame)
+    except InvalidChannelError:
+        return None
+
+    logger.debug('Looking up participant with protocol %s and line name "%s"', protocol, line_name)
+    lines = confd.lines.list(name=line_name)['items']
+    if lines:
+        line = lines[0]
+        logger.debug('Found participant line id %s', line['id'])
+        users = line['users']
+        if users:
+            user = users[0]
+            logger.debug('Found participant user uuid %s', user['uuid'])
+            participant = CallLogParticipant(role=role,
+                                             user_uuid=user['uuid'],
+                                             line_id=line['id'])
+            return participant
+    return None
 
 
 class DispatchCELInterpretor(object):
@@ -66,7 +95,7 @@ class AbstractCELInterpretor(object):
 
 class CallerCELInterpretor(AbstractCELInterpretor):
 
-    def __init__(self):
+    def __init__(self, confd):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.app_start: self.interpret_app_start,
@@ -77,6 +106,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.bridge_exit: self.interpret_bridge_end_or_exit,
             CELEventType.xivo_from_s: self.interpret_xivo_from_s,
         }
+        self._confd = confd
 
     def interpret_chan_start(self, cel, call):
         call.date = cel.eventtime
@@ -84,6 +114,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.source_exten = cel.cid_num
         call.destination_exten = cel.exten if cel.exten != 's' else ''
         call.source_line_identity = identity_from_channel(cel.channame)
+        participant = find_participant(self._confd, cel.channame, role='source')
+        if participant:
+            call.participants.append(participant)
 
         return call
 
@@ -124,20 +157,26 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
 
 class CalleeCELInterpretor(AbstractCELInterpretor):
-    def __init__(self):
+    def __init__(self, confd):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
         }
+        self._confd = confd
 
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
+        participant = find_participant(self._confd, cel.channame, role='destination')
+        if participant:
+            call.participants.append(participant)
 
         return call
 
 
 class LocalOriginateCELInterpretor(object):
-    @classmethod
-    def interpret_cels(cls, cels, call):
+    def __init__(self, confd):
+        self._confd = confd
+
+    def interpret_cels(self, cels, call):
         uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
         try:
             local_channel1, local_channel2, source_channel = starting_channels = uniqueids[:3]
@@ -155,6 +194,9 @@ class LocalOriginateCELInterpretor(object):
         call.source_name = source_channel_answer.cid_name
         call.source_exten = source_channel_answer.cid_num
         call.source_line_identity = identity_from_channel(source_channel_answer.channame)
+        participant = find_participant(self._confd, cel.channame, role='source')
+        if participant:
+            call.participants.append(participant)
         call.destination_exten = local_channel2_answer.cid_num
 
         local_channel1_app_start = next((cel for cel in cels if cel.uniqueid == local_channel1 and cel.eventtype == 'APP_START'), None)
@@ -179,6 +221,9 @@ class LocalOriginateCELInterpretor(object):
             call.destination_name = destination_channel_answer.cid_name
             call.destination_exten = destination_channel_answer.cid_num
             call.destination_line_identity = identity_from_channel(destination_channel_answer.channame)
+            participant = find_participant(self._confd, cel.channame, role='destination')
+            if participant:
+                call.participants.append(participant)
             call.communication_start = destination_channel_bridge_enter.eventtime
             call.communication_end = destination_channel_bridge_exit.eventtime
             call.answered = True
