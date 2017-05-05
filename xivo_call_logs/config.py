@@ -44,6 +44,7 @@ _DEFAULT_CONFIG = {
     'auth': {
         'host': 'localhost',
         'port': 9497,
+        'timeout': 2,
         'verify_certificate': _CERT_FILE,
         'key_file': '/var/lib/xivo-auth-keys/xivo-call-logd-key.yml',
     },

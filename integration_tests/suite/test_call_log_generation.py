@@ -24,6 +24,7 @@ class TestCallLogGeneration(IntegrationTest):
     def setUp(self):
         self.bus = self.make_bus()
         self.confd = self.make_confd()
+        self.confd.reset()
         until.true(self.bus.is_up, tries=10, interval=0.5)
 
     def test_given_cels_with_unknown_line_identities_when_generate_call_log_then_no_user_uuid(self):
@@ -100,7 +101,7 @@ class TestCallLogGeneration(IntegrationTest):
              'uniqueid': '1434650936.31',
              'linkedid': linkedid},
         ]
-        with self.cels(cels):
+        with self.cels(cels), self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_has_no_user_uuid():
@@ -188,17 +189,17 @@ class TestCallLogGeneration(IntegrationTest):
         ]
         self.confd.set_users(MockUser('user_1_uuid', line_ids=[1]), MockUser('user_2_uuid', line_ids=[2]))
         self.confd.set_lines(MockLine(id=1, name='as2mkq', users=[{'uuid': 'user_1_uuid'}]), MockLine(id=2, name='je5qtq', users=[{'uuid': 'user_2_uuid'}]))
-        with self.cels(cels):
+        with self.cels(cels), self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
-            def call_log_has_no_user_uuid():
+            def call_log_has_both_user_uuid():
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, is_(not_(none())))
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
                     assert_that(user_uuids, contains_inanyorder('user_1_uuid', 'user_2_uuid'))
 
-            until.assert_(call_log_has_no_user_uuid, tries=5)
+            until.assert_(call_log_has_both_user_uuid, tries=5)
 
     @contextmanager
     def cels(self, cels):
@@ -211,3 +212,13 @@ class TestCallLogGeneration(IntegrationTest):
         with self.database.queries() as queries:
             for cel in cels:
                 queries.delete_cel(cel['id'])
+
+    @contextmanager
+    def no_call_logs(self):
+        with self.database.queries() as queries:
+            queries.clear_call_logs()
+
+        yield
+
+        with self.database.queries() as queries:
+            queries.clear_call_logs()

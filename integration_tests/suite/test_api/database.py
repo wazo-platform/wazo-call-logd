@@ -96,6 +96,11 @@ class DatabaseQueries(object):
         session.query(CallLog).filter(CallLog.id == call_log_id).delete()
         session.commit()
 
+    def clear_call_logs(self):
+        session = self.Session()
+        session.query(CallLog).delete()
+        session.commit()
+
     def insert_call_log_participant(self, **kwargs):
         with self.inserter() as inserter:
             return inserter.add_call_log_participant(**kwargs)

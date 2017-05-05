@@ -71,7 +71,7 @@ class IntegrationTest(AssetLaunchingTestCase):
             cls.database = DbHelper.build('asterisk', 'proformatique', 'localhost', cls.service_port(5432, 'postgres'), 'asterisk')
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
-            cls.call_logd = WrongClient(name='database')
+            cls.database = WrongClient(name='database')
 
     @classmethod
     def make_bus(cls):

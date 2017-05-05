@@ -5,11 +5,13 @@ sync:
     - swagger-validator
   environment:
     PORTS: "9298 8080"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
 call-logd:
   image: xivo-call-logd-test
   volumes:
     - "../../..:/usr/src/xivo-call-logs"
+    - "./etc/xivo-call-logd:/etc/xivo-call-logd"
   ports:
     - "9298:9298"
 
