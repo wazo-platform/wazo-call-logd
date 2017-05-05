@@ -194,7 +194,7 @@ class LocalOriginateCELInterpretor(object):
         call.source_name = source_channel_answer.cid_name
         call.source_exten = source_channel_answer.cid_num
         call.source_line_identity = identity_from_channel(source_channel_answer.channame)
-        participant = find_participant(self._confd, cel.channame, role='source')
+        participant = find_participant(self._confd, source_channel_answer.channame, role='source')
         if participant:
             call.participants.append(participant)
         call.destination_exten = local_channel2_answer.cid_num

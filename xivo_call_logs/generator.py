@@ -52,7 +52,6 @@ class CallLogsGenerator(object):
                 result.append(call_log.to_call_log())
             except InvalidCallLogException as e:
                 logger.debug('Invalid call log detected: %s', e)
-                pass
 
         return result
 

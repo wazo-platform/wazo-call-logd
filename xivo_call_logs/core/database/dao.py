@@ -23,6 +23,9 @@ from xivo_call_logs.core.exceptions import DatabaseServiceUnavailable
 # http://stackoverflow.com/questions/34828113/flask-sqlalchemy-losing-connection-after-restarting-of-db-server
 @event.listens_for(Pool, "checkout")
 def ping_connection(dbapi_connection, connection_record, connection_proxy):
+    del connection_record
+    del connection_proxy
+
     cursor = dbapi_connection.cursor()
     try:
         cursor.execute("SELECT 1")
