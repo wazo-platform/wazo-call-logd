@@ -30,6 +30,38 @@ paths:
                 type: integer
         '400':
           $ref: '#/responses/InvalidRequest'
+  /users/me/cdr:
+    get:
+      summary: List CDR of the authenticated user
+      description: '**Required ACL: `call_logd.users.me.cdr.read`'
+      tags:
+        - cdr
+        - users
+      parameters:
+      - $ref: '#/parameters/from'
+      - $ref: '#/parameters/until'
+      - $ref: '#/parameters/limit'
+      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/order'
+      - $ref: '#/parameters/direction'
+      - $ref: '#/parameters/search'
+      responses:
+        '200':
+          description: List CDR
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/CDR'
+              total:
+                type: integer
+              filtered:
+                type: integer
+        '400':
+          $ref: '#/responses/InvalidRequest'
+
 parameters:
   from:
     name: from

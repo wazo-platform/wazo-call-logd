@@ -7,6 +7,7 @@ import requests
 import logging
 logger = logging.getLogger(__name__)
 
+
 class AuthClient(object):
 
     def __init__(self, host, port):
@@ -26,3 +27,20 @@ class AuthClient(object):
         except requests.RequestException as e:
             logger.debug(e)
             return False
+
+    def set_token(self, token):
+        url = self.url('_set_token')
+        requests.post(url, json=token.to_dict(), verify=False)
+
+
+class MockUserToken(object):
+
+    def __init__(self, token, user_uuid):
+        self._token = token
+        self._auth_id = user_uuid
+
+    def to_dict(self):
+        return {
+            'token': self._token,
+            'auth_id': self._auth_id,
+        }

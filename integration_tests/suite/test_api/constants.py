@@ -3,3 +3,4 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 VALID_TOKEN = 'valid-token'
+NON_USER_TOKEN = 'non-user-token'

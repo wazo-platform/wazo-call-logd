@@ -7,7 +7,7 @@ sync:
     - postgres
     - rabbitmq
   environment:
-    PORTS: "5672 9298 9486 9497 5432"
+    PORTS: "5432 5672 9298 9486 9497"
     TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
 auth:
