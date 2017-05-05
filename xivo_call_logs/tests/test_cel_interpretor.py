@@ -23,6 +23,8 @@ from hamcrest import assert_that
 from hamcrest import contains
 from hamcrest import equal_to
 from hamcrest import has_property
+from hamcrest import has_properties
+from hamcrest import none
 from hamcrest import same_instance
 from mock import Mock
 from mock import sentinel
@@ -33,13 +35,54 @@ from xivo_call_logs.cel_interpretor import AbstractCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
 from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
 from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
+from xivo_call_logs.cel_interpretor import find_participant
 from xivo_call_logs.raw_call_log import RawCallLog
 
 
-def confd_mock():
+def confd_mock(lines=None):
+    lines = lines or []
     confd = Mock()
-    confd.lines.list.return_value = {'items': []}
+    confd.lines.list.return_value = {'items': lines}
     return confd
+
+
+class TestFindParticipant(TestCase):
+
+    def test_find_participants_when_channame_is_not_parsable(self):
+        confd = confd_mock()
+        channame = 'something'
+
+        result = find_participant(confd, channame, role='source')
+
+        assert_that(result, none())
+
+    def test_find_participants_when_no_lines(self):
+        confd = confd_mock()
+        channame = 'sip/something-suffix'
+
+        result = find_participant(confd, channame, role='source')
+
+        assert_that(result, none())
+
+    def test_find_participants_when_line_has_no_user(self):
+        lines = [{'id': 12, 'users': []}]
+        confd = confd_mock(lines)
+        channame = 'sip/something-suffix'
+
+        result = find_participant(confd, channame, role='source')
+
+        assert_that(result, none())
+
+    def test_find_participants_when_line_has_user(self):
+        lines = [{'id': 12, 'users': [{'uuid': 'user_uuid'}]}]
+        confd = confd_mock(lines)
+        channame = 'sip/something-suffix'
+
+        result = find_participant(confd, channame, role='source')
+
+        assert_that(result, has_properties(role='source',
+                                           user_uuid='user_uuid',
+                                           line_id=12))
 
 
 class TestCELDispatcher(TestCase):

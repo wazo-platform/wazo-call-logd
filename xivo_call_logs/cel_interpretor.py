@@ -19,6 +19,7 @@ import logging
 
 from xivo.asterisk.line_identity import identity_from_channel
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
+from xivo.asterisk.protocol_interface import InvalidChannelError
 from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
@@ -26,21 +27,24 @@ logger = logging.getLogger(__name__)
 
 
 def find_participant(confd, channame, role):
-    protocol, line_name = protocol_interface_from_channel(channame)
+    try:
+        protocol, line_name = protocol_interface_from_channel(channame)
+    except InvalidChannelError:
+        return None
+
     logger.debug('Looking up participant with protocol %s and line name "%s"', protocol, line_name)
-    if protocol.lower() == 'sip':
-        lines = confd.lines.list(name=line_name)['items']
-        if lines:
-            line = lines[0]
-            logger.debug('Found participant line id %s', line['id'])
-            users = line['users']
-            if users:
-                user = users[0]
-                logger.debug('Found participant user uuid %s', user['uuid'])
-                participant = CallLogParticipant(role=role,
-                                                 user_uuid=user['uuid'],
-                                                 line_id=line['id'])
-                return participant
+    lines = confd.lines.list(name=line_name)['items']
+    if lines:
+        line = lines[0]
+        logger.debug('Found participant line id %s', line['id'])
+        users = line['users']
+        if users:
+            user = users[0]
+            logger.debug('Found participant user uuid %s', user['uuid'])
+            participant = CallLogParticipant(role=role,
+                                             user_uuid=user['uuid'],
+                                             line_id=line['id'])
+            return participant
     return None
 
 

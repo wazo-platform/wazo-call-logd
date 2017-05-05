@@ -13,6 +13,7 @@ paths:
       - $ref: '#/parameters/order'
       - $ref: '#/parameters/direction'
       - $ref: '#/parameters/search'
+      - $ref: '#/parameters/user'
       responses:
         '200':
           description: List CDR
