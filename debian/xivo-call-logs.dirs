@@ -1,1 +1,2 @@
 etc/xivo-call-logd/conf.d
+etc/nginx/locations/https-enabled
