@@ -17,8 +17,13 @@
 
 import argparse
 
+from xivo.chain_map import ChainMap
+from xivo.config_helper import parse_config_file
 from xivo.daemonize import pidfile_context
+from xivo.token_renewer import TokenRenewer
 from xivo.xivo_logging import setup_logging
+from xivo_auth_client import Client as AuthClient
+from xivo_confd_client import Client as ConfdClient
 from xivo_dao import init_db_from_config, default_config
 
 from xivo_call_logs.cel_fetcher import CELFetcher
@@ -33,6 +38,24 @@ from xivo_call_logs.writer import CallLogsWriter
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/var/run/xivo-call-logs.pid'
 
+_CERT_FILE = '/usr/share/xivo-certs/server.crt'
+DEFAULT_CONFIG = {
+    'pidfile': '/var/run/xivo-call-logs.pid',
+    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
+    'auth': {
+        'host': 'localhost',
+        'port': 9497,
+        'timeout': 2,
+        'verify_certificate': _CERT_FILE,
+        'key_file': '/var/lib/xivo-auth-keys/xivo-call-logd-key.yml',
+    },
+    'confd': {
+        'host': 'localhost',
+        'port': 9486,
+        'verify_certificate': _CERT_FILE,
+    },
+}
+
 
 def main():
     setup_logging('/dev/null', foreground=True, debug=False)
@@ -44,16 +67,25 @@ def main():
 def _generate_call_logs():
     parser = argparse.ArgumentParser(description='Call logs generator')
     options = parse_args(parser)
+    key_config = load_key_file(DEFAULT_CONFIG)
+    config = ChainMap(key_config, DEFAULT_CONFIG)
+
+    auth_client = AuthClient(**config['auth'])
+    confd_client = ConfdClient(**config['confd'])
+    token_renewer = TokenRenewer(auth_client)
+    token_renewer.subscribe_to_token_change(confd_client.set_token)
+
     cel_fetcher = CELFetcher()
     generator = CallLogsGenerator([
-        LocalOriginateCELInterpretor,
-        DispatchCELInterpretor(CallerCELInterpretor(),
-                               CalleeCELInterpretor())
+        LocalOriginateCELInterpretor(confd_client),
+        DispatchCELInterpretor(CallerCELInterpretor(confd_client),
+                               CalleeCELInterpretor(confd_client))
     ])
     writer = CallLogsWriter()
     manager = CallLogsManager(cel_fetcher, generator, writer)
 
-    manager.generate_from_count(cel_count=options.cel_count)
+    with token_renewer:
+        manager.generate_from_count(cel_count=options.cel_count)
 
 
 def parse_args(parser):
@@ -62,3 +94,9 @@ def parse_args(parser):
                         type=int,
                         help='Minimum number of CEL entries to process')
     return parser.parse_args()
+
+
+def load_key_file(config):
+    key_file = parse_config_file(config['auth']['key_file'])
+    return {'auth': {'username': key_file['service_id'],
+                     'password': key_file['service_key']}}
