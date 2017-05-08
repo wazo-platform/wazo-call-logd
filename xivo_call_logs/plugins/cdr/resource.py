@@ -17,7 +17,7 @@ class CDRResource(AuthResource):
     def __init__(self, cdr_service):
         self.cdr_service = cdr_service
 
-    @required_acl('call_logd.cdr.read')
+    @required_acl('call-logd.cdr.read')
     def get(self):
         args = list_schema.load(request.args).data
         cdrs = self.cdr_service.list(**args)
@@ -33,7 +33,7 @@ class CDRUserResource(AuthResource):
         self.auth_client = auth_client
         self.cdr_service = cdr_service
 
-    @required_acl('call_logd.users.me.cdr.read')
+    @required_acl('call-logd.users.me.cdr.read')
     def get(self):
         args = user_list_schema.load(request.args).data
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
