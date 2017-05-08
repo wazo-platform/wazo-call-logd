@@ -23,7 +23,7 @@ class CDRSchema(Schema):
 cdr_schema = CDRSchema()
 
 
-class CDRListRequestSchema(Schema):
+class CDRUserListRequestSchema(Schema):
     from_ = fields.DateTime(load_from='from', missing=None)
     until = fields.DateTime(missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
@@ -31,7 +31,6 @@ class CDRListRequestSchema(Schema):
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=None)
     search = fields.String(missing=None)
-    user_uuid = fields.UUID(missing=None)
 
     @post_load
     def map_order_field(self, in_data):
@@ -40,4 +39,9 @@ class CDRListRequestSchema(Schema):
             in_data['order'] = mapped_order
 
 
+class CDRListRequestSchema(CDRUserListRequestSchema):
+    user_uuid = fields.UUID(missing=None)
+
+
 list_schema = CDRListRequestSchema(strict=True)
+user_list_schema = CDRUserListRequestSchema(strict=True)

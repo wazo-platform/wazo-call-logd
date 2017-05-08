@@ -16,7 +16,9 @@ from datetime import timedelta
 from xivo_call_logs_client.exceptions import CallLogdError
 from xivo_test_helpers.hamcrest.raises import raises
 
+from .test_api.auth import MockUserToken
 from .test_api.base import IntegrationTest
+from .test_api.constants import NON_USER_TOKEN
 from .test_api.constants import VALID_TOKEN
 from .test_api.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
 
@@ -236,6 +238,72 @@ class TestListCDR(IntegrationTest):
                                         total=4,
                                         items=contains_inanyorder(
                                             has_entries(start='2017-04-11T00:00:00+00:00'),
+                                            has_entries(start='2017-04-12T00:00:00+00:00'),
+                                        )))
+
+    def test_given_no_token_when_user_list_cdr_then_401(self):
+        self.call_logd.set_token(None)
+        assert_that(
+            calling(self.call_logd.cdr.list_from_user),
+            raises(CallLogdError).matching(has_properties(status_code=401,
+                                                          message=contains_string_ignoring_case('unauthorized')))
+        )
+        self.call_logd.set_token(VALID_TOKEN)
+
+    def test_given_token_with_no_user_uuid_when_user_list_cdr_then_400(self):
+        self.call_logd.set_token(NON_USER_TOKEN)
+        assert_that(
+            calling(self.call_logd.cdr.list_from_user),
+            raises(CallLogdError).matching(has_properties(status_code=400,
+                                                          message=contains_string_ignoring_case('user')))
+        )
+        self.call_logd.set_token(VALID_TOKEN)
+
+    def test_when_user_list_cdr_with_arg_user_uuid_then_user_uuid_is_ignored(self):
+        USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'
+        USER_2_UUID = 'de5ffb31-eacd-4fd7-b7e0-dd4b8676e346'
+        SOME_TOKEN = 'my-token'
+
+        call_logs = [
+            {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+        ]
+        self.auth.set_token(MockUserToken(SOME_TOKEN, user_uuid=USER_1_UUID))
+
+        with self.call_logs(call_logs):
+            self.call_logd.set_token(SOME_TOKEN)
+            result = self.call_logd.cdr.list_from_user(user_uuid=USER_2_UUID)
+            self.call_logd.set_token(VALID_TOKEN)
+
+        assert_that(result, has_entries(filtered=1,
+                                        total=1,
+                                        items=contains(
+                                            has_entries(start='2017-04-11T00:00:00+00:00'),
+                                        )))
+
+    def test_given_call_logs_when_user_list_cdr_then_list_cdr_of_user(self):
+        USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'
+        USER_2_UUID = 'de5ffb31-eacd-4fd7-b7e0-dd4b8676e346'
+        SOME_TOKEN = 'my-token'
+
+        call_logs = [
+            {'date': '2017-04-10'},
+            {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-13', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-14', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID}]},
+        ]
+        self.auth.set_token(MockUserToken(SOME_TOKEN, user_uuid=USER_1_UUID))
+
+        with self.call_logs(call_logs):
+            self.call_logd.set_token(SOME_TOKEN)
+            result = self.call_logd.cdr.list_from_user(limit=2, offset=1, order='start', direction='desc')
+            self.call_logd.set_token(VALID_TOKEN)
+
+        assert_that(result, has_entries(filtered=4,
+                                        total=6,
+                                        items=contains_inanyorder(
+                                            has_entries(start='2017-04-13T00:00:00+00:00'),
                                             has_entries(start='2017-04-12T00:00:00+00:00'),
                                         )))
 
