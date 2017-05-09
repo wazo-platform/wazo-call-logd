@@ -13,7 +13,37 @@ paths:
       - $ref: '#/parameters/order'
       - $ref: '#/parameters/direction'
       - $ref: '#/parameters/search'
-      - $ref: '#/parameters/user'
+      responses:
+        '200':
+          description: List CDR
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/CDR'
+              total:
+                type: integer
+              filtered:
+                type: integer
+        '400':
+          $ref: '#/responses/InvalidRequest'
+  /users/{user_uuid}/cdr:
+    get:
+      summary: List CDR of the given user
+      description: '**Required ACL: `call-logd.users.{user_uuid}.cdr.read`'
+      tags:
+        - cdr
+        - users
+      parameters:
+      - $ref: '#/parameters/from'
+      - $ref: '#/parameters/until'
+      - $ref: '#/parameters/limit'
+      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/order'
+      - $ref: '#/parameters/direction'
+      - $ref: '#/parameters/search'
       responses:
         '200':
           description: List CDR
@@ -110,12 +140,6 @@ parameters:
     in: query
     type: string
     description: Filter list of items
-  user:
-    required: false
-    name: user_uuid
-    in: query
-    type: string
-    description: Show only CDR relating to this user (emitter or receiver)
 definitions:
   CDR:
     type: object
