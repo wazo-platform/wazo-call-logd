@@ -22,6 +22,8 @@ from .test_api.constants import NON_USER_TOKEN
 from .test_api.constants import VALID_TOKEN
 from .test_api.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
 
+SOME_USER_UUID = '7a0c6fe6-219d-4977-80e4-1bfc7ab0b289'
+
 
 class TestNoAuth(IntegrationTest):
 
@@ -220,6 +222,15 @@ class TestListCDR(IntegrationTest):
                                             has_entry('source_name', '2017suffix'),
                                         )))
 
+    def test_given_no_token_when_list_cdr_of_user_then_401(self):
+        self.call_logd.set_token(None)
+        assert_that(
+            calling(self.call_logd.cdr.list_for_user).with_args(SOME_USER_UUID),
+            raises(CallLogdError).matching(has_properties(status_code=401,
+                                                          message=contains_string_ignoring_case('unauthorized')))
+        )
+        self.call_logd.set_token(VALID_TOKEN)
+
     def test_given_call_logs_when_list_cdr_of_user_then_list_cdr_of_user(self):
         USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'
         USER_2_UUID = 'de5ffb31-eacd-4fd7-b7e0-dd4b8676e346'
@@ -228,20 +239,22 @@ class TestListCDR(IntegrationTest):
             {'date': '2017-04-10'},
             {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
             {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
-            {'date': '2017-04-13', 'participants': [{'user_uuid': USER_2_UUID}]},
+            {'date': '2017-04-13', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-14', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID}]},
         ]
 
         with self.call_logs(call_logs):
-            result = self.call_logd.cdr.list(user_uuid=USER_1_UUID)
+            result = self.call_logd.cdr.list_for_user(USER_1_UUID, limit=2, offset=1, order='start', direction='desc')
 
-        assert_that(result, has_entries(filtered=2,
-                                        total=4,
-                                        items=contains_inanyorder(
-                                            has_entries(start='2017-04-11T00:00:00+00:00'),
+        assert_that(result, has_entries(filtered=4,
+                                        total=6,
+                                        items=contains(
+                                            has_entries(start='2017-04-13T00:00:00+00:00'),
                                             has_entries(start='2017-04-12T00:00:00+00:00'),
                                         )))
 
-    def test_given_no_token_when_user_list_cdr_then_401(self):
+    def test_given_no_token_when_list_my_cdr_then_401(self):
         self.call_logd.set_token(None)
         assert_that(
             calling(self.call_logd.cdr.list_from_user),
@@ -250,7 +263,7 @@ class TestListCDR(IntegrationTest):
         )
         self.call_logd.set_token(VALID_TOKEN)
 
-    def test_given_token_with_no_user_uuid_when_user_list_cdr_then_400(self):
+    def test_given_token_with_no_user_uuid_when_list_my_cdr_then_400(self):
         self.call_logd.set_token(NON_USER_TOKEN)
         assert_that(
             calling(self.call_logd.cdr.list_from_user),
@@ -280,7 +293,7 @@ class TestListCDR(IntegrationTest):
                                             has_entries(start='2017-04-11T00:00:00+00:00'),
                                         )))
 
-    def test_given_call_logs_when_user_list_cdr_then_list_cdr_of_user(self):
+    def test_given_call_logs_when_list_my_cdr_then_list_my_cdr(self):
         USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'
         USER_2_UUID = 'de5ffb31-eacd-4fd7-b7e0-dd4b8676e346'
         SOME_TOKEN = 'my-token'
@@ -318,8 +331,9 @@ class TestListCDR(IntegrationTest):
                     queries.insert_call_log_participant(call_log_id=call_log['id'],
                                                         **participant)
 
-        yield
-
-        with self.database.queries() as queries:
-            for call_log in call_logs:
-                queries.delete_call_log(call_log['id'])
+        try:
+            yield
+        finally:
+            with self.database.queries() as queries:
+                for call_log in call_logs:
+                    queries.delete_call_log(call_log['id'])

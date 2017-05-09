@@ -9,6 +9,7 @@ from xivo_call_logs.core.database.dao import CallLogDAO
 
 from .resource import CDRResource
 from .resource import CDRUserResource
+from .resource import CDRUserMeResource
 from .service import CDRService
 
 
@@ -23,4 +24,5 @@ class Plugin(object):
         service = CDRService(dao)
 
         api.add_resource(CDRResource, '/cdr', resource_class_args=[service])
-        api.add_resource(CDRUserResource, '/users/me/cdr', resource_class_args=[auth_client, service])
+        api.add_resource(CDRUserResource, '/users/<uuid:user_uuid>/cdr', resource_class_args=[service])
+        api.add_resource(CDRUserMeResource, '/users/me/cdr', resource_class_args=[auth_client, service])
