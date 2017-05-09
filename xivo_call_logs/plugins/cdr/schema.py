@@ -23,7 +23,7 @@ class CDRSchema(Schema):
 cdr_schema = CDRSchema()
 
 
-class CDRUserListRequestSchema(Schema):
+class CDRListRequestSchema(Schema):
     from_ = fields.DateTime(load_from='from', missing=None)
     until = fields.DateTime(missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
@@ -39,9 +39,4 @@ class CDRUserListRequestSchema(Schema):
             in_data['order'] = mapped_order
 
 
-class CDRListRequestSchema(CDRUserListRequestSchema):
-    user_uuid = fields.UUID(missing=None)
-
-
 list_schema = CDRListRequestSchema(strict=True)
-user_list_schema = CDRUserListRequestSchema(strict=True)
