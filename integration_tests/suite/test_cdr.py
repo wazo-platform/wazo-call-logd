@@ -318,8 +318,9 @@ class TestListCDR(IntegrationTest):
                     queries.insert_call_log_participant(call_log_id=call_log['id'],
                                                         **participant)
 
-        yield
-
-        with self.database.queries() as queries:
-            for call_log in call_logs:
-                queries.delete_call_log(call_log['id'])
+        try:
+            yield
+        finally:
+            with self.database.queries() as queries:
+                for call_log in call_logs:
+                    queries.delete_call_log(call_log['id'])
