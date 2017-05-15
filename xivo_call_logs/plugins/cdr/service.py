@@ -30,6 +30,8 @@ class CDR(object):
                           'source_name'):
             setattr(result, attribute, getattr(call_log, attribute))
 
-        result.end = call_log.date + call_log.duration
+        result.end = call_log.date
+        if call_log.date_answer:
+            result.end = call_log.date_answer + call_log.duration
 
         return result
