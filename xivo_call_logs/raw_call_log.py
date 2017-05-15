@@ -37,6 +37,7 @@ class RawCallLog(object):
         self.source_line_identity = None
         self.destination_line_identity = None
         self.participants = []
+        self.cel_ids = []
 
     def to_call_log(self):
         if not self.date:
