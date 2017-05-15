@@ -11,6 +11,7 @@ from marshmallow.validate import Range
 
 class CDRSchema(Schema):
     start = fields.DateTime(attribute='date')
+    answer = fields.DateTime(attribute='date_answer')
     end = fields.DateTime()
     source_name = fields.String()
     source_extension = fields.String(attribute='source_exten')

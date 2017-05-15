@@ -22,6 +22,7 @@ class CDR(object):
         result = cls()
         for attribute in ('answered',
                           'date',
+                          'date_answer',
                           'destination_exten',
                           'destination_name',
                           'duration',
