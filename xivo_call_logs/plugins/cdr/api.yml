@@ -2,7 +2,7 @@ paths:
   /cdr:
     get:
       summary: List CDR
-      description: '**Required ACL: `call-logd.cdr.read`'
+      description: '**Required ACL:** `call-logd.cdr.read`'
       tags:
         - cdr
       parameters:
@@ -32,7 +32,7 @@ paths:
   /users/{user_uuid}/cdr:
     get:
       summary: List CDR of the given user
-      description: '**Required ACL: `call-logd.users.{user_uuid}.cdr.read`'
+      description: '**Required ACL:** `call-logd.users.{user_uuid}.cdr.read`'
       tags:
         - cdr
         - users
@@ -63,7 +63,7 @@ paths:
   /users/me/cdr:
     get:
       summary: List CDR of the authenticated user
-      description: '**Required ACL: `call-logd.users.me.cdr.read`'
+      description: '**Required ACL:** `call-logd.users.me.cdr.read`'
       tags:
         - cdr
         - users
