@@ -62,6 +62,7 @@ class TestListCDR(IntegrationTest):
         call_logs = [
             {'answered': True,
              'date': '2017-03-23 00:00:00',
+             'date_answer': '2017-03-23 00:01:00',
              'destination_exten': '3378',
              'destination_name': u'dést.',
              'duration': timedelta(seconds=87),
@@ -69,6 +70,7 @@ class TestListCDR(IntegrationTest):
              'source_name': u'soùr.'},
             {'answered': False,
              'date': '2017-03-23 11:11:11',
+             'date_answer': '2017-03-23 11:12:11',
              'destination_exten': '8733',
              'destination_name': u'.tsèd',
              'duration': timedelta(seconds=78),
@@ -82,7 +84,8 @@ class TestListCDR(IntegrationTest):
         assert_that(result, has_entries(items=contains_inanyorder(
             has_entries(answered=True,
                         start='2017-03-23T00:00:00+00:00',
-                        end='2017-03-23T00:01:27+00:00',
+                        answer='2017-03-23T00:01:00+00:00',
+                        end='2017-03-23T00:02:27+00:00',
                         destination_extension='3378',
                         destination_name=u'dést.',
                         duration=87,
@@ -90,7 +93,8 @@ class TestListCDR(IntegrationTest):
                         source_name=u'soùr.'),
             has_entries(answered=False,
                         start='2017-03-23T11:11:11+00:00',
-                        end='2017-03-23T11:12:29+00:00',
+                        answer='2017-03-23T11:12:11+00:00',
+                        end='2017-03-23T11:13:29+00:00',
                         destination_extension='8733',
                         destination_name=u'.tsèd',
                         duration=78,
@@ -138,6 +142,20 @@ class TestListCDR(IntegrationTest):
             calling(self.call_logd.cdr.list).with_args(order='end'),
             raises(CallLogdError).matching(has_properties(status_code=400,
                                                           details=has_key('order'))))
+
+    def test_given_call_logs_when_no_answered_then_end_equal_start(self):
+        call_logs = [
+            {'date': '2017-03-23 00:00:00',
+             'date_answer': None}
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list()
+
+        assert_that(result, has_entries(items=contains_inanyorder(
+            has_entries(start='2017-03-23T00:00:00+00:00',
+                        end='2017-03-23T00:00:00+00:00'),
+        )))
 
     def test_given_call_logs_when_list_cdr_in_range_then_list_cdr_in_range(self):
         call_logs = [

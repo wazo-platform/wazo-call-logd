@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2016 Avencall
+# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ class TestRawCallLog(TestCase):
 
     def test_to_call_log(self):
         self.raw_call_log.date = Mock()
+        self.raw_call_log.communication_start = Mock()
         self.raw_call_log.source_name = Mock()
         self.raw_call_log.source_exten = Mock()
         self.raw_call_log.destination_name = Mock()
@@ -44,6 +45,7 @@ class TestRawCallLog(TestCase):
 
         assert_that(result, all_of(
             has_property('date', self.raw_call_log.date),
+            has_property('date_answer', self.raw_call_log.communication_start),
             has_property('source_name', self.raw_call_log.source_name),
             has_property('source_exten', self.raw_call_log.source_exten),
             has_property('destination_name', self.raw_call_log.destination_name),

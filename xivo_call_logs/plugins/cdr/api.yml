@@ -17,16 +17,7 @@ paths:
         '200':
           description: List CDR
           schema:
-            type: object
-            properties:
-              items:
-                type: array
-                items:
-                  $ref: '#/definitions/CDR'
-              total:
-                type: integer
-              filtered:
-                type: integer
+            $ref: '#/definitions/CDRList'
         '400':
           $ref: '#/responses/InvalidRequest'
   /users/{user_uuid}/cdr:
@@ -48,16 +39,7 @@ paths:
         '200':
           description: List CDR
           schema:
-            type: object
-            properties:
-              items:
-                type: array
-                items:
-                  $ref: '#/definitions/CDR'
-              total:
-                type: integer
-              filtered:
-                type: integer
+            $ref: '#/definitions/CDRList'
         '400':
           $ref: '#/responses/InvalidRequest'
   /users/me/cdr:
@@ -79,16 +61,7 @@ paths:
         '200':
           description: List CDR
           schema:
-            type: object
-            properties:
-              items:
-                type: array
-                items:
-                  $ref: '#/definitions/CDR'
-              total:
-                type: integer
-              filtered:
-                type: integer
+            $ref: '#/definitions/CDRList'
         '400':
           $ref: '#/responses/InvalidRequest'
 
@@ -141,10 +114,24 @@ parameters:
     type: string
     description: Filter list of items
 definitions:
+  CDRList:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/CDR'
+      total:
+        type: integer
+      filtered:
+        type: integer
   CDR:
     type: object
     properties:
       start:
+        type: string
+        format: date-time
+      answer:
         type: string
         format: date-time
       end:

@@ -22,6 +22,7 @@ class CDR(object):
         result = cls()
         for attribute in ('answered',
                           'date',
+                          'date_answer',
                           'destination_exten',
                           'destination_name',
                           'duration',
@@ -29,6 +30,8 @@ class CDR(object):
                           'source_name'):
             setattr(result, attribute, getattr(call_log, attribute))
 
-        result.end = call_log.date + call_log.duration
+        result.end = call_log.date
+        if call_log.date_answer:
+            result.end = call_log.date_answer + call_log.duration
 
         return result
