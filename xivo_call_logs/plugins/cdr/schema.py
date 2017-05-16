@@ -15,6 +15,7 @@ class CDRSchema(Schema):
     end = fields.DateTime()
     source_name = fields.String()
     source_extension = fields.String(attribute='source_exten')
+    direction = fields.String()
     destination_name = fields.String()
     destination_extension = fields.String(attribute='destination_exten')
     duration = fields.TimeDelta()

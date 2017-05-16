@@ -149,3 +149,9 @@ definitions:
         type: integer
       answered:
         type: boolean
+      direction:
+        type: string
+        enum:
+        - inbound
+        - internal
+        - outbound

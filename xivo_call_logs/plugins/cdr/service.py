@@ -25,6 +25,7 @@ class CDR(object):
                           'date_answer',
                           'destination_exten',
                           'destination_name',
+                          'direction',
                           'duration',
                           'source_exten',
                           'source_name'):
