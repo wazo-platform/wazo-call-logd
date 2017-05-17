@@ -46,4 +46,4 @@ class CDRUserMeResource(AuthResource):
         args = list_schema.load(request.args).data
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         cdrs = self.cdr_service.list(user_uuid=user_uuid, **args)
-        return CDRSchemaList().dump(cdrs).data
+        return CDRSchemaList(exclude=['items.tags']).dump(cdrs).data

@@ -12,6 +12,8 @@ from hamcrest import has_entry
 from hamcrest import has_entries
 from hamcrest import has_key
 from hamcrest import has_properties
+from hamcrest import not_
+from hamcrest import only_contains
 from datetime import timedelta
 from xivo_call_logs_client.exceptions import CallLogdError
 from xivo_test_helpers.hamcrest.raises import raises
@@ -319,6 +321,7 @@ class TestListCDR(IntegrationTest):
                                         items=contains(
                                             has_entries(start='2017-04-11T00:00:00+00:00'),
                                         )))
+        assert_that(result, has_entries(items=only_contains(not_(has_key('tags')))))
 
     def test_given_call_logs_when_list_my_cdr_then_list_my_cdr(self):
         USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'
