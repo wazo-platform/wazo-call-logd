@@ -56,3 +56,9 @@ class CDRListRequestSchema(Schema):
 
 
 list_schema = CDRListRequestSchema(strict=True)
+
+
+class CDRSchemaList(Schema):
+    items = fields.Nested(CDRSchema, many=True)
+    total = fields.Integer()
+    filtered = fields.Integer()

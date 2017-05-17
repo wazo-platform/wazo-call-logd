@@ -7,7 +7,7 @@ from xivo.auth_verifier import required_acl
 from xivo_call_logs.core.auth import get_token_user_uuid_from_request
 from xivo_call_logs.core.rest_api import AuthResource
 
-from .schema import cdr_schema
+from .schema import CDRSchemaList
 from .schema import list_schema
 
 
@@ -20,10 +20,7 @@ class CDRResource(AuthResource):
     def get(self):
         args = list_schema.load(request.args).data
         cdrs = self.cdr_service.list(user_uuid=None, **args)
-
-        return {'items': cdr_schema.dump(cdrs['items'], many=True).data,
-                'total': cdrs['total'],
-                'filtered': cdrs['filtered']}
+        return CDRSchemaList().dump(cdrs).data
 
 
 class CDRUserResource(AuthResource):
@@ -35,10 +32,7 @@ class CDRUserResource(AuthResource):
     def get(self, user_uuid):
         args = list_schema.load(request.args).data
         cdrs = self.cdr_service.list(user_uuid=user_uuid, **args)
-
-        return {'items': cdr_schema.dump(cdrs['items'], many=True).data,
-                'total': cdrs['total'],
-                'filtered': cdrs['filtered']}
+        return CDRSchemaList().dump(cdrs).data
 
 
 class CDRUserMeResource(AuthResource):
@@ -52,7 +46,4 @@ class CDRUserMeResource(AuthResource):
         args = list_schema.load(request.args).data
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         cdrs = self.cdr_service.list(user_uuid=user_uuid, **args)
-
-        return {'items': cdr_schema.dump(cdrs['items'], many=True).data,
-                'total': cdrs['total'],
-                'filtered': cdrs['filtered']}
+        return CDRSchemaList().dump(cdrs).data
