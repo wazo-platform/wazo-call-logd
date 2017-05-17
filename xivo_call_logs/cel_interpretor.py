@@ -39,11 +39,13 @@ def find_participant(confd, channame, role):
         logger.debug('Found participant line id %s', line['id'])
         users = line['users']
         if users:
-            user = users[0]
+            user = confd.users.get(users[0]['uuid'])
+            tags = [tag.strip() for tag in user['userfield'].split(',')] if user['userfield'] else []
             logger.debug('Found participant user uuid %s', user['uuid'])
             participant = CallLogParticipant(role=role,
                                              user_uuid=user['uuid'],
-                                             line_id=line['id'])
+                                             line_id=line['id'],
+                                             tags=tags)
             return participant
     return None
 

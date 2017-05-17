@@ -73,6 +73,7 @@ class CallLogDAO(object):
     def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None, user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
+            query = query.options(joinedload('participants'))
 
             if start:
                 query = query.filter(CallLogSchema.date >= start)
@@ -84,7 +85,6 @@ class CallLogDAO(object):
                            for column in self.searched_columns)
                 query = query.filter(sql.or_(*filters))
             if user_uuid:
-                query = query.options(joinedload('participants'))
                 query = query.filter(CallLogSchema.participant_user_uuids.contains(str(user_uuid)))
 
             order_field = None
@@ -106,6 +106,9 @@ class CallLogDAO(object):
                 return []
             for call_log in call_log_rows:
                 make_transient(call_log)
+                for participant in call_log.participants:
+                    make_transient(participant)
+
             return call_log_rows
 
     def count_in_period(self, start=None, end=None, search=None, user_uuid=None):
