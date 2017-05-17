@@ -43,6 +43,7 @@ def confd_mock(lines=None):
     lines = lines or []
     confd = Mock()
     confd.lines.list.return_value = {'items': lines}
+    confd.users.get.return_value = lines[0]['users'][0] if lines and lines[0]['users'] else None
     return confd
 
 
@@ -74,7 +75,8 @@ class TestFindParticipant(TestCase):
         assert_that(result, none())
 
     def test_find_participants_when_line_has_user(self):
-        lines = [{'id': 12, 'users': [{'uuid': 'user_uuid'}]}]
+        user = {'uuid': 'user_uuid', 'userfield': 'user_userfield, toto'}
+        lines = [{'id': 12, 'users': [user]}]
         confd = confd_mock(lines)
         channame = 'sip/something-suffix'
 
@@ -82,7 +84,8 @@ class TestFindParticipant(TestCase):
 
         assert_that(result, has_properties(role='source',
                                            user_uuid='user_uuid',
-                                           line_id=12))
+                                           line_id=12,
+                                           tags=['user_userfield', 'toto']))
 
 
 class TestCELDispatcher(TestCase):
