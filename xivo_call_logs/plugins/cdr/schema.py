@@ -5,6 +5,7 @@
 from marshmallow import fields
 from marshmallow import post_load
 from marshmallow import Schema
+from marshmallow import pre_dump
 from marshmallow.validate import OneOf
 from marshmallow.validate import Range
 
@@ -21,6 +22,18 @@ class CDRSchema(Schema):
     duration = fields.TimeDelta()
     answered = fields.Boolean()
     tags = fields.List(fields.String())
+
+    @pre_dump
+    def _populate_end_field(self, data):
+        data.end = data.date_answer + data.duration if data.date_answer else data.date
+        return data
+
+    @pre_dump
+    def _populate_tags_field(self, data):
+        data.tags = set()
+        for participant in data.participants:
+            data.tags.update(participant.tags)
+        return data
 
 
 cdr_schema = CDRSchema()
