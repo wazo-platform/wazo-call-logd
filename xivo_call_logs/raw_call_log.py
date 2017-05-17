@@ -36,6 +36,7 @@ class RawCallLog(object):
         self.communication_end = None
         self.source_line_identity = None
         self.destination_line_identity = None
+        self.direction = 'internal'
         self.participants = []
         self.cel_ids = []
 
@@ -57,6 +58,7 @@ class RawCallLog(object):
             duration=self.duration,
             source_line_identity=self.source_line_identity,
             destination_line_identity=self.destination_line_identity,
+            direction=self.direction,
         )
         result.set_participants(self.participants)
         result.add_related_cels(self.cel_ids)
