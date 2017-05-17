@@ -155,3 +155,7 @@ definitions:
         - inbound
         - internal
         - outbound
+      tags:
+        type: array
+        items:
+          type: string

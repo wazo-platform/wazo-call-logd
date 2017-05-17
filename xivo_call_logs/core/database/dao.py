@@ -106,6 +106,9 @@ class CallLogDAO(object):
                 return []
             for call_log in call_log_rows:
                 make_transient(call_log)
+                for participant in call_log.participants:
+                    make_transient(participant)
+
             return call_log_rows
 
     def count_in_period(self, start=None, end=None, search=None, user_uuid=None):

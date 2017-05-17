@@ -35,4 +35,9 @@ class CDR(object):
         if call_log.date_answer:
             result.end = call_log.date_answer + call_log.duration
 
+        result.tags = set()
+        for participant in call_log.participants:
+            result.tags.update(participant.tags)
+        result.tags = list(result.tags)
+
         return result
