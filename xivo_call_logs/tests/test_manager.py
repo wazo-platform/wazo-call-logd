@@ -23,6 +23,7 @@ from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.writer import CallLogsWriter
+from xivo_call_logs.bus_publisher import BusPublisher
 
 
 class TestCallLogsManager(TestCase):
@@ -30,7 +31,8 @@ class TestCallLogsManager(TestCase):
         self.cel_fetcher = Mock(CELFetcher)
         self.generator = Mock(CallLogsGenerator)
         self.writer = Mock(CallLogsWriter)
-        self.manager = CallLogsManager(self.cel_fetcher, self.generator, self.writer)
+        self.publisher = Mock(BusPublisher)
+        self.manager = CallLogsManager(self.cel_fetcher, self.generator, self.writer, self.publisher)
 
     def tearDown(self):
         pass
