@@ -238,6 +238,22 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_line_identity', line_identity),
         ))
 
+    def test_interpret_xivo_incall(self):
+        cel = Mock()
+        call = Mock(RawCallLog)
+
+        result = self.caller_cel_interpretor.interpret_xivo_incall(cel, call)
+
+        assert_that(result, has_property('direction', 'inbound'))
+
+    def test_interpret_xivo_outcall(self):
+        cel = Mock()
+        call = Mock(RawCallLog)
+
+        result = self.caller_cel_interpretor.interpret_xivo_outcall(cel, call)
+
+        assert_that(result, has_property('direction', 'outbound'))
+
     def test_interpret_app_start_when_cid_name_num_are_empty_then_do_not_change_source_name_exten(self):
         cel = Mock()
         cel_userfield = cel.userfield = 'userfield'
