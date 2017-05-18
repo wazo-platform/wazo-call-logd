@@ -20,6 +20,7 @@ from xivo_call_logs.core.rest_api import api, CoreRestApi
 from xivo_call_logs.generator import CallLogsGenerator
 from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
+from .bus_publisher import BusPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,8 @@ class Controller(object):
                                    CalleeCELInterpretor(confd_client))
         ])
         writer = CallLogsWriter()
-        self.manager = CallLogsManager(cel_fetcher, generator, writer)
+        self._publisher = BusPublisher(config)
+        self.manager = CallLogsManager(cel_fetcher, generator, writer, self._publisher)
         self.bus_client = BusClient(config)
         self.rest_api = CoreRestApi(config)
         self.token_renewer = TokenRenewer(auth_client)
@@ -47,6 +49,8 @@ class Controller(object):
 
     def run(self):
         logger.info('Starting xivo-call-logd')
+        bus_publisher_thread = Thread(target=self._publisher.run)
+        bus_publisher_thread.start()
         bus_consumer_thread = Thread(target=self.bus_client.run, args=[self.manager], name='bus_consumer_thread')
         bus_consumer_thread.start()
 
@@ -56,7 +60,9 @@ class Controller(object):
         finally:
             logger.info('Stopping xivo-call-logd')
             self.bus_client.stop()
+            self._publisher.stop()
             bus_consumer_thread.join()
+            bus_publisher_thread.join()
 
     def stop(self, reason):
         logger.warning('Stopping xivo-call-logd: %s', reason)

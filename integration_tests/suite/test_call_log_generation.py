@@ -6,8 +6,8 @@ from contextlib import contextmanager
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from hamcrest import empty
-from hamcrest import has_entry
 from hamcrest import has_entries
+from hamcrest import has_key
 from hamcrest import is_
 from hamcrest import not_
 from hamcrest import none
@@ -101,6 +101,8 @@ class TestCallLogGeneration(IntegrationTest):
              'uniqueid': '1434650936.31',
              'linkedid': linkedid},
         ]
+        msg_accumulator_1 = self.bus.accumulator('call_log.created')
+        msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
         with self.cels(cels), self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
@@ -111,7 +113,18 @@ class TestCallLogGeneration(IntegrationTest):
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
                     assert_that(user_uuids, empty())
 
+            def bus_event_call_log_created(accumulator):
+                assert_that(accumulator.accumulate(), contains_inanyorder(has_entries(
+                    name='call_log_created',
+                    data=has_key('tags')
+                )))
+
+            def bus_event_call_log_user_created(accumulator):
+                assert_that(accumulator.accumulate(), empty())
+
             until.assert_(call_log_has_no_user_uuid, tries=5)
+            until.assert_(bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25)
+            until.assert_(bus_event_call_log_user_created, msg_accumulator_2, tries=10, interval=0.25)
 
     def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid(self):
         linkedid = '123456789.1011'
@@ -189,6 +202,8 @@ class TestCallLogGeneration(IntegrationTest):
         ]
         self.confd.set_users(MockUser('user_1_uuid', line_ids=[1]), MockUser('user_2_uuid', line_ids=[2]))
         self.confd.set_lines(MockLine(id=1, name='as2mkq', users=[{'uuid': 'user_1_uuid'}]), MockLine(id=2, name='je5qtq', users=[{'uuid': 'user_2_uuid'}]))
+        msg_accumulator_1 = self.bus.accumulator('call_log.created')
+        msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
         with self.cels(cels), self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
@@ -199,7 +214,29 @@ class TestCallLogGeneration(IntegrationTest):
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
                     assert_that(user_uuids, contains_inanyorder('user_1_uuid', 'user_2_uuid'))
 
+            def bus_event_call_log_created(accumulator):
+                assert_that(accumulator.accumulate(), contains_inanyorder(has_entries(
+                    name='call_log_created',
+                    data=has_key('tags')
+                )))
+
+            def bus_event_call_log_user_created(accumulator):
+                assert_that(accumulator.accumulate(), contains_inanyorder(
+                    has_entries(
+                        name='call_log_user_created',
+                        required_acl='events.call_log.user.user_1_uuid.created',
+                        data=not_(has_key('tags')),
+                    ),
+                    has_entries(
+                        name='call_log_user_created',
+                        required_acl='events.call_log.user.user_2_uuid.created',
+                        data=not_(has_key('tags')),
+                    )
+                ))
+
             until.assert_(call_log_has_both_user_uuid, tries=5)
+            until.assert_(bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25)
+            until.assert_(bus_event_call_log_user_created, msg_accumulator_2, tries=10, interval=0.25)
 
     @contextmanager
     def cels(self, cels):

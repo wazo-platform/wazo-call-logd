@@ -23,10 +23,11 @@ logger = logging.getLogger(__name__)
 
 class CallLogsManager(object):
 
-    def __init__(self, cel_fetcher, generator, writer):
+    def __init__(self, cel_fetcher, generator, writer, publisher):
         self.cel_fetcher = cel_fetcher
         self.generator = generator
         self.writer = writer
+        self.publisher = publisher
 
     def generate_from_count(self, cel_count):
         with session_scope():
@@ -44,3 +45,4 @@ class CallLogsManager(object):
         call_logs = self.generator.from_cel(cels)
         logger.debug('Generated %s call logs', len(call_logs.new_call_logs))
         self.writer.write(call_logs)
+        self.publisher.publish_all(call_logs.new_call_logs)
