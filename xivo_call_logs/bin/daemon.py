@@ -8,6 +8,7 @@ import sys
 from functools import partial
 
 import xivo_dao
+from xivo.config_helper import set_xivo_uuid
 from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging
@@ -26,6 +27,8 @@ def main(argv):
 
     setup_logging(config['logfile'], config['foreground'], config['debug'], config['log_level'])
     xivo_dao.init_db_from_config(config)
+
+    set_xivo_uuid(config, logger)
 
     controller = Controller(config)
     signal.signal(signal.SIGTERM, partial(sigterm, controller))
