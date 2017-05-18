@@ -62,7 +62,8 @@ class TestListCDR(IntegrationTest):
 
     def test_given_call_logs_when_list_cdr_then_list_cdr(self):
         call_logs = [
-            {'answered': True,
+            {'id': 12,
+             'answered': True,
              'date': '2017-03-23 00:00:00',
              'date_answer': '2017-03-23 00:01:00',
              'destination_exten': '3378',
@@ -74,7 +75,8 @@ class TestListCDR(IntegrationTest):
              'participants': [{'user_uuid': '1',
                                'line_id': '1',
                                'tags': ['rh', 'Poudlard']}]},
-            {'answered': False,
+            {'id': 34,
+             'answered': False,
              'date': '2017-03-23 11:11:11',
              'date_answer': '2017-03-23 11:12:11',
              'destination_exten': '8733',
@@ -89,7 +91,8 @@ class TestListCDR(IntegrationTest):
             result = self.call_logd.cdr.list()
 
         assert_that(result, has_entries(items=contains_inanyorder(
-            has_entries(answered=True,
+            has_entries(id=12,
+                        answered=True,
                         start='2017-03-23T00:00:00+00:00',
                         answer='2017-03-23T00:01:00+00:00',
                         end='2017-03-23T00:02:27+00:00',
@@ -100,7 +103,8 @@ class TestListCDR(IntegrationTest):
                         source_extension='7687',
                         source_name=u'soùr.',
                         tags=['rh', 'Poudlard']),
-            has_entries(answered=False,
+            has_entries(id=34,
+                        answered=False,
                         start='2017-03-23T11:11:11+00:00',
                         answer='2017-03-23T11:12:11+00:00',
                         end='2017-03-23T11:13:29+00:00',
