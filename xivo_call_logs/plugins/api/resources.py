@@ -7,7 +7,7 @@ import logging
 import yaml
 
 from flask import make_response
-from flask.ext.restful import Resource
+from flask_restful import Resource
 from pkg_resources import resource_string, iter_entry_points
 
 logger = logging.getLogger(__name__)

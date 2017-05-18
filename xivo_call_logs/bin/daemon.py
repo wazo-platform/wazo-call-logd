@@ -5,9 +5,9 @@
 import logging
 import signal
 import sys
-import xivo_dao
-
 from functools import partial
+
+import xivo_dao
 from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging

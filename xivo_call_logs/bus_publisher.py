@@ -3,13 +3,12 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+from functools import partial
+
 import kombu
 import xivo_bus
-from functools import partial
 from marshmallow import pre_dump
-
-from xivo_bus.resources.call_logs.events import CallLogCreatedEvent
-from xivo_bus.resources.call_logs.events import CallLogUserCreatedEvent
+from xivo_bus.resources.call_logs.events import CallLogCreatedEvent, CallLogUserCreatedEvent
 from xivo_call_logs.plugins.cdr.schema import CDRSchema
 
 logger = logging.getLogger(__name__)

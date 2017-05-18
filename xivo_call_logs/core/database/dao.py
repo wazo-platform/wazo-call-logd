@@ -2,9 +2,10 @@
 # Copyright 2017 The Wazo Authors  (see AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from contextlib import contextmanager
+
 import sqlalchemy as sa
 
-from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy import event
 from sqlalchemy import exc

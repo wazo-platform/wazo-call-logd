@@ -4,9 +4,9 @@
 
 import logging
 import os
+from datetime import timedelta
 
 from cherrypy import wsgiserver
-from datetime import timedelta
 from flask import Flask
 from flask_restful import Api
 from flask_restful import Resource
