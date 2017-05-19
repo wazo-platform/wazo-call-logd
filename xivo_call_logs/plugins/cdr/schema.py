@@ -11,6 +11,7 @@ from marshmallow.validate import Range
 
 
 class CDRSchema(Schema):
+    id = fields.Integer()
     start = fields.DateTime(attribute='date')
     answer = fields.DateTime(attribute='date_answer')
     end = fields.DateTime()
