@@ -28,6 +28,7 @@ from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 from xivo_dao import init_db_from_config, default_config
 
+from xivo_call_logs.bus_publisher import BusPublisher
 from xivo_call_logs.cel_fetcher import CELFetcher
 from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor
@@ -50,6 +51,15 @@ DEFAULT_CONFIG = {
         'timeout': 2,
         'verify_certificate': _CERT_FILE,
         'key_file': '/var/lib/xivo-auth-keys/xivo-call-logd-key.yml',
+    },
+    'bus': {
+        'username': 'guest',
+        'password': 'guest',
+        'host': 'localhost',
+        'port': '5672',
+        'exchange_name': 'xivo',
+        'exchange_type': 'topic',
+        'exchange_durable': True,
     },
     'confd': {
         'host': 'localhost',
@@ -85,7 +95,8 @@ def _generate_call_logs():
                                CalleeCELInterpretor(confd_client))
     ])
     writer = CallLogsWriter()
-    manager = CallLogsManager(cel_fetcher, generator, writer)
+    publisher = BusPublisher(config)
+    manager = CallLogsManager(cel_fetcher, generator, writer, publisher)
 
     with token_renewer:
         manager.generate_from_count(cel_count=options.cel_count)
