@@ -10,6 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import event
 from sqlalchemy import exc
 from sqlalchemy import sql
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
@@ -17,6 +18,7 @@ from sqlalchemy.orm.session import make_transient
 from sqlalchemy.pool import Pool
 
 from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
+from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 from xivo_call_logs.core.exceptions import DatabaseServiceUnavailable
 
@@ -72,7 +74,7 @@ class CallLogDAO(object):
             self._Session.remove()
 
     def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None,
-                           call_direction=None, number=None, user_uuid=None):
+                           call_direction=None, number=None, tags=[], user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
             query = query.options(joinedload('participants'))
@@ -98,6 +100,11 @@ class CallLogDAO(object):
                            for column in [CallLogSchema.source_exten, CallLogSchema.destination_exten])
                 query = query.filter(sql.or_(*filters))
 
+            for tag in tags:
+                query = query.filter(CallLogSchema.participants.any(
+                    CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
+                ))
+
             order_field = None
             if order:
                 order_field = getattr(CallLogSchema, order)
@@ -122,7 +129,7 @@ class CallLogDAO(object):
 
             return call_log_rows
 
-    def count_in_period(self, start=None, end=None, search=None, call_direction=None, number=None, user_uuid=None):
+    def count_in_period(self, start=None, end=None, search=None, call_direction=None, number=None, tags=[], user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
@@ -143,6 +150,11 @@ class CallLogDAO(object):
                 filters = (sql.cast(column, sa.String).like('%s' % sql_regex)
                            for column in [CallLogSchema.source_exten, CallLogSchema.destination_exten])
                 query = query.filter(sql.or_(*filters))
+
+            for tag in tags:
+                query = query.filter(CallLogSchema.participants.any(
+                    CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
+                ))
 
             if user_uuid:
                 query = query.filter(CallLogSchema.participant_user_uuids.contains(str(user_uuid)))
