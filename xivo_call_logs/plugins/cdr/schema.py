@@ -8,6 +8,9 @@ from marshmallow import Schema
 from marshmallow import pre_dump
 from marshmallow.validate import OneOf
 from marshmallow.validate import Range
+from marshmallow.validate import Regexp
+
+NUMBER_REGEX = r'^_?[0-9]+_?$'
 
 
 class CDRSchema(Schema):
@@ -49,6 +52,7 @@ class CDRListRequestSchema(Schema):
     offset = fields.Integer(validate=Range(min=0), missing=None)
     search = fields.String(missing=None)
     call_direction = fields.String(validate=OneOf(['internal', 'inbound', 'outbound']), missing=None)
+    number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
 
     @post_load
     def map_order_field(self, in_data):

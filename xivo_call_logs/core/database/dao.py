@@ -72,7 +72,7 @@ class CallLogDAO(object):
             self._Session.remove()
 
     def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None,
-                           call_direction=None, user_uuid=None):
+                           call_direction=None, number=None, user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
             query = query.options(joinedload('participants'))
@@ -91,6 +91,12 @@ class CallLogDAO(object):
 
             if call_direction:
                 query = query.filter(CallLogSchema.direction == call_direction)
+
+            if number:
+                sql_regex = number.replace('_', '%')
+                filters = (sql.cast(column, sa.String).like('%s' % sql_regex)
+                           for column in [CallLogSchema.source_exten, CallLogSchema.destination_exten])
+                query = query.filter(sql.or_(*filters))
 
             order_field = None
             if order:
@@ -116,7 +122,7 @@ class CallLogDAO(object):
 
             return call_log_rows
 
-    def count_in_period(self, start=None, end=None, search=None, call_direction=None, user_uuid=None):
+    def count_in_period(self, start=None, end=None, search=None, call_direction=None, number=None, user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
@@ -132,6 +138,12 @@ class CallLogDAO(object):
                 filters = (sql.cast(column, sa.String).ilike('%%%s%%' % search)
                            for column in self.searched_columns)
                 query = query.filter(sql.or_(*filters))
+            if number:
+                sql_regex = number.replace('_', '%')
+                filters = (sql.cast(column, sa.String).like('%s' % sql_regex)
+                           for column in [CallLogSchema.source_exten, CallLogSchema.destination_exten])
+                query = query.filter(sql.or_(*filters))
+
             if user_uuid:
                 query = query.filter(CallLogSchema.participant_user_uuids.contains(str(user_uuid)))
             filtered = query.count()

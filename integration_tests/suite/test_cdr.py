@@ -286,6 +286,57 @@ class TestListCDR(IntegrationTest):
                                             has_entry('call_direction', 'internal'),
                                         )))
 
+    def test_given_call_logs_when_list_cdr_with_number_then_list_matching_cdr(self):
+        call_logs = [
+            {'date': '2016-04-10', 'source_exten': '12345'},
+            {'date': '2017-04-10', 'source_exten': '123'},
+            {'date': '2016-04-12'},
+            {'date': '2016-04-12', 'destination_exten': '45'},
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(number='_45')
+
+        assert_that(result, has_entries(filtered=2,
+                                        total=4,
+                                        items=contains_inanyorder(
+                                            has_entry('source_extension', '12345'),
+                                            has_entry('destination_extension', '45'),
+                                        )))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(number='45')
+
+        assert_that(result, has_entries(filtered=1,
+                                        total=4,
+                                        items=contains_inanyorder(
+                                            has_entry('destination_extension', '45'),
+                                        )))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(number='_23_')
+
+        assert_that(result, has_entries(filtered=2,
+                                        total=4,
+                                        items=contains_inanyorder(
+                                            has_entry('source_extension', '12345'),
+                                            has_entry('source_extension', '123'),
+                                        )))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(number='4_')
+
+        assert_that(result, has_entries(filtered=1,
+                                        total=4,
+                                        items=contains_inanyorder(
+                                            has_entry('destination_extension', '45'),
+                                        )))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(number='0123456789')
+
+        assert_that(result, has_entries(filtered=0, total=4, items=empty()))
+
     def test_given_call_logs_when_list_cdr_of_user_then_list_cdr_of_user(self):
         USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'
         USER_2_UUID = 'de5ffb31-eacd-4fd7-b7e0-dd4b8676e346'
