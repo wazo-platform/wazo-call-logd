@@ -151,7 +151,7 @@ definitions:
         type: integer
       answered:
         type: boolean
-      direction:
+      call_direction:
         type: string
         enum:
         - inbound
