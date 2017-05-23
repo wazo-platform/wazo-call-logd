@@ -159,6 +159,11 @@ class TestListCDR(IntegrationTest):
                                                           details=has_key('order'))))
 
         assert_that(
+            calling(self.call_logd.cdr.list).with_args(order='tags'),
+            raises(CallLogdError).matching(has_properties(status_code=400,
+                                                          details=has_key('order'))))
+
+        assert_that(
             calling(self.call_logd.cdr.list).with_args(call_direction='not_valid_choice'),
             raises(CallLogdError).matching(has_properties(status_code=400,
                                                           details=has_key('call_direction'))))
