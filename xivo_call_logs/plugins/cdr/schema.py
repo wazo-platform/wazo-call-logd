@@ -54,12 +54,15 @@ class CDRListRequestSchema(Schema):
     call_direction = fields.String(validate=OneOf(['internal', 'inbound', 'outbound']), missing=None)
     number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
     tags = fields.List(fields.String(), missing=[])
+    user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
 
     @pre_load
     def convert_tags(self, data):
         result = data.to_dict()
         if data.get('tags'):
             result['tags'] = data['tags'].split(',')
+        if data.get('user_uuid'):
+            result['user_uuid'] = data['user_uuid'].split(',')
         return result
 
     @post_load

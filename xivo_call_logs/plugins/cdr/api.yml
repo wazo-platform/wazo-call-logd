@@ -16,6 +16,7 @@ paths:
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
       - $ref: '#/parameters/tags'
+      - $ref: '#/parameters/user_uuid'
       responses:
         '200':
           description: List CDR
@@ -41,6 +42,7 @@ paths:
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
       - $ref: '#/parameters/tags'
+      - $ref: '#/parameters/user_uuid'
       responses:
         '200':
           description: List CDR
@@ -66,6 +68,7 @@ paths:
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
       - $ref: '#/parameters/tags'
+      - $ref: '#/parameters/user_uuid'
       responses:
         '200':
           description: List CDR
@@ -144,6 +147,12 @@ parameters:
     in: query
     type: string
     description: Filter by tags. Each tag MUST be separated by a coma (,). Many tag will perform a logical AND.
+  user_uuid:
+    required: false
+    name: user_uuid
+    in: query
+    type: string
+    description: Filter by user_uuid. Many uuid can be specified. Each uuid MUST be separated by a coma (,). Many uuid will perform a logical OR.
 definitions:
   CDRList:
     type: object
