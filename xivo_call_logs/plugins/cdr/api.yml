@@ -15,6 +15,7 @@ paths:
       - $ref: '#/parameters/search'
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
+      - $ref: '#/parameters/tags'
       responses:
         '200':
           description: List CDR
@@ -39,6 +40,7 @@ paths:
       - $ref: '#/parameters/search'
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
+      - $ref: '#/parameters/tags'
       responses:
         '200':
           description: List CDR
@@ -63,6 +65,7 @@ paths:
       - $ref: '#/parameters/search'
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
+      - $ref: '#/parameters/tags'
       responses:
         '200':
           description: List CDR
@@ -135,6 +138,12 @@ parameters:
     in: query
     type: string
     description: Filter by source_extension and destination_extension. A wildcard (underscore) can be used at the start and/or the end of the number.
+  tags:
+    required: false
+    name: tags
+    in: query
+    type: string
+    description: Filter by tags. Each tag MUST be separated by a coma (,). Many tag will perform a logical AND.
 definitions:
   CDRList:
     type: object

@@ -159,6 +159,11 @@ class TestListCDR(IntegrationTest):
                                                           details=has_key('order'))))
 
         assert_that(
+            calling(self.call_logd.cdr.list).with_args(order='tags'),
+            raises(CallLogdError).matching(has_properties(status_code=400,
+                                                          details=has_key('order'))))
+
+        assert_that(
             calling(self.call_logd.cdr.list).with_args(call_direction='not_valid_choice'),
             raises(CallLogdError).matching(has_properties(status_code=400,
                                                           details=has_key('call_direction'))))
@@ -336,6 +341,55 @@ class TestListCDR(IntegrationTest):
             result = self.call_logd.cdr.list(number='0123456789')
 
         assert_that(result, has_entries(filtered=0, total=4, items=empty()))
+
+    def test_given_call_logs_when_list_cdr_with_tags_then_list_matching_cdr(self):
+        call_logs = [
+            {'date': '2017-04-11', 'participants': [{'user_uuid': '1', 'tags': ['quebec']}]},
+            {'date': '2017-04-12'},
+            {'date': '2017-04-13', 'participants': [{'user_uuid': '1', 'tags': ['quebec', 'montreal']}]},
+            {'date': '2017-04-14', 'participants': [{'user_uuid': '1', 'tags': ['chicoutimi']},
+                                                    {'user_uuid': '1', 'tags': ['roberval']}]},
+            {'date': '2017-04-15', 'participants': [{'user_uuid': '1', 'tags': ['alma', 'roberval', 'jonquiere']}]},
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(tags='chicoutimi')
+
+        assert_that(result, has_entries(filtered=1,
+                                        total=5,
+                                        items=contains_inanyorder(
+                                            has_entry('tags', contains_inanyorder('chicoutimi', 'roberval')),
+                                        )))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(tags='quebec')
+
+        assert_that(result, has_entries(filtered=2,
+                                        total=5,
+                                        items=contains_inanyorder(
+                                            has_entry('tags', contains_inanyorder('quebec')),
+                                            has_entry('tags', contains_inanyorder('quebec', 'montreal')),
+                                        )))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(tags='chicoutimi,alma')
+
+        assert_that(result, has_entries(filtered=0, total=5, items=empty()))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(tags='roberval')
+
+        assert_that(result, has_entries(filtered=2,
+                                        total=5,
+                                        items=contains_inanyorder(
+                                            has_entry('tags', contains_inanyorder('chicoutimi', 'roberval')),
+                                            has_entry('tags', contains_inanyorder('alma', 'roberval', 'jonquiere')),
+                                        )))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(tags='Mashteuiatsh')
+
+        assert_that(result, has_entries(filtered=0, total=5, items=empty()))
 
     def test_given_call_logs_when_list_cdr_of_user_then_list_cdr_of_user(self):
         USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'

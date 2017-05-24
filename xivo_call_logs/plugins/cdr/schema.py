@@ -5,7 +5,7 @@
 from marshmallow import fields
 from marshmallow import post_load
 from marshmallow import Schema
-from marshmallow import pre_dump
+from marshmallow import pre_dump, pre_load
 from marshmallow.validate import OneOf
 from marshmallow.validate import Range
 from marshmallow.validate import Regexp
@@ -47,12 +47,20 @@ class CDRListRequestSchema(Schema):
     from_ = fields.DateTime(load_from='from', missing=None)
     until = fields.DateTime(missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
-    order = fields.String(validate=OneOf(set(cdr_schema.fields) - {'end'}), missing='start')
+    order = fields.String(validate=OneOf(set(cdr_schema.fields) - {'end', 'tags'}), missing='start')
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=None)
     search = fields.String(missing=None)
     call_direction = fields.String(validate=OneOf(['internal', 'inbound', 'outbound']), missing=None)
     number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
+    tags = fields.List(fields.String(), missing=[])
+
+    @pre_load
+    def convert_tags(self, data):
+        result = data.to_dict()
+        if data.get('tags'):
+            result['tags'] = data['tags'].split(',')
+        return result
 
     @post_load
     def map_order_field(self, in_data):
