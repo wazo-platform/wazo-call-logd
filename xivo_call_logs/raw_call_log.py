@@ -17,7 +17,7 @@
 
 import datetime
 
-from xivo_dao.resources.call_log.model import CallLog
+from xivo_dao.alchemy.call_log import CallLog
 
 from xivo_call_logs.exceptions import InvalidCallLogException
 
@@ -60,8 +60,8 @@ class RawCallLog(object):
             destination_line_identity=self.destination_line_identity,
             direction=self.direction,
         )
-        result.set_participants(self.participants)
-        result.add_related_cels(self.cel_ids)
+        result.participants = self.participants
+        result.cel_ids = self.cel_ids
 
         return result
 

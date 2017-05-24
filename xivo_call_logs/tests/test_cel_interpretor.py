@@ -29,7 +29,7 @@ from hamcrest import same_instance
 from mock import Mock
 from mock import sentinel
 from xivo_dao.resources.cel.event_type import CELEventType
-from xivo_dao.resources.call_log.model import CallLog
+from xivo_dao.alchemy.call_log import CallLog
 
 from xivo_call_logs.cel_interpretor import AbstractCELInterpretor
 from xivo_call_logs.cel_interpretor import CallerCELInterpretor

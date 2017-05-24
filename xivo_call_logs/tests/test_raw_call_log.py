@@ -18,13 +18,14 @@
 import datetime
 from unittest import TestCase
 
-from hamcrest import all_of, assert_that, contains, equal_to, has_property
-from mock import Mock, PropertyMock
+from hamcrest import all_of, assert_that, equal_to, has_property
+from mock import Mock, PropertyMock, patch
 
 from xivo_call_logs.raw_call_log import RawCallLog
 from xivo_call_logs.exceptions import InvalidCallLogException
 
 
+@patch('xivo_call_logs.raw_call_log.CallLog', Mock)
 class TestRawCallLog(TestCase):
     def setUp(self):
         self.raw_call_log = RawCallLog()
@@ -54,7 +55,7 @@ class TestRawCallLog(TestCase):
             has_property('answered', self.raw_call_log.answered),
             has_property('duration', self.raw_call_log.duration)
         ))
-        assert_that(result.get_related_cels(), contains(1, 2, 3))
+        result.add_cel_ids.assert_called_once_with([1, 2, 3])
 
     def test_to_call_log_invalid_date(self):
         self.raw_call_log.date = None

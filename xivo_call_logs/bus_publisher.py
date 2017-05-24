@@ -7,21 +7,10 @@ from functools import partial
 
 import kombu
 import xivo_bus
-from marshmallow import pre_dump
 from xivo_bus.resources.call_logs.events import CallLogCreatedEvent, CallLogUserCreatedEvent
 from xivo_call_logs.plugins.cdr.schema import CDRSchema
 
 logger = logging.getLogger(__name__)
-
-
-class ModelCDRSchema(CDRSchema):
-
-    @pre_dump
-    def _populate_tags_field(self, data):
-        data.tags = set()
-        for participant in data.get_participants():
-            data.tags.update(participant.tags)
-        return data
 
 
 class BusPublisher(object):
@@ -39,13 +28,13 @@ class BusPublisher(object):
             self.publish(call_log)
 
     def publish(self, call_log):
-        payload = ModelCDRSchema().dump(call_log).data
+        payload = CDRSchema().dump(call_log).data
         logger.debug('publishing new call log: %s', payload)
         event = CallLogCreatedEvent(payload)
         self.send_event(event)
 
-        payload = ModelCDRSchema(exclude=['tags']).dump(call_log).data
-        for participant in call_log.get_participants():
+        payload = CDRSchema(exclude=['tags']).dump(call_log).data
+        for participant in call_log.participants:
             event = CallLogUserCreatedEvent(participant.user_uuid, payload)
             self.send_event(event)
 
