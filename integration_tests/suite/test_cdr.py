@@ -391,6 +391,42 @@ class TestListCDR(IntegrationTest):
 
         assert_that(result, has_entries(filtered=0, total=5, items=empty()))
 
+    def test_given_call_logs_when_list_cdr_with_user_uuid_then_list_matching_cdr(self):
+        USER_1_UUID = '11111111-1111-1111-1111-111111111111'
+        USER_2_UUID = '22222222-2222-2222-2222-222222222222'
+        USER_3_UUID = '33333333-3333-3333-3333-333333333333'
+
+        call_logs = [
+            {'date': '2017-04-10'},
+            {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+            {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}, {'user_uuid': USER_3_UUID}]},
+            {'date': '2017-04-13', 'participants': [{'user_uuid': USER_2_UUID}]},
+            {'date': '2017-04-14', 'participants': [{'user_uuid': USER_3_UUID}]},
+            {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID}]},
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(user_uuid=USER_3_UUID)
+
+        assert_that(result, has_entries(filtered=2,
+                                        total=6,
+                                        items=contains_inanyorder(
+                                            has_entries(start='2017-04-12T00:00:00+00:00'),
+                                            has_entries(start='2017-04-14T00:00:00+00:00'),
+                                        )))
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(user_uuid='{},{}'.format(USER_2_UUID, USER_3_UUID))
+
+        assert_that(result, has_entries(filtered=4,
+                                        total=6,
+                                        items=contains_inanyorder(
+                                            has_entries(start='2017-04-12T00:00:00+00:00'),
+                                            has_entries(start='2017-04-13T00:00:00+00:00'),
+                                            has_entries(start='2017-04-14T00:00:00+00:00'),
+                                            has_entries(start='2017-04-15T00:00:00+00:00'),
+                                        )))
+
     def test_given_call_logs_when_list_cdr_of_user_then_list_cdr_of_user(self):
         USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'
         USER_2_UUID = 'de5ffb31-eacd-4fd7-b7e0-dd4b8676e346'
