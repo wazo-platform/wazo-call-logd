@@ -99,7 +99,7 @@ class TestListCDR(IntegrationTest):
                         destination_extension='3378',
                         destination_name=u'dést.',
                         duration=87,
-                        direction='internal',
+                        call_direction='internal',
                         source_extension='7687',
                         source_name=u'soùr.',
                         tags=['rh', 'Poudlard']),
@@ -111,7 +111,7 @@ class TestListCDR(IntegrationTest):
                         destination_extension='8733',
                         destination_name=u'.tsèd',
                         duration=78,
-                        direction='outbound',
+                        call_direction='outbound',
                         source_extension='7867',
                         source_name=u'.rùos',
                         tags=[]),
@@ -157,6 +157,11 @@ class TestListCDR(IntegrationTest):
             calling(self.call_logd.cdr.list).with_args(order='end'),
             raises(CallLogdError).matching(has_properties(status_code=400,
                                                           details=has_key('order'))))
+
+        assert_that(
+            calling(self.call_logd.cdr.list).with_args(call_direction='not_valid_choice'),
+            raises(CallLogdError).matching(has_properties(status_code=400,
+                                                          details=has_key('call_direction'))))
 
     def test_given_call_logs_when_no_answered_then_end_equal_start(self):
         call_logs = [
@@ -263,6 +268,23 @@ class TestListCDR(IntegrationTest):
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
         self.call_logd.set_token(VALID_TOKEN)
+
+    def test_given_call_logs_when_list_cdr_with_call_direction_then_list_matching_cdr(self):
+        call_logs = [
+            {'date': '2016-04-10', 'direction': 'outbound'},
+            {'date': '2017-04-10', 'direction': 'internal'},
+            {'date': '2016-04-12'},
+            {'date': '2016-04-12', 'direction': 'inbound'},
+        ]
+
+        with self.call_logs(call_logs):
+            result = self.call_logd.cdr.list(call_direction='internal')
+
+        assert_that(result, has_entries(filtered=1,
+                                        total=4,
+                                        items=contains_inanyorder(
+                                            has_entry('call_direction', 'internal'),
+                                        )))
 
     def test_given_call_logs_when_list_cdr_of_user_then_list_cdr_of_user(self):
         USER_1_UUID = '3eb6eaac-b99f-4c40-8ea9-597e26c76dd1'

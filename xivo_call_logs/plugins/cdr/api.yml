@@ -13,6 +13,7 @@ paths:
       - $ref: '#/parameters/order'
       - $ref: '#/parameters/direction'
       - $ref: '#/parameters/search'
+      - $ref: '#/parameters/call_direction'
       responses:
         '200':
           description: List CDR
@@ -35,6 +36,7 @@ paths:
       - $ref: '#/parameters/order'
       - $ref: '#/parameters/direction'
       - $ref: '#/parameters/search'
+      - $ref: '#/parameters/call_direction'
       responses:
         '200':
           description: List CDR
@@ -57,6 +59,7 @@ paths:
       - $ref: '#/parameters/order'
       - $ref: '#/parameters/direction'
       - $ref: '#/parameters/search'
+      - $ref: '#/parameters/call_direction'
       responses:
         '200':
           description: List CDR
@@ -113,6 +116,16 @@ parameters:
     in: query
     type: string
     description: Filter list of items
+  call_direction:
+    required: false
+    name: call_direction
+    in: query
+    type: string
+    enum:
+    - internal
+    - inbound
+    - outbound
+    description: Filter list of items
 definitions:
   CDRList:
     type: object
@@ -151,7 +164,7 @@ definitions:
         type: integer
       answered:
         type: boolean
-      direction:
+      call_direction:
         type: string
         enum:
         - inbound

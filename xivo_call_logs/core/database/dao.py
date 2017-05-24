@@ -71,7 +71,8 @@ class CallLogDAO(object):
         finally:
             self._Session.remove()
 
-    def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None, user_uuid=None):
+    def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None,
+                           call_direction=None, user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
             query = query.options(joinedload('participants'))
@@ -87,6 +88,9 @@ class CallLogDAO(object):
                 query = query.filter(sql.or_(*filters))
             if user_uuid:
                 query = query.filter(CallLogSchema.participant_user_uuids.contains(str(user_uuid)))
+
+            if call_direction:
+                query = query.filter(CallLogSchema.direction == call_direction)
 
             order_field = None
             if order:
@@ -112,7 +116,7 @@ class CallLogDAO(object):
 
             return call_log_rows
 
-    def count_in_period(self, start=None, end=None, search=None, user_uuid=None):
+    def count_in_period(self, start=None, end=None, search=None, call_direction=None, user_uuid=None):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
@@ -122,6 +126,8 @@ class CallLogDAO(object):
                 query = query.filter(CallLogSchema.date >= start)
             if end:
                 query = query.filter(CallLogSchema.date < end)
+            if call_direction:
+                query = query.filter(CallLogSchema.direction == call_direction)
             if search:
                 filters = (sql.cast(column, sa.String).ilike('%%%s%%' % search)
                            for column in self.searched_columns)

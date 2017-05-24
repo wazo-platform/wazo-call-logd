@@ -14,6 +14,8 @@ call-logd:
     - "./etc/xivo-call-logd:/etc/xivo-call-logd"
   ports:
     - "9298:9298"
+  environment:
+    XIVO_UUID: "08c56466-8f29-45c7-9856-92bf1ba89b92"
 
 swagger-validator:
   image: swaggerapi/swagger-validator
