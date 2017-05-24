@@ -8,7 +8,7 @@ from xivo_call_logs.core.auth import get_token_user_uuid_from_request
 from xivo_call_logs.core.rest_api import AuthResource
 
 from .schema import CDRSchemaList
-from .schema import list_schema
+from .schema import CDRListRequestSchema
 
 
 class CDRResource(AuthResource):
@@ -18,7 +18,7 @@ class CDRResource(AuthResource):
 
     @required_acl('call-logd.cdr.read')
     def get(self):
-        args = list_schema.load(request.args).data
+        args = CDRListRequestSchema().load(request.args).data
         cdrs = self.cdr_service.list(**args)
         return CDRSchemaList().dump(cdrs).data
 
@@ -30,7 +30,7 @@ class CDRUserResource(AuthResource):
 
     @required_acl('call-logd.users.{user_uuid}.cdr.read')
     def get(self, user_uuid):
-        args = list_schema.load(request.args).data
+        args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args).data
         cdrs = self.cdr_service.list(user_uuids=[user_uuid], **args)
         return CDRSchemaList().dump(cdrs).data
 
@@ -43,7 +43,7 @@ class CDRUserMeResource(AuthResource):
 
     @required_acl('call-logd.users.me.cdr.read')
     def get(self):
-        args = list_schema.load(request.args).data
+        args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args).data
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         cdrs = self.cdr_service.list(user_uuids=[user_uuid], **args)
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs).data

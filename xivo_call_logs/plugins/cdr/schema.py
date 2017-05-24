@@ -40,14 +40,11 @@ class CDRSchema(Schema):
         return data
 
 
-cdr_schema = CDRSchema()
-
-
 class CDRListRequestSchema(Schema):
     from_ = fields.DateTime(load_from='from', missing=None)
     until = fields.DateTime(missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
-    order = fields.String(validate=OneOf(set(cdr_schema.fields) - {'end', 'tags'}), missing='start')
+    order = fields.String(validate=OneOf(set(CDRSchema().fields) - {'end', 'tags'}), missing='start')
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=None)
     search = fields.String(missing=None)
@@ -55,6 +52,9 @@ class CDRListRequestSchema(Schema):
     number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
     tags = fields.List(fields.String(), missing=[])
     user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
+
+    class Meta:
+        strict = True
 
     @pre_load
     def convert_tags(self, data):
@@ -67,12 +67,9 @@ class CDRListRequestSchema(Schema):
 
     @post_load
     def map_order_field(self, in_data):
-        mapped_order = cdr_schema.fields[in_data['order']].attribute
+        mapped_order = CDRSchema().fields[in_data['order']].attribute
         if mapped_order:
             in_data['order'] = mapped_order
-
-
-list_schema = CDRListRequestSchema(strict=True)
 
 
 class CDRSchemaList(Schema):
