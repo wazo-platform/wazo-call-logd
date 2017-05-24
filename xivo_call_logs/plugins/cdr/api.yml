@@ -145,14 +145,18 @@ parameters:
     required: false
     name: tags
     in: query
-    type: string
+    type: array
+    items:
+      type: string
     description: Filter by tags. Each tag MUST be separated by a coma (,). Many tag will perform a logical AND.
   user_uuid:
     required: false
     name: user_uuid
     in: query
-    type: string
-    description: Filter by user_uuid. Many uuid can be specified. Each uuid MUST be separated by a coma (,). Many uuid will perform a logical OR.
+    type: array
+    items:
+      type: string
+    description: Filter by user_uuid. Many uuid can be specified. Each uuid MUST be separated by a comma (,). Many uuid will perform a logical OR.
 definitions:
   CDRList:
     type: object
