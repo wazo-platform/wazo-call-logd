@@ -55,7 +55,7 @@ class TestRawCallLog(TestCase):
             has_property('answered', self.raw_call_log.answered),
             has_property('duration', self.raw_call_log.duration)
         ))
-        result.add_cel_ids.assert_called_once_with([1, 2, 3])
+        assert_that(result.cel_ids, equal_to([1, 2, 3]))
 
     def test_to_call_log_invalid_date(self):
         self.raw_call_log.date = None
