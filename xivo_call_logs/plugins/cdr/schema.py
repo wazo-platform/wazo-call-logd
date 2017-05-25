@@ -41,8 +41,8 @@ class CDRSchema(Schema):
 
 
 class CDRListRequestSchema(Schema):
-    from_ = fields.DateTime(load_from='from', missing=None)
-    until = fields.DateTime(missing=None)
+    from_ = fields.DateTime(load_from='from', attribute='start', missing=None)
+    until = fields.DateTime(attribute='end', missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
     order = fields.String(validate=OneOf(set(CDRSchema().fields) - {'end', 'tags'}), missing='start')
     limit = fields.Integer(validate=Range(min=0), missing=None)
@@ -57,7 +57,7 @@ class CDRListRequestSchema(Schema):
         strict = True
 
     @pre_load
-    def convert_tags(self, data):
+    def convert_tags_and_user_uuid_to_list(self, data):
         result = data.to_dict()
         if data.get('tags'):
             result['tags'] = data['tags'].split(',')

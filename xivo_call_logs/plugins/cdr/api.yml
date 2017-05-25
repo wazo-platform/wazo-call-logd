@@ -41,8 +41,6 @@ paths:
       - $ref: '#/parameters/search'
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
-      - $ref: '#/parameters/tags'
-      - $ref: '#/parameters/user_uuid'
       responses:
         '200':
           description: List CDR
@@ -67,8 +65,6 @@ paths:
       - $ref: '#/parameters/search'
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
-      - $ref: '#/parameters/tags'
-      - $ref: '#/parameters/user_uuid'
       responses:
         '200':
           description: List CDR

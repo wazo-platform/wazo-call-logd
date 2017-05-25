@@ -73,52 +73,52 @@ class CallLogDAO(object):
         finally:
             self._Session.remove()
 
-    def find_all_in_period(self, start=None, end=None, order=None, direction=None, limit=None, offset=None, search=None,
-                           call_direction=None, number=None, tags=[], user_uuids=[]):
+    def find_all_in_period(self, params):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
             query = query.options(joinedload('participants'))
 
-            if start:
-                query = query.filter(CallLogSchema.date >= start)
-            if end:
-                query = query.filter(CallLogSchema.date < end)
+            if params.get('start'):
+                query = query.filter(CallLogSchema.date >= params['start'])
+            if params.get('end'):
+                query = query.filter(CallLogSchema.date < params['end'])
 
-            if search:
-                filters = (sql.cast(column, sa.String).ilike('%%%s%%' % search)
+            if params.get('search'):
+                filters = (sql.cast(column, sa.String).ilike('%%%s%%' % params['search'])
                            for column in self.searched_columns)
                 query = query.filter(sql.or_(*filters))
 
-            if user_uuids:
-                filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid)) for user_uuid in user_uuids)
+            if params.get('user_uuids'):
+                filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))
+                           for user_uuid in params['user_uuids'])
                 query = query.filter(sql.or_(*filters))
 
-            if call_direction:
-                query = query.filter(CallLogSchema.direction == call_direction)
+            if params.get('call_direction'):
+                query = query.filter(CallLogSchema.direction == params['call_direction'])
 
-            if number:
-                sql_regex = number.replace('_', '%')
+            if params.get('number'):
+                sql_regex = params['number'].replace('_', '%')
                 filters = (sql.cast(column, sa.String).like('%s' % sql_regex)
                            for column in [CallLogSchema.source_exten, CallLogSchema.destination_exten])
                 query = query.filter(sql.or_(*filters))
 
-            for tag in tags:
+            for tag in params.get('tags', []):
                 query = query.filter(CallLogSchema.participants.any(
                     CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
                 ))
 
             order_field = None
-            if order:
-                order_field = getattr(CallLogSchema, order)
-            if direction == 'desc':
+            if params.get('order'):
+                order_field = getattr(CallLogSchema, params['order'])
+            if params.get('direction') == 'desc':
                 order_field = order_field.desc()
             if order_field is not None:
                 query = query.order_by(order_field)
 
-            if limit:
-                query = query.limit(limit)
-            if offset:
-                query = query.offset(offset)
+            if params.get('limit'):
+                query = query.limit(params['limit'])
+            if params.get('offset'):
+                query = query.offset(params['offset'])
 
             call_log_rows = query.all()
 
@@ -131,36 +131,39 @@ class CallLogDAO(object):
 
             return call_log_rows
 
-    def count_in_period(self, start=None, end=None, search=None, call_direction=None, number=None, tags=[], user_uuids=[]):
+    def count_in_period(self, params):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
             total = query.count()
 
-            if start:
-                query = query.filter(CallLogSchema.date >= start)
-            if end:
-                query = query.filter(CallLogSchema.date < end)
-            if call_direction:
-                query = query.filter(CallLogSchema.direction == call_direction)
-            if search:
-                filters = (sql.cast(column, sa.String).ilike('%%%s%%' % search)
+            if params.get('start'):
+                query = query.filter(CallLogSchema.date >= params['start'])
+            if params.get('end'):
+                query = query.filter(CallLogSchema.date < params['end'])
+
+            if params.get('call_direction'):
+                query = query.filter(CallLogSchema.direction == params['call_direction'])
+
+            if params.get('search'):
+                filters = (sql.cast(column, sa.String).ilike('%%%s%%' % params['search'])
                            for column in self.searched_columns)
                 query = query.filter(sql.or_(*filters))
-            if number:
-                sql_regex = number.replace('_', '%')
+            if params.get('number'):
+                sql_regex = params['number'].replace('_', '%')
                 filters = (sql.cast(column, sa.String).like('%s' % sql_regex)
                            for column in [CallLogSchema.source_exten, CallLogSchema.destination_exten])
                 query = query.filter(sql.or_(*filters))
 
-            for tag in tags:
+            for tag in params.get('tags', []):
                 query = query.filter(CallLogSchema.participants.any(
                     CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
                 ))
-
-            if user_uuids:
-                filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid)) for user_uuid in user_uuids)
+            if params.get('user_uuids'):
+                filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))
+                           for user_uuid in params['user_uuids'])
                 query = query.filter(sql.or_(*filters))
+
 
             filtered = query.count()
 
