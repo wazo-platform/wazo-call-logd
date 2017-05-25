@@ -57,7 +57,7 @@ class CDRListRequestSchema(Schema):
         strict = True
 
     @pre_load
-    def convert_tags(self, data):
+    def convert_tags_and_user_uuid_to_list(self, data):
         result = data.to_dict()
         if data.get('tags'):
             result['tags'] = data['tags'].split(',')
