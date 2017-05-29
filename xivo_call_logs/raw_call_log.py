@@ -26,6 +26,7 @@ class RawCallLog(object):
 
     def __init__(self):
         self.date = None
+        self.date_end = None
         self.source_name = None
         self.source_exten = None
         self.destination_name = None
@@ -49,6 +50,7 @@ class RawCallLog(object):
         result = CallLog(
             date=self.date,
             date_answer=self.communication_start,
+            date_end=self.date_end,
             source_name=self.source_name,
             source_exten=self.source_exten,
             destination_name=self.destination_name,

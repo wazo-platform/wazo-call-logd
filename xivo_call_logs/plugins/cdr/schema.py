@@ -17,7 +17,7 @@ class CDRSchema(Schema):
     id = fields.Integer()
     start = fields.DateTime(attribute='date')
     answer = fields.DateTime(attribute='date_answer')
-    end = fields.DateTime()
+    end = fields.DateTime(attribute='date_end')
     source_name = fields.String()
     source_extension = fields.String(attribute='source_exten')
     call_direction = fields.String(attribute='direction')
@@ -29,7 +29,15 @@ class CDRSchema(Schema):
 
     @pre_dump
     def _populate_end_field(self, data):
-        data.end = data.date_answer + data.duration if data.date_answer else data.date
+        # Should be removed when the duration will be removed from the DB and the DB will be migrated
+        if not data.date_end:
+            data.date_end = data.date_answer + data.duration if data.date_answer else data.date
+        return data
+
+    @pre_dump
+    def _compute_duration(self, data):
+        if data.date_answer and data.date_end:
+            data.duration = data.date_end - data.date_answer
         return data
 
     @pre_dump

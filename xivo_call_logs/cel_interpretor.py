@@ -100,6 +100,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def __init__(self, confd):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
+            CELEventType.chan_end: self.interpret_chan_end,
             CELEventType.app_start: self.interpret_app_start,
             CELEventType.answer: self.interpret_answer,
             CELEventType.bridge_start: self.interpret_bridge_start_or_enter,
@@ -122,6 +123,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if participant:
             call.participants.append(participant)
 
+        return call
+
+    def interpret_chan_end(self, cel, call):
+        call.date_end = cel.eventtime
         return call
 
     def interpret_app_start(self, cel, call):
@@ -200,11 +205,13 @@ class LocalOriginateCELInterpretor(object):
         try:
             local_channel1_start = next(cel for cel in cels if cel.uniqueid == local_channel1 and cel.eventtype == 'CHAN_START')
             source_channel_answer = next(cel for cel in cels if cel.uniqueid == source_channel and cel.eventtype == 'ANSWER')
+            source_channel_end = next(cel for cel in cels if cel.uniqueid == source_channel and cel.eventtype == 'CHAN_END')
             local_channel2_answer = next(cel for cel in cels if cel.uniqueid == local_channel2 and cel.eventtype == 'ANSWER')
         except StopIteration:
             return call
 
         call.date = local_channel1_start.eventtime
+        call.date_end = source_channel_end.eventtime
         call.source_name = source_channel_answer.cid_name
         call.source_exten = source_channel_answer.cid_num
         call.source_line_identity = identity_from_channel(source_channel_answer.channame)
