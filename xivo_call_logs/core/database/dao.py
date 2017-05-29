@@ -164,7 +164,6 @@ class CallLogDAO(object):
                            for user_uuid in params['user_uuids'])
                 query = query.filter(sql.or_(*filters))
 
-
             filtered = query.count()
 
         return {'total': total, 'filtered': filtered}

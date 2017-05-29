@@ -61,7 +61,7 @@ class CDRListRequestSchema(Schema):
     tags = fields.List(fields.String(), missing=[])
     user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
 
-    class Meta:
+    class Meta(object):
         strict = True
 
     @pre_load
