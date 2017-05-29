@@ -303,17 +303,6 @@ class TestCallerCELInterpretor(TestCase):
             has_property('destination_exten', sentinel.original_destination),
         ))
 
-    def test_interpret_bridge_end_or_exit_sets_call_end(self):
-        end_date = datetime.datetime(year=2013, month=1, day=1)
-        cel = Mock(eventtime=end_date)
-        call = Mock(CallLog)
-
-        result = self.caller_cel_interpretor.interpret_bridge_end_or_exit(cel, call)
-
-        assert_that(result, all_of(
-            has_property('communication_end', end_date),
-        ))
-
     def test_interpret_bridge_start_or_enter_with_no_source_set(self):
         cel = Mock(
             cid_name=sentinel.source_name,
@@ -340,7 +329,6 @@ class TestCallerCELInterpretor(TestCase):
 
         assert_that(result, all_of(
             has_property('communication_start', sentinel.eventtime),
-            has_property('answered', True),
         ))
 
     def test_interpret_bridge_start_or_enter_with_source_already_set(self):
