@@ -147,7 +147,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.source_exten:
             call.source_exten = cel.cid_num
 
-        call.communication_start = cel.eventtime
+        call.date_answer = cel.eventtime
 
         return call
 
@@ -237,7 +237,7 @@ class LocalOriginateCELInterpretor(object):
             participant = find_participant(self._confd, cel.channame, role='destination')
             if participant:
                 call.participants.append(participant)
-            call.communication_start = destination_channel_bridge_enter.eventtime
+            call.date_answer = destination_channel_bridge_enter.eventtime
 
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
         is_outcall = any([True for cel in cels if cel.eventtype == 'XIVO_OUTCALL'])
