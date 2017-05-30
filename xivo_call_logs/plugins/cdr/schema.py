@@ -23,22 +23,22 @@ class CDRSchema(Schema):
     call_direction = fields.String(attribute='direction')
     destination_name = fields.String()
     destination_extension = fields.String(attribute='destination_exten')
-    duration = fields.TimeDelta(default=None)
-    answered = fields.Boolean()
-    tags = fields.List(fields.String())
+    duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
+    answered = fields.Boolean(attribute='marshmallow_answered')
+    tags = fields.List(fields.String(), attribute='marshmallow_tags')
 
     @pre_dump
     def _compute_fields(self, data):
-        data.answered = True if data.date_answer else False
+        data.marshmallow_answered = True if data.date_answer else False
         if data.date_answer and data.date_end:
-            data.duration = data.date_end - data.date_answer
+            data.marshmallow_duration = data.date_end - data.date_answer
         return data
 
     @pre_dump
     def _populate_tags_field(self, data):
-        data.tags = set()
+        data.marshmallow_tags = set()
         for participant in data.participants:
-            data.tags.update(participant.tags)
+            data.marshmallow_tags.update(participant.tags)
         return data
 
 
