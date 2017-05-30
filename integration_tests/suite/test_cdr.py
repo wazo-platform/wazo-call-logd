@@ -14,7 +14,6 @@ from hamcrest import has_key
 from hamcrest import has_properties
 from hamcrest import not_
 from hamcrest import only_contains
-from datetime import timedelta
 from xivo_call_logs_client.exceptions import CallLogdError
 from xivo_test_helpers.hamcrest.raises import raises
 
@@ -87,7 +86,6 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([
         {'id': 12,
-         'answered': True,
          'date': '2017-03-23 00:00:00',
          'date_answer': '2017-03-23 00:01:00',
          'date_end': '2017-03-23 00:02:27',
@@ -100,13 +98,11 @@ class TestListCDR(IntegrationTest):
                            'line_id': '1',
                            'tags': ['rh', 'Poudlard']}]},
         {'id': 34,
-         'answered': False,
          'date': '2017-03-23 11:11:11',
-         'date_answer': '2017-03-23 11:12:11',
+         'date_answer': None,
          'date_end': '2017-03-23 11:13:29',
          'destination_exten': '8733',
          'destination_name': u'.tsèd',
-         'duration': timedelta(seconds=78),
          'direction': 'outbound',
          'source_exten': '7867',
          'source_name': u'.rùos'},
@@ -130,11 +126,11 @@ class TestListCDR(IntegrationTest):
             has_entries(id=34,
                         answered=False,
                         start='2017-03-23T11:11:11+00:00',
-                        answer='2017-03-23T11:12:11+00:00',
+                        answer=None,
                         end='2017-03-23T11:13:29+00:00',
                         destination_extension='8733',
                         destination_name=u'.tsèd',
-                        duration=78,
+                        duration=None,
                         call_direction='outbound',
                         source_extension='7867',
                         source_name=u'.rùos',
