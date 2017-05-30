@@ -241,9 +241,9 @@ class LocalOriginateCELInterpretor(object):
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
         is_outcall = any([True for cel in cels if cel.eventtype == 'XIVO_OUTCALL'])
         if is_incall:
-            call.direction = 'incall'
+            call.direction = 'inbound'
         if is_outcall:
-            call.direction = 'outcall'
+            call.direction = 'outbound'
 
         return call
 
