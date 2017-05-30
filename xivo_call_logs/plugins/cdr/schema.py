@@ -28,7 +28,8 @@ class CDRSchema(Schema):
     tags = fields.List(fields.String())
 
     @pre_dump
-    def _compute_duration(self, data):
+    def _compute_fields(self, data):
+        data.answered = True if data.date_answer else False
         if data.date_answer and data.date_end:
             data.duration = data.date_end - data.date_answer
         return data
