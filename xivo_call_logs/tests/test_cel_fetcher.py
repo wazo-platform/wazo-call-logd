@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2013-2015 Avencall
+# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ class TestCELFetcher(TestCase):
 
         result = self.cel_fetcher.fetch_last_unprocessed(cel_count)
 
-        mock_cel_dao.assert_called_once_with(cel_count)
+        mock_cel_dao.assert_called_once_with(cel_count, None)
         assert_that(result, equal_to(cels))
 
     @patch('xivo_dao.resources.cel.dao.find_from_linked_id')

@@ -15,8 +15,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import logging
+from datetime import datetime, timedelta
 
 from xivo_dao.helpers.db_utils import session_scope
+from xivo_dao.resources.call_log import dao as call_log_dao
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,24 @@ class CallLogsManager(object):
         self.generator = generator
         self.writer = writer
         self.publisher = publisher
+
+    def delete_all(self):
+        with session_scope():
+            call_log_dao.delete()
+            logger.debug('Deleting all call logs')
+
+    def delete_from_days(self, days):
+        older = datetime.now() - timedelta(days=days)
+        with session_scope():
+            call_log_dao.delete(older=older)
+            logger.debug('Deleting call logs from the last')
+
+    def generate_from_days(self, days):
+        older_cel = datetime.now() - timedelta(days=days)
+        with session_scope():
+            cels = self.cel_fetcher.fetch_last_unprocessed(older=older_cel)
+            logger.debug('Generating call logs from the %s (found %s)', older_cel, len(cels))
+            self._generate_from_cels(cels)
 
     def generate_from_count(self, cel_count):
         with session_scope():
