@@ -193,17 +193,6 @@ class TestListCDR(IntegrationTest):
                                                           details=has_key('call_direction'))))
 
     @call_logs([
-        {'date': '2017-03-23 00:00:00', 'date_answer': None}
-    ])
-    def test_given_call_logs_when_no_answered_then_end_equal_start(self):
-        result = self.call_logd.cdr.list()
-
-        assert_that(result, has_entries(items=contains_inanyorder(
-            has_entries(start='2017-03-23T00:00:00+00:00',
-                        end='2017-03-23T00:00:00+00:00'),
-        )))
-
-    @call_logs([
         {'date': '2017-04-10'},
         {'date': '2017-04-11'},
         {'date': '2017-04-12'},
