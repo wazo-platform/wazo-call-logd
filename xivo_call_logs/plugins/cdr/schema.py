@@ -5,7 +5,7 @@
 from marshmallow import fields
 from marshmallow import post_load
 from marshmallow import Schema
-from marshmallow import pre_dump, pre_load
+from marshmallow import pre_dump, pre_load, post_dump
 from marshmallow.validate import OneOf
 from marshmallow.validate import Range
 from marshmallow.validate import Regexp
@@ -32,6 +32,11 @@ class CDRSchema(Schema):
         data.marshmallow_answered = True if data.date_answer else False
         if data.date_answer and data.date_end:
             data.marshmallow_duration = data.date_end - data.date_answer
+        return data
+
+    @post_dump
+    def fix_negative_duration(self, data):
+        data['duration'] = max(data['duration'], 0)
         return data
 
     @pre_dump

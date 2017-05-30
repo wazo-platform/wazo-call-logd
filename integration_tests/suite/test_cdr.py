@@ -391,6 +391,16 @@ class TestListCDR(IntegrationTest):
                                         )))
 
     @call_logs([
+        {'date': '2017-04-10', 'date_answer': '2017-04-10', 'date_end': '2017-04-09'},
+    ])
+    def test_negative_duration_then_duration_is_zero(self):
+        result = self.call_logd.cdr.list()
+
+        assert_that(result, has_entry('items', contains(
+            has_entries(duration=0),
+        )))
+
+    @call_logs([
         {'date': '2017-04-10'},
         {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
         {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
