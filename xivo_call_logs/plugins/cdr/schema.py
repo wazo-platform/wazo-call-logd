@@ -23,19 +23,13 @@ class CDRSchema(Schema):
     call_direction = fields.String(attribute='direction')
     destination_name = fields.String()
     destination_extension = fields.String(attribute='destination_exten')
-    duration = fields.TimeDelta()
+    duration = fields.TimeDelta(default=None)
     answered = fields.Boolean()
     tags = fields.List(fields.String())
 
     @pre_dump
-    def _populate_end_field(self, data):
-        # Should be removed when the duration will be removed from the DB and the DB will be migrated
-        if not data.date_end:
-            data.date_end = data.date_answer + data.duration if data.date_answer else data.date
-        return data
-
-    @pre_dump
-    def _compute_duration(self, data):
+    def _compute_fields(self, data):
+        data.answered = True if data.date_answer else False
         if data.date_answer and data.date_end:
             data.duration = data.date_end - data.date_answer
         return data

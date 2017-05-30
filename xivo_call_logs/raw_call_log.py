@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>
 
-import datetime
-
 from xivo_dao.alchemy.call_log import CallLog
 
 from xivo_call_logs.exceptions import InvalidCallLogException
@@ -32,7 +30,6 @@ class RawCallLog(object):
         self.destination_name = None
         self.destination_exten = None
         self.user_field = None
-        self.answered = False
         self.communication_start = None
         self.communication_end = None
         self.source_line_identity = None
@@ -56,8 +53,6 @@ class RawCallLog(object):
             destination_name=self.destination_name,
             destination_exten=self.destination_exten,
             user_field=self.user_field,
-            answered=self.answered,
-            duration=self.duration,
             source_line_identity=self.source_line_identity,
             destination_line_identity=self.destination_line_identity,
             direction=self.direction,
@@ -66,14 +61,3 @@ class RawCallLog(object):
         result.cel_ids = self.cel_ids
 
         return result
-
-    @property
-    def duration(self):
-        default_value = datetime.timedelta(0)
-        communication_start = getattr(self, 'communication_start')
-        communication_end = getattr(self, 'communication_end')
-        if communication_start and communication_end:
-            duration = communication_end - communication_start
-            return max(duration, default_value)
-        else:
-            return default_value

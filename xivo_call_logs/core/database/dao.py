@@ -109,7 +109,12 @@ class CallLogDAO(object):
 
             order_field = None
             if params.get('order'):
-                order_field = getattr(CallLogSchema, params['order'])
+                if params['order'] == 'duration':
+                    order_field = CallLogSchema.date_end-CallLogSchema.date_answer
+                elif params['order'] == 'answered':
+                    order_field = CallLogSchema.date_answer
+                else:
+                    order_field = getattr(CallLogSchema, params['order'])
             if params.get('direction') == 'desc':
                 order_field = order_field.desc()
             if order_field is not None:

@@ -104,9 +104,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.app_start: self.interpret_app_start,
             CELEventType.answer: self.interpret_answer,
             CELEventType.bridge_start: self.interpret_bridge_start_or_enter,
-            CELEventType.bridge_end: self.interpret_bridge_end_or_exit,
             CELEventType.bridge_enter: self.interpret_bridge_start_or_enter,
-            CELEventType.bridge_exit: self.interpret_bridge_end_or_exit,
             CELEventType.xivo_from_s: self.interpret_xivo_from_s,
             CELEventType.xivo_incall: self.interpret_xivo_incall,
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
@@ -150,12 +148,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             call.source_exten = cel.cid_num
 
         call.communication_start = cel.eventtime
-        call.answered = True
-
-        return call
-
-    def interpret_bridge_end_or_exit(self, cel, call):
-        call.communication_end = cel.eventtime
 
         return call
 
@@ -246,8 +238,6 @@ class LocalOriginateCELInterpretor(object):
             if participant:
                 call.participants.append(participant)
             call.communication_start = destination_channel_bridge_enter.eventtime
-            call.communication_end = destination_channel_bridge_exit.eventtime
-            call.answered = True
 
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
         is_outcall = any([True for cel in cels if cel.eventtype == 'XIVO_OUTCALL'])
