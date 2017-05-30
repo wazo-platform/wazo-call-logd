@@ -209,9 +209,9 @@ class TestListCDR(IntegrationTest):
                                         total=4))
 
     @call_logs([
-        {'date': '2017-04-10', 'duration': timedelta(seconds=0)},
-        {'date': '2017-04-12', 'duration': timedelta(seconds=2)},
-        {'date': '2017-04-11', 'duration': timedelta(seconds=1)},
+        {'date': '2017-04-10', 'date_answer': '2017-04-10', 'date_end': '2017-04-10'},
+        {'date': '2017-04-12', 'date_answer': '2017-04-12', 'date_end': '2017-04-12 00:00:02'},
+        {'date': '2017-04-11', 'date_answer': '2017-04-11', 'date_end': '2017-04-11 00:00:01'},
     ])
     def test_given_call_logs_when_list_cdr_in_order_then_list_cdr_in_order(self):
         result_start_asc = self.call_logd.cdr.list(order='start', direction='asc')
