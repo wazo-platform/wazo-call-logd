@@ -31,7 +31,6 @@ class RawCallLog(object):
         self.destination_exten = None
         self.user_field = None
         self.date_answer = None
-        self.communication_end = None
         self.source_line_identity = None
         self.destination_line_identity = None
         self.direction = 'internal'

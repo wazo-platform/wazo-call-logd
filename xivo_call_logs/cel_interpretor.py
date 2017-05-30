@@ -227,7 +227,6 @@ class LocalOriginateCELInterpretor(object):
                 destination_channel_answer = next(cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'ANSWER')
                 # take the last bridge enter/exit to skip local channel optimization
                 destination_channel_bridge_enter = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_ENTER']))
-                destination_channel_bridge_exit = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_EXIT']))
             except StopIteration:
                 return call
 
