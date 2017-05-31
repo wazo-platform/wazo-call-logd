@@ -36,7 +36,8 @@ class CDRSchema(Schema):
 
     @post_dump
     def fix_negative_duration(self, data):
-        data['duration'] = max(data['duration'], 0)
+        if data['duration'] is not None:
+            data['duration'] = max(data['duration'], 0)
         return data
 
     @pre_dump
