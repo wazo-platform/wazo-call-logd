@@ -147,7 +147,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.source_exten:
             call.source_exten = cel.cid_num
 
-        call.communication_start = cel.eventtime
+        call.date_answer = cel.eventtime
 
         return call
 
@@ -227,7 +227,6 @@ class LocalOriginateCELInterpretor(object):
                 destination_channel_answer = next(cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'ANSWER')
                 # take the last bridge enter/exit to skip local channel optimization
                 destination_channel_bridge_enter = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_ENTER']))
-                destination_channel_bridge_exit = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_EXIT']))
             except StopIteration:
                 return call
 
@@ -237,14 +236,14 @@ class LocalOriginateCELInterpretor(object):
             participant = find_participant(self._confd, cel.channame, role='destination')
             if participant:
                 call.participants.append(participant)
-            call.communication_start = destination_channel_bridge_enter.eventtime
+            call.date_answer = destination_channel_bridge_enter.eventtime
 
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
         is_outcall = any([True for cel in cels if cel.eventtype == 'XIVO_OUTCALL'])
         if is_incall:
-            call.direction = 'incall'
+            call.direction = 'inbound'
         if is_outcall:
-            call.direction = 'outcall'
+            call.direction = 'outbound'
 
         return call
 

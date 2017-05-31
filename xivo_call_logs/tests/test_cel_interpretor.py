@@ -317,7 +317,7 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_exten', sentinel.source_exten),
         ))
 
-    def test_interpret_bridge_start_or_enter_sets_communication_start(self):
+    def test_interpret_bridge_start_or_enter_sets_date_answer(self):
         cel = Mock(
             eventtime=sentinel.eventtime,
             cid_name=sentinel.name,
@@ -328,7 +328,7 @@ class TestCallerCELInterpretor(TestCase):
         result = self.caller_cel_interpretor.interpret_bridge_start_or_enter(cel, call)
 
         assert_that(result, all_of(
-            has_property('communication_start', sentinel.eventtime),
+            has_property('date_answer', sentinel.eventtime),
         ))
 
     def test_interpret_bridge_start_or_enter_with_source_already_set(self):

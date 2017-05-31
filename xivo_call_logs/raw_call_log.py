@@ -30,8 +30,7 @@ class RawCallLog(object):
         self.destination_name = None
         self.destination_exten = None
         self.user_field = None
-        self.communication_start = None
-        self.communication_end = None
+        self.date_answer = None
         self.source_line_identity = None
         self.destination_line_identity = None
         self.direction = 'internal'
@@ -46,7 +45,7 @@ class RawCallLog(object):
 
         result = CallLog(
             date=self.date,
-            date_answer=self.communication_start,
+            date_answer=self.date_answer,
             date_end=self.date_end,
             source_name=self.source_name,
             source_exten=self.source_exten,
