@@ -12,9 +12,20 @@ Section: python
 Depends: ${python:Depends},
          ${misc:Depends},
          adduser,
-         xivo-libdao (>= 15.06~20150319.161854.821d733-1),
+         python-cherrypy3,
+         python-flask,
+         python-flask-cors,
+         python-flask-restful,
+         python-kombu,
+         python-marshmallow,
+         python-requests,
+         python-sqlalchemy,
+         python-werkzeug (>= 0.10),
+         xivo-auth-client,
+         xivo-bus,
+         xivo-confd-client,
          xivo-lib-python,
-         python-kombu
+         xivo-libdao (>= 15.06~20150319.161854.821d733-1)
 Description: Wazo call logs generation
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.
