@@ -2,9 +2,9 @@ Source: xivo-call-logs
 Section: python
 Priority: extra
 Maintainer: Wazo Maintainers <dev.wazo@gmail.com>
-Build-Depends: debhelper (>= 9), dh-python, dh-systemd (>= 1.5), python-all (>= 2.7), python-setuptools
+Build-Depends: debhelper (>= 9), dh-python, dh-systemd (>= 1.5), python3-all, python3-setuptools
 Standards-Version: 3.9.6
-X-Python-Version: >= 2.7
+X-Python3-Version: >= 3.4
 
 Package: xivo-call-logs
 Architecture: all
@@ -12,20 +12,20 @@ Section: python
 Depends: ${python:Depends},
          ${misc:Depends},
          adduser,
-         python-cherrypy3,
-         python-flask,
-         python-flask-cors,
-         python-flask-restful,
-         python-kombu,
-         python-marshmallow,
-         python-requests,
-         python-sqlalchemy,
-         python-werkzeug (>= 0.10),
-         xivo-auth-client,
-         xivo-bus,
-         xivo-confd-client,
-         xivo-lib-python,
-         xivo-libdao (>= 15.06~20150319.161854.821d733-1)
+         python3-cherrypy3,
+         python3-flask,
+         python3-flask-cors,
+         python3-flask-restful,
+         python3-marshmallow,
+         python3-requests,
+         python3-sqlalchemy,
+         python3-werkzeug (>= 0.10),
+         xivo-auth-client-python3,
+         xivo-bus-python3,
+         xivo-confd-client-python3,
+         xivo-libdao-python3 (>= 15.06~20150319.161854.821d733-1),
+         xivo-lib-python-python3,
+         python3-kombu
 Description: Wazo call logs generation
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.

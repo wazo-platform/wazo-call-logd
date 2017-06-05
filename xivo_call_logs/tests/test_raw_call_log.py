@@ -46,7 +46,7 @@ class TestRawCallLog(TestCase):
         self.assertRaises(InvalidCallLogException, self.raw_call_log.to_call_log)
 
     def test_to_call_log_with_no_source(self):
-        self.raw_call_log.source_name = u''
-        self.raw_call_log.source_exten = u''
+        self.raw_call_log.source_name = ''
+        self.raw_call_log.source_exten = ''
 
         self.assertRaises(InvalidCallLogException, self.raw_call_log.to_call_log)

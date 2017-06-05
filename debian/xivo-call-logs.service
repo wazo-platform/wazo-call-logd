@@ -7,7 +7,7 @@ Before=monit.service
 [Service]
 Type=forking
 ExecStartPre=/usr/bin/install -d -o xivo-call-logs -g xivo-call-logs /var/run/xivo-call-logd
-ExecStart=/usr/bin/xivo-call-logd
+ExecStart=/usr/bin/python3 -u /usr/bin/xivo-call-logd
 PIDFile=/var/run/xivo-call-logd/xivo-call-logd.pid
 
 [Install]
