@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2017 The Wazo Authors  (see AUTHORS file)
+# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import collections
@@ -32,7 +31,7 @@ class SwaggerResource(Resource):
         return make_response(yaml.dump(api_spec), 200, {'Content-Type': 'application/x-yaml'})
 
     def update(self, a, b):
-        for key, value in b.iteritems():
+        for key, value in b.items():
             if isinstance(value, collections.Mapping):
                 result = self.update(a.get(key, {}), value)
                 a[key] = result

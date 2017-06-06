@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 # Copyright 2011 hamcrest.org
 # SPDX-License-Identifier: BSD-3-Clause
 
-# Copyright 2017 The Wazo Authors  (see AUTHORS file)
+# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 # Derived from https://github.com/hamcrest/PyHamcrest/blob/master/src/hamcrest/library/text/stringcontains.py
