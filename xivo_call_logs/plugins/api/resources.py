@@ -31,7 +31,7 @@ class SwaggerResource(Resource):
         return make_response(yaml.dump(api_spec), 200, {'Content-Type': 'application/x-yaml'})
 
     def update(self, a, b):
-        for key, value in list(b.items()):
+        for key, value in b.items():
             if isinstance(value, collections.Mapping):
                 result = self.update(a.get(key, {}), value)
                 a[key] = result
