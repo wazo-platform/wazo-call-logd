@@ -2,6 +2,8 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from __future__ import unicode_literals
+
 from functools import wraps
 from hamcrest import assert_that
 from hamcrest import calling
@@ -90,10 +92,10 @@ class TestListCDR(IntegrationTest):
          'date_answer': '2017-03-23 00:01:00',
          'date_end': '2017-03-23 00:02:27',
          'destination_exten': '3378',
-         'destination_name': u'dést.',
+         'destination_name': 'dést.',
          'direction': 'internal',
          'source_exten': '7687',
-         'source_name': u'soùr.',
+         'source_name': 'soùr.',
          'participants': [{'user_uuid': '1',
                            'line_id': '1',
                            'tags': ['rh', 'Poudlard']}]},
@@ -102,10 +104,10 @@ class TestListCDR(IntegrationTest):
          'date_answer': None,
          'date_end': '2017-03-23 11:13:29',
          'destination_exten': '8733',
-         'destination_name': u'.tsèd',
+         'destination_name': '.tsèd',
          'direction': 'outbound',
          'source_exten': '7867',
-         'source_name': u'.rùos'},
+         'source_name': '.rùos'},
     ])
     def test_given_call_logs_when_list_cdr_then_list_cdr(self):
         result = self.call_logd.cdr.list()
@@ -117,11 +119,11 @@ class TestListCDR(IntegrationTest):
                         answer='2017-03-23T00:01:00+00:00',
                         end='2017-03-23T00:02:27+00:00',
                         destination_extension='3378',
-                        destination_name=u'dést.',
+                        destination_name='dést.',
                         duration=87,
                         call_direction='internal',
                         source_extension='7687',
-                        source_name=u'soùr.',
+                        source_name='soùr.',
                         tags=['rh', 'Poudlard']),
             has_entries(id=34,
                         answered=False,
@@ -129,11 +131,11 @@ class TestListCDR(IntegrationTest):
                         answer=None,
                         end='2017-03-23T11:13:29+00:00',
                         destination_extension='8733',
-                        destination_name=u'.tsèd',
+                        destination_name='.tsèd',
                         duration=None,
                         call_direction='outbound',
                         source_extension='7867',
-                        source_name=u'.rùos',
+                        source_name='.rùos',
                         tags=[]),
         ),
                                         filtered=2,
