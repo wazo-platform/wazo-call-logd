@@ -121,7 +121,7 @@ class TestListCDR(IntegrationTest):
                         call_direction='internal',
                         source_extension='7687',
                         source_name='soùr.',
-                        tags=['rh', 'Poudlard']),
+                        tags=contains_inanyorder('rh', 'Poudlard')),
             has_entries(id=34,
                         answered=False,
                         start='2017-03-23T11:11:11+00:00',
