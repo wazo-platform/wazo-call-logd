@@ -3,4 +3,6 @@ FROM wazopbx/xivo-call-logd
 ADD . /usr/src/xivo-call-logs
 WORKDIR /usr/src/xivo-call-logs
 
+ENV PYTHONDONTWRITEBYTECODE='disabled'
+
 RUN python setup.py develop
