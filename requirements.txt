@@ -10,7 +10,6 @@ flask-restful==0.3.5
 flask-cors==1.10.3
 kombu==3.0.34
 marshmallow==2.10.3
-pyopenssl==0.14  # from xivo-lib-python
 psycopg2==2.5.4
 pyyaml==3.11
 requests==2.4.3  # from xivo-*-client
