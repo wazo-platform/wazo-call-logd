@@ -48,7 +48,7 @@ def _output_csv(data, code, http_headers=None):
         writer.writeheader()
         for cdr in data['items']:
             if 'tags' in cdr:
-                cdr['tags'] = '|'.join(cdr['tags'])
+                cdr['tags'] = ';'.join(cdr['tags'])
             writer.writerow(cdr)
 
         response = make_response(csv_text.getvalue())

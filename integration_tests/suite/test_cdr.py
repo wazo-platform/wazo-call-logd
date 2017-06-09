@@ -182,7 +182,7 @@ class TestListCDR(IntegrationTest):
                 call_direction='internal',
                 source_extension='7687',
                 source_name='soùr.',
-                tags=any_of('rh|Poudlard', 'Poudlard|rh')
+                tags=any_of('rh;Poudlard', 'Poudlard;rh')
             ), has_entries(
                 id='34',
                 answered='False',
