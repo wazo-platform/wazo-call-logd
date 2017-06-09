@@ -25,8 +25,8 @@ paths:
         '400':
           $ref: '#/responses/InvalidRequest'
       produces:
-        - text/csv; charset=utf-8
         - application/json
+        - text/csv; charset=utf-8
   /users/{user_uuid}/cdr:
     get:
       summary: List CDR of the given user
@@ -52,8 +52,8 @@ paths:
         '400':
           $ref: '#/responses/InvalidRequest'
       produces:
-        - text/csv; charset=utf-8
         - application/json
+        - text/csv; charset=utf-8
   /users/me/cdr:
     get:
       summary: List CDR of the authenticated user
@@ -79,8 +79,8 @@ paths:
         '400':
           $ref: '#/responses/InvalidRequest'
       produces:
-        - text/csv; charset=utf-8
         - application/json
+        - text/csv; charset=utf-8
 
 parameters:
   from:
