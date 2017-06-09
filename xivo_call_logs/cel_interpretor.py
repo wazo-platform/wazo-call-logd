@@ -219,7 +219,7 @@ class LocalOriginateCELInterpretor(object):
             call.destination_name = destination_channel_answer.cid_name
             call.destination_exten = destination_channel_answer.cid_num
             call.destination_line_identity = identity_from_channel(destination_channel_answer.channame)
-            participant = find_participant(self._confd, cel.channame, role='destination')
+            participant = find_participant(self._confd, destination_channel_answer.channame, role='destination')
             if participant:
                 call.participants.append(participant)
             call.date_answer = destination_channel_bridge_enter.eventtime
