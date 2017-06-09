@@ -1,7 +1,11 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import csv
+
+from io import StringIO
 from functools import wraps
+from hamcrest import any_of
 from hamcrest import assert_that
 from hamcrest import calling
 from hamcrest import contains
@@ -138,6 +142,64 @@ class TestListCDR(IntegrationTest):
                                         filtered=2,
                                         total=2))
 
+    @call_logs([
+        {'id': 12,
+         'date': '2017-03-23 00:00:00',
+         'date_answer': '2017-03-23 00:01:00',
+         'date_end': '2017-03-23 00:02:27',
+         'destination_exten': '3378',
+         'destination_name': 'dést,ination',
+         'direction': 'internal',
+         'source_exten': '7687',
+         'source_name': 'soùr.',
+         'participants': [{'user_uuid': '1',
+                           'line_id': '1',
+                           'tags': ['rh', 'Poudlard']}]},
+        {'id': 34,
+         'date': '2017-03-23 11:11:11',
+         'date_answer': None,
+         'date_end': '2017-03-23 11:13:29',
+         'destination_exten': '8733',
+         'destination_name': 'noitani,tsèd',
+         'direction': 'outbound',
+         'source_exten': '7867',
+         'source_name': '.rùos'},
+    ])
+    def test_given_call_logs_when_list_cdr_in_csv_then_list_cdr_in_csv(self):
+        result_raw = self.call_logd.cdr.list_csv()
+        result = list(csv.DictReader(StringIO(result_raw)))
+
+        assert_that(result, contains_inanyorder(
+            has_entries(
+                id='12',
+                answered='True',
+                start='2017-03-23T00:00:00+00:00',
+                answer='2017-03-23T00:01:00+00:00',
+                end='2017-03-23T00:02:27+00:00',
+                destination_extension='3378',
+                destination_name='dést,ination',
+                duration='87',
+                call_direction='internal',
+                source_extension='7687',
+                source_name='soùr.',
+                tags=any_of('rh;Poudlard', 'Poudlard;rh')
+            ), has_entries(
+                id='34',
+                answered='False',
+                start='2017-03-23T11:11:11+00:00',
+                answer='',
+                end='2017-03-23T11:13:29+00:00',
+                destination_extension='8733',
+                destination_name='noitani,tsèd',
+                duration='',
+                call_direction='outbound',
+                source_extension='7867',
+                source_name='.rùos',
+                tags=''
+            )
+        ),
+                    'CSV received: {}'.format(result_raw))
+
     def test_given_wrong_params_when_list_cdr_then_400(self):
         wrong_params = {'abcd', '12:345', '2017-042-10'}
         for wrong_param in wrong_params:
@@ -170,6 +232,12 @@ class TestListCDR(IntegrationTest):
                 calling(self.call_logd.cdr.list).with_args(offset=wrong_param),
                 raises(CallLogdError).matching(has_properties(status_code=400,
                                                               details=has_key('offset'))))
+
+    def test_given_error_when_list_cdr_as_csv_then_return_error_in_csv(self):
+            assert_that(
+                calling(self.call_logd.cdr.list_csv).with_args(from_='wrong'),
+                raises(CallLogdError).matching(has_properties(status_code=400,
+                                                              details=has_key('from'))))
 
     def test_given_unsupported_params_when_list_cdr_then_400(self):
         assert_that(
@@ -417,6 +485,18 @@ class TestListCDR(IntegrationTest):
                                             has_entries(start='2017-04-12T00:00:00+00:00'),
                                         )))
 
+    @call_logs([
+        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
+    ])
+    def test_given_call_logs_when_list_cdr_of_user_as_csv_then_list_cdr_of_user_as_csv(self):
+        result_raw = self.call_logd.cdr.list_for_user_csv(USER_1_UUID)
+        result = list(csv.DictReader(StringIO(result_raw)))
+
+        assert_that(result, contains_inanyorder(has_entries(start='2017-04-11T00:00:00+00:00'),
+                                                has_entries(start='2017-04-12T00:00:00+00:00')),
+                    'CSV received: {}'.format(result_raw))
+
     def test_given_no_token_when_list_my_cdr_then_401(self):
         self.call_logd.set_token(None)
         assert_that(
@@ -475,3 +555,20 @@ class TestListCDR(IntegrationTest):
                                             has_entries(start='2017-04-13T00:00:00+00:00'),
                                             has_entries(start='2017-04-12T00:00:00+00:00'),
                                         )))
+
+    @call_logs([
+        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
+    ])
+    def test_given_call_logs_when_list_my_cdr_as_csv_then_list_my_cdr_as_csv(self):
+        SOME_TOKEN = 'my-token'
+        self.auth.set_token(MockUserToken(SOME_TOKEN, user_uuid=USER_1_UUID))
+
+        self.call_logd.set_token(SOME_TOKEN)
+        result_raw = self.call_logd.cdr.list_from_user_csv()
+        result = list(csv.DictReader(StringIO(result_raw)))
+        self.call_logd.set_token(VALID_TOKEN)
+
+        assert_that(result, contains_inanyorder(has_entries(start='2017-04-11T00:00:00+00:00'),
+                                                has_entries(start='2017-04-12T00:00:00+00:00')),
+                    'CSV received: {}'.format(result_raw))
