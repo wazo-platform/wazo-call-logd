@@ -24,6 +24,9 @@ paths:
             $ref: '#/definitions/CDRList'
         '400':
           $ref: '#/responses/InvalidRequest'
+      produces:
+        - text/csv; charset=utf-8
+        - application/json
   /users/{user_uuid}/cdr:
     get:
       summary: List CDR of the given user
@@ -48,6 +51,9 @@ paths:
             $ref: '#/definitions/CDRList'
         '400':
           $ref: '#/responses/InvalidRequest'
+      produces:
+        - text/csv; charset=utf-8
+        - application/json
   /users/me/cdr:
     get:
       summary: List CDR of the authenticated user
@@ -72,6 +78,9 @@ paths:
             $ref: '#/definitions/CDRList'
         '400':
           $ref: '#/responses/InvalidRequest'
+      produces:
+        - text/csv; charset=utf-8
+        - application/json
 
 parameters:
   from:
