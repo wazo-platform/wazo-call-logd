@@ -50,7 +50,7 @@ class CDRSchema(Schema):
 class CDRListRequestSchema(Schema):
     from_ = fields.DateTime(load_from='from', attribute='start', missing=None)
     until = fields.DateTime(attribute='end', missing=None)
-    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
+    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
     order = fields.String(validate=OneOf(set(CDRSchema().fields) - {'end', 'tags'}), missing='start')
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=None)
