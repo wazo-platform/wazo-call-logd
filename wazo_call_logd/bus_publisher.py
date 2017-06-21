@@ -7,7 +7,7 @@ from functools import partial
 import kombu
 import xivo_bus
 from xivo_bus.resources.call_logs.events import CallLogCreatedEvent, CallLogUserCreatedEvent
-from xivo_call_logs.plugins.cdr.schema import CDRSchema
+from wazo_call_logd.plugins.cdr.schema import CDRSchema
 
 logger = logging.getLogger(__name__)
 

@@ -3,8 +3,8 @@
 
 from xivo_auth_client import Client as AuthClient
 
-from xivo_call_logs.core.database.dao import new_db_session
-from xivo_call_logs.core.database.dao import CallLogDAO
+from wazo_call_logd.core.database.dao import new_db_session
+from wazo_call_logd.core.database.dao import CallLogDAO
 
 from .resource import CDRResource
 from .resource import CDRUserResource

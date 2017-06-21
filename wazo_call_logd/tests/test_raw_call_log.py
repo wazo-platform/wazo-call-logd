@@ -6,11 +6,11 @@ from unittest import TestCase
 from hamcrest import all_of, assert_that, equal_to, has_property
 from mock import Mock, patch
 
-from xivo_call_logs.raw_call_log import RawCallLog
-from xivo_call_logs.exceptions import InvalidCallLogException
+from wazo_call_logd.raw_call_log import RawCallLog
+from wazo_call_logd.exceptions import InvalidCallLogException
 
 
-@patch('xivo_call_logs.raw_call_log.CallLog', Mock)
+@patch('wazo_call_logd.raw_call_log.CallLog', Mock)
 class TestRawCallLog(TestCase):
     def setUp(self):
         self.raw_call_log = RawCallLog()

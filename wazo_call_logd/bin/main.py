@@ -14,15 +14,15 @@ from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 from xivo_dao import init_db_from_config, default_config
 
-from xivo_call_logs.bus_publisher import BusPublisher
-from xivo_call_logs.cel_fetcher import CELFetcher
-from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
-from xivo_call_logs.cel_interpretor import CallerCELInterpretor
-from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
-from xivo_call_logs.cel_interpretor import LocalOriginateCELInterpretor
-from xivo_call_logs.generator import CallLogsGenerator
-from xivo_call_logs.manager import CallLogsManager
-from xivo_call_logs.writer import CallLogsWriter
+from wazo_call_logd.bus_publisher import BusPublisher
+from wazo_call_logd.cel_fetcher import CELFetcher
+from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
+from wazo_call_logd.cel_interpretor import CallerCELInterpretor
+from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
+from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
+from wazo_call_logd.generator import CallLogsGenerator
+from wazo_call_logd.manager import CallLogsManager
+from wazo_call_logd.writer import CallLogsWriter
 
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/var/run/wazo-call-logs.pid'

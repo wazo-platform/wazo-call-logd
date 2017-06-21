@@ -7,7 +7,7 @@ from flask import request
 from requests import HTTPError
 from xivo import auth_verifier
 
-from xivo_call_logs.core.exceptions import TokenWithUserUUIDRequiredError
+from wazo_call_logd.core.exceptions import TokenWithUserUUIDRequiredError
 
 logger = logging.getLogger(__name__)
 required_acl = auth_verifier.required_acl

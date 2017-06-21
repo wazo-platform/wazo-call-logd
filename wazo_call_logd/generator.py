@@ -6,8 +6,8 @@ import logging
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
-from xivo_call_logs.exceptions import InvalidCallLogException
-from xivo_call_logs import raw_call_log
+from wazo_call_logd.exceptions import InvalidCallLogException
+from wazo_call_logd import raw_call_log
 
 
 logger = logging.getLogger(__name__)

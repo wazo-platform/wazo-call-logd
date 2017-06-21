@@ -11,8 +11,8 @@ from xivo.config_helper import set_xivo_uuid
 from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging
-from xivo_call_logs.config import load as load_config
-from xivo_call_logs.controller import Controller
+from wazo_call_logd.config import load as load_config
+from wazo_call_logd.controller import Controller
 
 logger = logging.getLogger(__name__)
 

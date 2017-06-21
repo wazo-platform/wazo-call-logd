@@ -5,8 +5,8 @@ from unittest import TestCase
 
 from mock import Mock, patch
 
-from xivo_call_logs.generator import CallLogsCreation
-from xivo_call_logs.writer import CallLogsWriter
+from wazo_call_logd.generator import CallLogsCreation
+from wazo_call_logd.writer import CallLogsWriter
 
 
 class TestCallLogsWriter(TestCase):

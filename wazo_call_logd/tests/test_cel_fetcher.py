@@ -6,7 +6,7 @@ from unittest import TestCase
 from hamcrest import assert_that, equal_to
 from mock import patch, Mock
 
-from xivo_call_logs.cel_fetcher import CELFetcher
+from wazo_call_logd.cel_fetcher import CELFetcher
 
 
 class TestCELFetcher(TestCase):

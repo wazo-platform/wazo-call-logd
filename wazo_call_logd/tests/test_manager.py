@@ -5,11 +5,11 @@ from unittest import TestCase
 
 from mock import Mock
 
-from xivo_call_logs.manager import CallLogsManager
-from xivo_call_logs.cel_fetcher import CELFetcher
-from xivo_call_logs.generator import CallLogsGenerator
-from xivo_call_logs.writer import CallLogsWriter
-from xivo_call_logs.bus_publisher import BusPublisher
+from wazo_call_logd.manager import CallLogsManager
+from wazo_call_logd.cel_fetcher import CELFetcher
+from wazo_call_logd.generator import CallLogsGenerator
+from wazo_call_logd.writer import CallLogsWriter
+from wazo_call_logd.bus_publisher import BusPublisher
 
 
 class TestCallLogsManager(TestCase):

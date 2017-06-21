@@ -3,7 +3,7 @@
 
 from xivo_dao.alchemy.call_log import CallLog
 
-from xivo_call_logs.exceptions import InvalidCallLogException
+from wazo_call_logd.exceptions import InvalidCallLogException
 
 
 class RawCallLog(object):

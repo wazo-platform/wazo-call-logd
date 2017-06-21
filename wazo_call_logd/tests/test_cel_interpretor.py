@@ -17,12 +17,12 @@ from mock import sentinel
 from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.alchemy.call_log import CallLog
 
-from xivo_call_logs.cel_interpretor import AbstractCELInterpretor
-from xivo_call_logs.cel_interpretor import CallerCELInterpretor
-from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
-from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
-from xivo_call_logs.cel_interpretor import find_participant
-from xivo_call_logs.raw_call_log import RawCallLog
+from wazo_call_logd.cel_interpretor import AbstractCELInterpretor
+from wazo_call_logd.cel_interpretor import CallerCELInterpretor
+from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
+from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
+from wazo_call_logd.cel_interpretor import find_participant
+from wazo_call_logd.raw_call_log import RawCallLog
 
 
 def confd_mock(lines=None):

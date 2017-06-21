@@ -8,17 +8,17 @@ from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 
-from xivo_call_logs.bus_client import BusClient
-from xivo_call_logs.cel_fetcher import CELFetcher
-from xivo_call_logs.cel_interpretor import DispatchCELInterpretor
-from xivo_call_logs.cel_interpretor import CallerCELInterpretor
-from xivo_call_logs.cel_interpretor import CalleeCELInterpretor
-from xivo_call_logs.cel_interpretor import LocalOriginateCELInterpretor
-from xivo_call_logs.core import plugin_manager
-from xivo_call_logs.core.rest_api import api, CoreRestApi
-from xivo_call_logs.generator import CallLogsGenerator
-from xivo_call_logs.manager import CallLogsManager
-from xivo_call_logs.writer import CallLogsWriter
+from wazo_call_logd.bus_client import BusClient
+from wazo_call_logd.cel_fetcher import CELFetcher
+from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
+from wazo_call_logd.cel_interpretor import CallerCELInterpretor
+from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
+from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
+from wazo_call_logd.core import plugin_manager
+from wazo_call_logd.core.rest_api import api, CoreRestApi
+from wazo_call_logd.generator import CallLogsGenerator
+from wazo_call_logd.manager import CallLogsManager
+from wazo_call_logd.writer import CallLogsWriter
 from .bus_publisher import BusPublisher
 
 logger = logging.getLogger(__name__)
