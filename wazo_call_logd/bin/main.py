@@ -3,6 +3,7 @@
 
 import argparse
 import logging
+import sys
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_file
@@ -56,11 +57,17 @@ DEFAULT_CONFIG = {
 
 
 def main():
+    _print_deprecation_notice()
     setup_logging('/dev/null', foreground=True, debug=False)
     silence_loggers(['urllib3.connectionpool'], level=logging.WARNING)
     init_db_from_config(default_config())
     with pidfile_context(PIDFILENAME, foreground=True):
         _generate_call_logs()
+
+
+def _print_deprecation_notice():
+    if sys.argv[0].endswith('xivo-call-logs'):
+        print('Warning: xivo-call-logs is a deprecated alias to wazo-call-logs: use wazo-call-logs instead')
 
 
 def _generate_call_logs():
