@@ -7,7 +7,7 @@ import tempfile
 
 from contextlib import contextmanager
 from requests.packages import urllib3
-from xivo_call_logs_client.client import Client as CallLogdClient
+from wazo_call_logd_client.client import Client as CallLogdClient
 from xivo_test_helpers import until
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from xivo_test_helpers.asset_launching_test_case import NoSuchService

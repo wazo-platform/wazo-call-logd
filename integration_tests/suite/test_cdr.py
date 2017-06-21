@@ -17,7 +17,7 @@ from hamcrest import has_key
 from hamcrest import has_properties
 from hamcrest import not_
 from hamcrest import only_contains
-from xivo_call_logs_client.exceptions import CallLogdError
+from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.hamcrest.raises import raises
 
 from .test_api.auth import MockUserToken
