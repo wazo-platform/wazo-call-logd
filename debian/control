@@ -29,7 +29,6 @@ Depends: ${python:Depends},
 Conflicts: xivo-call-logs
 Replaces: xivo-call-logs
 Provides: xivo-call-logs
-
 Description: Wazo call logs generation
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.
