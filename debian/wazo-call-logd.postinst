@@ -21,7 +21,7 @@ case "$1" in
 					--home /var/lib/xivo-call-logs \
 					$USER
 		else
-			if dpkg --compare-versions "$2" lt '1:16.12~'; then
+			if dpkg --compare-versions "$2" lt '17.09~'; then
 				usermod --home /var/lib/xivo-call-logs $USER
 			fi
 		fi
@@ -34,7 +34,7 @@ case "$1" in
 
 		chown $USER:$GROUP "$LOG_FILENAME"
 
-		if dpkg --compare-versions "$2" lt '1:17.08~'; then
+		if dpkg --compare-versions "$2" lt '17.09~'; then
 			ln -nsf /etc/nginx/locations/https-available/$DAEMONNAME \
 				/etc/nginx/locations/https-enabled/$DAEMONNAME
 		fi
