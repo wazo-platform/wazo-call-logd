@@ -25,11 +25,11 @@ from xivo_call_logs.manager import CallLogsManager
 from xivo_call_logs.writer import CallLogsWriter
 
 DEFAULT_CEL_COUNT = 20000
-PIDFILENAME = '/var/run/xivo-call-logs.pid'
+PIDFILENAME = '/var/run/wazo-call-logs.pid'
 
 _CERT_FILE = '/usr/share/xivo-certs/server.crt'
 DEFAULT_CONFIG = {
-    'pidfile': '/var/run/xivo-call-logs.pid',
+    'pidfile': PIDFILENAME,
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'auth': {
         'host': 'localhost',

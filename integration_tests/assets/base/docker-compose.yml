@@ -20,9 +20,9 @@ auth:
   command: "python /usr/local/share/xivo-auth/mock-xivo-auth.py 9497"
 
 call-logd:
-  image: xivo-call-logd-test
+  image: wazo-call-logd-test
   volumes:
-    - "../../..:/usr/src/xivo-call-logs"
+    - "../../..:/usr/src/wazo-call-logd"
     - "./etc/xivo-call-logd:/etc/xivo-call-logd"
     - "./ssl:/usr/local/share/ssl"
     # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.4/site-packages/xivo"

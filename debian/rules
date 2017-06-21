@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-export PYBUILD_NAME=xivo-call-logs
+export PYBUILD_NAME=wazo-call-logd
 export PYBUILD_DISABLE=test
 
 %:

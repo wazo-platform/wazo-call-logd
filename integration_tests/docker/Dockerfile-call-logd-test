@@ -1,7 +1,7 @@
-FROM wazopbx/xivo-call-logd
+FROM wazopbx/wazo-call-logd
 
-ADD . /usr/src/xivo-call-logs
-WORKDIR /usr/src/xivo-call-logs
+ADD . /usr/src/wazo-call-logd
+WORKDIR /usr/src/wazo-call-logd
 
 ENV PYTHONDONTWRITEBYTECODE='disabled'
 

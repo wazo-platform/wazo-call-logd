@@ -1,8 +1,8 @@
-xivo-call-logs
+wazo-call-logd
 =========
-[![Build Status](https://travis-ci.org/wazo-pbx/xivo-call-logs.png?branch=master)](https://travis-ci.org/wazo-pbx/xivo-call-logs)
+[![Build Status](https://travis-ci.org/wazo-pbx/wazo-call-logd.png?branch=master)](https://travis-ci.org/wazo-pbx/wazo-call-logd)
 
-xivo-call-logs is a service for collecting statistics on calls made on a Wazo server
+wazo-call-logd is a service for collecting statistics on calls made on a Wazo server
 
 
 Running unit tests

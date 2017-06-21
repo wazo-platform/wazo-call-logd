@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  title: xivo-call-logs
+  title: wazo-call-logd
   description: Consult call logs from a REST API
   version: 1.0.0
 schemes:

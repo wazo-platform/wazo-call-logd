@@ -12,7 +12,7 @@ def load_plugins(plugins, load_args=None, load_kwargs=None):
     load_args = load_args or []
     load_kwargs = load_kwargs or {}
     logger.debug('Enabled plugins: %s', plugins)
-    plugins = NamedExtensionManager(namespace='xivo_call_logs.plugins',
+    plugins = NamedExtensionManager(namespace='wazo_call_logd.plugins',
                                     names=plugins,
                                     name_order=True,
                                     on_load_failure_callback=plugins_load_fail,

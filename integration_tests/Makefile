@@ -13,5 +13,5 @@ docker-pull:
 	docker pull wazopbx/postgres-test
 
 call-logd:
-	docker build -t wazopbx/xivo-call-logd ..
-	docker build --no-cache -t xivo-call-logd-test -f docker/Dockerfile-call-logd-test ..
+	docker build -t wazopbx/wazo-call-logd ..
+	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..

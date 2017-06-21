@@ -47,7 +47,7 @@ class Controller(object):
         self._load_plugins(config)
 
     def run(self):
-        logger.info('Starting xivo-call-logd')
+        logger.info('Starting wazo-call-logd')
         bus_publisher_thread = Thread(target=self._publisher.run)
         bus_publisher_thread.start()
         bus_consumer_thread = Thread(target=self.bus_client.run, args=[self.manager], name='bus_consumer_thread')
@@ -57,14 +57,14 @@ class Controller(object):
             with self.token_renewer:
                 self.rest_api.run()
         finally:
-            logger.info('Stopping xivo-call-logd')
+            logger.info('Stopping wazo-call-logd')
             self.bus_client.stop()
             self._publisher.stop()
             bus_consumer_thread.join()
             bus_publisher_thread.join()
 
     def stop(self, reason):
-        logger.warning('Stopping xivo-call-logd: %s', reason)
+        logger.warning('Stopping wazo-call-logd: %s', reason)
         self.rest_api.stop()
 
     def _load_plugins(self, global_config):

@@ -1,0 +1,14 @@
+[Unit]
+Description=wazo-call-logd server
+ConditionPathExists=!/var/lib/xivo/disabled
+After=network.target asterisk.service postgresql.service
+Before=monit.service
+
+[Service]
+Type=forking
+ExecStartPre=/usr/bin/install -d -o wazo-call-logs -g wazo-call-logs /var/run/wazo-call-logd
+ExecStart=/usr/bin/wazo-call-logd
+PIDFile=/var/run/wazo-call-logd/wazo-call-logd.pid
+
+[Install]
+WantedBy=multi-user.target

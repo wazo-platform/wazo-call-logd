@@ -7,22 +7,22 @@ from setuptools import find_packages
 
 
 setup(
-    name='xivo-call-logs',
+    name='wazo-call-logd',
     version='1.2',
-    description='XiVO Call Logs Generation',
+    description='Wazo Call Logs Generation',
     author='Wazo Authors',
-    author_email='dev.wazo@gmail.com',
+    author_email='dev@wazo.community',
     url='http://wazo.community',
     license='GPLv3',
     packages=find_packages(),
     package_data={
-        'xivo_call_logs.plugins': ['*/api.yml'],
+        'wazo_call_logd.plugins': ['*/api.yml'],
     },
-    scripts=['bin/xivo-call-logs', 'bin/xivo-call-logd'],
+    scripts=['bin/wazo-call-logs', 'bin/wazo-call-logd'],
     entry_points={
-        'xivo_call_logs.plugins': [
-            'api = xivo_call_logs.plugins.api.plugin:Plugin',
-            'cdr = xivo_call_logs.plugins.cdr.plugin:Plugin',
+        'wazo_call_logd.plugins': [
+            'api = wazo_call_logd.plugins.api.plugin:Plugin',
+            'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
         ]
     }
 )

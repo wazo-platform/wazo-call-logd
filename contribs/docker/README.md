@@ -1,4 +1,4 @@
-Dockerfile for XiVO call-logd
+Dockerfile for wazo-call-logd
 
 ## Install Docker
 
@@ -14,25 +14,25 @@ To install docker on Linux :
 
 To build the image, simply invoke
 
-    docker build -t xivo-call-logd github.com/wazo-pbx/xivo-call-logs
+    docker build -t wazo-call-logd github.com/wazo-pbx/wazo-call-logd
 
 Or directly in the sources in contribs/docker
 
-    docker build -t xivo-call-logd .
+    docker build -t wazo-call-logd .
   
 ## Usage
 
 To run the container, do the following:
 
-    docker run -d -v /conf/call-logd:/etc/xivo-call-logs/conf.d xivo-call-logd
+    docker run -d -v /conf/call-logd:/etc/xivo-call-logs/conf.d wazo-call-logd
 
 On interactive mode :
 
-    docker run -v /conf/call-logd:/etc/xivo-call-logd/conf.d -it xivo-call-logd bash
+    docker run -v /conf/call-logd:/etc/xivo-call-logd/conf.d -it wazo-call-logd bash
 
-After launch xivo-call-logd.
+After launch wazo-call-logd.
 
-    xivo-call-logd -f -v
+    wazo-call-logd -f -v
 
 ## Infos
 

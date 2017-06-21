@@ -1,12 +1,12 @@
-Source: xivo-call-logs
+Source: wazo-call-logd
 Section: python
 Priority: extra
-Maintainer: Wazo Maintainers <dev.wazo@gmail.com>
+Maintainer: Wazo Maintainers <dev@wazo.community>
 Build-Depends: debhelper (>= 9), dh-python, dh-systemd (>= 1.5), python3-all, python3-setuptools
 Standards-Version: 3.9.6
 X-Python3-Version: >= 3.4
 
-Package: xivo-call-logs
+Package: wazo-call-logd
 Architecture: all
 Section: python
 Depends: ${python:Depends},
@@ -26,7 +26,12 @@ Depends: ${python:Depends},
          xivo-libdao-python3 (>= 15.06~20150319.161854.821d733-1),
          xivo-lib-python-python3,
          python3-kombu
+Conflicts: xivo-call-logs
+Replaces: xivo-call-logs
+Provides: xivo-call-logs
+
 Description: Wazo call logs generation
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.
  .
+
