@@ -1,4 +1,0 @@
-auth:
-  key_file: /etc/xivo-call-logd/key.yml
-bus:
-  host: not-found
