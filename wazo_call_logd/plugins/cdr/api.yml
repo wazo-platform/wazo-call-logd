@@ -27,6 +27,22 @@ paths:
       produces:
         - application/json
         - text/csv; charset=utf-8
+  /cdr/{cdr_id}:
+    get:
+      summary: Get a CDR by ID
+      description: '**Required ACL:** `call-logd.cdr.{cdr_id}.read`'
+      tags:
+        - cdr
+      responses:
+        '200':
+          description: Get a CDR by ID
+          schema:
+            $ref: '#/definitions/CDR'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+      produces:
+        - application/json
+        - text/csv; charset=utf-8
   /users/{user_uuid}/cdr:
     get:
       summary: List CDR of the given user
