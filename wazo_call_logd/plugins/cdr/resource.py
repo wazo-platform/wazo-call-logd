@@ -85,7 +85,7 @@ class CDRIdResource(AuthResource):
 
     @required_acl('call-logd.cdr.{cdr_id}.read')
     def get(self, cdr_id):
-        cdr = self.cdr_service.get(cdr_id)  # WARNING: fails when `None`
+        cdr = self.cdr_service.get(cdr_id)
         if not cdr:
             abort(404, message='No CDR with ID %s' % cdr_id)
         return CDRSchema().dump(cdr).data
