@@ -174,7 +174,7 @@ class TestGetCDRId(IntegrationTest):
                 call_direction='internal',
                 source_extension='7687',
                 source_name='soùr.',
-                tags=contains_inanyorder('rh', 'Poudlard')
+                tags=any_of('rh;Poudlard', 'Poudlard;rh'),
             )
         )
 
