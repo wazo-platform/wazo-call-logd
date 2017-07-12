@@ -6,12 +6,14 @@ import logging
 from flask import jsonify
 from flask import make_response
 from flask import request
+from flask_restful import abort
 from io import StringIO
 from xivo.auth_verifier import required_acl
 from xivo.unicode_csv import UnicodeDictWriter
 from wazo_call_logd.core.auth import get_token_user_uuid_from_request
 from wazo_call_logd.core.rest_api import AuthResource
 
+from .schema import CDRSchema
 from .schema import CDRSchemaList
 from .schema import CDRListRequestSchema
 
@@ -72,6 +74,21 @@ class CDRResource(AuthResource):
         args = CDRListRequestSchema().load(request.args).data
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList().dump(cdrs).data
+
+
+class CDRIdResource(AuthResource):
+
+    representations = {'text/csv; charset=utf-8': _output_csv}
+
+    def __init__(self, cdr_service):
+        self.cdr_service = cdr_service
+
+    @required_acl('call-logd.cdr.{cdr_id}.read')
+    def get(self, cdr_id):
+        cdr = self.cdr_service.get(cdr_id)  # WARNING: fails when `None`
+        if not cdr:
+            abort(404, message='No CDR with ID %s' % cdr_id)
+        return CDRSchema().dump(cdr).data
 
 
 class CDRUserResource(AuthResource):
