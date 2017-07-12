@@ -40,15 +40,20 @@ def _is_cdr_list(data):
     return 'items' in data
 
 
+def _is_single_cdr(data):
+    return 'id' in data
+
+
 def _output_csv(data, code, http_headers=None):
     if _is_error(data):
         response = jsonify(data)
-    elif _is_cdr_list(data):
+    elif _is_cdr_list(data) or _is_single_cdr(data):
         csv_text = StringIO()
         writer = UnicodeDictWriter(csv_text, CSV_HEADERS)
 
         writer.writeheader()
-        for cdr in data['items']:
+        items = data['items'] if _is_cdr_list(data) else [data]
+        for cdr in items:
             if 'tags' in cdr:
                 cdr['tags'] = ';'.join(cdr['tags'])
             writer.writerow(cdr)
