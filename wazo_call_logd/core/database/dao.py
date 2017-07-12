@@ -74,7 +74,10 @@ class CallLogDAO(object):
 
     def get_by_id(self, cdr_id):
         with self.new_session() as session:
-            return session.query(CallLogSchema).get(cdr_id)
+            cdr = session.query(CallLogSchema).get(cdr_id)
+            if cdr:
+                make_transient(cdr)
+                return cdr
 
     def find_all_in_period(self, params):
         with self.new_session() as session:
