@@ -40,6 +40,8 @@ paths:
             $ref: '#/definitions/CDR'
         '400':
           $ref: '#/responses/InvalidRequest'
+        '404':
+          $ref: '#/responses/NotFoundError'
       produces:
         - application/json
         - text/csv; charset=utf-8
