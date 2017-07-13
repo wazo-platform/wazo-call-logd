@@ -41,7 +41,7 @@ def _is_cdr_list(data):
 
 
 def _is_single_cdr(data):
-    return 'id' in data
+    return 'id' in data and 'tags' in data
 
 
 def _output_csv(data, code, http_headers=None):
