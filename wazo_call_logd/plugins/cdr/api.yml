@@ -33,6 +33,13 @@ paths:
       description: '**Required ACL:** `call-logd.cdr.{cdr_id}.read`'
       tags:
         - cdr
+      parameters:
+        -
+          name: cdr_id
+          description: ID of the CDR
+          required: true
+          type: int
+          in: path
       responses:
         '200':
           description: Get a CDR by ID
