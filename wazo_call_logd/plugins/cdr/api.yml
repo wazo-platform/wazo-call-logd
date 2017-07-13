@@ -35,6 +35,12 @@ paths:
         - cdr
         - users
       parameters:
+      -
+        name: user_uuid
+        description: UUID of the given user
+        required: true
+        type: string
+        in: path
       - $ref: '#/parameters/from'
       - $ref: '#/parameters/until'
       - $ref: '#/parameters/limit'
