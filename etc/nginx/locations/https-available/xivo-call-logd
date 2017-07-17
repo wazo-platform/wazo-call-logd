@@ -1,3 +1,7 @@
 location ^~ /api/call-logd/ {
     proxy_pass https://127.0.0.1:9298/;
+
+    proxy_set_header    Host                $http_host;
+    proxy_set_header    X-Script-Name       /api/call-logd;
+    proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
 }
