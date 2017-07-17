@@ -12,6 +12,8 @@ from xivo.unicode_csv import UnicodeDictWriter
 from wazo_call_logd.core.auth import get_token_user_uuid_from_request
 from wazo_call_logd.core.rest_api import AuthResource
 
+from .exceptions import CDRNotFoundException
+from .schema import CDRSchema
 from .schema import CDRSchemaList
 from .schema import CDRListRequestSchema
 
@@ -38,15 +40,20 @@ def _is_cdr_list(data):
     return 'items' in data
 
 
+def _is_single_cdr(data):
+    return 'id' in data and 'tags' in data
+
+
 def _output_csv(data, code, http_headers=None):
     if _is_error(data):
         response = jsonify(data)
-    elif _is_cdr_list(data):
+    elif _is_cdr_list(data) or _is_single_cdr(data):
         csv_text = StringIO()
         writer = UnicodeDictWriter(csv_text, CSV_HEADERS)
 
         writer.writeheader()
-        for cdr in data['items']:
+        items = data['items'] if _is_cdr_list(data) else [data]
+        for cdr in items:
             if 'tags' in cdr:
                 cdr['tags'] = ';'.join(cdr['tags'])
             writer.writerow(cdr)
@@ -72,6 +79,21 @@ class CDRResource(AuthResource):
         args = CDRListRequestSchema().load(request.args).data
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList().dump(cdrs).data
+
+
+class CDRIdResource(AuthResource):
+
+    representations = {'text/csv; charset=utf-8': _output_csv}
+
+    def __init__(self, cdr_service):
+        self.cdr_service = cdr_service
+
+    @required_acl('call-logd.cdr.{cdr_id}.read')
+    def get(self, cdr_id):
+        cdr = self.cdr_service.get(cdr_id)
+        if not cdr:
+            raise CDRNotFoundException(details={'cdr_id': cdr_id})
+        return CDRSchema().dump(cdr).data
 
 
 class CDRUserResource(AuthResource):

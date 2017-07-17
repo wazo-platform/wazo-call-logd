@@ -75,6 +75,109 @@ class TestNoAuth(IntegrationTest):
         )
         self.call_logd.set_token(VALID_TOKEN)
 
+    def test_given_no_auth_when_get_cdr_by_id_then_503(self):
+        with self.auth_stopped():
+            assert_that(
+                calling(self.call_logd.cdr.get_by_id).with_args(cdr_id=33),
+                raises(CallLogdError).matching(has_properties(status_code=503,
+                                                              message=contains_string_ignoring_case('auth')))
+            )
+
+    def test_given_no_token_when_get_cdr_by_id_then_401(self):
+        self.call_logd.set_token(None)
+        assert_that(
+            calling(self.call_logd.cdr.get_by_id).with_args(cdr_id=33),
+            raises(CallLogdError).matching(has_properties(status_code=401,
+                                                          message=contains_string_ignoring_case('unauthorized')))
+        )
+        self.call_logd.set_token(VALID_TOKEN)
+
+
+class TestGetCDRId(IntegrationTest):
+
+    asset = 'base'
+
+    def test_given_wrong_id_when_get_cdr_by_id_then_404(self):
+        assert_that(
+            calling(self.call_logd.cdr.get_by_id).with_args(cdr_id=33),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=404,
+                    message=contains_string_ignoring_case('no cdr found'),
+                    details=has_key('cdr_id')
+                )
+            )
+        )
+
+    @call_logs([
+        {'id': 12,
+         'date': '2017-03-23 00:00:00',
+         'date_answer': '2017-03-23 00:01:00',
+         'date_end': '2017-03-23 00:02:27',
+         'destination_exten': '3378',
+         'destination_name': 'dést,ination',
+         'direction': 'internal',
+         'source_exten': '7687',
+         'source_name': 'soùr.',
+         'participants': [{'user_uuid': '1',
+                           'line_id': '1',
+                           'tags': ['rh', 'Poudlard']}]}
+    ])
+    def test_given_id_when_get_cdr_by_id_then_get_cdr_by_id(self):
+        result = self.call_logd.cdr.get_by_id(12)
+        assert_that(
+            result,
+            has_entries(
+                id=12,
+                answered=True,
+                start='2017-03-23T00:00:00+00:00',
+                answer='2017-03-23T00:01:00+00:00',
+                end='2017-03-23T00:02:27+00:00',
+                destination_extension='3378',
+                destination_name='dést,ination',
+                duration=87,
+                call_direction='internal',
+                source_extension='7687',
+                source_name='soùr.',
+                tags=contains_inanyorder('rh', 'Poudlard')
+            )
+        )
+
+    @call_logs([
+        {'id': 12,
+         'date': '2017-03-23 00:00:00',
+         'date_answer': '2017-03-23 00:01:00',
+         'date_end': '2017-03-23 00:02:27',
+         'destination_exten': '3378',
+         'destination_name': 'dést,ination',
+         'direction': 'internal',
+         'source_exten': '7687',
+         'source_name': 'soùr.',
+         'participants': [{'user_uuid': '1',
+                           'line_id': '1',
+                           'tags': ['rh', 'Poudlard']}]}
+    ])
+    def test_given_id_when_get_cdr_by_id_csv_then_get_cdr_by_id_csv(self):
+        result_raw = self.call_logd.cdr.get_by_id_csv(12)
+        result = list(csv.DictReader(StringIO(result_raw)))[0]
+        assert_that(
+            result,
+            has_entries(
+                id='12',
+                answered='True',
+                start='2017-03-23T00:00:00+00:00',
+                answer='2017-03-23T00:01:00+00:00',
+                end='2017-03-23T00:02:27+00:00',
+                destination_extension='3378',
+                destination_name='dést,ination',
+                duration='87',
+                call_direction='internal',
+                source_extension='7687',
+                source_name='soùr.',
+                tags=any_of('rh;Poudlard', 'Poudlard;rh'),
+            )
+        )
+
 
 class TestListCDR(IntegrationTest):
 

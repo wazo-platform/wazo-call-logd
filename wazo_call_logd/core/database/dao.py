@@ -13,7 +13,6 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import make_transient
 from sqlalchemy.pool import Pool
 
 from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
@@ -72,6 +71,13 @@ class CallLogDAO(object):
         finally:
             self._Session.remove()
 
+    def get_by_id(self, cdr_id):
+        with self.new_session() as session:
+            cdr = session.query(CallLogSchema).options(joinedload('participants')).get(cdr_id)
+            if cdr:
+                session.expunge_all()
+                return cdr
+
     def find_all_in_period(self, params):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
@@ -129,9 +135,7 @@ class CallLogDAO(object):
             if not call_log_rows:
                 return []
             for call_log in call_log_rows:
-                make_transient(call_log)
-                for participant in call_log.participants:
-                    make_transient(participant)
+                session.expunge_all()
 
             return call_log_rows
 

@@ -12,3 +12,6 @@ class CDRService(object):
         return {'items': call_logs,
                 'filtered': count['filtered'],
                 'total': count['total']}
+
+    def get(self, cdr_id):
+        return self._dao.get_by_id(cdr_id)
