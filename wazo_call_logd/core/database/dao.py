@@ -107,6 +107,9 @@ class CallLogDAO(object):
                            for column in [CallLogSchema.source_exten, CallLogSchema.destination_exten])
                 query = query.filter(sql.or_(*filters))
 
+            if params.get('start_id'):
+                query = query.filter(CallLogSchema.id >= params['start_id'])
+
             for tag in params.get('tags', []):
                 query = query.filter(CallLogSchema.participants.any(
                     CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
@@ -171,6 +174,9 @@ class CallLogDAO(object):
                 filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))
                            for user_uuid in params['user_uuids'])
                 query = query.filter(sql.or_(*filters))
+
+            if params.get('start_id'):
+                query = query.filter(CallLogSchema.id >= params['start_id'])
 
             filtered = query.count()
 
