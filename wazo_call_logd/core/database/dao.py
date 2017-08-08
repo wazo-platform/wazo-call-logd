@@ -107,8 +107,8 @@ class CallLogDAO(object):
 
             if not call_log_rows:
                 return []
-            for call_log in call_log_rows:
-                session.expunge_all()
+
+            session.expunge_all()
 
             return call_log_rows
 
