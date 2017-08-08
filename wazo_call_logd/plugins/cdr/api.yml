@@ -17,6 +17,7 @@ paths:
       - $ref: '#/parameters/number'
       - $ref: '#/parameters/tags'
       - $ref: '#/parameters/user_uuid'
+      - $ref: '#/parameters/from_id'
       responses:
         '200':
           description: List CDR
@@ -73,6 +74,7 @@ paths:
       - $ref: '#/parameters/search'
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
+      - $ref: '#/parameters/from_id'
       responses:
         '200':
           description: List CDR
@@ -100,6 +102,7 @@ paths:
       - $ref: '#/parameters/search'
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
+      - $ref: '#/parameters/from_id'
       responses:
         '200':
           description: List CDR
@@ -191,6 +194,12 @@ parameters:
     items:
       type: string
     description: Filter by user_uuid. Many uuid can be specified. Each uuid MUST be separated by a comma (,). Many uuid will perform a logical OR.
+  from_id:
+    name: from_id
+    description: Ignore CDR created before the given CDR ID.
+    in: query
+    type: integer
+    required: false
 definitions:
   CDRList:
     type: object

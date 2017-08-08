@@ -59,6 +59,7 @@ class CDRListRequestSchema(Schema):
     number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
     tags = fields.List(fields.String(), missing=[])
     user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
+    from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
 
     class Meta(object):
         strict = True

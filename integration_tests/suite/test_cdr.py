@@ -561,6 +561,21 @@ class TestListCDR(IntegrationTest):
                                         )))
 
     @call_logs([
+        {'id': 1000, 'date': '2017-04-10'},
+        {'id': 1001, 'date': '2017-04-11'},
+        {'id': 1002, 'date': '2017-04-12'},
+    ])
+    def test_given_call_logs_when_list_cdr_with_from_id_then_list_matching_cdr(self):
+        result = self.call_logd.cdr.list(from_id=1001)
+
+        assert_that(result, has_entries(filtered=2,
+                                        total=3,
+                                        items=contains_inanyorder(
+                                            has_entries(start='2017-04-11T00:00:00+00:00'),
+                                            has_entries(start='2017-04-12T00:00:00+00:00'),
+                                        )))
+
+    @call_logs([
         {'date': '2017-04-10', 'date_answer': '2017-04-10', 'date_end': '2017-04-09'},
     ])
     def test_negative_duration_then_duration_is_zero(self):
