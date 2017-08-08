@@ -151,7 +151,7 @@ class CallLogDAO(object):
 
         if params.get('user_uuids'):
             filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))
-                        for user_uuid in params['user_uuids'])
+                       for user_uuid in params['user_uuids'])
             query = query.filter(sql.or_(*filters))
 
         if params.get('start_id'):
