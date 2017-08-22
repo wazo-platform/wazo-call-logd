@@ -7,6 +7,7 @@ import sys
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_file
+from xivo.config_helper import read_config_file_hierarchy
 from xivo.daemonize import pidfile_context
 from xivo.token_renewer import TokenRenewer
 from xivo.xivo_logging import setup_logging
@@ -31,6 +32,8 @@ PIDFILENAME = '/var/run/wazo-call-logs.pid'
 _CERT_FILE = '/usr/share/xivo-certs/server.crt'
 DEFAULT_CONFIG = {
     'pidfile': PIDFILENAME,
+    'config_file': '/etc/xivo-call-logd/config.yml',
+    'extra_config_files': '/etc/xivo-call-logd/conf.d',
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'auth': {
         'host': 'localhost',
@@ -73,8 +76,12 @@ def _print_deprecation_notice():
 def _generate_call_logs():
     parser = argparse.ArgumentParser(description='Call logs generator')
     options = parse_args(parser)
-    key_config = load_key_file(DEFAULT_CONFIG)
-    config = ChainMap(key_config, DEFAULT_CONFIG)
+
+    file_config = {key: value
+                   for key, value in read_config_file_hierarchy(DEFAULT_CONFIG).items()
+                   if key in ('confd', 'bus', 'auth', 'db_uri')}
+    key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
+    config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
 
     auth_client = AuthClient(**config['auth'])
     confd_client = ConfdClient(**config['confd'])
