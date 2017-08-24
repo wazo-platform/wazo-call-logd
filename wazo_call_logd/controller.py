@@ -4,6 +4,7 @@
 import logging
 
 from threading import Thread
+from xivo import plugin_helpers
 from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
@@ -14,7 +15,6 @@ from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
 from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
 from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
-from wazo_call_logd.core import plugin_manager
 from wazo_call_logd.core.rest_api import api, CoreRestApi
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
@@ -44,7 +44,14 @@ class Controller(object):
         self.rest_api = CoreRestApi(config)
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)
-        self._load_plugins(config)
+        plugin_helpers.load(
+            namespace='wazo_call_logd.plugins',
+            names=config['enabled_plugins'],
+            dependencies={
+                'api': api,
+                'config': config,
+            }
+        )
 
     def run(self):
         logger.info('Starting wazo-call-logd')
@@ -66,10 +73,3 @@ class Controller(object):
     def stop(self, reason):
         logger.warning('Stopping wazo-call-logd: %s', reason)
         self.rest_api.stop()
-
-    def _load_plugins(self, global_config):
-        load_args = [{
-            'api': api,
-            'config': global_config,
-        }]
-        plugin_manager.load_plugins(global_config['enabled_plugins'], load_args)
