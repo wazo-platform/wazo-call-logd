@@ -30,12 +30,12 @@ class BusPublisher(object):
         payload = CDRSchema().dump(call_log).data
         logger.debug('publishing new call log: %s', payload)
         event = CallLogCreatedEvent(payload)
-        self.send_event(event)
+        self._publisher.publish(event)
 
         payload = CDRSchema(exclude=['tags']).dump(call_log).data
         for participant in call_log.participants:
             event = CallLogUserCreatedEvent(participant.user_uuid, payload)
-            self.send_event(event)
+            self._publisher.publish(event, headers={'user_uuid': participant.user_uuid})
 
     def run(self):
         logger.info('status publisher starting')
@@ -51,6 +51,3 @@ class BusPublisher(object):
         bus_producer = kombu.Producer(bus_connection, exchange=bus_exchange, auto_declare=True)
         bus_marshaler = xivo_bus.Marshaler(uuid)
         return xivo_bus.Publisher(bus_producer, bus_marshaler)
-
-    def send_event(self, event):
-        self._publisher.publish(event)
