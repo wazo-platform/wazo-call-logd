@@ -9,8 +9,8 @@ from flask import request
 from io import StringIO
 from xivo.auth_verifier import required_acl
 from xivo.unicode_csv import UnicodeDictWriter
-from wazo_call_logd.core.auth import get_token_user_uuid_from_request
-from wazo_call_logd.core.rest_api import AuthResource
+from wazo_call_logd.auth import get_token_user_uuid_from_request
+from wazo_call_logd.rest_api import AuthResource
 
 from .exceptions import CDRNotFoundException
 from .schema import CDRSchema

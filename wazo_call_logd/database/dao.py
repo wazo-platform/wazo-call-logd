@@ -18,7 +18,7 @@ from sqlalchemy.pool import Pool
 from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
-from wazo_call_logd.core.exceptions import DatabaseServiceUnavailable
+from wazo_call_logd.exceptions import DatabaseServiceUnavailable
 
 
 # http://stackoverflow.com/questions/34828113/flask-sqlalchemy-losing-connection-after-restarting-of-db-server

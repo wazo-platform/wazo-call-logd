@@ -15,11 +15,11 @@ from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
 from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
 from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
-from wazo_call_logd.core.rest_api import api, CoreRestApi
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
 from .bus_publisher import BusPublisher
+from .rest_api import api, CoreRestApi
 
 logger = logging.getLogger(__name__)
 

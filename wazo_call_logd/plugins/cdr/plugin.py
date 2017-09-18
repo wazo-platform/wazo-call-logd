@@ -3,8 +3,8 @@
 
 from xivo_auth_client import Client as AuthClient
 
-from wazo_call_logd.core.database.dao import new_db_session
-from wazo_call_logd.core.database.dao import CallLogDAO
+from wazo_call_logd.database.dao import new_db_session
+from wazo_call_logd.database.dao import CallLogDAO
 
 from .resource import CDRResource
 from .resource import CDRIdResource
@@ -22,7 +22,6 @@ class Plugin(object):
         auth_client = AuthClient(**config['auth'])
         dao = CallLogDAO(new_db_session(config['db_uri']))
         service = CDRService(dao)
-
 
         api.add_resource(CDRResource, '/cdr', resource_class_args=[service])
         api.add_resource(CDRIdResource, '/cdr/<int:cdr_id>', resource_class_args=[service])
