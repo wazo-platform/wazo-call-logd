@@ -236,6 +236,7 @@ definitions:
         type: string
       duration:
         type: integer
+        description: Duration of the call, in seconds.
       answered:
         type: boolean
       call_direction:
