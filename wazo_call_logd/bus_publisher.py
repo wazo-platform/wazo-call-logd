@@ -35,7 +35,7 @@ class BusPublisher(object):
         payload = CDRSchema(exclude=['tags']).dump(call_log).data
         for participant in call_log.participants:
             event = CallLogUserCreatedEvent(participant.user_uuid, payload)
-            self._publisher.publish(event, headers={'user_uuid:{uuid}'.format(uuid=participant.user_uuid)})
+            self._publisher.publish(event, headers={'user_uuid:{uuid}'.format(uuid=participant.user_uuid): True})
 
     def run(self):
         logger.info('status publisher starting')
