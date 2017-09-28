@@ -86,4 +86,4 @@ class IntegrationTest(AssetLaunchingTestCase):
         yield
         self.start_service('auth')
         self.reset_clients()
-        until.true(self.auth.is_up, tries=5, message='xivo-auth did not come back up')
+        until.true(self.auth.is_up, tries=5, message='wazo-auth did not come back up')
