@@ -3,7 +3,7 @@
 set -e
 
 DAEMONNAME='xivo-call-logd'
-USER='xivo-call-logs'
+USER='wazo-call-logs'
 GROUP=$USER
 LOG_FILENAME="/var/log/wazo-call-logd.log"
 OLD_PIDFILE="/var/run/$DAEMONNAME.pid"
@@ -19,12 +19,8 @@ case "$1" in
 		if ! getent passwd $USER > /dev/null ; then
 			echo "Adding system user $USER" 1>&2
 			adduser --quiet --system --group --no-create-home \
-					--home /var/lib/xivo-call-logs \
+					--home /var/lib/wazo-call-logd \
 					$USER
-		else
-			if dpkg --compare-versions "$2" lt '17.09~'; then
-				usermod --home /var/lib/xivo-call-logs $USER
-			fi
 		fi
 		adduser --quiet $USER www-data
 
@@ -35,6 +31,13 @@ case "$1" in
 					mv "${f}" "$(echo ${f} | sed 's/xivo-call-logd/wazo-call-logd/g')"
 				done
 			)
+
+			# The USER was renamed from xivo-call-logd in version 17.15
+			if getent passwd xivo-call-logd > /dev/null ; then
+				echo "Deleting system user xivo-call-logd" 1>&2
+				deluser --system xivo-call-logd
+			fi
+
 		fi
 
 		#setup permissions for log file
