@@ -10,7 +10,7 @@ from xivo.xivo_logging import get_log_level_by_name
 
 _CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _DEFAULT_CONFIG = {
-    'logfile': '/var/log/xivo-call-logd.log',
+    'logfile': '/var/log/wazo-call-logd.log',
     'log_level': 'info',
     'pidfile': '/var/run/wazo-call-logd/wazo-call-logd.pid',
     'config_file': '/etc/wazo-call-logd/config.yml',

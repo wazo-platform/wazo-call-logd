@@ -25,7 +25,7 @@ RUN pip install -r requirements.txt \
 RUN mkdir -p /usr/share/xivo-certs
 ADD ./contribs/docker/certs /usr/share/xivo-certs
 ## Logs
-RUN touch /var/log/xivo-call-logd.log
+RUN touch /var/log/wazo-call-logd.log
 ## Config
 RUN mkdir -p /etc/wazo-call-logd
 ADD ./etc/wazo-call-logd/config.yml /etc/wazo-call-logd/config.yml

@@ -5,7 +5,7 @@ set -e
 DAEMONNAME='xivo-call-logd'
 USER='xivo-call-logs'
 GROUP=$USER
-LOG_FILENAME="/var/log/$DAEMONNAME.log"
+LOG_FILENAME="/var/log/wazo-call-logd.log"
 OLD_PIDFILE="/var/run/$DAEMONNAME.pid"
 
 
@@ -27,11 +27,19 @@ case "$1" in
 		fi
 		adduser --quiet $USER www-data
 
+		if dpkg --compare-versions "$2" lt '17.15~'; then
+			(
+				shopt -s nullglob
+				for f in /var/log/xivo-call-logd*; do
+					mv "${f}" "$(echo ${f} | sed 's/xivo-call-logd/wazo-call-logd/g')"
+				done
+			)
+		fi
+
 		#setup permissions for log file
 		if [ ! -e "$LOG_FILENAME" ]; then
 			touch "$LOG_FILENAME"
 		fi
-
 		chown $USER:$GROUP "$LOG_FILENAME"
 
 		if dpkg --compare-versions "$2" lt '17.09~'; then
