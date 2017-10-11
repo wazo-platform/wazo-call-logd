@@ -1,2 +1,2 @@
-service_id: xivo-call-logd
+service_id: wazo-call-logd
 service_key: opensesame
