@@ -2,11 +2,11 @@
 
 set -e
 
-DAEMONNAME='xivo-call-logd'
+DAEMONNAME='wazo-call-logd'
 USER='wazo-call-logs'
 GROUP=$USER
-LOG_FILENAME="/var/log/wazo-call-logd.log"
-OLD_PIDFILE="/var/run/$DAEMONNAME.pid"
+LOG_FILENAME="/var/log/${DAEMONNAME}.log"
+OLD_PIDFILE="/var/run/xivo-call-logd.pid"
 OLD_NGINX_CONFIG="/etc/nginx/locations/https-available/xivo-call-logd /etc/nginx/locations/https-enabled/xivo-call-logd"
 
 
@@ -58,8 +58,8 @@ case "$1" in
 			fi
 			rm -rf /etc/xivo-call-logd
 
-			ln -nsf /etc/nginx/locations/https-available/wazo-call-logd \
-				/etc/nginx/locations/https-enabled/wazo-call-logd
+			ln -nsf /etc/nginx/locations/https-available/${DAEMONNAME} \
+				/etc/nginx/locations/https-enabled/${DAEMONNAME}
 			for f in ${OLD_NGINX_CONFIG}; do
 				rm -f ${f}
 			done
