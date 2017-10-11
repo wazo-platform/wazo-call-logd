@@ -7,6 +7,7 @@ USER='xivo-call-logs'
 GROUP=$USER
 LOG_FILENAME="/var/log/wazo-call-logd.log"
 OLD_PIDFILE="/var/run/$DAEMONNAME.pid"
+OLD_NGINX_CONFIG="/etc/nginx/locations/https-available/xivo-call-logd /etc/nginx/locations/https-enabled/xivo-call-logd"
 
 
 case "$1" in
@@ -42,11 +43,6 @@ case "$1" in
 		fi
 		chown $USER:$GROUP "$LOG_FILENAME"
 
-		if dpkg --compare-versions "$2" lt '17.09~'; then
-			ln -nsf /etc/nginx/locations/https-available/$DAEMONNAME \
-				/etc/nginx/locations/https-enabled/$DAEMONNAME
-		fi
-
 		if dpkg --compare-versions "$2" lt '17.15~'; then
 			# The config dir was moved from /etc/xivo-call-logd in version 17.15
 			if [ -e /etc/xivo-call-logd/conf.d ]; then
@@ -58,6 +54,12 @@ case "$1" in
 				)
 			fi
 			rm -rf /etc/xivo-call-logd
+
+			ln -nsf /etc/nginx/locations/https-available/wazo-call-logd \
+				/etc/nginx/locations/https-enabled/wazo-call-logd
+			for f in ${OLD_NGINX_CONFIG}; do
+				rm -f ${f}
+			done
 		fi
 
 	;;
