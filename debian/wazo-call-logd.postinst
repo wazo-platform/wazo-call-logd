@@ -38,6 +38,20 @@ case "$1" in
 			ln -nsf /etc/nginx/locations/https-available/$DAEMONNAME \
 				/etc/nginx/locations/https-enabled/$DAEMONNAME
 		fi
+
+		if dpkg --compare-versions "$2" lt '17.15~'; then
+			# The config dir was moved from /etc/xivo-call-logd in version 17.15
+			if [ -e /etc/xivo-call-logd/conf.d ]; then
+				(
+					shopt -s nullglob
+					for f in /etc/xivo-call-logd/conf.d/*; do
+						mv "${f}" /etc/wazo-call-logd/conf.d/
+					done
+				)
+			fi
+			rm -rf /etc/xivo-call-logd
+		fi
+
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)

@@ -27,8 +27,8 @@ ADD ./contribs/docker/certs /usr/share/xivo-certs
 ## Logs
 RUN touch /var/log/xivo-call-logd.log
 ## Config
-RUN mkdir -p /etc/xivo-call-logd
-ADD ./etc/xivo-call-logd/config.yml /etc/xivo-call-logd/config.yml
+RUN mkdir -p /etc/wazo-call-logd
+ADD ./etc/wazo-call-logd/config.yml /etc/wazo-call-logd/config.yml
 ## PID
 RUN mkdir /var/run/wazo-call-logd
 

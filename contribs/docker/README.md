@@ -24,11 +24,11 @@ Or directly in the sources in contribs/docker
 
 To run the container, do the following:
 
-    docker run -d -v /conf/call-logd:/etc/xivo-call-logs/conf.d wazo-call-logd
+    docker run -d -v /conf/call-logd:/etc/wazo-call-logd/conf.d wazo-call-logd
 
 On interactive mode :
 
-    docker run -v /conf/call-logd:/etc/xivo-call-logd/conf.d -it wazo-call-logd bash
+    docker run -v /conf/call-logd:/etc/wazo-call-logd/conf.d -it wazo-call-logd bash
 
 After launch wazo-call-logd.
 

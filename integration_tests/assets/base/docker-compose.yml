@@ -23,7 +23,7 @@ call-logd:
   image: wazo-call-logd-test
   volumes:
     - "../../..:/usr/src/wazo-call-logd"
-    - "./etc/xivo-call-logd:/etc/xivo-call-logd"
+    - "./etc/wazo-call-logd:/etc/wazo-call-logd"
     - "./ssl:/usr/local/share/ssl"
     # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.4/site-packages/xivo"
     # - "${LOCAL_GIT_REPOS}/xivo-dao/xivo_dao:/usr/local/lib/python3.4/site-packages/xivo_dao"
