@@ -4,7 +4,7 @@
 
 # Extra configuration directory where the config files overriding this file
 # should be.
-extra_config_files: /etc/xivo-call-logd/conf.d/
+extra_config_files: /etc/wazo-call-logd/conf.d/
 
 # Change the log level to debug level.
 debug: false
@@ -48,7 +48,7 @@ auth:
   port: 9497
   timeout: 2
   verify_certificate: /usr/share/xivo-certs/server.crt
-  key_file: /var/lib/xivo-auth-keys/xivo-call-logd-key.yml
+  key_file: /var/lib/xivo-auth-keys/wazo-call-logd-key.yml
 
 # xivo-confd (configuration daemon) connection informations.
 confd:

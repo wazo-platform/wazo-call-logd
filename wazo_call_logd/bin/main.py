@@ -32,15 +32,15 @@ PIDFILENAME = '/var/run/wazo-call-logs.pid'
 _CERT_FILE = '/usr/share/xivo-certs/server.crt'
 DEFAULT_CONFIG = {
     'pidfile': PIDFILENAME,
-    'config_file': '/etc/xivo-call-logd/config.yml',
-    'extra_config_files': '/etc/xivo-call-logd/conf.d',
+    'config_file': '/etc/wazo-call-logd/config.yml',
+    'extra_config_files': '/etc/wazo-call-logd/conf.d',
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'auth': {
         'host': 'localhost',
         'port': 9497,
         'timeout': 2,
         'verify_certificate': _CERT_FILE,
-        'key_file': '/var/lib/xivo-auth-keys/xivo-call-logd-key.yml',
+        'key_file': '/var/lib/xivo-auth-keys/wazo-call-logd-key.yml',
     },
     'bus': {
         'username': 'guest',

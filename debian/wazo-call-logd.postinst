@@ -1,12 +1,13 @@
-#! /bin/sh
+#! /bin/bash
 
 set -e
 
-DAEMONNAME='xivo-call-logd'
-USER='xivo-call-logs'
+DAEMONNAME='wazo-call-logd'
+USER='wazo-call-logs'
 GROUP=$USER
-LOG_FILENAME="/var/log/$DAEMONNAME.log"
-OLD_PIDFILE="/var/run/$DAEMONNAME.pid"
+LOG_FILENAME="/var/log/${DAEMONNAME}.log"
+OLD_PIDFILE="/var/run/xivo-call-logd.pid"
+OLD_NGINX_CONFIG="/etc/nginx/locations/https-available/xivo-call-logd /etc/nginx/locations/https-enabled/xivo-call-logd"
 
 
 case "$1" in
@@ -18,26 +19,52 @@ case "$1" in
 		if ! getent passwd $USER > /dev/null ; then
 			echo "Adding system user $USER" 1>&2
 			adduser --quiet --system --group --no-create-home \
-					--home /var/lib/xivo-call-logs \
+					--home /var/lib/wazo-call-logd \
 					$USER
-		else
-			if dpkg --compare-versions "$2" lt '17.09~'; then
-				usermod --home /var/lib/xivo-call-logs $USER
-			fi
 		fi
 		adduser --quiet $USER www-data
+
+		if dpkg --compare-versions "$2" lt '17.15~'; then
+			(
+				shopt -s nullglob
+				for f in /var/log/xivo-call-logd*; do
+					mv "${f}" "$(echo ${f} | sed 's/xivo-call-logd/wazo-call-logd/g')"
+				done
+			)
+
+			# The USER was renamed from xivo-call-logd in version 17.15
+			if getent passwd xivo-call-logd > /dev/null ; then
+				echo "Deleting system user xivo-call-logd" 1>&2
+				deluser --system xivo-call-logd
+			fi
+
+		fi
 
 		#setup permissions for log file
 		if [ ! -e "$LOG_FILENAME" ]; then
 			touch "$LOG_FILENAME"
 		fi
-
 		chown $USER:$GROUP "$LOG_FILENAME"
 
-		if dpkg --compare-versions "$2" lt '17.09~'; then
-			ln -nsf /etc/nginx/locations/https-available/$DAEMONNAME \
-				/etc/nginx/locations/https-enabled/$DAEMONNAME
+		if dpkg --compare-versions "$2" lt '17.15~'; then
+			# The config dir was moved from /etc/xivo-call-logd in version 17.15
+			if [ -e /etc/xivo-call-logd/conf.d ]; then
+				(
+					shopt -s nullglob
+					for f in /etc/xivo-call-logd/conf.d/*; do
+						mv "${f}" /etc/wazo-call-logd/conf.d/
+					done
+				)
+			fi
+			rm -rf /etc/xivo-call-logd
+
+			ln -nsf /etc/nginx/locations/https-available/${DAEMONNAME} \
+				/etc/nginx/locations/https-enabled/${DAEMONNAME}
+			for f in ${OLD_NGINX_CONFIG}; do
+				rm -f ${f}
+			done
 		fi
+
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)

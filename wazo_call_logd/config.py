@@ -10,14 +10,14 @@ from xivo.xivo_logging import get_log_level_by_name
 
 _CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _DEFAULT_CONFIG = {
-    'logfile': '/var/log/xivo-call-logd.log',
+    'logfile': '/var/log/wazo-call-logd.log',
     'log_level': 'info',
     'pidfile': '/var/run/wazo-call-logd/wazo-call-logd.pid',
-    'config_file': '/etc/xivo-call-logd/config.yml',
-    'extra_config_files': '/etc/xivo-call-logd/conf.d',
+    'config_file': '/etc/wazo-call-logd/config.yml',
+    'extra_config_files': '/etc/wazo-call-logd/conf.d',
     'foreground': False,
     'debug': False,
-    'user': 'xivo-call-logs',
+    'user': 'wazo-call-logs',
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'bus': {
         'username': 'guest',
@@ -43,7 +43,7 @@ _DEFAULT_CONFIG = {
         'port': 9497,
         'timeout': 2,
         'verify_certificate': _CERT_FILE,
-        'key_file': '/var/lib/xivo-auth-keys/xivo-call-logd-key.yml',
+        'key_file': '/var/lib/xivo-auth-keys/wazo-call-logd-key.yml',
     },
     'confd': {
         'host': 'localhost',
