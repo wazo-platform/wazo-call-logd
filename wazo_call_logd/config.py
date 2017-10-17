@@ -17,7 +17,7 @@ _DEFAULT_CONFIG = {
     'extra_config_files': '/etc/wazo-call-logd/conf.d',
     'foreground': False,
     'debug': False,
-    'user': 'wazo-call-logs',
+    'user': 'wazo-call-logd',
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'bus': {
         'username': 'guest',

@@ -3,7 +3,7 @@
 set -e
 
 DAEMONNAME='wazo-call-logd'
-USER='wazo-call-logs'
+USER=$DAEMONNAME
 GROUP=$USER
 LOG_FILENAME="/var/log/${DAEMONNAME}.log"
 OLD_PIDFILE="/var/run/xivo-call-logd.pid"
@@ -32,10 +32,10 @@ case "$1" in
 				done
 			)
 
-			# The USER was renamed from xivo-call-logd in version 17.15
-			if getent passwd xivo-call-logd > /dev/null ; then
-				echo "Deleting system user xivo-call-logd" 1>&2
-				deluser --system xivo-call-logd
+			# The USER was renamed from xivo-call-logs in version 17.15
+			if getent passwd xivo-call-logs > /dev/null ; then
+				echo "Deleting system user xivo-call-logs" 1>&2
+				deluser --system xivo-call-logs
 			fi
 
 		fi
