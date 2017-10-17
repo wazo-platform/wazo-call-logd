@@ -14,7 +14,7 @@
 set -e
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
-USER='xivo-call-logs'
+USER='wazo-call-logd'
 GROUP=$USER
 DAEMONNAME=wazo-call-logd
 DAEMON=/usr/bin/$DAEMONNAME
