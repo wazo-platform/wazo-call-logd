@@ -3,6 +3,6 @@ FROM wazopbx/wazo-call-logd
 ADD . /usr/src/wazo-call-logd
 WORKDIR /usr/src/wazo-call-logd
 
-ENV PYTHONDONTWRITEBYTECODE='disabled'
+ENV PYTHONDONTWRITEBYTECODE='true'
 
 RUN python setup.py develop
