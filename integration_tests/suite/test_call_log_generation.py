@@ -1,12 +1,14 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from functools import wraps
 from contextlib import contextmanager
 from hamcrest import assert_that
 from hamcrest import contains_inanyorder
 from hamcrest import empty
 from hamcrest import has_entries
 from hamcrest import has_key
+from hamcrest import has_properties
 from hamcrest import is_
 from hamcrest import not_
 from hamcrest import none
@@ -14,6 +16,24 @@ from xivo_test_helpers import until
 
 from .test_api.base import IntegrationTest
 from .test_api.confd import MockUser, MockLine
+
+
+# this decorator takes the output of a psql and changes it into a list of dict
+def raw_cels(cel_output):
+    cels = []
+    lines = cel_output.strip().split('\n')
+    columns = [field.strip() for field in lines[0].split('|')]
+    for line in lines[2:]:
+        cel = [field.strip() for field in line.split('|')]
+        cels.append(dict(zip(columns, cel)))
+
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.cels(cels):
+                return func(self, *args, **kwargs)
+        return wrapped_function
+    return _decorate
 
 
 class TestCallLogGeneration(IntegrationTest):
@@ -25,6 +45,41 @@ class TestCallLogGeneration(IntegrationTest):
         self.confd = self.make_confd()
         self.confd.reset()
         until.true(self.bus.is_up, tries=10, interval=0.5)
+
+    @raw_cels('''\
+  eventtype   |         eventtime          |       channame        |   uniqueid    |   linkedid    | cid_name | cid_num
+--------------+----------------------------+-----------------------+---------------+---------------+----------+---------
+ CHAN_START   | 2017-11-10 10:07:08.620283 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 042302
+ XIVO_INCALL  | 2017-11-10 10:07:08.877093 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
+ APP_START    | 2017-11-10 10:07:09.15148  | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
+ CHAN_START   | 2017-11-10 10:07:09.156027 | SIP/9x1hhbkf-0000001b | 1510326429.27 | 1510326428.26 | Alicé    | 1645
+ ANSWER       | 2017-11-10 10:07:11.986921 | SIP/9x1hhbkf-0000001b | 1510326429.27 | 1510326428.26 | Alicé    | 1645
+ ANSWER       | 2017-11-10 10:07:11.993852 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
+ BRIDGE_ENTER | 2017-11-10 10:07:11.996672 | SIP/9x1hhbkf-0000001b | 1510326429.27 | 1510326428.26 | Alicé    | 1645
+ BRIDGE_ENTER | 2017-11-10 10:07:12.007126 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
+ BRIDGE_EXIT  | 2017-11-10 10:07:13.69614  | SIP/9x1hhbkf-0000001b | 1510326429.27 | 1510326428.26 | Alicé    | 1645
+ HANGUP       | 2017-11-10 10:07:13.756533 | SIP/9x1hhbkf-0000001b | 1510326429.27 | 1510326428.26 | Alicé    | 1645
+ CHAN_END     | 2017-11-10 10:07:13.758228 | SIP/9x1hhbkf-0000001b | 1510326429.27 | 1510326428.26 | Alicé    | 1645
+ BRIDGE_EXIT  | 2017-11-10 10:07:13.759858 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
+ HANGUP       | 2017-11-10 10:07:13.761307 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
+ CHAN_END     | 2017-11-10 10:07:13.762793 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
+ LINKEDID_END | 2017-11-10 10:07:13.764775 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
+''')
+    def test_incoming_call_no_cid_name_rewritten_cid_num(self):
+        linkedid = '1510326428.26'
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_has_transformed_number():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            'source_name', '',
+                            'source_exten', '42302'))
+
+            until.assert_(call_log_has_transformed_number, tries=5)
 
     def test_given_cels_with_unknown_line_identities_when_generate_call_log_then_no_user_uuid(self):
         linkedid = '123456789.1011'
