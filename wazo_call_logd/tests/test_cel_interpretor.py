@@ -269,6 +269,21 @@ class TestCallerCELInterpretor(TestCase):
             has_property('source_exten', cel_cid_num)
         ))
 
+    def test_interpret_app_start_when_cid_name_is_empty_and_number_is_not_then_change_exten(self):
+        cel = Mock()
+        cel_userfield = cel.userfield = 'userfield'
+        cel.cid_name = ''
+        cel.cid_num = sentinel.new_number
+        call = Mock(RawCallLog, source_name=sentinel.original_name)
+
+        result = self.caller_cel_interpretor.interpret_app_start(cel, call)
+
+        assert_that(result, all_of(
+            has_property('user_field', cel_userfield),
+            has_property('source_name', sentinel.original_name),
+            has_property('source_exten', sentinel.new_number),
+        ))
+
     def test_interpret_answer_no_destination_yet(self):
         cel = Mock(cid_name=sentinel.destination_exten)
         call = Mock(RawCallLog, destination_exten=None)
