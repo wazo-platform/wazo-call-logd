@@ -6,7 +6,7 @@ import pprint
 
 from hamcrest import assert_that, empty
 
-from .test_api.base import IntegrationTest
+from .helpers.base import IntegrationTest
 
 
 class TestDocumentation(IntegrationTest):

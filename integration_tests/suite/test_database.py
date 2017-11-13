@@ -9,7 +9,7 @@ from hamcrest import has_entry
 
 from xivo_test_helpers import until
 
-from .test_api.base import IntegrationTest
+from .helpers.base import IntegrationTest
 
 logger = logging.getLogger(__name__)
 

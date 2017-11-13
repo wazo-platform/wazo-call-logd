@@ -20,11 +20,11 @@ from hamcrest import only_contains
 from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.hamcrest.raises import raises
 
-from .test_api.auth import MockUserToken
-from .test_api.base import IntegrationTest
-from .test_api.constants import NON_USER_TOKEN
-from .test_api.constants import VALID_TOKEN
-from .test_api.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
+from .helpers.auth import MockUserToken
+from .helpers.base import IntegrationTest
+from .helpers.constants import NON_USER_TOKEN
+from .helpers.constants import VALID_TOKEN
+from .helpers.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
 
 SOME_USER_UUID = '7a0c6fe6-219d-4977-80e4-1bfc7ab0b289'
 USER_1_UUID = '11111111-1111-1111-1111-111111111111'

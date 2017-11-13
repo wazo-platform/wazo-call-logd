@@ -14,8 +14,8 @@ from hamcrest import not_
 from hamcrest import none
 from xivo_test_helpers import until
 
-from .test_api.base import IntegrationTest
-from .test_api.confd import MockUser, MockLine
+from .helpers.base import IntegrationTest
+from .helpers.confd import MockUser, MockLine
 
 
 # this decorator takes the output of a psql and changes it into a list of dict
