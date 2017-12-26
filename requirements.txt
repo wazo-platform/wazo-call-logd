@@ -5,13 +5,13 @@ git+https://github.com/wazo-pbx/xivo-dao.git
 git+https://github.com/wazo-pbx/xivo-lib-python.git
 git+https://github.com/wazo-pbx/xivo-lib-rest-client.git  # from xivo-*-client
 cheroot==5.5.0
-flask==0.10.1
+flask==0.12.1
 flask-restful==0.3.5
 flask-cors==1.10.3
-kombu==3.0.34
+kombu==3.0.35
 marshmallow==2.10.3
-psycopg2==2.5.4
-pyyaml==3.11
-requests==2.4.3  # from xivo-*-client
-sqlalchemy==0.9.8
+psycopg2==2.6.2
+pyyaml==3.12
+requests==2.12.4  # from xivo-*-client
+sqlalchemy==1.0.15
 stevedore==1.17.1
