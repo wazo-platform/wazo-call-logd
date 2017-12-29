@@ -88,7 +88,7 @@ class CallLogDAO(object):
             order_field = None
             if params.get('order'):
                 if params['order'] == 'marshmallow_duration':
-                    order_field = CallLogSchema.date_end-CallLogSchema.date_answer
+                    order_field = CallLogSchema.date_end - CallLogSchema.date_answer
                 elif params['order'] == 'marshmallow_answered':
                     order_field = CallLogSchema.date_answer
                 else:
