@@ -9,7 +9,7 @@ X-Python3-Version: >= 3.4
 Package: wazo-call-logd
 Architecture: all
 Section: python
-Depends: ${python:Depends},
+Depends: ${python3:Depends},
          ${misc:Depends},
          adduser,
          python3-cheroot,
