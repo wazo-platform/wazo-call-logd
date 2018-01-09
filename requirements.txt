@@ -7,7 +7,7 @@ git+https://github.com/wazo-pbx/xivo-lib-rest-client.git  # from xivo-*-client
 cheroot==5.5.0
 flask==0.12.1
 flask-restful==0.3.5
-flask-cors==1.10.3
+flask-cors==3.0.2
 kombu==3.0.35
 marshmallow==2.10.3
 psycopg2==2.6.2
