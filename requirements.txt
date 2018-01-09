@@ -5,6 +5,7 @@ git+https://github.com/wazo-pbx/xivo-dao.git
 git+https://github.com/wazo-pbx/xivo-lib-python.git
 git+https://github.com/wazo-pbx/xivo-lib-rest-client.git  # from xivo-*-client
 cheroot==5.5.0
+dateutil==2.5.3  # from marshmallow, to accept more date formats
 flask==0.12.1
 flask-restful==0.3.5
 flask-cors==3.0.2
