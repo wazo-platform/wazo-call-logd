@@ -119,9 +119,13 @@ class TestGetCDRId(IntegrationTest):
          'direction': 'internal',
          'source_exten': '7687',
          'source_name': 'soùr.',
-         'participants': [{'user_uuid': '1',
-                           'line_id': '1',
-                           'tags': ['rh', 'Poudlard']}]}
+         'participants': [{'user_uuid': 'user1',
+                           'line_id': '11',
+                           'tags': ['rh', 'Poudlard'],
+                           'role': 'source'},
+                          {'user_uuid': 'user2',
+                           'line_id': '22',
+                           'role': 'destination'}]}
     ])
     def test_given_id_when_get_cdr_by_id_then_get_cdr_by_id(self):
         result = self.call_logd.cdr.get_by_id(12)
@@ -135,10 +139,14 @@ class TestGetCDRId(IntegrationTest):
                 end='2017-03-23T00:02:27+00:00',
                 destination_extension='3378',
                 destination_name='dést,ination',
+                destination_user_uuid='user2',
+                destination_line_id=22,
                 duration=87,
                 call_direction='internal',
                 source_extension='7687',
                 source_name='soùr.',
+                source_user_uuid='user1',
+                source_line_id=11,
                 tags=contains_inanyorder('rh', 'Poudlard')
             )
         )

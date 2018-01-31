@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from contextlib import contextmanager
@@ -73,7 +73,9 @@ class CallLogDAO(object):
 
     def get_by_id(self, cdr_id):
         with self.new_session() as session:
-            cdr = session.query(CallLogSchema).options(joinedload('participants')).get(cdr_id)
+            cdr = session.query(CallLogSchema).options(joinedload('participants'),
+                                                       joinedload('source_participant'),
+                                                       joinedload('destination_participant')).get(cdr_id)
             if cdr:
                 session.expunge_all()
                 return cdr
@@ -81,7 +83,9 @@ class CallLogDAO(object):
     def find_all_in_period(self, params):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
-            query = query.options(joinedload('participants'))
+            query = query.options(joinedload('participants'),
+                                  joinedload('source_participant'),
+                                  joinedload('destination_participant'))
 
             query = self._apply_filters(query, params)
 
