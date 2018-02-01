@@ -81,83 +81,29 @@ class TestCallLogGeneration(IntegrationTest):
 
             until.assert_(call_log_has_transformed_number, tries=5)
 
+    @raw_cels('''\
+eventtype    | eventtime                  | channame            |      uniqueid | linkedid
+-------------+----------------------------+---------------------+---------------+---------------
+CHAN_START   | 2015-06-18 14:08:56.910686 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+APP_START    | 2015-06-18 14:08:57.014249 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+CHAN_START   | 2015-06-18 14:08:57.019202 | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+ANSWER       | 2015-06-18 14:08:59.864053 | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+ANSWER       | 2015-06-18 14:08:59.877155 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+BRIDGE_ENTER | 2015-06-18 14:08:59.878    | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+BRIDGE_ENTER | 2015-06-18 14:08:59.87976  | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+BRIDGE_EXIT  | 2015-06-18 14:09:02.250446 | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+HANGUP       | 2015-06-18 14:09:02.26592  | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+CHAN_END     | 2015-06-18 14:09:02.267146 | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+BRIDGE_EXIT  | 2015-06-18 14:09:02.268    | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+HANGUP       | 2015-06-18 14:09:02.269498 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+CHAN_END     | 2015-06-18 14:09:02.271033 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+''')
     def test_given_cels_with_unknown_line_identities_when_generate_call_log_then_no_user_uuid(self):
         linkedid = '123456789.1011'
-        cels = [
-            {'eventtype': 'CHAN_START',
-             'eventtime': '2015-06-18 14:08:56.910686',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'APP_START',
-             'eventtime': '2015-06-18 14:08:57.014249',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'CHAN_START',
-             'eventtime': '2015-06-18 14:08:57.019202',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'ANSWER',
-             'eventtime': '2015-06-18 14:08:59.864053',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'ANSWER',
-             'eventtime': '2015-06-18 14:08:59.877155',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'BRIDGE_ENTER',
-             'eventtime': '2015-06-18 14:08:59.878',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'BRIDGE_ENTER',
-             'eventtime': '2015-06-18 14:08:59.87976',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'BRIDGE_EXIT',
-             'eventtime': '2015-06-18 14:09:02.250446',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'HANGUP',
-             'eventtime': '2015-06-18 14:09:02.26592',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'CHAN_END',
-             'eventtime': '2015-06-18 14:09:02.267146',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'BRIDGE_EXIT',
-             'eventtime': '2015-06-18 14:09:02.268',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'HANGUP',
-             'eventtime': '2015-06-18 14:09:02.269498',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'CHAN_END',
-             'eventtime': '2015-06-18 14:09:02.271033',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'LINKEDID_END',
-             'eventtime': '2015-06-18 14:09:02.272325',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-        ]
         msg_accumulator_1 = self.bus.accumulator('call_log.created')
         msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
-        with self.cels(cels), self.no_call_logs():
+        with self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_has_no_user_uuid():
@@ -180,85 +126,31 @@ class TestCallLogGeneration(IntegrationTest):
             until.assert_(bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25)
             until.assert_(bus_event_call_log_user_created, msg_accumulator_2, tries=10, interval=0.25)
 
+    @raw_cels('''\
+eventtype    | eventtime                  | channame            |      uniqueid | linkedid
+-------------+----------------------------+---------------------+---------------+---------------
+CHAN_START   | 2015-06-18 14:08:56.910686 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+APP_START    | 2015-06-18 14:08:57.014249 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+CHAN_START   | 2015-06-18 14:08:57.019202 | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+ANSWER       | 2015-06-18 14:08:59.864053 | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+ANSWER       | 2015-06-18 14:08:59.877155 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+BRIDGE_ENTER | 2015-06-18 14:08:59.878    | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+BRIDGE_ENTER | 2015-06-18 14:08:59.87976  | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+BRIDGE_EXIT  | 2015-06-18 14:09:02.250446 | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+HANGUP       | 2015-06-18 14:09:02.26592  | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+CHAN_END     | 2015-06-18 14:09:02.267146 | SIP/je5qtq-00000020 | 1434650937.32 | 123456789.1011
+BRIDGE_EXIT  | 2015-06-18 14:09:02.268    | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+HANGUP       | 2015-06-18 14:09:02.269498 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+CHAN_END     | 2015-06-18 14:09:02.271033 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
+''')
     def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid(self):
         linkedid = '123456789.1011'
-        cels = [
-            {'eventtype': 'CHAN_START',
-             'eventtime': '2015-06-18 14:08:56.910686',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'APP_START',
-             'eventtime': '2015-06-18 14:08:57.014249',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'CHAN_START',
-             'eventtime': '2015-06-18 14:08:57.019202',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'ANSWER',
-             'eventtime': '2015-06-18 14:08:59.864053',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'ANSWER',
-             'eventtime': '2015-06-18 14:08:59.877155',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'BRIDGE_ENTER',
-             'eventtime': '2015-06-18 14:08:59.878',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'BRIDGE_ENTER',
-             'eventtime': '2015-06-18 14:08:59.87976',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'BRIDGE_EXIT',
-             'eventtime': '2015-06-18 14:09:02.250446',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'HANGUP',
-             'eventtime': '2015-06-18 14:09:02.26592',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'CHAN_END',
-             'eventtime': '2015-06-18 14:09:02.267146',
-             'channame': 'SIP/je5qtq-00000020',
-             'uniqueid': '1434650937.32',
-             'linkedid': linkedid},
-            {'eventtype': 'BRIDGE_EXIT',
-             'eventtime': '2015-06-18 14:09:02.268',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'HANGUP',
-             'eventtime': '2015-06-18 14:09:02.269498',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'CHAN_END',
-             'eventtime': '2015-06-18 14:09:02.271033',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-            {'eventtype': 'LINKEDID_END',
-             'eventtime': '2015-06-18 14:09:02.272325',
-             'channame': 'SIP/as2mkq-0000001f',
-             'uniqueid': '1434650936.31',
-             'linkedid': linkedid},
-        ]
         self.confd.set_users(MockUser('user_1_uuid', line_ids=[1]), MockUser('user_2_uuid', line_ids=[2]))
         self.confd.set_lines(MockLine(id=1, name='as2mkq', users=[{'uuid': 'user_1_uuid'}]), MockLine(id=2, name='je5qtq', users=[{'uuid': 'user_2_uuid'}]))
         msg_accumulator_1 = self.bus.accumulator('call_log.created')
         msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
-        with self.cels(cels), self.no_call_logs():
+        with self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_has_both_user_uuid():
