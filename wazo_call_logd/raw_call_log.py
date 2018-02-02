@@ -1,4 +1,4 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from xivo_dao.alchemy.call_log import CallLog
@@ -13,6 +13,8 @@ class RawCallLog(object):
         self.date_end = None
         self.source_name = None
         self.source_exten = None
+        self.requested_exten = None
+        self.requested_context = None
         self.destination_name = None
         self.destination_exten = None
         self.user_field = None
@@ -22,6 +24,7 @@ class RawCallLog(object):
         self.direction = 'internal'
         self.participants = []
         self.cel_ids = []
+        self.interpret_callee_bridge_enter = True
 
     def to_call_log(self):
         if not self.date:
@@ -35,6 +38,8 @@ class RawCallLog(object):
             date_end=self.date_end,
             source_name=self.source_name,
             source_exten=self.source_exten,
+            requested_exten=self.requested_exten,
+            requested_context=self.requested_context,
             destination_name=self.destination_name,
             destination_exten=self.destination_exten,
             user_field=self.user_field,

@@ -1,4 +1,4 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -101,6 +101,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.date = cel.eventtime
         call.source_name = cel.cid_name
         call.source_exten = cel.cid_num
+        call.requested_exten = cel.exten if cel.exten != 's' else ''
+        call.requested_context = cel.context
         call.destination_exten = cel.exten if cel.exten != 's' else ''
         call.source_line_identity = identity_from_channel(cel.channame)
         participant = find_participant(self._confd, cel.channame, role='source')
@@ -125,6 +127,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_answer(self, cel, call):
         if not call.destination_exten:
             call.destination_exten = cel.cid_name
+        if not call.requested_exten:
+            call.requested_exten = cel.cid_num
 
         return call
 
@@ -139,6 +143,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_xivo_from_s(self, cel, call):
+        call.requested_exten = cel.exten
+        call.requested_context = cel.context
         call.destination_exten = cel.exten
 
         return call
@@ -158,6 +164,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
     def __init__(self, confd):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
+            CELEventType.bridge_enter: self.interpret_bridge_enter,
+            CELEventType.bridge_start: self.interpret_bridge_enter,
         }
         self._confd = confd
 
@@ -167,6 +175,13 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         if participant:
             call.participants.append(participant)
 
+        return call
+
+    def interpret_bridge_enter(self, cel, call):
+        if call.interpret_callee_bridge_enter:
+            call.destination_exten = cel.cid_num
+            call.destination_name = cel.cid_name
+            call.interpret_callee_bridge_enter = False
         return call
 
 

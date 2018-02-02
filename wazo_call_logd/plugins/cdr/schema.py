@@ -22,6 +22,8 @@ class CDRSchema(Schema):
     source_extension = fields.String(attribute='source_exten')
     source_user_uuid = fields.UUID()
     source_line_id = fields.Integer()
+    requested_extension = fields.String(attribute='requested_exten')
+    requested_context = fields.String()
     call_direction = fields.String(attribute='direction')
     destination_name = fields.String()
     destination_extension = fields.String(attribute='destination_exten')
