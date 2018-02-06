@@ -1,14 +1,15 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from marshmallow import fields
 from marshmallow import post_load
 from marshmallow import Schema
 from marshmallow import pre_dump, pre_load, post_dump
-from marshmallow.validate import OneOf
-from marshmallow.validate import Range
-from marshmallow.validate import Regexp
-
+from marshmallow.validate import (
+    OneOf,
+    Range,
+    Regexp,
+)
 NUMBER_REGEX = r'^_?[0-9]+_?$'
 
 
@@ -19,9 +20,15 @@ class CDRSchema(Schema):
     end = fields.DateTime(attribute='date_end')
     source_name = fields.String()
     source_extension = fields.String(attribute='source_exten')
+    source_user_uuid = fields.UUID()
+    source_line_id = fields.Integer()
+    requested_extension = fields.String(attribute='requested_exten')
+    requested_context = fields.String()
     call_direction = fields.String(attribute='direction')
     destination_name = fields.String()
     destination_extension = fields.String(attribute='destination_exten')
+    destination_user_uuid = fields.UUID()
+    destination_line_id = fields.Integer()
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     answered = fields.Boolean(attribute='marshmallow_answered')
     tags = fields.List(fields.String(), attribute='marshmallow_tags')

@@ -25,9 +25,9 @@ call-logd:
     - "../../..:/usr/src/wazo-call-logd"
     - "./etc/wazo-call-logd:/etc/wazo-call-logd"
     - "./ssl:/usr/local/share/ssl"
-    # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.4/site-packages/xivo"
-    # - "${LOCAL_GIT_REPOS}/xivo-dao/xivo_dao:/usr/local/lib/python3.4/site-packages/xivo_dao"
-    # - "${LOCAL_GIT_REPOS}/xivo-bus/xivo_bus:/usr/local/lib/python3.4/site-packages/xivo_bus"
+    # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.5/site-packages/xivo"
+    # - "${LOCAL_GIT_REPOS}/xivo-dao/xivo_dao:/usr/local/lib/python3.5/site-packages/xivo_dao"
+    # - "${LOCAL_GIT_REPOS}/xivo-bus/xivo_bus:/usr/local/lib/python3.5/site-packages/xivo_bus"
   ports:
     - "9298"
   links:

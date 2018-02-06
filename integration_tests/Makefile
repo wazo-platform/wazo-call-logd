@@ -1,3 +1,6 @@
+MANAGE_DB_DIR ?= ../../manage-db/
+POSTGRES_DOCKER=$(MANAGE_DB_DIR)/contribs/postgres-test/Dockerfile
+
 test-setup: call-logd docker-pull egg-info
 
 egg-info:
@@ -15,3 +18,6 @@ docker-pull:
 call-logd:
 	docker build -t wazopbx/wazo-call-logd ..
 	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..
+
+update-db:
+	docker build --no-cache -t wazopbx/postgres-test -f $(POSTGRES_DOCKER) $(MANAGE_DB_DIR)

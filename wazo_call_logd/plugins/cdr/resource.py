@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -25,10 +25,14 @@ CSV_HEADERS = ['id',
                'end',
                'destination_extension',
                'destination_name',
+               'destination_user_uuid',
+               'destination_line_id',
                'duration',
                'call_direction',
                'source_extension',
                'source_name',
+               'source_user_uuid',
+               'source_line_id',
                'tags']
 
 
