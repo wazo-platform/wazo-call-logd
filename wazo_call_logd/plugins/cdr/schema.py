@@ -14,6 +14,10 @@ NUMBER_REGEX = r'^_?[0-9]+_?$'
 
 
 class CDRSchema(Schema):
+
+    class Meta(object):
+        strict = True
+
     id = fields.Integer()
     start = fields.DateTime(attribute='date')
     answer = fields.DateTime(attribute='date_answer')

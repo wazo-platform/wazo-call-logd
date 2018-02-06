@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import csv
@@ -119,11 +119,11 @@ class TestGetCDRId(IntegrationTest):
          'direction': 'internal',
          'source_exten': '7687',
          'source_name': 'soùr.',
-         'participants': [{'user_uuid': 'user1',
+         'participants': [{'user_uuid': USER_1_UUID,
                            'line_id': '11',
                            'tags': ['rh', 'Poudlard'],
                            'role': 'source'},
-                          {'user_uuid': 'user2',
+                          {'user_uuid': USER_2_UUID,
                            'line_id': '22',
                            'role': 'destination'}]}
     ])
@@ -139,13 +139,13 @@ class TestGetCDRId(IntegrationTest):
                 end='2017-03-23T00:02:27+00:00',
                 destination_extension='3378',
                 destination_name='dést,ination',
-                destination_user_uuid='user2',
+                destination_user_uuid=USER_2_UUID,
                 destination_line_id=22,
                 duration=87,
                 call_direction='internal',
                 source_extension='7687',
                 source_name='soùr.',
-                source_user_uuid='user1',
+                source_user_uuid=USER_1_UUID,
                 source_line_id=11,
                 tags=contains_inanyorder('rh', 'Poudlard')
             )
@@ -161,9 +161,10 @@ class TestGetCDRId(IntegrationTest):
          'direction': 'internal',
          'source_exten': '7687',
          'source_name': 'soùr.',
-         'participants': [{'user_uuid': '1',
+         'participants': [{'user_uuid': USER_1_UUID,
                            'line_id': '1',
-                           'tags': ['rh', 'Poudlard']}]}
+                           'tags': ['rh', 'Poudlard'],
+                           'role': 'source'}]}
     ])
     def test_given_id_when_get_cdr_by_id_csv_then_get_cdr_by_id_csv(self):
         result_raw = self.call_logd.cdr.get_by_id_csv(12)
@@ -182,6 +183,7 @@ class TestGetCDRId(IntegrationTest):
                 call_direction='internal',
                 source_extension='7687',
                 source_name='soùr.',
+                source_user_uuid=USER_1_UUID,
                 tags=any_of('rh;Poudlard', 'Poudlard;rh'),
             )
         )
@@ -208,9 +210,10 @@ class TestListCDR(IntegrationTest):
          'direction': 'internal',
          'source_exten': '7687',
          'source_name': 'soùr.',
-         'participants': [{'user_uuid': '1',
+         'participants': [{'user_uuid': USER_1_UUID,
                            'line_id': '1',
-                           'tags': ['rh', 'Poudlard']}]},
+                           'tags': ['rh', 'Poudlard'],
+                           'role': 'source'}]},
         {'id': 34,
          'date': '2017-03-23 11:11:11',
          'date_answer': None,
@@ -236,6 +239,7 @@ class TestListCDR(IntegrationTest):
                         call_direction='internal',
                         source_extension='7687',
                         source_name='soùr.',
+                        source_user_uuid=USER_1_UUID,
                         tags=contains_inanyorder('rh', 'Poudlard')),
             has_entries(id=34,
                         answered=False,
@@ -263,9 +267,10 @@ class TestListCDR(IntegrationTest):
          'direction': 'internal',
          'source_exten': '7687',
          'source_name': 'soùr.',
-         'participants': [{'user_uuid': '1',
+         'participants': [{'user_uuid': USER_1_UUID,
                            'line_id': '1',
-                           'tags': ['rh', 'Poudlard']}]},
+                           'tags': ['rh', 'Poudlard'],
+                           'role': 'source'}]},
         {'id': 34,
          'date': '2017-03-23 11:11:11',
          'date_answer': None,
@@ -293,6 +298,7 @@ class TestListCDR(IntegrationTest):
                 call_direction='internal',
                 source_extension='7687',
                 source_name='soùr.',
+                source_user_uuid=USER_1_UUID,
                 tags=any_of('rh;Poudlard', 'Poudlard;rh')
             ), has_entries(
                 id='34',
@@ -504,12 +510,12 @@ class TestListCDR(IntegrationTest):
         assert_that(result, has_entries(filtered=0, total=4, items=empty()))
 
     @call_logs([
-        {'date': '2017-04-11', 'participants': [{'user_uuid': '1', 'tags': ['quebec']}]},
+        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID, 'tags': ['quebec']}]},
         {'date': '2017-04-12'},
-        {'date': '2017-04-13', 'participants': [{'user_uuid': '1', 'tags': ['quebec', 'montreal']}]},
-        {'date': '2017-04-14', 'participants': [{'user_uuid': '1', 'tags': ['chicoutimi']},
-                                                {'user_uuid': '1', 'tags': ['roberval']}]},
-        {'date': '2017-04-15', 'participants': [{'user_uuid': '1', 'tags': ['alma', 'roberval', 'jonquiere']}]},
+        {'date': '2017-04-13', 'participants': [{'user_uuid': USER_1_UUID, 'tags': ['quebec', 'montreal']}]},
+        {'date': '2017-04-14', 'participants': [{'user_uuid': USER_1_UUID, 'tags': ['chicoutimi']},
+                                                {'user_uuid': USER_1_UUID, 'tags': ['roberval']}]},
+        {'date': '2017-04-15', 'participants': [{'user_uuid': USER_1_UUID, 'tags': ['alma', 'roberval', 'jonquiere']}]},
     ])
     def test_given_call_logs_when_list_cdr_with_tags_then_list_matching_cdr(self):
         result = self.call_logd.cdr.list(tags='chicoutimi')
