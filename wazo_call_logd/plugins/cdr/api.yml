@@ -230,6 +230,10 @@ definitions:
         type: string
       source_extension:
         type: string
+      requested_extension:
+        type: string
+      requested_context:
+        type: string
       destination_name:
         type: string
       destination_extension:

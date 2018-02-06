@@ -1,6 +1,15 @@
 Changelog
 =========
 
+18.03
+------
+
+* `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` return new fields:
+
+  * `requested_exten`
+  * `requested_context`
+
+
 17.12
 -----
 
