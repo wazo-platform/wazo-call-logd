@@ -1,4 +1,4 @@
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -31,7 +31,10 @@ class _CELConsumer(ConsumerMixin):
         self.connection = connection
         self._call_logs_manager = call_logs_manager
 
-        super(_CELConsumer, self).run()
+        try:
+            super(_CELConsumer, self).run()
+        except Exception:
+            logger.exception('An error occured while processing bus events')
 
 
 class BusClient(object):
