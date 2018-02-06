@@ -51,10 +51,10 @@ class DispatchCELInterpretor(object):
     def split_caller_callee_cels(self, cels):
         uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == CELEventType.chan_start]
         caller_uniqueid = uniqueids[0] if len(uniqueids) > 0 else None
-        callee_uniqueid = uniqueids[1] if len(uniqueids) > 1 else None
+        callee_uniqueids = uniqueids[1:]
 
         caller_cels = [cel for cel in cels if cel.uniqueid == caller_uniqueid]
-        callee_cels = [cel for cel in cels if cel.uniqueid == callee_uniqueid]
+        callee_cels = [cel for cel in cels if cel.uniqueid in callee_uniqueids]
 
         return (caller_cels, callee_cels)
 

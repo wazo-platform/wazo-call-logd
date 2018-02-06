@@ -109,7 +109,7 @@ class TestCELDispatcher(TestCase):
                                      contains(cel_2, cel_4)))
 
     def test_split_caller_callee_cels_3_uniqueids(self):
-        cels = cel_1, cel_2, _ = [
+        cels = cel_1, cel_2, cel_3 = [
             Mock(uniqueid=1, eventtype='CHAN_START'),
             Mock(uniqueid=2, eventtype='CHAN_START'),
             Mock(uniqueid=3, eventtype='CHAN_START'),
@@ -118,7 +118,7 @@ class TestCELDispatcher(TestCase):
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 
         assert_that(result, contains(contains(cel_1),
-                                     contains(cel_2)))
+                                     contains(cel_2, cel_3)))
 
 
 class TestAbstractCELInterpretor(TestCase):
