@@ -3,19 +3,24 @@
 
 import logging
 
-from flask import jsonify
-from flask import make_response
-from flask import request
 from io import StringIO
+
+from flask import (
+    jsonify,
+    make_response,
+    request,
+)
 from xivo.auth_verifier import required_acl
 from xivo.unicode_csv import UnicodeDictWriter
 from wazo_call_logd.auth import get_token_user_uuid_from_request
 from wazo_call_logd.rest_api import AuthResource
 
 from .exceptions import CDRNotFoundException
-from .schema import CDRSchema
-from .schema import CDRSchemaList
-from .schema import CDRListRequestSchema
+from .schema import (
+    CDRSchema,
+    CDRSchemaList,
+    CDRListRequestSchema,
+)
 
 logger = logging.getLogger(__name__)
 CSV_HEADERS = ['id',
