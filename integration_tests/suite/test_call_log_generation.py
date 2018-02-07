@@ -1,21 +1,26 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from functools import wraps
 from contextlib import contextmanager
-from hamcrest import assert_that
-from hamcrest import contains_inanyorder
-from hamcrest import empty
-from hamcrest import has_entries
-from hamcrest import has_key
-from hamcrest import has_properties
-from hamcrest import is_
-from hamcrest import not_
-from hamcrest import none
+from hamcrest import (
+    assert_that,
+    contains_inanyorder,
+    empty,
+    has_entries,
+    has_key,
+    has_properties,
+    is_,
+    not_,
+    none,
+)
 from xivo_test_helpers import until
 
 from .helpers.base import IntegrationTest
 from .helpers.confd import MockUser, MockLine
+
+USER_1_UUID = '11111111-1111-1111-1111-111111111111'
+USER_2_UUID = '22222222-2222-2222-2222-222222222222'
 
 
 # this decorator takes the output of a psql and changes it into a list of dict
@@ -146,8 +151,13 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 ''')
     def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid(self):
         linkedid = '123456789.1011'
-        self.confd.set_users(MockUser('user_1_uuid', line_ids=[1]), MockUser('user_2_uuid', line_ids=[2]))
-        self.confd.set_lines(MockLine(id=1, name='as2mkq', users=[{'uuid': 'user_1_uuid'}]), MockLine(id=2, name='je5qtq', users=[{'uuid': 'user_2_uuid'}]))
+        self.confd.set_users(
+            MockUser(USER_1_UUID, line_ids=[1]), MockUser(USER_2_UUID, line_ids=[2])
+        )
+        self.confd.set_lines(
+            MockLine(id=1, name='as2mkq', users=[{'uuid': USER_1_UUID}]),
+            MockLine(id=2, name='je5qtq', users=[{'uuid': USER_2_UUID}])
+        )
         msg_accumulator_1 = self.bus.accumulator('call_log.created')
         msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
         with self.no_call_logs():
@@ -158,7 +168,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, is_(not_(none())))
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
-                    assert_that(user_uuids, contains_inanyorder('user_1_uuid', 'user_2_uuid'))
+                    assert_that(user_uuids, contains_inanyorder(USER_1_UUID, USER_2_UUID))
 
             def bus_event_call_log_created(accumulator):
                 assert_that(accumulator.accumulate(), contains_inanyorder(has_entries(
@@ -170,12 +180,12 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 assert_that(accumulator.accumulate(), contains_inanyorder(
                     has_entries(
                         name='call_log_user_created',
-                        required_acl='events.call_log.user.user_1_uuid.created',
+                        required_acl='events.call_log.user.{}.created'.format(USER_1_UUID),
                         data=not_(has_key('tags')),
                     ),
                     has_entries(
                         name='call_log_user_created',
-                        required_acl='events.call_log.user.user_2_uuid.created',
+                        required_acl='events.call_log.user.{}.created'.format(USER_2_UUID),
                         data=not_(has_key('tags')),
                     )
                 ))
