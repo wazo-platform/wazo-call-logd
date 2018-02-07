@@ -1,28 +1,30 @@
 # Copyright 2013-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import datetime
-
 from unittest import TestCase
-from hamcrest import all_of
-from hamcrest import assert_that
-from hamcrest import contains
-from hamcrest import equal_to
-from hamcrest import has_property
-from hamcrest import has_properties
-from hamcrest import none
-from hamcrest import same_instance
-from mock import Mock
-from mock import sentinel
-from xivo_dao.resources.cel.event_type import CELEventType
-from xivo_dao.alchemy.call_log import CallLog
 
-from wazo_call_logd.cel_interpretor import AbstractCELInterpretor
-from wazo_call_logd.cel_interpretor import CallerCELInterpretor
-from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
-from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
-from wazo_call_logd.cel_interpretor import find_participant
-from wazo_call_logd.raw_call_log import RawCallLog
+from hamcrest import (
+    assert_that,
+    contains,
+    equal_to,
+    has_properties,
+    none,
+    same_instance,
+)
+from mock import (
+    Mock,
+    sentinel,
+)
+
+from xivo_dao.resources.cel.event_type import CELEventType
+
+from ..cel_interpretor import (
+    AbstractCELInterpretor,
+    CallerCELInterpretor,
+    DispatchCELInterpretor,
+    find_participant,
+)
+from ..raw_call_log import RawCallLog
 
 
 def confd_mock(lines=None):
