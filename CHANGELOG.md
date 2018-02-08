@@ -1,7 +1,7 @@
 Changelog
 =========
 
-18.03
+18.02
 ------
 
 * `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` return new fields:
