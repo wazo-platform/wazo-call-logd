@@ -8,6 +8,10 @@ Changelog
 
   * `requested_exten`
   * `requested_context`
+  * `destination_user_uuid`
+  * `destination_line_id`
+  * `source_user_uuid`
+  * `source_line_id`
 
 
 17.12
