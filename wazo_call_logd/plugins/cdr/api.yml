@@ -230,6 +230,10 @@ definitions:
         type: string
       source_extension:
         type: string
+      source_user_uuid:
+        type: string
+      source_line_id:
+        type: integer
       requested_extension:
         type: string
       requested_context:
@@ -238,6 +242,10 @@ definitions:
         type: string
       destination_extension:
         type: string
+      destination_user_uuid:
+        type: string
+      destination_line_id:
+        type: integer
       duration:
         type: integer
         description: Duration of the call, in seconds.
