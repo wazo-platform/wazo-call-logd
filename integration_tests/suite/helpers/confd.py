@@ -1,4 +1,4 @@
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import requests
@@ -79,11 +79,12 @@ class MockUser(object):
 
 class MockLine(object):
 
-    def __init__(self, id, name=None, protocol=None, users=None, context=None):
+    def __init__(self, id, name=None, protocol=None, users=None, context=None, extensions=None):
         self._id = id
         self._name = name
         self._protocol = protocol
         self._users = users or []
+        self._extensions = extensions or []
         self._context = context
 
     def id_(self):
@@ -99,6 +100,7 @@ class MockLine(object):
             'protocol': self._protocol,
             'context': self._context,
             'users': self._users,
+            'extensions': self._extensions,
         }
 
 

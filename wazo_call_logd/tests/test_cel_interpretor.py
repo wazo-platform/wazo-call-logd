@@ -23,6 +23,7 @@ from ..cel_interpretor import (
     CallerCELInterpretor,
     DispatchCELInterpretor,
     find_participant,
+    find_main_internal_extension,
 )
 from ..raw_call_log import RawCallLog
 
@@ -31,7 +32,7 @@ def confd_mock(lines=None):
     lines = lines or []
     confd = Mock()
     confd.lines.list.return_value = {'items': lines}
-    confd.users.get.return_value = lines[0]['users'][0] if lines and lines[0]['users'] else None
+    confd.users.get.return_value = lines[0]['users'][0] if lines and lines[0].get('users') else None
     return confd
 
 
@@ -74,6 +75,44 @@ class TestFindParticipant(TestCase):
                                            user_uuid='user_uuid',
                                            line_id=12,
                                            tags=['user_userfield', 'toto']))
+
+
+class TestFindMainInternalExtension(TestCase):
+
+    def test_find_main_internal_extension_when_channame_is_not_parsable(self):
+        confd = confd_mock()
+        channame = 'something'
+
+        result = find_main_internal_extension(confd, channame)
+
+        assert_that(result, none())
+
+    def test_find_main_internal_extension_when_no_lines(self):
+        confd = confd_mock()
+        channame = 'sip/something-suffix'
+
+        result = find_main_internal_extension(confd, channame)
+
+        assert_that(result, none())
+
+    def test_find_main_internal_extension_when_line_has_no_extensions(self):
+        lines = [{'id': 12, 'extensions': []}]
+        confd = confd_mock(lines)
+        channame = 'sip/something-suffix'
+
+        result = find_main_internal_extension(confd, channame)
+
+        assert_that(result, none())
+
+    def test_find_main_internal_extension_when_line_has_user(self):
+        extension = {'exten': '101', 'context': 'default'}
+        lines = [{'id': 12, 'extensions': [extension]}]
+        confd = confd_mock(lines)
+        channame = 'sip/something-suffix'
+
+        result = find_main_internal_extension(confd, channame)
+
+        assert_that(result, equal_to(extension))
 
 
 class TestCELDispatcher(TestCase):

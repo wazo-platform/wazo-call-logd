@@ -17,7 +17,10 @@ from hamcrest import (
 from xivo_test_helpers import until
 
 from .helpers.base import IntegrationTest
-from .helpers.confd import MockUser, MockLine
+from .helpers.confd import (
+    MockLine,
+    MockUser,
+)
 
 USER_1_UUID = '11111111-1111-1111-1111-111111111111'
 USER_2_UUID = '22222222-2222-2222-2222-222222222222'
@@ -149,14 +152,18 @@ HANGUP       | 2015-06-18 14:09:02.269498 | SIP/as2mkq-0000001f | 1434650936.31 
 CHAN_END     | 2015-06-18 14:09:02.271033 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 ''')
-    def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid(self):
+    def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid_and_internal_extension(self):
         linkedid = '123456789.1011'
         self.confd.set_users(
             MockUser(USER_1_UUID, line_ids=[1]), MockUser(USER_2_UUID, line_ids=[2])
         )
         self.confd.set_lines(
-            MockLine(id=1, name='as2mkq', users=[{'uuid': USER_1_UUID}]),
-            MockLine(id=2, name='je5qtq', users=[{'uuid': USER_2_UUID}])
+            MockLine(id=1, name='as2mkq',
+                     users=[{'uuid': USER_1_UUID}],
+                     extensions=[{'exten': '101', 'context': 'default'}]),
+            MockLine(id=2, name='je5qtq',
+                     users=[{'uuid': USER_2_UUID}],
+                     extensions=[{'exten': '102', 'context': 'default'}]),
         )
         msg_accumulator_1 = self.bus.accumulator('call_log.created')
         msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
@@ -166,7 +173,12 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             def call_log_has_both_user_uuid():
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
-                    assert_that(call_log, is_(not_(none())))
+                    assert_that(call_log, has_properties({
+                        'source_internal_exten': '101',
+                        'source_internal_context': 'default',
+                        'destination_internal_exten': '102',
+                        'destination_internal_context': 'default',
+                    }))
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
                     assert_that(user_uuids, contains_inanyorder(USER_1_UUID, USER_2_UUID))
 
