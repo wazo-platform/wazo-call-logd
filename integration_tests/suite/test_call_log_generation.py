@@ -206,6 +206,96 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             until.assert_(bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25)
             until.assert_(bus_event_call_log_user_created, msg_accumulator_2, tries=10, interval=0.25)
 
+    @raw_cels('''\
+   eventtype   |         eventtime          | cid_name | cid_num |       exten       |   context   |      channame       |   uniqueid   |   linkedid   | userfield
+---------------+----------------------------+----------+---------+-------------------+-------------+---------------------+--------------+--------------+-----------
+ CHAN_START    | 2018-04-24 14:27:17.922298 | Alicé    | 101     | 102               | default     | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ XIVO_USER_FWD | 2018-04-24 14:27:18.249093 | Alicé    | 101     | forward_voicemail | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ ANSWER        | 2018-04-24 14:27:18.748307 | Alicé    | 101     | pickup            | xivo-pickup | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ APP_START     | 2018-04-24 14:27:20.140238 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ CHAN_START    | 2018-04-24 14:27:20.169787 | Charlié  | 103     | s                 | default     | SIP/rku3uo-00000002 | 1524594440.8 | 1524594437.7 |
+ ANSWER        | 2018-04-24 14:27:26.471371 | Charlié  | 103     | s                 | default     | SIP/rku3uo-00000002 | 1524594440.8 | 1524594437.7 |
+ BRIDGE_ENTER  | 2018-04-24 14:27:26.478948 | Charlié  | 103     |                   | default     | SIP/rku3uo-00000002 | 1524594440.8 | 1524594437.7 |
+ BRIDGE_ENTER  | 2018-04-24 14:27:26.487775 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ BRIDGE_EXIT   | 2018-04-24 14:27:27.195224 | Charlié  | 103     |                   | default     | SIP/rku3uo-00000002 | 1524594440.8 | 1524594437.7 |
+ HANGUP        | 2018-04-24 14:27:27.210832 | Charlié  | 103     |                   | default     | SIP/rku3uo-00000002 | 1524594440.8 | 1524594437.7 |
+ CHAN_END      | 2018-04-24 14:27:27.213126 | Charlié  | 103     |                   | default     | SIP/rku3uo-00000002 | 1524594440.8 | 1524594437.7 |
+ BRIDGE_EXIT   | 2018-04-24 14:27:27.215685 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ HANGUP        | 2018-04-24 14:27:27.226649 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ CHAN_END      | 2018-04-24 14:27:27.250875 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ LINKEDID_END  | 2018-04-24 14:27:27.25419  | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+''')
+    def test_given_cels_of_forwarded_call_when_generate_call_log_then_requested_different_from_destination(self):
+        self.confd.set_lines(
+            MockLine(id=1, name='101',
+                     extensions=[{'exten': '101', 'context': 'default'}]),
+            MockLine(id=2, name='rku3uo',
+                     extensions=[{'exten': '103', 'context': 'default'}]),
+        )
+
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid='1524594437.7')
+
+            def call_log_has_destination_different_from_requested():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(call_log, has_properties({
+                        'source_internal_exten': '101',
+                        'source_internal_context': 'default',
+                        'requested_exten': '102',
+                        'requested_context': 'default',
+                        'destination_exten': '103',
+                        'destination_internal_exten': '103',
+                        'destination_internal_context': 'default',
+                    }))
+
+            until.assert_(call_log_has_destination_different_from_requested, tries=5)
+
+    @raw_cels('''\
+   eventtype   |         eventtime          | cid_name     | cid_num | exten  |   context   |      channame       |   uniqueid    |   linkedid
+---------------+----------------------------+--------------+---------+--------+-------------+---------------------+---------------+-------------
+ CHAN_START    | 2018-04-24 15:15:50.146287 | John Rambo   | 42309   | 999101 | from-extern | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ XIVO_INCALL   | 2018-04-24 15:15:50.2177   | John Rambo   | 42309   | s      | did         | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ APP_START     | 2018-04-24 15:15:50.541953 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ CHAN_START    | 2018-04-24 15:15:50.547682 | Arsène Lupin | 101     | s      | default     | SCCP/101-00000006   | 1524597350.10 | 1524597350.9
+ ANSWER        | 2018-04-24 15:15:52.475678 | Arsène Lupin | 101     | s      | default     | SCCP/101-00000006   | 1524597350.10 | 1524597350.9
+ ANSWER        | 2018-04-24 15:15:52.482163 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ BRIDGE_ENTER  | 2018-04-24 15:15:52.484849 | Arsène Lupin | 101     |        | default     | SCCP/101-00000006   | 1524597350.10 | 1524597350.9
+ BRIDGE_ENTER  | 2018-04-24 15:15:52.487482 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ BRIDGE_EXIT   | 2018-04-24 15:15:53.784503 | Arsène Lupin | 101     |        | default     | SCCP/101-00000006   | 1524597350.10 | 1524597350.9
+ BRIDGE_EXIT   | 2018-04-24 15:15:53.79021  | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ HANGUP        | 2018-04-24 15:15:53.798411 | Arsène Lupin | 101     |        | default     | SCCP/101-00000006   | 1524597350.10 | 1524597350.9
+ CHAN_END      | 2018-04-24 15:15:53.803513 | Arsène Lupin | 101     |        | default     | SCCP/101-00000006   | 1524597350.10 | 1524597350.9
+ HANGUP        | 2018-04-24 15:15:53.812298 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ CHAN_END      | 2018-04-24 15:15:53.819273 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ LINKEDID_END  | 2018-04-24 15:15:53.830883 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
+ ''')
+    def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(self):
+        self.confd.set_lines(
+            MockLine(id=1, name='101',
+                     extensions=[{'exten': '101', 'context': 'default'}]),
+        )
+
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid='1524597350.9')
+
+            def call_log_has_destination_different_from_requested():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(call_log, has_properties({
+                        'source_internal_exten': None,
+                        'source_internal_context': None,
+                        'requested_exten': '999101',
+                        'requested_context': 'from-extern',
+                        'requested_internal_exten': '101',
+                        'requested_internal_context': 'default',
+                        'destination_exten': '101',
+                        'destination_internal_exten': '101',
+                        'destination_internal_context': 'default',
+                    }))
+
+            until.assert_(call_log_has_destination_different_from_requested, tries=5)
+
     @contextmanager
     def cels(self, cels):
         with self.database.queries() as queries:
