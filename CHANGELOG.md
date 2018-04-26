@@ -6,7 +6,7 @@ Changelog
 
 * `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` return new fields:
 
-  * `requested_exten`
+  * `requested_extension`
   * `requested_context`
   * `destination_user_uuid`
   * `destination_line_id`
