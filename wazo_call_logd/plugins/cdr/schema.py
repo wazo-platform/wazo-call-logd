@@ -17,30 +17,31 @@ class CDRSchema(Schema):
 
     class Meta(object):
         strict = True
+        ordered = True
 
     id = fields.Integer()
     start = fields.DateTime(attribute='date')
-    answer = fields.DateTime(attribute='date_answer')
     end = fields.DateTime(attribute='date_end')
-    source_name = fields.String()
-    source_extension = fields.String(attribute='source_exten')
-    source_internal_extension = fields.String(attribute='source_internal_exten')
-    source_internal_context = fields.String()
-    source_user_uuid = fields.UUID()
-    source_line_id = fields.Integer()
-    requested_extension = fields.String(attribute='requested_exten')
-    requested_context = fields.String()
-    requested_internal_extension = fields.String(attribute='requested_internal_exten')
-    requested_internal_context = fields.String()
-    call_direction = fields.String(attribute='direction')
-    destination_name = fields.String()
-    destination_extension = fields.String(attribute='destination_exten')
-    destination_user_uuid = fields.UUID()
-    destination_line_id = fields.Integer()
-    destination_internal_extension = fields.String(attribute='destination_internal_exten')
-    destination_internal_context = fields.String()
-    duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     answered = fields.Boolean(attribute='marshmallow_answered')
+    answer = fields.DateTime(attribute='date_answer')
+    duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
+    call_direction = fields.String(attribute='direction')
+    destination_extension = fields.String(attribute='destination_exten')
+    destination_internal_context = fields.String()
+    destination_internal_extension = fields.String(attribute='destination_internal_exten')
+    destination_line_id = fields.Integer()
+    destination_name = fields.String()
+    destination_user_uuid = fields.UUID()
+    requested_context = fields.String()
+    requested_extension = fields.String(attribute='requested_exten')
+    requested_internal_context = fields.String()
+    requested_internal_extension = fields.String(attribute='requested_internal_exten')
+    source_extension = fields.String(attribute='source_exten')
+    source_internal_context = fields.String()
+    source_internal_extension = fields.String(attribute='source_internal_exten')
+    source_line_id = fields.Integer()
+    source_name = fields.String()
+    source_user_uuid = fields.UUID()
     tags = fields.List(fields.String(), attribute='marshmallow_tags')
 
     @pre_dump
@@ -98,6 +99,11 @@ class CDRListRequestSchema(Schema):
 
 
 class CDRSchemaList(Schema):
+
+    class Meta(object):
+        strict = True
+        ordered = True
+
     items = fields.Nested(CDRSchema, many=True)
     total = fields.Integer()
     filtered = fields.Integer()
