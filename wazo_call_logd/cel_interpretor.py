@@ -20,20 +20,23 @@ def find_participant(confd, channame, role):
 
     logger.debug('Looking up participant with protocol %s and line name "%s"', protocol, line_name)
     lines = confd.lines.list(name=line_name)['items']
-    if lines:
-        line = lines[0]
-        logger.debug('Found participant line id %s', line['id'])
-        users = line['users']
-        if users:
-            user = confd.users.get(users[0]['uuid'])
-            tags = [tag.strip() for tag in user['userfield'].split(',')] if user['userfield'] else []
-            logger.debug('Found participant user uuid %s', user['uuid'])
-            participant = CallLogParticipant(role=role,
-                                             user_uuid=user['uuid'],
-                                             line_id=line['id'],
-                                             tags=tags)
-            return participant
-    return None
+    if not lines:
+        return
+
+    line = lines[0]
+    logger.debug('Found participant line id %s', line['id'])
+    users = line['users']
+    if not users:
+        return
+
+    user = confd.users.get(users[0]['uuid'])
+    tags = [tag.strip() for tag in user['userfield'].split(',')] if user['userfield'] else []
+    logger.debug('Found participant user uuid %s', user['uuid'])
+    participant = CallLogParticipant(role=role,
+                                     user_uuid=user['uuid'],
+                                     line_id=line['id'],
+                                     tags=tags)
+    return participant
 
 
 def find_main_internal_extension(confd, channame):
@@ -44,15 +47,18 @@ def find_main_internal_extension(confd, channame):
 
     logger.debug('Looking up main internal extension with protocol %s and line name "%s"', protocol, line_name)
     lines = confd.lines.list(name=line_name)['items']
-    if lines:
-        line = lines[0]
-        logger.debug('Found line id %s', line['id'])
-        extensions = line['extensions']
-        if extensions:
-            main_extension = extensions[0]
-            logger.debug('Found main internal extension %s@%s', main_extension['exten'], main_extension['context'])
-            return main_extension
-    return None
+    if not lines:
+        return
+
+    line = lines[0]
+    logger.debug('Found line id %s', line['id'])
+    extensions = line['extensions']
+    if not extensions:
+        return
+
+    main_extension = extensions[0]
+    logger.debug('Found main internal extension %s@%s', main_extension['exten'], main_extension['context'])
+    return main_extension
 
 
 class DispatchCELInterpretor(object):
