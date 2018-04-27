@@ -230,6 +230,11 @@ definitions:
         type: string
       source_extension:
         type: string
+      source_internal_extension:
+        type: string
+        description: the internal extension of the line that placed the call
+      source_internal_context:
+        type: string
       source_user_uuid:
         type: string
       source_line_id:
@@ -238,9 +243,19 @@ definitions:
         type: string
       requested_context:
         type: string
+      requested_internal_extension:
+        type: string
+        description: the internal extension of the first line to ring
+      requested_internal_context:
+        type: string
       destination_name:
         type: string
       destination_extension:
+        type: string
+      destination_internal_extension:
+        type: string
+        description: the internal extension of the line that answers
+      destination_internal_context:
         type: string
       destination_user_uuid:
         type: string

@@ -13,6 +13,7 @@ docker-pull:
 	docker pull n3llyb0y/wait
 	docker pull p0bailey/docker-flask
 	docker pull swaggerapi/swagger-validator
+	docker pull wazopbx/postgres
 	docker pull wazopbx/postgres-test
 
 call-logd:

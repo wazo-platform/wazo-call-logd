@@ -1,12 +1,25 @@
 Changelog
 =========
 
+18.05
+-----
+
+* `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` return new fields:
+
+  * `source_internal_extension`
+  * `source_internal_context`
+  * `requested_internal_extension`
+  * `requested_internal_context`
+  * `destination_internal_extension`
+  * `destination_internal_context`
+
+
 18.02
 ------
 
 * `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` return new fields:
 
-  * `requested_exten`
+  * `requested_extension`
   * `requested_context`
   * `destination_user_uuid`
   * `destination_line_id`

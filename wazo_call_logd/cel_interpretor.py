@@ -20,20 +20,45 @@ def find_participant(confd, channame, role):
 
     logger.debug('Looking up participant with protocol %s and line name "%s"', protocol, line_name)
     lines = confd.lines.list(name=line_name)['items']
-    if lines:
-        line = lines[0]
-        logger.debug('Found participant line id %s', line['id'])
-        users = line['users']
-        if users:
-            user = confd.users.get(users[0]['uuid'])
-            tags = [tag.strip() for tag in user['userfield'].split(',')] if user['userfield'] else []
-            logger.debug('Found participant user uuid %s', user['uuid'])
-            participant = CallLogParticipant(role=role,
-                                             user_uuid=user['uuid'],
-                                             line_id=line['id'],
-                                             tags=tags)
-            return participant
-    return None
+    if not lines:
+        return
+
+    line = lines[0]
+    logger.debug('Found participant line id %s', line['id'])
+    users = line['users']
+    if not users:
+        return
+
+    user = confd.users.get(users[0]['uuid'])
+    tags = [tag.strip() for tag in user['userfield'].split(',')] if user['userfield'] else []
+    logger.debug('Found participant user uuid %s', user['uuid'])
+    participant = CallLogParticipant(role=role,
+                                     user_uuid=user['uuid'],
+                                     line_id=line['id'],
+                                     tags=tags)
+    return participant
+
+
+def find_main_internal_extension(confd, channame):
+    try:
+        protocol, line_name = protocol_interface_from_channel(channame)
+    except InvalidChannelError:
+        return None
+
+    logger.debug('Looking up main internal extension with protocol %s and line name "%s"', protocol, line_name)
+    lines = confd.lines.list(name=line_name)['items']
+    if not lines:
+        return
+
+    line = lines[0]
+    logger.debug('Found line id %s', line['id'])
+    extensions = line['extensions']
+    if not extensions:
+        return
+
+    main_extension = extensions[0]
+    logger.debug('Found main internal extension %s@%s', main_extension['exten'], main_extension['context'])
+    return main_extension
 
 
 class DispatchCELInterpretor(object):
@@ -108,6 +133,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         participant = find_participant(self._confd, cel.channame, role='source')
         if participant:
             call.participants.append(participant)
+        extension = find_main_internal_extension(self._confd, cel.channame)
+        if extension:
+            call.source_internal_exten = extension['exten']
+            call.source_internal_context = extension['context']
 
         return call
 
@@ -171,9 +200,21 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
+
         participant = find_participant(self._confd, cel.channame, role='destination')
         if participant:
             call.participants.append(participant)
+
+        if not call.requested_internal_exten:
+            requested_extension = find_main_internal_extension(self._confd, cel.channame)
+            if requested_extension:
+                call.requested_internal_exten = requested_extension['exten']
+                call.requested_internal_context = requested_extension['context']
+
+        extension = find_main_internal_extension(self._confd, cel.channame)
+        if extension:
+            call.destination_internal_exten = extension['exten']
+            call.destination_internal_context = extension['context']
 
         return call
 
