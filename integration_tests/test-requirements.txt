@@ -6,7 +6,7 @@ https://github.com/wazo-pbx/xivo-lib-python/archive/master.zip
 docker-compose
 kombu
 nose
-psycopg2  # from sqlalchemy
+psycopg2-binary  # from sqlalchemy
 pyhamcrest
 requests
 sqlalchemy
