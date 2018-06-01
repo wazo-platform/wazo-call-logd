@@ -1,0 +1,18 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - call-logd
+      - swagger-validator
+    environment:
+      TARGETS: "call-logd:9298 swagger-validator:8080"
+
+  call-logd:
+    image: wazo-call-logd-test
+    volumes:
+      - "./etc/wazo-call-logd/conf.d/documentation.yml:/etc/wazo-call-logd/conf.d/0-documentation.yml"
+
+  swagger-validator:
+    image: swaggerapi/swagger-validator
+    ports:
+      - "8080"
