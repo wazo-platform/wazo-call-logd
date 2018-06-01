@@ -9,7 +9,3 @@ services:
       - rabbitmq
     environment:
       TARGETS: "postgres:5432 rabbitmq:5672 call-logd:9298 confd:9486 auth:9497"
-
-  call-logd:
-    volumes:
-      - "./etc/wazo-call-logd/conf.d/base.yml:/etc/wazo-call-logd/conf.d/0-base.yml"
