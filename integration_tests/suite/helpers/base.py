@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -9,9 +9,11 @@ from contextlib import contextmanager
 from requests.packages import urllib3
 from wazo_call_logd_client.client import Client as CallLogdClient
 from xivo_test_helpers import until
-from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
-from xivo_test_helpers.asset_launching_test_case import NoSuchService
-from xivo_test_helpers.asset_launching_test_case import NoSuchPort
+from xivo_test_helpers.asset_launching_test_case import (
+    AssetLaunchingTestCase,
+    NoSuchService,
+    NoSuchPort,
+)
 
 from .auth import AuthClient
 from .bus import CallLogBusClient
@@ -36,6 +38,14 @@ class IntegrationTest(AssetLaunchingTestCase):
 
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
     service = 'call-logd'
+
+    @classmethod
+    def _docker_compose_options(cls):
+        return [
+            '--file', os.path.join(cls.assets_root, 'docker-compose.yml'),
+            '--file', os.path.join(cls.assets_root, 'docker-compose.{}.override.yml'.format(cls.asset)),
+            '--project-name', cls.service,
+        ]
 
     @classmethod
     def setUpClass(cls):
@@ -67,7 +77,13 @@ class IntegrationTest(AssetLaunchingTestCase):
             cls.auth = WrongClient(name='auth')
 
         try:
-            cls.database = DbHelper.build('asterisk', 'proformatique', 'localhost', cls.service_port(5432, 'postgres'), 'asterisk')
+            cls.database = DbHelper.build(
+                'asterisk',
+                'proformatique',
+                'localhost',
+                cls.service_port(5432, 'postgres'),
+                'asterisk'
+            )
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
             cls.database = WrongClient(name='database')
