@@ -1,6 +1,12 @@
 Changelog
 =========
 
+18.07
+------
+
+* Endpoint `GET /cdr`, parameter `limit`: defaults to 1000
+
+
 18.05
 -----
 
