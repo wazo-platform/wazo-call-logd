@@ -5,18 +5,22 @@ import csv
 
 from io import StringIO
 from functools import wraps
-from hamcrest import any_of
-from hamcrest import assert_that
-from hamcrest import calling
-from hamcrest import contains
-from hamcrest import contains_inanyorder
-from hamcrest import empty
-from hamcrest import has_entry
-from hamcrest import has_entries
-from hamcrest import has_key
-from hamcrest import has_properties
-from hamcrest import not_
-from hamcrest import only_contains
+from hamcrest import (
+    all_of,
+    any_of,
+    assert_that,
+    calling,
+    contains,
+    contains_inanyorder,
+    empty,
+    has_entry,
+    has_entries,
+    has_key,
+    has_length,
+    has_properties,
+    not_,
+    only_contains,
+)
 from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.hamcrest.raises import raises
 
@@ -732,3 +736,10 @@ class TestListCDR(IntegrationTest):
         assert_that(result, contains_inanyorder(has_entries(start='2017-04-11T00:00:00+00:00'),
                                                 has_entries(start='2017-04-12T00:00:00+00:00')),
                     'CSV received: {}'.format(result_raw))
+
+    @call_logs([{'date': '2018-06-06'} for _ in range(1100)])
+    def test_list_default_limit(self):
+        result = self.call_logd.cdr.list()
+
+        assert_that(result, all_of(has_entry('total', 1100),
+                                   has_entry('items', has_length(1000))))
