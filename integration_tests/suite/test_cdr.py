@@ -743,3 +743,15 @@ class TestListCDR(IntegrationTest):
 
         assert_that(result, all_of(has_entry('total', 1100),
                                    has_entry('items', has_length(1000))))
+
+    @call_logs([{'date': '2018-06-06', 'participants': [{'user_uuid': USER_1_UUID}]} for _ in range(1100)])
+    def test_list_my_cdr_default_limit(self):
+        SOME_TOKEN = 'my-token'
+        self.auth.set_token(MockUserToken(SOME_TOKEN, user_uuid=USER_1_UUID))
+
+        self.call_logd.set_token(SOME_TOKEN)
+        result = self.call_logd.cdr.list_from_user()
+        self.call_logd.set_token(VALID_TOKEN)
+
+        assert_that(result, all_of(has_entry('total', 1100),
+                                   has_entry('items', has_length(1000))))
