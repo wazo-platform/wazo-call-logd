@@ -478,6 +478,13 @@ class TestListCDR(IntegrationTest):
                                             has_entry('source_name', '2017suffix'),
                                         )))
 
+    @call_logs([{'date': '2018-06-06'} for _ in range(1100)])
+    def test_list_default_limit(self):
+        result = self.call_logd.cdr.list()
+
+        assert_that(result, all_of(has_entry('total', 1100),
+                                   has_entry('items', has_length(1000))))
+
     def test_given_no_token_when_list_cdr_of_user_then_401(self):
         self.call_logd.set_token(None)
         assert_that(
@@ -736,13 +743,6 @@ class TestListCDR(IntegrationTest):
         assert_that(result, contains_inanyorder(has_entries(start='2017-04-11T00:00:00+00:00'),
                                                 has_entries(start='2017-04-12T00:00:00+00:00')),
                     'CSV received: {}'.format(result_raw))
-
-    @call_logs([{'date': '2018-06-06'} for _ in range(1100)])
-    def test_list_default_limit(self):
-        result = self.call_logd.cdr.list()
-
-        assert_that(result, all_of(has_entry('total', 1100),
-                                   has_entry('items', has_length(1000))))
 
     @call_logs([{'date': '2018-06-06', 'participants': [{'user_uuid': USER_1_UUID}]} for _ in range(1100)])
     def test_list_my_cdr_default_limit(self):
