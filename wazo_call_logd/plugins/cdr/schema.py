@@ -70,7 +70,7 @@ class CDRListRequestSchema(Schema):
     until = fields.DateTime(attribute='end', missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
     order = fields.String(validate=OneOf(set(CDRSchema().fields) - {'end', 'tags'}), missing='start')
-    limit = fields.Integer(validate=Range(min=0), missing=None)
+    limit = fields.Integer(validate=Range(min=0), missing=1000)
     offset = fields.Integer(validate=Range(min=0), missing=None)
     search = fields.String(missing=None)
     call_direction = fields.String(validate=OneOf(['internal', 'inbound', 'outbound']), missing=None)

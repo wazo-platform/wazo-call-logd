@@ -1,8 +1,11 @@
-Changelog
-=========
+# Changelog
 
-18.05
------
+## 18.07
+
+* Endpoint `GET /cdr`, parameter `limit`: defaults to 1000
+
+
+## 18.05
 
 * `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` return new fields:
 
@@ -14,8 +17,7 @@ Changelog
   * `destination_internal_context`
 
 
-18.02
-------
+## 18.02
 
 * `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` return new fields:
 
@@ -27,8 +29,7 @@ Changelog
   * `source_line_id`
 
 
-17.12
------
+## 17.12
 
 * `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` accepts new query string
   argument:
@@ -36,23 +37,20 @@ Changelog
   * `from_id`
 
 
-17.11
------
+## 17.11
 
 * New endpoint for getting a single call log:
 
   * `GET /cdr/<cdr_id>`
 
 
-17.09
------
+## 17.09
 
 * All CDR endpoints can return CSV data, provided a header `Accept: text/csv; charset=utf-8`.
 * The default value of query string `direction` has been changed from `asc` to `desc`.
 
 
-17.08
------
+## 17.08
 
 * `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` accept new query string arguments:
 
@@ -74,16 +72,14 @@ Changelog
   * `tags`
 
 
-17.07
------
+## 17.07
 
 * New endpoints for listing call logs:
 
   * `GET /users/<user_uuid>/cdr`
   * `GET /users/me/cdr`
 
-17.06
------
+## 17.06
 
 * Call logs objects now have a new attribute `end`
 * `GET /cdr` has new parameters:
@@ -100,14 +96,12 @@ Changelog
   * `total`
   * `filtered`
 
-17.05
------
+## 17.05
 
 * New endpoint for listing call logs:
 
   * `GET /cdr`
 
-17.04
------
+## 17.04
 
 * Creation of the HTTP daemon
