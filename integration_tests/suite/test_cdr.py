@@ -411,7 +411,7 @@ class TestListCDR(IntegrationTest):
         {'date': '2017-04-13'},
     ])
     def test_given_call_logs_when_list_cdr_in_range_then_list_cdr_in_range(self):
-        result = self.call_logd.cdr.list(from_='2017-04-11', until='2017-04-13')
+        result = self.call_logd.cdr.list(from_='2017-04-11T00:00:00', until='2017-04-13T00:00:00')
 
         assert_that(result, has_entries(items=contains_inanyorder(
             has_entries(start='2017-04-11T00:00:00+00:00'),
