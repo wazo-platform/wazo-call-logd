@@ -19,7 +19,7 @@ def find_participant(confd, channame, role):
         return None
 
     logger.debug('Looking up participant with protocol %s and line name "%s"', protocol, line_name)
-    lines = confd.lines.list(name=line_name)['items']
+    lines = confd.lines.list(name=line_name, recurse=True)['items']
     if not lines:
         return
 
@@ -46,7 +46,7 @@ def find_main_internal_extension(confd, channame):
         return None
 
     logger.debug('Looking up main internal extension with protocol %s and line name "%s"', protocol, line_name)
-    lines = confd.lines.list(name=line_name)['items']
+    lines = confd.lines.list(name=line_name, recurse=True)['items']
     if not lines:
         return
 
