@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from requests.packages import urllib3
 from wazo_call_logd_client.client import Client as CallLogdClient
 from xivo_test_helpers import until
+from xivo_test_helpers.wait_strategy import NoWaitStrategy
 from xivo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
     NoSuchService,
@@ -38,6 +39,7 @@ class IntegrationTest(AssetLaunchingTestCase):
 
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
     service = 'call-logd'
+    wait_strategy = NoWaitStrategy()
 
     @classmethod
     def _docker_compose_options(cls):
@@ -52,6 +54,7 @@ class IntegrationTest(AssetLaunchingTestCase):
         super(IntegrationTest, cls).setUpClass()
         try:
             cls.reset_clients()
+            cls.wait_strategy.wait(cls)
         except Exception:
             with tempfile.NamedTemporaryFile(delete=False) as logfile:
                 logfile.write(cls.log_containers())
