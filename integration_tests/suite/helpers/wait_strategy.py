@@ -5,6 +5,7 @@
 from hamcrest import (
     assert_that,
     has_entries,
+    has_entry,
     only_contains,
 )
 from xivo_test_helpers import until
@@ -20,7 +21,7 @@ class ComponentsWaitStrategy(WaitStrategy):
 
         def components_are_ok(components):
             status = integration_test.call_logd.status.get()
-            assert_that(status, has_entries(dict.fromkeys(self._components, value='ok')))
+            assert_that(status, has_entries(dict.fromkeys(self._components, value=has_entry('status', 'ok'))))
 
         until.assert_(components_are_ok, self._components, timeout=10)
 
@@ -31,6 +32,7 @@ class CallLogdEverythingUpWaitStrategy(WaitStrategy):
 
         def everything_is_up():
             status = integration_test.call_logd.status.get()
-            assert_that(status.values(), only_contains('ok'))
+            component_statuses = [component['status'] for component in status if 'status' in component]
+            assert_that(component_statuses, only_contains('ok'))
 
         until.assert_(everything_is_up, timeout=10)

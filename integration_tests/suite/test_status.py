@@ -2,9 +2,12 @@
 # Copyright 2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from hamcrest import assert_that
-from hamcrest import equal_to
-from hamcrest import has_entries
+from hamcrest import (
+    assert_that,
+    equal_to,
+    has_entries,
+    has_entry,
+)
 from xivo_test_helpers import until
 
 from .helpers.base import IntegrationTest
@@ -17,7 +20,7 @@ class TestStatusNoRabbitMQ(IntegrationTest):
     def test_given_no_rabbitmq_when_status_then_rabbitmq_fail(self):
         result = self.call_logd.status.get()
 
-        assert_that(result['bus_consumer'], equal_to('fail'))
+        assert_that(result['bus_consumer']['status'], equal_to('fail'))
 
 
 class TestStatusRabbitMQStops(IntegrationTest):
@@ -33,7 +36,7 @@ class TestStatusRabbitMQStops(IntegrationTest):
 
         def rabbitmq_is_down():
             result = self.call_logd.status.get()
-            assert_that(result['bus_consumer'], equal_to('fail'))
+            assert_that(result['bus_consumer']['status'], equal_to('fail'))
 
         until.assert_(rabbitmq_is_down, timeout=5)
 
@@ -51,8 +54,8 @@ class TestStatusAllOK(IntegrationTest):
         def all_ok():
             result = self.call_logd.status.get()
             assert_that(result, has_entries(
-                bus_consumer='ok',
-                service_token='ok',
+                bus_consumer=has_entry('status', 'ok'),
+                service_token=has_entry('status', 'ok'),
             ))
 
         until.assert_(all_ok, tries=10)

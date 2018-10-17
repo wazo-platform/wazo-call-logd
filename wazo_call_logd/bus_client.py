@@ -69,4 +69,4 @@ class BusClient(object):
         self._consumer.should_stop = True
 
     def provide_status(self, status):
-        status['bus_consumer'] = Status.ok if self._consumer.is_running() else Status.fail
+        status['bus_consumer']['status'] = Status.ok if self._consumer.is_running() else Status.fail

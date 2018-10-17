@@ -15,8 +15,13 @@ definitions:
     type: object
     properties:
       bus_consumer:
-        $ref: '#/definitions/StatusValue'
+        $ref: '#/definitions/ComponentWithStatus'
       service_token:
+        $ref: '#/definitions/ComponentWithStatus'
+  ComponentWithStatus:
+    type: object
+    properties:
+      status:
         $ref: '#/definitions/StatusValue'
   StatusValue:
     type: string
