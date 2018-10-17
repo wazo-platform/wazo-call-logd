@@ -21,6 +21,7 @@ from .helpers.confd import (
     MockLine,
     MockUser,
 )
+from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 USER_1_UUID = '11111111-1111-1111-1111-111111111111'
 USER_2_UUID = '22222222-2222-2222-2222-222222222222'
@@ -47,12 +48,12 @@ def raw_cels(cel_output):
 class TestCallLogGeneration(IntegrationTest):
 
     asset = 'base'
+    wait_strategy = CallLogdEverythingUpWaitStrategy()
 
     def setUp(self):
         self.bus = self.make_bus()
         self.confd = self.make_confd()
         self.confd.reset()
-        until.true(self.bus.is_up, tries=10, interval=0.5)
 
     @raw_cels('''\
   eventtype   |         eventtime          |       channame        |   uniqueid    |   linkedid    | cid_name | cid_num
