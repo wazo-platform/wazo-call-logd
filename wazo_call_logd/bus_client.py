@@ -5,6 +5,7 @@ import logging
 
 from kombu import Exchange, Connection, Queue
 from kombu.mixins import ConsumerMixin
+from xivo.status import Status
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,7 @@ class _CELConsumer(ConsumerMixin):
 
     def __init__(self, queue):
         self._queue = queue
+        self._is_running = False
 
     def get_consumers(self, Consumer, channel):
         return [
@@ -27,6 +29,14 @@ class _CELConsumer(ConsumerMixin):
 
         message.ack()
 
+    def on_connection_error(self, exc, interval):
+        super(_CELConsumer, self).on_connection_error(exc, interval)
+        self._is_running = False
+
+    def on_connection_revived(self):
+        super(_CELConsumer, self).on_connection_revived()
+        self._is_running = True
+
     def run(self, connection, call_logs_manager):
         self.connection = connection
         self._call_logs_manager = call_logs_manager
@@ -35,6 +45,9 @@ class _CELConsumer(ConsumerMixin):
             super(_CELConsumer, self).run()
         except Exception:
             logger.exception('An error occured while processing bus events')
+
+    def is_running(self):
+        return self._is_running
 
 
 class BusClient(object):
@@ -54,3 +67,6 @@ class BusClient(object):
 
     def stop(self):
         self._consumer.should_stop = True
+
+    def provide_status(self, status):
+        status['bus_consumer'] = Status.ok if self._consumer.is_running() else Status.fail

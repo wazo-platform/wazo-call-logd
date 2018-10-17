@@ -1,5 +1,12 @@
 # Changelog
 
+## 18.12
+
+* New endpoint for giving internal status of wazo-call-logd:
+
+  * `GET /status`
+
+
 ## 18.07
 
 * Endpoint `GET /cdr`, parameter `limit`: defaults to 1000

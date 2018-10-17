@@ -1,10 +1,11 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
 
 from threading import Thread
 from xivo import plugin_helpers
+from xivo.status import StatusAggregator, TokenStatus
 from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
@@ -44,17 +45,23 @@ class Controller(object):
         self.rest_api = CoreRestApi(config)
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)
+        self.status_aggregator = StatusAggregator()
+        self.token_status = TokenStatus()
         plugin_helpers.load(
             namespace='wazo_call_logd.plugins',
             names=config['enabled_plugins'],
             dependencies={
                 'api': api,
                 'config': config,
+                'status_aggregator': self.status_aggregator,
             }
         )
 
     def run(self):
         logger.info('Starting wazo-call-logd')
+        self.token_renewer.subscribe_to_token_change(self.token_status.token_change_callback)
+        self.status_aggregator.add_provider(self.bus_client.provide_status)
+        self.status_aggregator.add_provider(self.token_status.provide_status)
         bus_publisher_thread = Thread(target=self._publisher.run)
         bus_publisher_thread.start()
         bus_consumer_thread = Thread(target=self.bus_client.run, args=[self.manager], name='bus_consumer_thread')

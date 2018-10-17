@@ -1,0 +1,32 @@
+paths:
+  /status:
+    get:
+      summary: Print infos about internal status of wazo-call-logd
+      description: '**Required ACL:** `call-logd.status.read`'
+      tags:
+        - status
+      responses:
+        '200':
+          description: The internal infos of wazo-call-logd
+          schema:
+            $ref: '#/definitions/StatusSummary'
+definitions:
+  StatusSummary:
+    type: object
+    properties:
+      connections:
+        $ref: '#/definitions/ConnectionsStatusSummary'
+      service_token:
+        $ref: '#/definitions/StatusValue'
+  ConnectionsStatusSummary:
+    type: object
+    properties:
+      ari:
+        $ref: '#/definitions/StatusValue'
+      bus_consumer:
+        $ref: '#/definitions/StatusValue'
+  StatusValue:
+    type: string
+    enum:
+      - fail
+      - ok
