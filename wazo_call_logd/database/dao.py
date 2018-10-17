@@ -11,6 +11,7 @@ from sqlalchemy import exc
 from sqlalchemy import sql
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import subqueryload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import Pool
@@ -19,6 +20,10 @@ from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 from wazo_call_logd.exceptions import DatabaseServiceUnavailable
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # http://stackoverflow.com/questions/34828113/flask-sqlalchemy-losing-connection-after-restarting-of-db-server
@@ -74,8 +79,8 @@ class CallLogDAO(object):
     def get_by_id(self, cdr_id):
         with self.new_session() as session:
             cdr = session.query(CallLogSchema).options(joinedload('participants'),
-                                                       joinedload('source_participant'),
-                                                       joinedload('destination_participant')).get(cdr_id)
+                                                       subqueryload('source_participant'),
+                                                       subqueryload('destination_participant')).get(cdr_id)
             if cdr:
                 session.expunge_all()
                 return cdr
@@ -84,8 +89,8 @@ class CallLogDAO(object):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
             query = query.options(joinedload('participants'),
-                                  joinedload('source_participant'),
-                                  joinedload('destination_participant'))
+                                  subqueryload('source_participant'),
+                                  subqueryload('destination_participant'))
 
             query = self._apply_filters(query, params)
 
@@ -107,12 +112,16 @@ class CallLogDAO(object):
             if params.get('offset'):
                 query = query.offset(params['offset'])
 
+            logger.critical('QUERY START: %s', str(query))
             call_log_rows = query.all()
+            logger.critical('QUERY END')
 
             if not call_log_rows:
                 return []
 
+            logger.critical('EXPUNGE START')
             session.expunge_all()
+            logger.critical('EXPUNGE END')
 
             return call_log_rows
 
@@ -120,9 +129,13 @@ class CallLogDAO(object):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
 
+            logger.critical('TOTAL COUNT QUERY START: %s', str(query))
             total = query.count()
+            logger.critical('TOTAL COUNT QUERY END')
 
+            logger.critical('FILTERED COUNT QUERY START: %s', str(query))
             query = self._apply_filters(query, params)
+            logger.critical('FILTERED COUNT QUERY END')
 
             filtered = query.count()
 

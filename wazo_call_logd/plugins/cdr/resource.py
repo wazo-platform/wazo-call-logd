@@ -93,9 +93,13 @@ class CDRResource(AuthResource):
 
     @required_acl('call-logd.cdr.read')
     def get(self):
+        logger.critical('START GET')
         args = CDRListRequestSchema().load(request.args).data
         cdrs = self.cdr_service.list(args)
-        return CDRSchemaList().dump(cdrs).data
+        logger.critical('MARSHMALLOW ENCODE')
+        cdrs_json = CDRSchemaList().dump(cdrs).data
+        logger.critical('END GET')
+        return cdrs_json
 
 
 class CDRIdResource(AuthResource):
