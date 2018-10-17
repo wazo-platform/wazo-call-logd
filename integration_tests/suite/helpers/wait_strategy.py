@@ -32,7 +32,7 @@ class CallLogdEverythingUpWaitStrategy(WaitStrategy):
 
         def everything_is_up():
             status = integration_test.call_logd.status.get()
-            component_statuses = [component['status'] for component in status if 'status' in component]
+            component_statuses = [component['status'] for component in status.values() if 'status' in component]
             assert_that(component_statuses, only_contains('ok'))
 
         until.assert_(everything_is_up, timeout=10)
