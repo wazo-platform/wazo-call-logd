@@ -11,6 +11,7 @@ from sqlalchemy import exc
 from sqlalchemy import sql
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import subqueryload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import Pool
@@ -74,8 +75,8 @@ class CallLogDAO(object):
     def get_by_id(self, cdr_id):
         with self.new_session() as session:
             cdr = session.query(CallLogSchema).options(joinedload('participants'),
-                                                       joinedload('source_participant'),
-                                                       joinedload('destination_participant')).get(cdr_id)
+                                                       subqueryload('source_participant'),
+                                                       subqueryload('destination_participant')).get(cdr_id)
             if cdr:
                 session.expunge_all()
                 return cdr
@@ -84,8 +85,8 @@ class CallLogDAO(object):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
             query = query.options(joinedload('participants'),
-                                  joinedload('source_participant'),
-                                  joinedload('destination_participant'))
+                                  subqueryload('source_participant'),
+                                  subqueryload('destination_participant'))
 
             query = self._apply_filters(query, params)
 
