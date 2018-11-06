@@ -12,7 +12,7 @@ test:
 docker-pull:
 	docker pull p0bailey/docker-flask
 	docker pull swaggerapi/swagger-validator
-	docker pull waisbrot/wait
+	docker pull wazopbx/wait
 	docker pull wazopbx/postgres
 	docker pull wazopbx/postgres-test
 
