@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 def find_participant(confd, channame, role):
+    # TODO PJSIP clean after migration
+    channame = channame.replace('PJSIP', 'SIP')
+
     try:
         protocol, line_name = protocol_interface_from_channel(channame)
     except InvalidChannelError:
@@ -40,6 +43,9 @@ def find_participant(confd, channame, role):
 
 
 def find_main_internal_extension(confd, channame):
+    # TODO PJSIP clean after migration
+    channame = channame.replace('PJSIP', 'SIP')
+
     try:
         protocol, line_name = protocol_interface_from_channel(channame)
     except InvalidChannelError:
