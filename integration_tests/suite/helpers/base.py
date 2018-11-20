@@ -42,14 +42,6 @@ class IntegrationTest(AssetLaunchingTestCase):
     wait_strategy = NoWaitStrategy()
 
     @classmethod
-    def _docker_compose_options(cls):
-        return [
-            '--file', os.path.join(cls.assets_root, 'docker-compose.yml'),
-            '--file', os.path.join(cls.assets_root, 'docker-compose.{}.override.yml'.format(cls.asset)),
-            '--project-name', cls.service,
-        ]
-
-    @classmethod
     def setUpClass(cls):
         super(IntegrationTest, cls).setUpClass()
         try:
