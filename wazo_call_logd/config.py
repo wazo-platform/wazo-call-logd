@@ -43,7 +43,7 @@ _DEFAULT_CONFIG = {
         'port': 9497,
         'timeout': 2,
         'verify_certificate': _CERT_FILE,
-        'key_file': '/var/lib/xivo-auth-keys/wazo-call-logd-key.yml',
+        'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-key.yml',
     },
     'confd': {
         'host': 'localhost',
