@@ -6,13 +6,11 @@ services:
       TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
   auth:
-    image: p0bailey/docker-flask
+    image: wazopbx/xivo-auth-mock
     ports:
       - "9497"
     volumes:
-      - "./xivo-auth:/usr/local/share/xivo-auth"
       - "./ssl:/usr/local/share/ssl"
-    command: "python /usr/local/share/xivo-auth/mock-xivo-auth.py 9497"
 
   call-logd:
     image: wazo-call-logd-test
@@ -33,13 +31,11 @@ services:
       XIVO_UUID: "08c56466-8f29-45c7-9856-92bf1ba89b92"
 
   confd:
-    image: p0bailey/docker-flask
+    image: wazopbx/xivo-confd-mock
     ports:
       - "9486"
     volumes:
-      - "./xivo-confd:/usr/local/share/xivo-confd"
       - "./ssl:/usr/local/share/ssl"
-    command: "python /usr/local/share/xivo-confd/mock-xivo-confd.py 9486"
 
   postgres:
     image: wazopbx/postgres-test
