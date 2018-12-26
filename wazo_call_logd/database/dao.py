@@ -6,7 +6,6 @@ from contextlib import contextmanager
 import sqlalchemy as sa
 
 from sqlalchemy import create_engine
-from sqlalchemy import event
 from sqlalchemy import exc
 from sqlalchemy import sql
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -14,28 +13,15 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import subqueryload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import Pool
 
+from xivo import sqlalchemy_helper
 from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 from wazo_call_logd.exceptions import DatabaseServiceUnavailable
 
 
-# http://stackoverflow.com/questions/34828113/flask-sqlalchemy-losing-connection-after-restarting-of-db-server
-@event.listens_for(Pool, "checkout")
-def ping_connection(dbapi_connection, connection_record, connection_proxy):
-    del connection_record
-    del connection_proxy
-
-    cursor = dbapi_connection.cursor()
-    try:
-        cursor.execute("SELECT 1")
-    except exc.OperationalError:
-        # raise DisconnectionError - pool will try
-        # connecting again up to three times before raising.
-        raise exc.DisconnectionError()
-    cursor.close()
+sqlalchemy_helper.handle_db_restart()
 
 
 def new_db_session(db_uri):
