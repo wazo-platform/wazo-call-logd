@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 class TestDatabase(IntegrationTest):
     asset = 'base'
 
-    def restart_postgres(self):
-        self.restart_service('postgres')
-        self.reset_clients()
-        until.true(self.database.is_up, tries=5)
+    def restart_postgres(cls):
+        cls.restart_service('postgres', signal='SIGINT')  # fast shutdown
+        cls.reset_clients()
+        until.true(cls.database.is_up, timeout=5, message='Postgres did not come back up')
 
     def test_query_after_database_restart(self):
         result1 = self.call_logd.cdr.list()
