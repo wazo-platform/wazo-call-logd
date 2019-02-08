@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -28,9 +28,7 @@ logger = logging.getLogger(__name__)
 class Controller(object):
 
     def __init__(self, config):
-        auth_config = dict(config['auth'])
-        auth_config.pop('key_file', None)
-        auth_client = AuthClient(**auth_config)
+        auth_client = AuthClient(**config['auth'])
         cel_fetcher = CELFetcher()
         confd_client = ConfdClient(**config['confd'])
         generator = CallLogsGenerator([
