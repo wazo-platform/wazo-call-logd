@@ -1,4 +1,4 @@
-FROM python:3.5.3
+FROM python:3.5-stretch
 MAINTAINER Wazo Maintainers <dev@wazo.community>
 
 ENV DEBIAN_FRONTEND noninteractive
