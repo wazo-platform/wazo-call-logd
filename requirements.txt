@@ -13,6 +13,6 @@ marshmallow==2.16.3
 psycopg2==2.6.2
 python-dateutil==2.5.3  # from marshmallow, to accept more date formats
 pyyaml==3.12
-requests==2.20.0  # from xivo-*-client
+requests==2.21.0  # from xivo-*-client
 sqlalchemy==1.0.15
 stevedore==1.17.1
