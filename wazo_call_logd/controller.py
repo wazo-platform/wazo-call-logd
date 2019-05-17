@@ -4,10 +4,10 @@
 import logging
 
 from threading import Thread
+from wazo_auth_client import Client as AuthClient
 from xivo import plugin_helpers
 from xivo.status import StatusAggregator, TokenStatus
 from xivo.token_renewer import TokenRenewer
-from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 
 from wazo_call_logd.bus_client import BusClient
