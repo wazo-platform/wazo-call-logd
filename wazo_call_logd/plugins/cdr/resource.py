@@ -1,7 +1,8 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+import csv
 
 from io import StringIO
 
@@ -11,7 +12,6 @@ from flask import (
     request,
 )
 from xivo.auth_verifier import required_acl
-from xivo.unicode_csv import UnicodeDictWriter
 from wazo_call_logd.auth import get_token_user_uuid_from_request
 from wazo_call_logd.rest_api import AuthResource
 
@@ -66,7 +66,7 @@ def _output_csv(data, code, http_headers=None):
         response = jsonify(data)
     elif _is_cdr_list(data) or _is_single_cdr(data):
         csv_text = StringIO()
-        writer = UnicodeDictWriter(csv_text, CSV_HEADERS)
+        writer = csv.DictWriter(csv_text, CSV_HEADERS)
 
         writer.writeheader()
         items = data['items'] if _is_cdr_list(data) else [data]
