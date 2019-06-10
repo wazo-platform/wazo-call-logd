@@ -16,7 +16,7 @@ docker-pull:
 	docker pull wazopbx/postgres
 	docker pull wazopbx/postgres-test
 	docker pull wazopbx/wazo-auth-mock
-	docker pull wazopbx/xivo-confd-mock
+	docker pull wazopbx/wazo-confd-mock
 
 call-logd:
 	docker build --pull -t wazopbx/wazo-call-logd ..

@@ -31,7 +31,7 @@ services:
       XIVO_UUID: "08c56466-8f29-45c7-9856-92bf1ba89b92"
 
   confd:
-    image: wazopbx/xivo-confd-mock
+    image: wazopbx/wazo-confd-mock
     ports:
       - "9486"
     volumes:
