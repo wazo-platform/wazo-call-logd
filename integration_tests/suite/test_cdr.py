@@ -18,8 +18,6 @@ from hamcrest import (
     has_key,
     has_length,
     has_properties,
-    not_,
-    only_contains,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.hamcrest.raises import raises
@@ -383,10 +381,10 @@ class TestListCDR(IntegrationTest):
                                                               details=has_key('offset'))))
 
     def test_given_error_when_list_cdr_as_csv_then_return_error_in_csv(self):
-            assert_that(
-                calling(self.call_logd.cdr.list_csv).with_args(from_='wrong'),
-                raises(CallLogdError).matching(has_properties(status_code=400,
-                                                              details=has_key('from'))))
+        assert_that(
+            calling(self.call_logd.cdr.list_csv).with_args(from_='wrong'),
+            raises(CallLogdError).matching(has_properties(status_code=400,
+                                                          details=has_key('from'))))
 
     def test_given_unsupported_params_when_list_cdr_then_400(self):
         assert_that(
