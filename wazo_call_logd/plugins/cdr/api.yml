@@ -103,6 +103,7 @@ paths:
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
       - $ref: '#/parameters/from_id'
+      - $ref: '#/parameters/user_uuid'
       responses:
         '200':
           description: List CDR

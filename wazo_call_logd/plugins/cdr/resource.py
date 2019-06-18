@@ -138,8 +138,8 @@ class CDRUserMeResource(AuthResource):
 
     @required_acl('call-logd.users.me.cdr.read')
     def get(self):
-        args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args).data
+        args = CDRListRequestSchema().load(request.args).data
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
-        args['user_uuids'] = [user_uuid]
+        args['me_user_uuid'] = user_uuid
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs).data

@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -139,6 +139,10 @@ class CallLogDAO(object):
             query = query.filter(CallLogSchema.participants.any(
                 CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
             ))
+
+        if params.get('me_user_uuid'):
+            me_user_uuid = params['me_user_uuid']
+            query = query.filter(CallLogSchema.participant_user_uuids.contains(str(me_user_uuid)))
 
         if params.get('user_uuids'):
             filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))

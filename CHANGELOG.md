@@ -1,5 +1,11 @@
 # Changelog
 
+## 19.09
+
+* New query parameters have been added to the `GET /users/me/cdr` endpoint:
+
+  * `user_uuid`
+
 ## 18.12
 
 * New endpoint for giving internal status of wazo-call-logd:

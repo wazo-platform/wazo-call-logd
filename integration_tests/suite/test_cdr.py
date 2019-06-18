@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -18,8 +18,6 @@ from hamcrest import (
     has_key,
     has_length,
     has_properties,
-    not_,
-    only_contains,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.hamcrest.raises import raises
@@ -383,10 +381,10 @@ class TestListCDR(IntegrationTest):
                                                               details=has_key('offset'))))
 
     def test_given_error_when_list_cdr_as_csv_then_return_error_in_csv(self):
-            assert_that(
-                calling(self.call_logd.cdr.list_csv).with_args(from_='wrong'),
-                raises(CallLogdError).matching(has_properties(status_code=400,
-                                                              details=has_key('from'))))
+        assert_that(
+            calling(self.call_logd.cdr.list_csv).with_args(from_='wrong'),
+            raises(CallLogdError).matching(has_properties(status_code=400,
+                                                          details=has_key('from'))))
 
     def test_given_unsupported_params_when_list_cdr_then_400(self):
         assert_that(
@@ -614,6 +612,55 @@ class TestListCDR(IntegrationTest):
                                         )))
 
     @call_logs([
+        {'date': '2019-06-13T12:00:00+00:00', 'participants': [
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination'},
+        ]},
+        {'date': '2019-06-13T13:00:00+00:00', 'participants': [
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_3_UUID, 'role': 'destination'},
+        ]},
+        {'date': '2019-06-13T14:00:00+00:00', 'participants': [
+            {'user_uuid': USER_3_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination'},
+        ]},
+    ])
+    def test_when_list_my_cdr_with_user_uuid_then_list_matching_cdr(self):
+        SOME_TOKEN = 'my-token'
+        self.auth.set_token(MockUserToken(SOME_TOKEN, user_uuid=USER_1_UUID))
+
+        self.call_logd.set_token(SOME_TOKEN)
+        results = self.call_logd.cdr.list_from_user(user_uuid=USER_3_UUID)
+
+        assert_that(
+            results,
+            has_entries(
+                filtered=1,
+                total=3,
+                items=contains_inanyorder(
+                    has_entries(start='2019-06-13T13:00:00+00:00'),
+                ),
+            ),
+        )
+
+        results = self.call_logd.cdr.list_from_user(
+            user_uuid=','.join([USER_1_UUID, USER_2_UUID, USER_3_UUID])
+        )
+        self.call_logd.set_token(VALID_TOKEN)
+
+        assert_that(
+            results,
+            has_entries(
+                filtered=2,
+                total=3,
+                items=contains_inanyorder(
+                    has_entries(start='2019-06-13T12:00:00+00:00'),
+                    has_entries(start='2019-06-13T13:00:00+00:00'),
+                ),
+            ),
+        )
+
+    @call_logs([
         {'id': 1000, 'date': '2017-04-10'},
         {'id': 1001, 'date': '2017-04-11'},
         {'id': 1002, 'date': '2017-04-12'},
@@ -685,24 +732,6 @@ class TestListCDR(IntegrationTest):
                                                           message=contains_string_ignoring_case('user')))
         )
         self.call_logd.set_token(VALID_TOKEN)
-
-    @call_logs([
-        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
-    ])
-    def test_when_user_list_cdr_with_arg_user_uuid_then_user_uuid_is_ignored(self):
-        SOME_TOKEN = 'my-token'
-        self.auth.set_token(MockUserToken(SOME_TOKEN, user_uuid=USER_1_UUID))
-
-        self.call_logd.set_token(SOME_TOKEN)
-        result = self.call_logd.cdr.list_from_user(user_uuid=USER_2_UUID)
-        self.call_logd.set_token(VALID_TOKEN)
-
-        assert_that(result, has_entries(filtered=1,
-                                        total=1,
-                                        items=contains(
-                                            has_entries(start='2017-04-11T00:00:00+00:00'),
-                                        )))
-        assert_that(result, has_entries(items=only_contains(not_(has_key('tags')))))
 
     @call_logs([
         {'date': '2017-04-10'},
