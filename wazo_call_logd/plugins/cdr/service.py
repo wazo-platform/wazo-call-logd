@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -13,5 +13,5 @@ class CDRService(object):
                 'filtered': count['filtered'],
                 'total': count['total']}
 
-    def get(self, cdr_id):
-        return self._dao.get_by_id(cdr_id)
+    def get(self, cdr_id, tenant_uuids):
+        return self._dao.get_by_id(cdr_id, tenant_uuids)

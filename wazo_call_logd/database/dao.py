@@ -58,11 +58,14 @@ class CallLogDAO(object):
         finally:
             self._Session.remove()
 
-    def get_by_id(self, cdr_id):
+    def get_by_id(self, cdr_id, tenant_uuids):
         with self.new_session() as session:
-            cdr = session.query(CallLogSchema).options(joinedload('participants'),
-                                                       subqueryload('source_participant'),
-                                                       subqueryload('destination_participant')).get(cdr_id)
+            query = session.query(CallLogSchema).options(joinedload('participants'),
+                                                         subqueryload('source_participant'),
+                                                         subqueryload('destination_participant'))
+            query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})
+            query = query.filter(CallLogSchema.id == cdr_id)
+            cdr = query.one_or_none()
             if cdr:
                 session.expunge_all()
                 return cdr
@@ -109,6 +112,10 @@ class CallLogDAO(object):
             query = session.query(CallLogSchema)
             query = self._apply_user_filter(query, params)
 
+            if params.get('tenant_uuids'):
+                query = self._apply_filters(query, {
+                    'tenant_uuids': params["tenant_uuids"]
+                })
             total = query.count()
 
             query = self._apply_filters(query, params)
@@ -151,6 +158,11 @@ class CallLogDAO(object):
         if params.get('user_uuids'):
             filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))
                        for user_uuid in params['user_uuids'])
+            query = query.filter(sql.or_(*filters))
+
+        if params.get('tenant_uuids'):
+            filters = (CallLogSchema.participant_tenant_uuids.contains(str(tenant_uuid))
+                       for tenant_uuid in params['tenant_uuids'])
             query = query.filter(sql.or_(*filters))
 
         if params.get('start_id'):

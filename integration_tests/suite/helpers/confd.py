@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -59,8 +59,9 @@ class ConfdClient(object):
 
 class MockUser(object):
 
-    def __init__(self, uuid, line_ids=None, mobile=None, userfield=None):
+    def __init__(self, uuid, tenant_uuid, line_ids=None, mobile=None, userfield=None):
         self._uuid = uuid
+        self._tenant_uuid = tenant_uuid
         self._line_ids = line_ids or []
         self._mobile = mobile
         self._userfield = userfield
@@ -71,6 +72,7 @@ class MockUser(object):
     def to_dict(self):
         return {
             'uuid': self._uuid,
+            'tenant_uuid': self._tenant_uuid,
             'lines': [{'id': line_id} for line_id in self._line_ids],
             'mobile_phone_number': self._mobile,
             'userfield': self._userfield,

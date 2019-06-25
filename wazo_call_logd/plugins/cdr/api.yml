@@ -18,6 +18,8 @@ paths:
       - $ref: '#/parameters/tags'
       - $ref: '#/parameters/user_uuid'
       - $ref: '#/parameters/from_id'
+      - $ref: '#/parameters/recurse'
+      - $ref: '#/parameters/tenantuuid'
       responses:
         '200':
           description: List CDR
@@ -238,6 +240,8 @@ definitions:
         type: string
       source_user_uuid:
         type: string
+      source_tenant_uuid:
+        type: string
       source_line_id:
         type: integer
       requested_extension:
@@ -259,6 +263,8 @@ definitions:
       destination_internal_context:
         type: string
       destination_user_uuid:
+        type: string
+      destination_tenant_uuid:
         type: string
       destination_line_id:
         type: integer

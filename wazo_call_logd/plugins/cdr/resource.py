@@ -12,6 +12,10 @@ from flask import (
     request,
 )
 from xivo.auth_verifier import required_acl
+from xivo.tenant_flask_helpers import (
+    token,
+    Tenant,
+)
 from wazo_call_logd.auth import get_token_user_uuid_from_request
 from wazo_call_logd.rest_api import AuthResource
 
@@ -33,6 +37,7 @@ CSV_HEADERS = ['id',
                'destination_internal_extension',
                'destination_internal_context',
                'destination_user_uuid',
+               'destination_tenant_uuid',
                'destination_line_id',
                'duration',
                'call_direction',
@@ -45,6 +50,7 @@ CSV_HEADERS = ['id',
                'source_internal_extension',
                'source_internal_context',
                'source_user_uuid',
+               'source_tenant_uuid',
                'source_line_id',
                'tags']
 
@@ -84,62 +90,64 @@ def _output_csv(data, code, http_headers=None):
     return response
 
 
-class CDRResource(AuthResource):
-
+class CDRAuthResource(AuthResource):
     representations = {'text/csv; charset=utf-8': _output_csv}
 
     def __init__(self, cdr_service):
+        super().__init__()
         self.cdr_service = cdr_service
+
+    def visible_tenants(self, recurse=True):
+        tenant_uuid = Tenant.autodetect().uuid
+        if recurse:
+            return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
+        else:
+            return [tenant_uuid]
+
+
+class CDRResource(CDRAuthResource):
 
     @required_acl('call-logd.cdr.read')
     def get(self):
         args = CDRListRequestSchema().load(request.args).data
+        args["tenant_uuids"] = self.visible_tenants(args["recurse"])
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList().dump(cdrs).data
 
 
-class CDRIdResource(AuthResource):
-
-    representations = {'text/csv; charset=utf-8': _output_csv}
-
-    def __init__(self, cdr_service):
-        self.cdr_service = cdr_service
+class CDRIdResource(CDRAuthResource):
 
     @required_acl('call-logd.cdr.{cdr_id}.read')
     def get(self, cdr_id):
-        cdr = self.cdr_service.get(cdr_id)
+        tenant_uuids = self.visible_tenants(True)
+        cdr = self.cdr_service.get(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
         return CDRSchema().dump(cdr).data
 
 
-class CDRUserResource(AuthResource):
-
-    representations = {'text/csv; charset=utf-8': _output_csv}
-
-    def __init__(self, cdr_service):
-        self.cdr_service = cdr_service
+class CDRUserResource(CDRAuthResource):
 
     @required_acl('call-logd.users.{user_uuid}.cdr.read')
     def get(self, user_uuid):
         args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args).data
         args['user_uuids'] = [user_uuid]
+        args['tenant_uuids'] = [Tenant.autodetect().uuid]
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList().dump(cdrs).data
 
 
-class CDRUserMeResource(AuthResource):
-
-    representations = {'text/csv; charset=utf-8': _output_csv}
+class CDRUserMeResource(CDRAuthResource):
 
     def __init__(self, auth_client, cdr_service):
+        super(CDRUserMeResource, self).__init__(cdr_service)
         self.auth_client = auth_client
-        self.cdr_service = cdr_service
 
     @required_acl('call-logd.users.me.cdr.read')
     def get(self):
         args = CDRListRequestSchema().load(request.args).data
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         args['me_user_uuid'] = user_uuid
+        args['tenant_uuids'] = [Tenant.autodetect().uuid]
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs).data

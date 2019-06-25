@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import fields
@@ -32,6 +32,7 @@ class CDRSchema(Schema):
     destination_line_id = fields.Integer()
     destination_name = fields.String()
     destination_user_uuid = fields.UUID()
+    destination_tenant_uuid = fields.UUID()
     requested_context = fields.String()
     requested_extension = fields.String(attribute='requested_exten')
     requested_internal_context = fields.String()
@@ -42,6 +43,7 @@ class CDRSchema(Schema):
     source_line_id = fields.Integer()
     source_name = fields.String()
     source_user_uuid = fields.UUID()
+    source_tenant_uuid = fields.UUID()
     tags = fields.List(fields.String(), attribute='marshmallow_tags')
 
     @pre_dump
@@ -78,6 +80,7 @@ class CDRListRequestSchema(Schema):
     tags = fields.List(fields.String(), missing=[])
     user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
     from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
+    recurse = fields.Boolean(missing=False)
 
     class Meta(object):
         strict = True

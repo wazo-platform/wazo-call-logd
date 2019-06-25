@@ -1,4 +1,4 @@
-# Copyright 2013-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -34,9 +34,11 @@ def find_participant(confd, channame, role):
 
     user = confd.users.get(users[0]['uuid'])
     tags = [tag.strip() for tag in user['userfield'].split(',')] if user['userfield'] else []
-    logger.debug('Found participant user uuid %s', user['uuid'])
+    logger.debug('Found participant user uuid %s tenant uuid %s',
+                 user['uuid'], user['tenant_uuid'])
     participant = CallLogParticipant(role=role,
                                      user_uuid=user['uuid'],
+                                     tenant_uuid=user['tenant_uuid'],
                                      line_id=line['id'],
                                      tags=tags)
     return participant

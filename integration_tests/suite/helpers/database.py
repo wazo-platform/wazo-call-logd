@@ -114,7 +114,13 @@ class DatabaseQueries(object):
         call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
         result = tuple(call_log.participant_user_uuids)
         session.commit()
+        return result
 
+    def get_call_log_tenant_uuids(self, call_log_id):
+        session = self.Session()
+        call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
+        result = tuple(call_log.participant_tenant_uuids)
+        session.commit()
         return result
 
     def insert_cel(
