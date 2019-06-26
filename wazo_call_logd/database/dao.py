@@ -52,7 +52,7 @@ class CallLogDAO(object):
         except exc.OperationalError:
             session.rollback()
             raise DatabaseServiceUnavailable()
-        except:
+        except BaseException:
             session.rollback()
             raise
         finally:

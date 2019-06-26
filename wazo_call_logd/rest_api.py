@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -67,8 +67,8 @@ class CoreRestApi(object):
 
 class ErrorCatchingResource(Resource):
     method_decorators = ([mallow_helpers.handle_validation_exception,
-                          rest_api_helpers.handle_api_exception] +
-                         Resource.method_decorators)
+                          rest_api_helpers.handle_api_exception]
+                         + Resource.method_decorators)
 
 
 class AuthResource(ErrorCatchingResource):
