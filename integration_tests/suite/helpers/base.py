@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from requests.packages import urllib3
 from wazo_call_logd_client.client import Client as CallLogdClient
 from xivo_test_helpers import until
+from xivo_test_helpers.auth import AuthClient
 from xivo_test_helpers.wait_strategy import NoWaitStrategy
 from xivo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
@@ -16,7 +17,6 @@ from xivo_test_helpers.asset_launching_test_case import (
     NoSuchPort,
 )
 
-from .auth import AuthClient
 from .bus import CallLogBusClient
 from .confd import ConfdClient
 from .constants import VALID_TOKEN

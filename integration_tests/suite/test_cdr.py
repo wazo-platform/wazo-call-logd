@@ -20,9 +20,9 @@ from hamcrest import (
     has_properties,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
+from xivo_test_helpers.auth import MockUserToken
 from xivo_test_helpers.hamcrest.raises import raises
 
-from .helpers.auth import MockUserToken
 from .helpers.base import IntegrationTest
 from .helpers.constants import NON_USER_TOKEN
 from .helpers.constants import VALID_TOKEN
