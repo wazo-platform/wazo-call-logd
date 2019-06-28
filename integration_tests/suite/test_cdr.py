@@ -13,6 +13,7 @@ from hamcrest import (
     calling,
     contains,
     contains_inanyorder,
+    equal_to,
     empty,
     has_entry,
     has_entries,
@@ -24,18 +25,25 @@ from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.auth import MockUserToken
 from xivo_test_helpers.hamcrest.raises import raises
 
-from .helpers.base import IntegrationTest
+from .helpers.base import (
+    IntegrationTest
+)
 from .helpers.constants import (
     NON_USER_TOKEN,
+    OTHER_USER_UUID,
+    OTHER_USER_TOKEN,
+    OTHER_TENANT,
+    USER_1_UUID,
+    USER_2_UUID,
+    USER_3_UUID,
+    USERS_TENANT,
+    USER_1_TOKEN,
+    USER_2_TOKEN,
+    MASTER_TOKEN,
     VALID_TOKEN,
-    VALID_TENANT
+    VALID_TENANT,
 )
 from .helpers.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
-
-SOME_USER_UUID = '7a0c6fe6-219d-4977-80e4-1bfc7ab0b289'
-USER_1_UUID = '11111111-1111-1111-1111-111111111111'
-USER_2_UUID = '22222222-2222-2222-2222-222222222222'
-USER_3_UUID = '33333333-3333-3333-3333-333333333333'
 
 
 def call_logs(call_logs):
@@ -231,6 +239,65 @@ class TestGetCDRId(IntegrationTest):
                 tags=any_of('rh;Poudlard', 'Poudlard;rh'),
             )
         )
+
+    @call_logs([
+        {'id': 10,
+         'date': '2017-03-23 00:00:00',
+         'participants': [{'user_uuid': USER_1_UUID,
+                           'tenant_uuid': USERS_TENANT,
+                           'line_id': '1',
+                           'role': 'source'}]},
+        {'id': 11,
+         'date': '2017-03-23 00:00:00',
+         'participants': [{'user_uuid': USER_2_UUID,
+                           'tenant_uuid': USERS_TENANT,
+                           'line_id': '1',
+                           'role': 'source'}]},
+        {'id': 12,
+         'date': '2017-03-23 00:00:00',
+         'participants': [{'user_uuid': OTHER_USER_UUID,
+                           'tenant_uuid': OTHER_TENANT,
+                           'line_id': '1',
+                           'role': 'source'}]}
+    ])
+    def test_get_cdr_by_id_multitenant(self):
+        self.call_logd.set_token(USER_1_TOKEN)
+        result = self.call_logd.cdr.get_by_id(10)
+        assert_that(result, has_entries(source_user_uuid=USER_1_UUID,
+                                        source_tenant_uuid=USERS_TENANT))
+
+        result = self.call_logd.cdr.get_by_id(11)
+        assert_that(result, has_entries(source_user_uuid=USER_2_UUID,
+                                        source_tenant_uuid=USERS_TENANT))
+
+        assert_that(
+            calling(self.call_logd.cdr.get_by_id).with_args(cdr_id=12),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=404,
+                    message=contains_string_ignoring_case('no cdr found'),
+                    details=has_key('cdr_id')
+                )
+            )
+        )
+
+        self.call_logd.set_token(OTHER_USER_TOKEN)
+        result = self.call_logd.cdr.get_by_id(12)
+        assert_that(result, has_entries(source_user_uuid=OTHER_USER_UUID,
+                                        source_tenant_uuid=OTHER_TENANT))
+
+        self.call_logd.set_token(MASTER_TOKEN)
+        result = self.call_logd.cdr.get_by_id(10)
+        assert_that(result, has_entries(source_user_uuid=USER_1_UUID,
+                                        source_tenant_uuid=USERS_TENANT))
+
+        result = self.call_logd.cdr.get_by_id(11)
+        assert_that(result, has_entries(source_user_uuid=USER_2_UUID,
+                                        source_tenant_uuid=USERS_TENANT))
+
+        result = self.call_logd.cdr.get_by_id(12)
+        assert_that(result, has_entries(source_user_uuid=OTHER_USER_UUID,
+                                        source_tenant_uuid=OTHER_TENANT))
 
 
 class TestListCDR(IntegrationTest):
@@ -513,7 +580,7 @@ class TestListCDR(IntegrationTest):
     def test_given_no_token_when_list_cdr_of_user_then_401(self):
         self.call_logd.set_token(None)
         assert_that(
-            calling(self.call_logd.cdr.list_for_user).with_args(SOME_USER_UUID),
+            calling(self.call_logd.cdr.list_for_user).with_args(OTHER_USER_UUID),
             raises(CallLogdError).matching(has_properties(status_code=401,
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
@@ -849,3 +916,77 @@ class TestListCDR(IntegrationTest):
 
         assert_that(result, all_of(has_entry('total', 1100),
                                    has_entry('items', has_length(1000))))
+
+    @call_logs([
+        {'id': 10,
+         'date': '2017-03-23 00:00:00',
+         'participants': [{'user_uuid': USER_1_UUID,
+                           'tenant_uuid': USERS_TENANT,
+                           'line_id': '1',
+                           'role': 'source'}]},
+        {'id': 11,
+         'date': '2017-03-23 00:00:00',
+         'participants': [{'user_uuid': USER_2_UUID,
+                           'tenant_uuid': USERS_TENANT,
+                           'line_id': '1',
+                           'role': 'source'}]},
+        {'id': 12,
+         'date': '2017-03-23 00:00:00',
+         'participants': [{'user_uuid': OTHER_USER_UUID,
+                           'tenant_uuid': OTHER_TENANT,
+                           'line_id': '1',
+                           'role': 'source'}]}
+    ])
+    def test_list_multitenant(self):
+        self.call_logd.set_token(USER_1_TOKEN)
+        results = self.call_logd.cdr.list_from_user()
+        assert_that(results["total"], equal_to(1))
+        assert_that(results["items"],
+                    contains(has_entries(source_user_uuid=USER_1_UUID,
+                                         source_tenant_uuid=USERS_TENANT)))
+
+        results = self.call_logd.cdr.list_for_user(USER_2_UUID)
+        assert_that(results["total"], equal_to(2))
+        assert_that(results["filtered"], equal_to(1))
+        assert_that(results["items"],
+                    contains(has_entries(source_user_uuid=USER_2_UUID,
+                                         source_tenant_uuid=USERS_TENANT)))
+
+        results = self.call_logd.cdr.list_for_user(OTHER_USER_UUID)
+        assert_that(results["total"], equal_to(2))
+        assert_that(results["filtered"], equal_to(0))
+
+        self.call_logd.set_token(USER_2_TOKEN)
+        results = self.call_logd.cdr.list_from_user()
+        assert_that(results["total"], equal_to(1))
+        assert_that(results["items"],
+                    contains(has_entries(source_user_uuid=USER_2_UUID,
+                                         source_tenant_uuid=USERS_TENANT)))
+
+        self.call_logd.set_token(OTHER_USER_TOKEN)
+        results = self.call_logd.cdr.list_from_user()
+        assert_that(results["total"], equal_to(1))
+        assert_that(results["items"],
+                    contains(has_entries(source_user_uuid=OTHER_USER_UUID,
+                                         source_tenant_uuid=OTHER_TENANT)))
+
+        self.call_logd.set_token(MASTER_TOKEN)
+        results = self.call_logd.cdr.list()
+        assert_that(results["total"], equal_to(0))
+
+        self.call_logd.set_token(USER_1_TOKEN)
+        results = self.call_logd.cdr.list()
+        assert_that(results["total"], equal_to(2))
+        assert_that(results, has_entries(items=contains_inanyorder(
+            has_entries(source_user_uuid=USER_1_UUID),
+            has_entries(source_user_uuid=USER_2_UUID),
+        )))
+
+        self.call_logd.set_token(MASTER_TOKEN)
+        results = self.call_logd.cdr.list(recurse=True)
+        assert_that(results["total"], equal_to(3))
+        assert_that(results, has_entries(items=contains_inanyorder(
+            has_entries(source_user_uuid=USER_1_UUID),
+            has_entries(source_user_uuid=USER_2_UUID),
+            has_entries(source_user_uuid=OTHER_USER_UUID),
+        )))
