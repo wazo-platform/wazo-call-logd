@@ -2,10 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
-import uuid
 
 from io import StringIO
-from functools import wraps
 from hamcrest import (
     all_of,
     any_of,
@@ -43,33 +41,8 @@ from .helpers.constants import (
     VALID_TOKEN,
     VALID_TENANT,
 )
+from .helpers.database import call_logs
 from .helpers.hamcrest.contains_string_ignoring_case import contains_string_ignoring_case
-
-
-def call_logs(call_logs):
-    def _decorate(func):
-        @wraps(func)
-        def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
-                for call_log in call_logs:
-                    participants = call_log.pop('participants', [{
-                        'user_uuid': str(uuid.uuid4()),
-                        'tenant_uuid': VALID_TENANT,
-                        'role': 'source',
-                    }])
-                    call_log['id'] = queries.insert_call_log(**call_log)
-                    call_log['participants'] = participants
-                    for participant in participants:
-                        queries.insert_call_log_participant(call_log_id=call_log['id'],
-                                                            **participant)
-            try:
-                return func(self, *args, **kwargs)
-            finally:
-                with self.database.queries() as queries:
-                    for call_log in call_logs:
-                        queries.delete_call_log(call_log['id'])
-        return wrapped_function
-    return _decorate
 
 
 class TestNoAuth(IntegrationTest):
