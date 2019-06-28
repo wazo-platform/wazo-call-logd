@@ -283,9 +283,7 @@ class TestListCDR(IntegrationTest):
                         source_extension='7867',
                         source_name='.rùos',
                         tags=[]),
-        ),
-                                        filtered=2,
-                                        total=2))
+        ), filtered=2, total=2))
 
     @call_logs([
         {'id': 12,
@@ -344,8 +342,7 @@ class TestListCDR(IntegrationTest):
                 source_name='.rùos',
                 tags=''
             )
-        ),
-                    'CSV received: {}'.format(result_raw))
+        ), 'CSV received: {}'.format(result_raw))
 
     def test_given_wrong_params_when_list_cdr_then_400(self):
         wrong_params = {'abcd', '12:345', '2017-042-10'}
@@ -414,9 +411,7 @@ class TestListCDR(IntegrationTest):
         assert_that(result, has_entries(items=contains_inanyorder(
             has_entries(start='2017-04-11T00:00:00+00:00'),
             has_entries(start='2017-04-12T00:00:00+00:00'),
-        ),
-                                        filtered=2,
-                                        total=4))
+        ), filtered=2, total=4))
 
     @call_logs([
         {'date': '2017-04-10', 'date_answer': '2017-04-10', 'date_end': '2017-04-10'},

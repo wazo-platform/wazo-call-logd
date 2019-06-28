@@ -298,9 +298,9 @@ class LocalOriginateCELInterpretor(object):
 
     @classmethod
     def can_interpret(cls, cels):
-        return (cls.three_channels_minimum(cels) and
-                cls.first_two_channels_are_local(cels) and
-                cls.first_channel_is_answered_before_any_other_operation(cels))
+        return (cls.three_channels_minimum(cels)
+                and cls.first_two_channels_are_local(cels)
+                and cls.first_channel_is_answered_before_any_other_operation(cels))
 
     @classmethod
     def three_channels_minimum(cls, cels):
@@ -310,13 +310,13 @@ class LocalOriginateCELInterpretor(object):
     @classmethod
     def first_two_channels_are_local(cls, cels):
         names = [cel.channame for cel in cels if cel.eventtype == 'CHAN_START']
-        return (len(names) >= 2 and
-                names[0].lower().startswith('local/') and
-                names[1].lower().startswith('local/'))
+        return (len(names) >= 2
+                and names[0].lower().startswith('local/')
+                and names[1].lower().startswith('local/'))
 
     @classmethod
     def first_channel_is_answered_before_any_other_operation(cls, cels):
         first_channel_cels = [cel for cel in cels if cel.uniqueid == cels[0].uniqueid]
-        return (len(first_channel_cels) >= 2 and
-                first_channel_cels[0].eventtype == 'CHAN_START' and
-                first_channel_cels[1].eventtype == 'ANSWER')
+        return (len(first_channel_cels) >= 2
+                and first_channel_cels[0].eventtype == 'CHAN_START'
+                and first_channel_cels[1].eventtype == 'ANSWER')

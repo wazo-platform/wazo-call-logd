@@ -1,4 +1,4 @@
-MANAGE_DB_DIR ?= ../../manage-db/
+MANAGE_DB_DIR ?= ../../xivo-manage-db/
 POSTGRES_DOCKER=$(MANAGE_DB_DIR)/contribs/postgres-test/Dockerfile
 
 test-setup: call-logd docker-pull egg-info

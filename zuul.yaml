@@ -1,0 +1,19 @@
+- job:
+    name: wazo-tox-integration-call-logd
+    parent: wazo-tox-integration
+    required-projects:
+      wazo-pbx/xivo-manage-db
+
+- project:
+    templates:
+      - wazo-tox-py35
+      - wazo-tox-linters
+    check:
+      jobs:
+        - wazo-tox-integration-call-logd:
+            nodeset: debian9-vm
+    gate:
+      jobs:
+        - wazo-tox-integration-call-logd:
+            nodeset: debian9-vm
+
