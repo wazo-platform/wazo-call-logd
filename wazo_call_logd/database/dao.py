@@ -112,10 +112,11 @@ class CallLogDAO(object):
             query = session.query(CallLogSchema)
             query = self._apply_user_filter(query, params)
 
-            if params.get('tenant_uuids'):
-                query = self._apply_filters(query, {
-                    'tenant_uuids': params["tenant_uuids"]
-                })
+            segregation_fields = ('tenant_uuids', 'me_user_uuid')
+            count_params = dict([(p, params.get(p))
+                                 for p in segregation_fields])
+            query = self._apply_filters(query, count_params)
+
             total = query.count()
 
             query = self._apply_filters(query, params)
