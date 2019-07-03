@@ -1,7 +1,7 @@
 MANAGE_DB_DIR ?= ../../xivo-manage-db/
 POSTGRES_DOCKER=$(MANAGE_DB_DIR)/contribs/postgres-test/Dockerfile
 
-test-setup: call-logd docker-pull egg-info
+test-setup: docker-pull egg-info call-logd update-db
 
 egg-info:
 	cd .. && python setup.py egg_info
