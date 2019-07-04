@@ -685,6 +685,7 @@ class TestListCDR(IntegrationTest):
                                           metadata={"tenant_uuid": VALID_TENANT}))
 
         self.call_logd.set_token(SOME_TOKEN)
+
         results = self.call_logd.cdr.list_from_user(user_uuid=USER_3_UUID)
 
         assert_that(
@@ -863,7 +864,19 @@ class TestListCDR(IntegrationTest):
          'participants': [{'user_uuid': OTHER_USER_UUID,
                            'tenant_uuid': OTHER_TENANT,
                            'line_id': '1',
-                           'role': 'source'}]}
+                           'role': 'source'}]},
+        {'id': 13,
+         'date': '2017-03-23 00:00:00',
+         'requested_tenant_uuid': OTHER_TENANT},
+        {'id': 14,
+         'date': '2017-03-23 00:00:00',
+         'requested_internal_tenant_uuid': OTHER_TENANT},
+        {'id': 15,
+         'date': '2017-03-23 00:00:00',
+         'source_internal_tenant_uuid': OTHER_TENANT},
+        {'id': 16,
+         'date': '2017-03-23 00:00:00',
+         'destination_internal_tenant_uuid': OTHER_TENANT},
     ])
     def test_list_multitenant(self):
         self.call_logd.set_token(USER_1_TOKEN)
@@ -900,7 +913,7 @@ class TestListCDR(IntegrationTest):
 
         self.call_logd.set_token(MASTER_TOKEN)
         results = self.call_logd.cdr.list()
-        assert_that(results["total"], equal_to(0))
+        assert_that(results["total"], equal_to(7))
 
         self.call_logd.set_token(USER_1_TOKEN)
         results = self.call_logd.cdr.list()
@@ -912,9 +925,13 @@ class TestListCDR(IntegrationTest):
 
         self.call_logd.set_token(MASTER_TOKEN)
         results = self.call_logd.cdr.list(recurse=True)
-        assert_that(results["total"], equal_to(3))
+        assert_that(results["total"], equal_to(7))
         assert_that(results, has_entries(items=contains_inanyorder(
             has_entries(source_user_uuid=USER_1_UUID),
             has_entries(source_user_uuid=USER_2_UUID),
             has_entries(source_user_uuid=OTHER_USER_UUID),
+            has_entries(requested_tenant_uuid=OTHER_TENANT),
+            has_entries(requested_internal_tenant_uuid=OTHER_TENANT),
+            has_entries(source_internal_tenant_uuid=OTHER_TENANT),
+            has_entries(destination_internal_tenant_uuid=OTHER_TENANT),
         )))

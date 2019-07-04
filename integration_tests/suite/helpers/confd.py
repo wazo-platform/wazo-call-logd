@@ -52,6 +52,13 @@ class ConfdClient(object):
 
         requests.post(url, json=body, verify=False)
 
+    def set_contexts(self, *mock_contexts):
+        url = self.url('_set_response')
+        body = {'response': 'contexts',
+                'content': {context.id_(): context.to_dict()
+                            for context in mock_contexts}}
+        requests.post(url, json=body, verify=False)
+
     def reset(self):
         url = self.url('_reset')
         requests.post(url, verify=False)
@@ -119,4 +126,21 @@ class MockSwitchboard(object):
         return {
             'uuid': self._uuid,
             'name': self._name
+        }
+
+
+class MockContext(object):
+    def __init__(self, id, name, tenant_uuid):
+        self._id = id
+        self._name = name
+        self._tenant_uuid = tenant_uuid
+
+    def id_(self):
+        return self._id
+
+    def to_dict(self):
+        return {
+            'id': self._id,
+            'name': self._name,
+            'tenant_uuid': self._tenant_uuid,
         }

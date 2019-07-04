@@ -238,6 +238,8 @@ definitions:
         description: the internal extension of the line that placed the call
       source_internal_context:
         type: string
+      source_internal_tenant_uuid:
+        type: string
       source_user_uuid:
         type: string
       source_tenant_uuid:
@@ -248,10 +250,14 @@ definitions:
         type: string
       requested_context:
         type: string
+      requested_tenant_uuid:
+        type: string
       requested_internal_extension:
         type: string
         description: the internal extension of the first line to ring
       requested_internal_context:
+        type: string
+      requested_internal_tenant_uuid:
         type: string
       destination_name:
         type: string
@@ -261,6 +267,8 @@ definitions:
         type: string
         description: the internal extension of the line that answers
       destination_internal_context:
+        type: string
+      destination_internal_tenant_uuid:
         type: string
       destination_user_uuid:
         type: string

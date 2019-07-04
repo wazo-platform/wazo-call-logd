@@ -12,6 +12,14 @@ from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 logger = logging.getLogger(__name__)
 
 
+def find_tenant_of_context(confd, context_name):
+    contexts = confd.contexts.list(name=context_name)['items']
+    if contexts:
+        return contexts[0]['tenant_uuid']
+    else:
+        logger.error('tenant_uuid for context `%s` not found' % context_name)
+
+
 def find_participant(confd, channame, role):
     # TODO PJSIP clean after migration
     channame = channame.replace('PJSIP', 'SIP')
@@ -65,7 +73,10 @@ def find_main_internal_extension(confd, channame):
         return
 
     main_extension = extensions[0]
-    logger.debug('Found main internal extension %s@%s', main_extension['exten'], main_extension['context'])
+    logger.debug('Found main internal extension %s@%s (%s)',
+                 main_extension['exten'],
+                 main_extension['context'],
+                 main_extension['tenant_uuid'])
     return main_extension
 
 
@@ -136,6 +147,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.source_exten = cel.cid_num
         call.requested_exten = cel.exten if cel.exten != 's' else ''
         call.requested_context = cel.context
+        call.requested_tenant_uuid = find_tenant_of_context(self._confd, cel.context)
         call.destination_exten = cel.exten if cel.exten != 's' else ''
         call.source_line_identity = identity_from_channel(cel.channame)
         participant = find_participant(self._confd, cel.channame, role='source')
@@ -145,6 +157,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if extension:
             call.source_internal_exten = extension['exten']
             call.source_internal_context = extension['context']
+            call.source_internal_tenant_uuid = extension['tenant_uuid']
 
         return call
 
@@ -182,6 +195,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_xivo_from_s(self, cel, call):
         call.requested_exten = cel.exten
         call.requested_context = cel.context
+        call.requested_tenant_uuid = find_tenant_of_context(self._confd, cel.context)
         call.destination_exten = cel.exten
 
         return call
@@ -218,11 +232,13 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             if requested_extension:
                 call.requested_internal_exten = requested_extension['exten']
                 call.requested_internal_context = requested_extension['context']
+                call.requested_internal_tenant_uuid = requested_extension['tenant_uuid']
 
         extension = find_main_internal_extension(self._confd, cel.channame)
         if extension:
             call.destination_internal_exten = extension['exten']
             call.destination_internal_context = extension['context']
+            call.destination_internal_tenant_uuid = extension['tenant_uuid']
 
         return call
 

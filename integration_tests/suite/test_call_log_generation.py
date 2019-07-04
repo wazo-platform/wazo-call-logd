@@ -18,6 +18,7 @@ from xivo_test_helpers import until
 
 from .helpers.base import IntegrationTest
 from .helpers.confd import (
+    MockContext,
     MockLine,
     MockUser,
 )
@@ -167,10 +168,15 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self.confd.set_lines(
             MockLine(id=1, name='as2mkq',
                      users=[{'uuid': USER_1_UUID}],
-                     extensions=[{'exten': '101', 'context': 'default'}]),
+                     extensions=[{'exten': '101', 'context': 'default',
+                                  'tenant_uuid': TENANT_1_UUID}]),
             MockLine(id=2, name='je5qtq',
                      users=[{'uuid': USER_2_UUID}],
-                     extensions=[{'exten': '102', 'context': 'default'}]),
+                     extensions=[{'exten': '102', 'context': 'default',
+                                  'tenant_uuid': TENANT_1_UUID}]),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=TENANT_1_UUID)
         )
         msg_accumulator_1 = self.bus.accumulator('call_log.created')
         msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
@@ -181,13 +187,14 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, has_properties({
-                        'requested_tenant_uuid': TENANT_1_UUID,
                         'source_internal_exten': '101',
                         'source_internal_context': 'default',
+                        'source_internal_tenant_uuid': TENANT_1_UUID,
                         'source_user_uuid': USER_1_UUID,
                         'source_tenant_uuid': TENANT_1_UUID,
                         'destination_internal_exten': '102',
                         'destination_internal_context': 'default',
+                        'destination_internal_tenant_uuid': TENANT_1_UUID,
                         'destination_user_uuid': USER_2_UUID,
                         'destination_tenant_uuid': TENANT_2_UUID,
                     }))
@@ -244,9 +251,14 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     def test_given_cels_of_forwarded_call_when_generate_call_log_then_requested_different_from_destination(self):
         self.confd.set_lines(
             MockLine(id=1, name='101',
-                     extensions=[{'exten': '101', 'context': 'default'}]),
+                     extensions=[{'exten': '101', 'context': 'default',
+                                  'tenant_uuid': TENANT_1_UUID}]),
             MockLine(id=2, name='rku3uo',
-                     extensions=[{'exten': '103', 'context': 'default'}]),
+                     extensions=[{'exten': '103', 'context': 'default',
+                                  'tenant_uuid': TENANT_1_UUID}]),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=TENANT_1_UUID)
         )
 
         with self.no_call_logs():
@@ -258,11 +270,14 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     assert_that(call_log, has_properties({
                         'source_internal_exten': '101',
                         'source_internal_context': 'default',
+                        'source_internal_tenant_uuid': TENANT_1_UUID,
                         'requested_exten': '102',
                         'requested_context': 'default',
+                        'requested_tenant_uuid': TENANT_1_UUID,
                         'destination_exten': '103',
                         'destination_internal_exten': '103',
                         'destination_internal_context': 'default',
+                        'destination_internal_tenant_uuid': TENANT_1_UUID,
                     }))
 
             until.assert_(call_log_has_destination_different_from_requested, tries=10)
@@ -289,7 +304,11 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(self):
         self.confd.set_lines(
             MockLine(id=1, name='101',
-                     extensions=[{'exten': '101', 'context': 'default'}]),
+                     extensions=[{'exten': '101', 'context': 'default',
+                                  'tenant_uuid': TENANT_1_UUID}]),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=TENANT_1_UUID)
         )
 
         with self.no_call_logs():
@@ -301,13 +320,16 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     assert_that(call_log, has_properties({
                         'source_internal_exten': None,
                         'source_internal_context': None,
+                        'source_internal_tenant_uuid': None,
                         'requested_exten': '999101',
                         'requested_context': 'from-extern',
                         'requested_internal_exten': '101',
                         'requested_internal_context': 'default',
+                        'requested_internal_tenant_uuid': TENANT_1_UUID,
                         'destination_exten': '101',
                         'destination_internal_exten': '101',
                         'destination_internal_context': 'default',
+                        'destination_internal_tenant_uuid': TENANT_1_UUID,
                     }))
 
             until.assert_(call_log_has_destination_different_from_requested, tries=5)

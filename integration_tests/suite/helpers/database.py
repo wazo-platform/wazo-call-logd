@@ -23,7 +23,18 @@ def call_logs(call_logs):
             with self.database.queries() as queries:
                 for call_log in call_logs:
                     participants = call_log.pop('participants', [])
-                    call_log.setdefault('requested_tenant_uuid', VALID_TENANT)
+
+                    have_at_least_one_context_set = False
+                    for prefix in ('requested', 'requested_internal',
+                                   'source_internal', 'destination_internal'):
+                        if '%s_context' % prefix in call_log:
+                            have_at_least_one_context_set = True
+                            call_log.setdefault('%s_tenant_uuid' % prefix, VALID_TENANT)
+
+                    if not have_at_least_one_context_set:
+                        call_log['requested_internal_context'] = 'default'
+                        call_log['requested_internal_tenant_uuid'] = VALID_TENANT
+
                     call_log['id'] = queries.insert_call_log(**call_log)
                     call_log['participants'] = participants
                     for participant in participants:

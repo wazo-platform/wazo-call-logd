@@ -162,8 +162,14 @@ class CallLogDAO(object):
             query = query.filter(sql.or_(*filters))
 
         if params.get('tenant_uuids'):
-            filters = (CallLogSchema.participant_tenant_uuids.contains(str(tenant_uuid))
-                       for tenant_uuid in params['tenant_uuids'])
+            filters = [CallLogSchema.participant_tenant_uuids.contains(str(tenant_uuid))
+                       for tenant_uuid in params['tenant_uuids']]
+            filters.extend([
+                CallLogSchema.requested_tenant_uuid.in_(params['tenant_uuids']),
+                CallLogSchema.requested_internal_tenant_uuid.in_(params['tenant_uuids']),
+                CallLogSchema.source_internal_tenant_uuid.in_(params['tenant_uuids']),
+                CallLogSchema.destination_internal_tenant_uuid.in_(params['tenant_uuids']),
+            ])
             query = query.filter(sql.or_(*filters))
 
         if params.get('start_id'):
