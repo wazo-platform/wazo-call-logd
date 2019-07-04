@@ -3,7 +3,6 @@
 
 from functools import wraps
 import logging
-import uuid
 import sqlalchemy as sa
 
 from contextlib import contextmanager
@@ -23,14 +22,13 @@ def call_logs(call_logs):
         def wrapped_function(self, *args, **kwargs):
             with self.database.queries() as queries:
                 for call_log in call_logs:
-                    participants = call_log.pop('participants', [{
-                        'user_uuid': str(uuid.uuid4()),
-                        'tenant_uuid': VALID_TENANT,
-                        'role': 'source',
-                    }])
+                    participants = call_log.pop('participants', [])
+                    call_log.setdefault('requested_tenant_uuid', VALID_TENANT)
                     call_log['id'] = queries.insert_call_log(**call_log)
                     call_log['participants'] = participants
                     for participant in participants:
+                        if 'user_uuid' in participant:
+                            participant.setdefault('tenant_uuid', VALID_TENANT)
                         queries.insert_call_log_participant(call_log_id=call_log['id'],
                                                             **participant)
             try:

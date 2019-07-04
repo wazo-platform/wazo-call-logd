@@ -118,12 +118,10 @@ class TestGetCDRId(IntegrationTest):
          'source_internal_exten': '5938',
          'source_internal_context': 'internal',
          'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': VALID_TENANT,
                            'line_id': '11',
                            'tags': ['rh', 'Poudlard'],
                            'role': 'source'},
                           {'user_uuid': USER_2_UUID,
-                           'tenant_uuid': VALID_TENANT,
                            'line_id': '22',
                            'role': 'destination'}]}
     ])
@@ -178,7 +176,6 @@ class TestGetCDRId(IntegrationTest):
          'source_internal_exten': '5938',
          'source_internal_context': 'internal',
          'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': VALID_TENANT,
                            'line_id': '1',
                            'tags': ['rh', 'Poudlard'],
                            'role': 'source'}]}
@@ -295,7 +292,6 @@ class TestListCDR(IntegrationTest):
          'source_exten': '7687',
          'source_name': 'soùr.',
          'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': VALID_TENANT,
                            'line_id': '1',
                            'tags': ['rh', 'Poudlard'],
                            'role': 'source'}]},
@@ -307,12 +303,7 @@ class TestListCDR(IntegrationTest):
          'destination_name': '.tsèd',
          'direction': 'outbound',
          'source_exten': '7867',
-         'source_name': '.rùos',
-         'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': VALID_TENANT,
-                           'line_id': '1',
-                           'tags': ['rh', 'Poudlard'],
-                           'role': 'destination'}]},
+         'source_name': '.rùos'},
     ])
     def test_given_call_logs_when_list_cdr_then_list_cdr(self):
         result = self.call_logd.cdr.list()
@@ -339,13 +330,11 @@ class TestListCDR(IntegrationTest):
                         end='2017-03-23T11:13:29+00:00',
                         destination_extension='8733',
                         destination_name='.tsèd',
-                        destination_user_uuid=USER_1_UUID,
-                        destination_tenant_uuid=VALID_TENANT,
                         duration=None,
                         call_direction='outbound',
                         source_extension='7867',
                         source_name='.rùos',
-                        tags=contains_inanyorder('rh', 'Poudlard')),
+                        tags=[]),
         ), filtered=2, total=2))
 
     @call_logs([
@@ -359,7 +348,6 @@ class TestListCDR(IntegrationTest):
          'source_exten': '7687',
          'source_name': 'soùr.',
          'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': VALID_TENANT,
                            'line_id': '1',
                            'tags': ['rh', 'Poudlard'],
                            'role': 'source'}]},
@@ -371,12 +359,7 @@ class TestListCDR(IntegrationTest):
          'destination_name': 'noitani,tsèd',
          'direction': 'outbound',
          'source_exten': '7867',
-         'source_name': '.rùos',
-         'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': VALID_TENANT,
-                           'line_id': '1',
-                           'tags': ['rh', 'Poudlard'],
-                           'role': 'destination'}]},
+         'source_name': '.rùos'},
     ])
     def test_given_call_logs_when_list_cdr_in_csv_then_list_cdr_in_csv(self):
         result_raw = self.call_logd.cdr.list_csv()
@@ -406,13 +389,11 @@ class TestListCDR(IntegrationTest):
                 end='2017-03-23T11:13:29+00:00',
                 destination_extension='8733',
                 destination_name='noitani,tsèd',
-                destination_user_uuid=USER_1_UUID,
-                destination_tenant_uuid=VALID_TENANT,
                 duration='',
                 call_direction='outbound',
                 source_extension='7867',
                 source_name='.rùos',
-                tags=any_of('rh;Poudlard', 'Poudlard;rh')
+                tags=''
             )
         ), 'CSV received: {}'.format(result_raw))
 
@@ -615,20 +596,15 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([
         {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT,
                                                  'tags': ['quebec']}]},
         {'date': '2017-04-12'},
         {'date': '2017-04-13', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT,
                                                  'tags': ['quebec', 'montreal']}]},
         {'date': '2017-04-14', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT,
                                                  'tags': ['chicoutimi']},
                                                 {'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT,
                                                  'tags': ['roberval']}]},
         {'date': '2017-04-15', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT,
                                                  'tags': ['alma', 'roberval', 'jonquiere']}]},
     ])
     def test_given_call_logs_when_list_cdr_with_tags_then_list_matching_cdr(self):
@@ -663,18 +639,12 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([
         {'date': '2017-04-10'},
-        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT},
-                                                {'user_uuid': USER_3_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-13', 'participants': [{'user_uuid': USER_2_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-14', 'participants': [{'user_uuid': USER_3_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
+        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID},
+                                                {'user_uuid': USER_3_UUID}]},
+        {'date': '2017-04-13', 'participants': [{'user_uuid': USER_2_UUID}]},
+        {'date': '2017-04-14', 'participants': [{'user_uuid': USER_3_UUID}]},
+        {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID}]},
     ])
     def test_given_call_logs_when_list_cdr_with_user_uuid_then_list_matching_cdr(self):
         result = self.call_logd.cdr.list(user_uuid=USER_3_UUID)
@@ -697,16 +667,16 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([
         {'date': '2019-06-13T12:00:00+00:00', 'participants': [
-            {'user_uuid': USER_1_UUID, 'tenant_uuid': VALID_TENANT, 'role': 'source'},
-            {'user_uuid': USER_2_UUID, 'tenant_uuid': VALID_TENANT, 'role': 'destination'},
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination'},
         ]},
         {'date': '2019-06-13T13:00:00+00:00', 'participants': [
-            {'user_uuid': USER_1_UUID, 'tenant_uuid': VALID_TENANT, 'role': 'source'},
-            {'user_uuid': USER_3_UUID, 'tenant_uuid': VALID_TENANT, 'role': 'destination'},
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_3_UUID, 'role': 'destination'},
         ]},
         {'date': '2019-06-13T14:00:00+00:00', 'participants': [
-            {'user_uuid': USER_3_UUID, 'tenant_uuid': VALID_TENANT, 'role': 'source'},
-            {'user_uuid': USER_2_UUID, 'tenant_uuid': VALID_TENANT, 'role': 'destination'},
+            {'user_uuid': USER_3_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination'},
         ]},
     ])
     def test_when_list_my_cdr_with_user_uuid_then_list_matching_cdr(self):
@@ -772,16 +742,11 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([
         {'date': '2017-04-10'},
-        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-13', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-14', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
+        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-13', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-14', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID}]},
     ])
     def test_given_call_logs_when_list_cdr_of_user_then_list_cdr_of_user(self):
         result = self.call_logd.cdr.list_for_user(USER_1_UUID, limit=2, offset=1, order='start', direction='desc')
@@ -794,10 +759,8 @@ class TestListCDR(IntegrationTest):
                                         )))
 
     @call_logs([
-        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
+        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
     ])
     def test_given_call_logs_when_list_cdr_of_user_as_csv_then_list_cdr_of_user_as_csv(self):
         result_raw = self.call_logd.cdr.list_for_user_csv(USER_1_UUID)
@@ -827,16 +790,11 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([
         {'date': '2017-04-10'},
-        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-13', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-14', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
+        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-13', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-14', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-15', 'participants': [{'user_uuid': USER_2_UUID}]},
     ])
     def test_given_call_logs_when_list_my_cdr_then_list_my_cdr(self):
         SOME_TOKEN = 'my-token'
@@ -855,10 +813,8 @@ class TestListCDR(IntegrationTest):
                                         )))
 
     @call_logs([
-        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
-        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID,
-                                                 'tenant_uuid': VALID_TENANT}]},
+        {'date': '2017-04-11', 'participants': [{'user_uuid': USER_1_UUID}]},
+        {'date': '2017-04-12', 'participants': [{'user_uuid': USER_1_UUID}]},
     ])
     def test_given_call_logs_when_list_my_cdr_as_csv_then_list_my_cdr_as_csv(self):
         SOME_TOKEN = 'my-token'
@@ -876,7 +832,6 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([{'date': '2018-06-06', 'participants': [{
         'user_uuid': USER_1_UUID,
-        'tenant_uuid': VALID_TENANT
     }]} for _ in range(1100)])
     def test_list_my_cdr_default_limit(self):
         SOME_TOKEN = 'my-token'

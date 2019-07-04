@@ -181,6 +181,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, has_properties({
+                        'requested_tenant_uuid': TENANT_1_UUID,
                         'source_internal_exten': '101',
                         'source_internal_context': 'default',
                         'source_user_uuid': USER_1_UUID,
