@@ -71,6 +71,10 @@ class IntegrationTest(AssetLaunchingTestCase):
             cls.tearDownClass()
             raise
 
+    def setUp(self):
+        super().setUp()
+        self.call_logd.set_token(VALID_TOKEN)
+
     @classmethod
     def reset_clients(cls):
         try:

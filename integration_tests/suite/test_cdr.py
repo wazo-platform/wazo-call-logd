@@ -38,7 +38,6 @@ from .helpers.constants import (
     USER_1_TOKEN,
     USER_2_TOKEN,
     MASTER_TOKEN,
-    VALID_TOKEN,
     VALID_TENANT,
 )
 from .helpers.database import call_logs
@@ -64,7 +63,6 @@ class TestNoAuth(IntegrationTest):
             raises(CallLogdError).matching(has_properties(status_code=401,
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
-        self.call_logd.set_token(VALID_TOKEN)
 
     def test_given_no_auth_when_get_cdr_by_id_then_503(self):
         with self.auth_stopped():
@@ -81,7 +79,6 @@ class TestNoAuth(IntegrationTest):
             raises(CallLogdError).matching(has_properties(status_code=401,
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
-        self.call_logd.set_token(VALID_TOKEN)
 
 
 class TestGetCDRId(IntegrationTest):
@@ -538,7 +535,6 @@ class TestListCDR(IntegrationTest):
             raises(CallLogdError).matching(has_properties(status_code=401,
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
-        self.call_logd.set_token(VALID_TOKEN)
 
     @call_logs([
         {'date': '2016-04-10', 'direction': 'outbound'},
@@ -702,7 +698,6 @@ class TestListCDR(IntegrationTest):
         results = self.call_logd.cdr.list_from_user(
             user_uuid=','.join([USER_1_UUID, USER_2_UUID, USER_3_UUID])
         )
-        self.call_logd.set_token(VALID_TOKEN)
 
         assert_that(
             results,
@@ -778,7 +773,6 @@ class TestListCDR(IntegrationTest):
             raises(CallLogdError).matching(has_properties(status_code=401,
                                                           message=contains_string_ignoring_case('unauthorized')))
         )
-        self.call_logd.set_token(VALID_TOKEN)
 
     def test_given_token_with_no_user_uuid_when_list_my_cdr_then_400(self):
         self.call_logd.set_token(NON_USER_TOKEN)
@@ -787,7 +781,6 @@ class TestListCDR(IntegrationTest):
             raises(CallLogdError).matching(has_properties(status_code=400,
                                                           message=contains_string_ignoring_case('user')))
         )
-        self.call_logd.set_token(VALID_TOKEN)
 
     @call_logs([
         {'date': '2017-04-10'},
@@ -804,7 +797,6 @@ class TestListCDR(IntegrationTest):
 
         self.call_logd.set_token(SOME_TOKEN)
         result = self.call_logd.cdr.list_from_user(limit=2, offset=1, order='start', direction='desc')
-        self.call_logd.set_token(VALID_TOKEN)
 
         assert_that(result, has_entries(filtered=4,
                                         total=4,
@@ -825,7 +817,6 @@ class TestListCDR(IntegrationTest):
         self.call_logd.set_token(SOME_TOKEN)
         result_raw = self.call_logd.cdr.list_from_user_csv()
         result = list(csv.DictReader(StringIO(result_raw)))
-        self.call_logd.set_token(VALID_TOKEN)
 
         assert_that(result, contains_inanyorder(has_entries(start='2017-04-11T00:00:00+00:00'),
                                                 has_entries(start='2017-04-12T00:00:00+00:00')),
@@ -841,7 +832,6 @@ class TestListCDR(IntegrationTest):
 
         self.call_logd.set_token(SOME_TOKEN)
         result = self.call_logd.cdr.list_from_user()
-        self.call_logd.set_token(VALID_TOKEN)
 
         assert_that(result, all_of(has_entry('total', 1100),
                                    has_entry('items', has_length(1000))))
