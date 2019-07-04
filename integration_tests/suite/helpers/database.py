@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -6,7 +6,6 @@ import sqlalchemy as sa
 
 from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import make_transient
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.tests.test_dao import ItemInserter
@@ -107,8 +106,6 @@ class DatabaseQueries(object):
     def find_last_call_log(self):
         session = self.Session()
         call_log = session.query(CallLog).order_by(CallLog.date).first()
-        if call_log:
-            make_transient(call_log)
         session.commit()
         return call_log
 
