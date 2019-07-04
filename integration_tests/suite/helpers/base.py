@@ -34,7 +34,6 @@ from .constants import (
     USER_2_TOKEN,
     USER_2_UUID,
     USERS_TENANT,
-    VALID_TOKEN,
     WAZO_UUID
 )
 from .database import DbHelper
@@ -73,7 +72,7 @@ class IntegrationTest(AssetLaunchingTestCase):
 
     def setUp(self):
         super().setUp()
-        self.call_logd.set_token(VALID_TOKEN)
+        self.call_logd.set_token(MASTER_TOKEN)
 
     @classmethod
     def reset_clients(cls):
@@ -81,7 +80,7 @@ class IntegrationTest(AssetLaunchingTestCase):
             cls.call_logd = CallLogdClient('localhost',
                                            cls.service_port(9298, 'call-logd'),
                                            verify_certificate=False,
-                                           token=VALID_TOKEN)
+                                           token=MASTER_TOKEN)
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
             cls.call_logd = WrongClient(name='call-logd')

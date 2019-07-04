@@ -11,7 +11,7 @@ from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.tests.test_dao import ItemInserter
 
-from .constants import VALID_TENANT
+from .constants import MASTER_TENANT
 
 logger = logging.getLogger(__name__)
 
@@ -29,17 +29,19 @@ def call_logs(call_logs):
                                    'source_internal', 'destination_internal'):
                         if '%s_context' % prefix in call_log:
                             have_at_least_one_context_set = True
-                            call_log.setdefault('%s_tenant_uuid' % prefix, VALID_TENANT)
+                            call_log.setdefault('%s_tenant_uuid' % prefix, MASTER_TENANT)
 
                     if not have_at_least_one_context_set:
-                        call_log['requested_internal_context'] = 'default'
-                        call_log['requested_internal_tenant_uuid'] = VALID_TENANT
+                        call_log.setdefault('requested_internal_context',
+                                            'default')
+                        call_log.setdefault('requested_internal_tenant_uuid',
+                                            MASTER_TENANT)
 
                     call_log['id'] = queries.insert_call_log(**call_log)
                     call_log['participants'] = participants
                     for participant in participants:
                         if 'user_uuid' in participant:
-                            participant.setdefault('tenant_uuid', VALID_TENANT)
+                            participant.setdefault('tenant_uuid', MASTER_TENANT)
                         queries.insert_call_log_participant(call_log_id=call_log['id'],
                                                             **participant)
             try:
