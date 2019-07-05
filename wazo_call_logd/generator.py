@@ -1,4 +1,4 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -34,6 +34,9 @@ class CallLogsGenerator(object):
 
             interpretor = self._get_interpretor(cels_by_call)
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
+
+            self._tenant_checker(call_log)
+
             try:
                 result.append(call_log.to_call_log())
             except InvalidCallLogException as e:
@@ -54,3 +57,16 @@ class CallLogsGenerator(object):
                 return interpretor
 
         raise RuntimeError('Could not find suitable interpretor in {}'.format(self._cel_interpretors))
+
+    @staticmethod
+    def _tenant_checker(call_log):
+        for prefix in ('requested', 'requested_internal',
+                       'source_internal', 'destination_internal'):
+            if getattr(call_log, '%s_tenant_uuid' % prefix):
+                return
+        for participant in call_log.participants:
+            if participant.tenant_uuid:
+                return
+
+        logger.warning("call log of cels `%s` is not attached to a "
+                       "tenant_uuid", call_log.cel_ids)
