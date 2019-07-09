@@ -128,6 +128,7 @@ class TestGetCDRId(IntegrationTest):
             result,
             has_entries(
                 id=12,
+                tenant_uuid=MASTER_TENANT,
                 answered=True,
                 start='2017-03-23T00:00:00+00:00',
                 answer='2017-03-23T00:01:00+00:00',
@@ -135,7 +136,6 @@ class TestGetCDRId(IntegrationTest):
                 destination_extension='3378',
                 destination_name='dést,ination',
                 destination_user_uuid=USER_2_UUID,
-                destination_tenant_uuid=MASTER_TENANT,
                 destination_line_id=22,
                 destination_internal_extension='3245',
                 destination_internal_context='internal',
@@ -149,7 +149,6 @@ class TestGetCDRId(IntegrationTest):
                 source_internal_extension='5938',
                 source_internal_context='internal',
                 source_user_uuid=USER_1_UUID,
-                source_tenant_uuid=MASTER_TENANT,
                 source_line_id=11,
                 tags=contains_inanyorder('rh', 'Poudlard')
             )
@@ -184,6 +183,7 @@ class TestGetCDRId(IntegrationTest):
             result,
             has_entries(
                 id='12',
+                tenant_uuid=MASTER_TENANT,
                 answered='True',
                 start='2017-03-23T00:00:00+00:00',
                 answer='2017-03-23T00:01:00+00:00',
@@ -202,28 +202,27 @@ class TestGetCDRId(IntegrationTest):
                 source_internal_extension='5938',
                 source_internal_context='internal',
                 source_user_uuid=USER_1_UUID,
-                source_tenant_uuid=MASTER_TENANT,
                 tags=any_of('rh;Poudlard', 'Poudlard;rh'),
             )
         )
 
     @call_logs([
         {'id': 10,
+         'tenant_uuid': USERS_TENANT,
          'date': '2017-03-23 00:00:00',
          'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': USERS_TENANT,
                            'line_id': '1',
                            'role': 'source'}]},
         {'id': 11,
+         'tenant_uuid': USERS_TENANT,
          'date': '2017-03-23 00:00:00',
          'participants': [{'user_uuid': USER_2_UUID,
-                           'tenant_uuid': USERS_TENANT,
                            'line_id': '1',
                            'role': 'source'}]},
         {'id': 12,
+         'tenant_uuid': OTHER_TENANT,
          'date': '2017-03-23 00:00:00',
          'participants': [{'user_uuid': OTHER_USER_UUID,
-                           'tenant_uuid': OTHER_TENANT,
                            'line_id': '1',
                            'role': 'source'}]}
     ])
@@ -231,11 +230,11 @@ class TestGetCDRId(IntegrationTest):
         self.call_logd.set_token(USER_1_TOKEN)
         result = self.call_logd.cdr.get_by_id(10)
         assert_that(result, has_entries(source_user_uuid=USER_1_UUID,
-                                        source_tenant_uuid=USERS_TENANT))
+                                        tenant_uuid=USERS_TENANT))
 
         result = self.call_logd.cdr.get_by_id(11)
         assert_that(result, has_entries(source_user_uuid=USER_2_UUID,
-                                        source_tenant_uuid=USERS_TENANT))
+                                        tenant_uuid=USERS_TENANT))
 
         assert_that(
             calling(self.call_logd.cdr.get_by_id).with_args(cdr_id=12),
@@ -251,20 +250,20 @@ class TestGetCDRId(IntegrationTest):
         self.call_logd.set_token(OTHER_USER_TOKEN)
         result = self.call_logd.cdr.get_by_id(12)
         assert_that(result, has_entries(source_user_uuid=OTHER_USER_UUID,
-                                        source_tenant_uuid=OTHER_TENANT))
+                                        tenant_uuid=OTHER_TENANT))
 
         self.call_logd.set_token(MASTER_TOKEN)
         result = self.call_logd.cdr.get_by_id(10)
         assert_that(result, has_entries(source_user_uuid=USER_1_UUID,
-                                        source_tenant_uuid=USERS_TENANT))
+                                        tenant_uuid=USERS_TENANT))
 
         result = self.call_logd.cdr.get_by_id(11)
         assert_that(result, has_entries(source_user_uuid=USER_2_UUID,
-                                        source_tenant_uuid=USERS_TENANT))
+                                        tenant_uuid=USERS_TENANT))
 
         result = self.call_logd.cdr.get_by_id(12)
         assert_that(result, has_entries(source_user_uuid=OTHER_USER_UUID,
-                                        source_tenant_uuid=OTHER_TENANT))
+                                        tenant_uuid=OTHER_TENANT))
 
 
 class TestListCDR(IntegrationTest):
@@ -307,6 +306,7 @@ class TestListCDR(IntegrationTest):
 
         assert_that(result, has_entries(items=contains_inanyorder(
             has_entries(id=12,
+                        tenant_uuid=MASTER_TENANT,
                         answered=True,
                         start='2017-03-23T00:00:00+00:00',
                         answer='2017-03-23T00:01:00+00:00',
@@ -318,7 +318,6 @@ class TestListCDR(IntegrationTest):
                         source_extension='7687',
                         source_name='soùr.',
                         source_user_uuid=USER_1_UUID,
-                        source_tenant_uuid=MASTER_TENANT,
                         tags=contains_inanyorder('rh', 'Poudlard')),
             has_entries(id=34,
                         answered=False,
@@ -365,6 +364,7 @@ class TestListCDR(IntegrationTest):
         assert_that(result, contains_inanyorder(
             has_entries(
                 id='12',
+                tenant_uuid=MASTER_TENANT,
                 answered='True',
                 start='2017-03-23T00:00:00+00:00',
                 answer='2017-03-23T00:01:00+00:00',
@@ -376,7 +376,6 @@ class TestListCDR(IntegrationTest):
                 source_extension='7687',
                 source_name='soùr.',
                 source_user_uuid=USER_1_UUID,
-                source_tenant_uuid=MASTER_TENANT,
                 tags=any_of('rh;Poudlard', 'Poudlard;rh')
             ), has_entries(
                 id='34',
@@ -838,88 +837,71 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([
         {'id': 10,
+         'tenant_uuid': USERS_TENANT,
          'date': '2017-03-23 00:00:00',
          'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': USERS_TENANT,
                            'line_id': '1',
                            'role': 'source'}]},
         {'id': 11,
+         'tenant_uuid': USERS_TENANT,
          'date': '2017-03-23 00:00:00',
          'participants': [{'user_uuid': USER_2_UUID,
-                           'tenant_uuid': USERS_TENANT,
                            'line_id': '1',
                            'role': 'source'}]},
         {'id': 12,
+         'tenant_uuid': OTHER_TENANT,
          'date': '2017-03-23 00:00:00',
          'participants': [{'user_uuid': OTHER_USER_UUID,
-                           'tenant_uuid': OTHER_TENANT,
                            'line_id': '1',
                            'role': 'source'}]},
         {'id': 13,
          'date': '2017-03-23 00:00:00',
-         'requested_context': 'default',
-         'requested_tenant_uuid': OTHER_TENANT},
-        {'id': 14,
-         'date': '2017-03-23 00:00:00',
-         'requested_internal_context': 'default',
-         'requested_internal_tenant_uuid': OTHER_TENANT},
-        {'id': 15,
-         'date': '2017-03-23 00:00:00',
-         'source_internal_context': 'default',
-         'source_internal_tenant_uuid': OTHER_TENANT},
-        {'id': 16,
-         'date': '2017-03-23 00:00:00',
-         'destination_internal_context': 'default',
-         'destination_internal_tenant_uuid': OTHER_TENANT},
+         'tenant_uuid': MASTER_TENANT},
     ])
     def test_list_multitenant(self):
         self.call_logd.set_token(USER_1_TOKEN)
         results = self.call_logd.cdr.list_from_user()
-        assert_that(results["total"], equal_to(1))
-        assert_that(results["items"],
+        assert_that(results['total'], equal_to(1))
+        assert_that(results['items'],
                     contains(has_entries(source_user_uuid=USER_1_UUID,
-                                         source_tenant_uuid=USERS_TENANT)))
+                                         tenant_uuid=USERS_TENANT)))
 
         results = self.call_logd.cdr.list_for_user(USER_2_UUID)
-        assert_that(results["total"], equal_to(2))
-        assert_that(results["filtered"], equal_to(1))
-        assert_that(results["items"],
+        assert_that(results['total'], equal_to(2))
+        assert_that(results['filtered'], equal_to(1))
+        assert_that(results['items'],
                     contains(has_entries(source_user_uuid=USER_2_UUID,
-                                         source_tenant_uuid=USERS_TENANT)))
+                                         tenant_uuid=USERS_TENANT)))
 
         results = self.call_logd.cdr.list_for_user(OTHER_USER_UUID)
-        assert_that(results["total"], equal_to(2))
-        assert_that(results["filtered"], equal_to(0))
+        assert_that(results['total'], equal_to(2))
+        assert_that(results['filtered'], equal_to(0))
 
         self.call_logd.set_token(USER_2_TOKEN)
         results = self.call_logd.cdr.list_from_user()
-        assert_that(results["total"], equal_to(1))
-        assert_that(results["items"],
+        assert_that(results['total'], equal_to(1))
+        assert_that(results['items'],
                     contains(has_entries(source_user_uuid=USER_2_UUID,
-                                         source_tenant_uuid=USERS_TENANT)))
+                                         tenant_uuid=USERS_TENANT)))
 
         self.call_logd.set_token(OTHER_USER_TOKEN)
         results = self.call_logd.cdr.list_from_user()
-        assert_that(results["total"], equal_to(1))
-        assert_that(results["items"],
+        assert_that(results['total'], equal_to(1))
+        assert_that(results['items'],
                     contains(has_entries(source_user_uuid=OTHER_USER_UUID,
-                                         source_tenant_uuid=OTHER_TENANT)))
+                                         tenant_uuid=OTHER_TENANT)))
 
         self.call_logd.set_token(MASTER_TOKEN)
         results = self.call_logd.cdr.list()
-        assert_that(results["total"], equal_to(3))
+        assert_that(results['total'], equal_to(1))
+        assert_that(results['filtered'], equal_to(1))
         assert_that(results, has_entries(items=contains_inanyorder(
-            has_entries(source_user_uuid=USER_1_UUID,
-                        requested_internal_tenant_uuid=MASTER_TENANT),
-            has_entries(source_user_uuid=USER_2_UUID,
-                        requested_internal_tenant_uuid=MASTER_TENANT),
-            has_entries(source_user_uuid=OTHER_USER_UUID,
-                        requested_internal_tenant_uuid=MASTER_TENANT),
+            has_entries(tenant_uuid=MASTER_TENANT),
         )))
 
         self.call_logd.set_token(USER_1_TOKEN)
         results = self.call_logd.cdr.list()
-        assert_that(results["total"], equal_to(2))
+        assert_that(results['total'], equal_to(2))
         assert_that(results, has_entries(items=contains_inanyorder(
             has_entries(source_user_uuid=USER_1_UUID),
             has_entries(source_user_uuid=USER_2_UUID),
@@ -927,16 +909,13 @@ class TestListCDR(IntegrationTest):
 
         self.call_logd.set_token(MASTER_TOKEN)
         results = self.call_logd.cdr.list(recurse=True)
-        assert_that(results["total"], equal_to(7))
-        assert_that(results, has_entries(items=contains_inanyorder(
+        assert_that(results['total'], equal_to(4))
+        assert_that(results['items'], contains_inanyorder(
             has_entries(source_user_uuid=USER_1_UUID,
-                        requested_internal_tenant_uuid=MASTER_TENANT),
+                        tenant_uuid=USERS_TENANT),
             has_entries(source_user_uuid=USER_2_UUID,
-                        requested_internal_tenant_uuid=MASTER_TENANT),
+                        tenant_uuid=USERS_TENANT),
             has_entries(source_user_uuid=OTHER_USER_UUID,
-                        requested_internal_tenant_uuid=MASTER_TENANT),
-            has_entries(requested_tenant_uuid=OTHER_TENANT),
-            has_entries(requested_internal_tenant_uuid=OTHER_TENANT),
-            has_entries(source_internal_tenant_uuid=OTHER_TENANT),
-            has_entries(destination_internal_tenant_uuid=OTHER_TENANT),
-        )))
+                        tenant_uuid=OTHER_TENANT),
+            has_entries(tenant_uuid=MASTER_TENANT),
+        ))

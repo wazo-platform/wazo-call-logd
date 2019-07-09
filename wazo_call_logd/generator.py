@@ -16,8 +16,13 @@ CallLogsCreation = namedtuple('CallLogsCreation', ('new_call_logs', 'call_logs_t
 
 class CallLogsGenerator(object):
 
-    def __init__(self, cel_interpretors):
+    def __init__(self, confd, cel_interpretors):
+        self.confd = confd
         self._cel_interpretors = cel_interpretors
+        self._service_tenant_uuid = None
+
+    def set_token(self, token):
+        self._service_tenant_uuid = token['metadata']['tenant_uuid']
 
     def from_cel(self, cels):
         call_logs_to_delete = self.list_call_log_ids(cels)
@@ -35,7 +40,7 @@ class CallLogsGenerator(object):
             interpretor = self._get_interpretor(cels_by_call)
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
 
-            self._tenant_checker(call_log)
+            self._ensure_tenant_uuid_is_set(call_log)
 
             try:
                 result.append(call_log.to_call_log())
@@ -58,15 +63,16 @@ class CallLogsGenerator(object):
 
         raise RuntimeError('Could not find suitable interpretor in {}'.format(self._cel_interpretors))
 
-    @staticmethod
-    def _tenant_checker(call_log):
-        for prefix in ('requested', 'requested_internal',
-                       'source_internal', 'destination_internal'):
-            if getattr(call_log, '%s_tenant_uuid' % prefix):
-                return
-        for participant in call_log.participants:
-            if participant.tenant_uuid:
-                return
+    def _ensure_tenant_uuid_is_set(self, call_log):
+        if not call_log.tenant_uuid:
+            # NOTE(sileht): requested_context
+            if call_log.requested_context:
+                contexts = self.confd.contexts.list(name=call_log.requested_context)['items']
+                if contexts:
+                    call_log.set_tenant_uuid(contexts[0]['tenant_uuid'])
+                    return
 
-        logger.warning("call log of cels `%s` is not attached to a "
-                       "tenant_uuid", call_log.cel_ids)
+            logger.warning("call log of cels `%s` is not attached to a "
+                           "tenant_uuid, fallback to service tenant %s",
+                           call_log.cel_ids, self._service_tenant_uuid)
+            call_log.set_tenant_uuid(self._service_tenant_uuid)

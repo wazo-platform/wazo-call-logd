@@ -31,18 +31,21 @@ class Controller(object):
         auth_client = AuthClient(**config['auth'])
         cel_fetcher = CELFetcher()
         confd_client = ConfdClient(**config['confd'])
-        generator = CallLogsGenerator([
+        generator = CallLogsGenerator(confd_client, [
             LocalOriginateCELInterpretor(confd_client),
             DispatchCELInterpretor(CallerCELInterpretor(confd_client),
                                    CalleeCELInterpretor(confd_client))
         ])
         writer = CallLogsWriter()
+        self.token_renewer = TokenRenewer(auth_client)
+        self.token_renewer.subscribe_to_token_change(confd_client.set_token)
+        self.token_renewer.subscribe_to_next_token_change(
+            generator.set_token, True
+        )
         self._publisher = BusPublisher(config)
         self.manager = CallLogsManager(cel_fetcher, generator, writer, self._publisher)
         self.bus_client = BusClient(config)
         self.rest_api = CoreRestApi(config)
-        self.token_renewer = TokenRenewer(auth_client)
-        self.token_renewer.subscribe_to_token_change(confd_client.set_token)
         self.status_aggregator = StatusAggregator()
         self.token_status = TokenStatus()
         plugin_helpers.load(
@@ -51,6 +54,7 @@ class Controller(object):
             dependencies={
                 'api': api,
                 'config': config,
+                'token_renewer': self.token_renewer,
                 'status_aggregator': self.status_aggregator,
             }
         )

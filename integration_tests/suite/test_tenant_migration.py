@@ -8,7 +8,6 @@ from hamcrest import assert_that
 
 from xivo import url_helpers
 from xivo_dao.alchemy.call_log import CallLog
-from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import (
@@ -18,6 +17,7 @@ from .helpers.constants import (
     OTHER_USER_UUID,
     OTHER_TENANT,
     MASTER_TOKEN,
+    SERVICE_TENANT,
 )
 from .helpers.database import call_logs
 
@@ -30,47 +30,46 @@ class TestTenantMigration(IntegrationTest):
 
     @call_logs([
         {'id': 10,
+         'tenant_uuid': NOT_MIGRATED_TENANT,
          'date': '2017-03-23 00:00:00',
          'requested_context': 'default',
-         'requested_tenant_uuid': NOT_MIGRATED_TENANT,
          'requested_internal_context': 'default',
-         'requested_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'source_internal_context': 'default',
-         'source_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'destination_internal_context': 'default',
-         'destination_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'participants': [{'user_uuid': USER_1_UUID,
-                           'tenant_uuid': NOT_MIGRATED_TENANT,
                            'line_id': '1',
                            'role': 'source'}]},
         {'id': 11,
+         'tenant_uuid': NOT_MIGRATED_TENANT,
          'date': '2017-03-23 00:00:00',
          'requested_context': 'default',
-         'requested_tenant_uuid': NOT_MIGRATED_TENANT,
          'requested_internal_context': 'default',
-         'requested_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'source_internal_context': 'default',
-         'source_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'destination_internal_context': 'default',
-         'destination_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'participants': [{'user_uuid': USER_2_UUID,
-                           'tenant_uuid': NOT_MIGRATED_TENANT,
                            'line_id': '1',
                            'role': 'source'}]},
         {'id': 12,
+         'tenant_uuid': NOT_MIGRATED_TENANT,
          'date': '2017-03-23 00:00:00',
          'requested_context': 'other',
-         'requested_tenant_uuid': NOT_MIGRATED_TENANT,
          'requested_internal_context': 'other',
-         'requested_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'source_internal_context': 'other',
-         'source_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'destination_internal_context': 'other',
-         'destination_internal_tenant_uuid': NOT_MIGRATED_TENANT,
          'participants': [{'user_uuid': OTHER_USER_UUID,
-                           'tenant_uuid': NOT_MIGRATED_TENANT,
+                           'line_id': '1',
+                           'role': 'source'}]},
+        {'id': 13,
+         'tenant_uuid': NOT_MIGRATED_TENANT,
+         'date': '2017-03-23 00:00:00',
+         'requested_context': 'no-longer-exists',
+         'requested_internal_context': 'other',
+         'source_internal_context': 'other',
+         'destination_internal_context': 'other',
+         'participants': [{'user_uuid': OTHER_USER_UUID,
                            'line_id': '1',
                            'role': 'source'}]}
+
     ])
     def test_tenant_migration(self):
         base = 'https://localhost:{port}/1.0/'.format(
@@ -78,11 +77,6 @@ class TestTenantMigration(IntegrationTest):
         url = url_helpers.base_join(base, 'tenant-migration')
 
         payload = {
-            'users': [
-                {'user_uuid': USER_1_UUID, 'tenant_uuid': USERS_TENANT},
-                {'user_uuid': USER_2_UUID, 'tenant_uuid': USERS_TENANT},
-                {'user_uuid': OTHER_USER_UUID, 'tenant_uuid': OTHER_TENANT}
-            ],
             'contexts': [
                 {'context': 'default', 'tenant_uuid': USERS_TENANT},
                 {'context': 'other', 'tenant_uuid': OTHER_TENANT},
@@ -94,24 +88,11 @@ class TestTenantMigration(IntegrationTest):
 
         with self.database.queries() as queries:
             with closing(queries.Session()) as session:
-                query = session.query(CallLogParticipant)
-                for participant in query.all():
-                    if participant.user_uuid in [USER_1_UUID, USER_2_UUID]:
-                        assert_that(participant.tenant_uuid, USERS_TENANT)
-                    else:
-                        assert_that(participant.tenant_uuid, OTHER_TENANT)
-
                 query = session.query(CallLog)
                 for call_log in query.all():
-                    for prefix in ('requested', 'requested_internal',
-                                   'source_internal', 'destination_internal'):
-                        context = getattr(
-                            call_log, '{}_context'.format(prefix)
-                        )
-                        tenant_uuid = getattr(
-                            call_log, '{}_tenant_uuid'.format(prefix)
-                        )
-                        if context == 'default':
-                            assert_that(tenant_uuid, USERS_TENANT)
-                        else:
-                            assert_that(tenant_uuid, OTHER_TENANT)
+                    if call_log.requested_context == 'default':
+                        assert_that(call_log.tenant_uuid, USERS_TENANT)
+                    elif call_log.requested_context == 'other':
+                        assert_that(call_log.tenant_uuid, OTHER_TENANT)
+                    else:
+                        assert_that(call_log.tenant_uuid, SERVICE_TENANT)

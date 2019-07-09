@@ -14,7 +14,6 @@ class CallLogdTenantUpgradeResource(AuthResource):
 
     @required_acl('webhookd.tenant-upgrade')
     def post(self):
-        for item in request.json['users']:
-            self._service.update_participants(**item)
         for item in request.json['contexts']:
             self._service.update_contexts(**item)
+        self._service.update_remaining_call_logs()

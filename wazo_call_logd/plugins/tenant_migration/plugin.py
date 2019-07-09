@@ -14,7 +14,12 @@ class Plugin(object):
 
     def load(self, dependencies):
         config = dependencies['config']
+        token_renewer = dependencies['token_renewer']
+
         tenant_upgrade_service = service.CallLogdTenantUpgradeService(config)
+        token_renewer.subscribe_to_next_token_change(
+            tenant_upgrade_service.set_token, True
+        )
         api.add_resource(
             http.CallLogdTenantUpgradeResource,
             '/tenant-migration',

@@ -22,13 +22,13 @@ from .helpers.confd import (
     MockLine,
     MockUser,
 )
+from .helpers.constants import (
+    USER_1_UUID,
+    USER_2_UUID,
+    USERS_TENANT,
+    SERVICE_TENANT,
+)
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
-
-USER_1_UUID = '11111111-1111-1111-1111-111111111111'
-USER_2_UUID = '22222222-2222-2222-2222-222222222222'
-
-TENANT_1_UUID = 'AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA'
-TENANT_2_UUID = 'BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB'
 
 
 # this decorator takes the output of a psql and changes it into a list of dict
@@ -119,25 +119,25 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         with self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
-            def call_log_has_no_user_uuid_and_no_tenant_uuid():
+            def call_log_has_no_user_uuid():
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, is_(not_(none())))
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
                     assert_that(user_uuids, empty())
-                    tenant_uuids = queries.get_call_log_tenant_uuids(call_log.id)
-                    assert_that(tenant_uuids, empty())
 
             def bus_event_call_log_created(accumulator):
                 assert_that(accumulator.accumulate(), contains_inanyorder(has_entries(
                     name='call_log_created',
-                    data=has_key('tags')
+                    data=has_entries({
+                        'tenant_uuid': SERVICE_TENANT
+                    })
                 )))
 
             def bus_event_call_log_user_created(accumulator):
                 assert_that(accumulator.accumulate(), empty())
 
-            until.assert_(call_log_has_no_user_uuid_and_no_tenant_uuid, tries=5)
+            until.assert_(call_log_has_no_user_uuid, tries=5)
             until.assert_(bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25)
             until.assert_(bus_event_call_log_user_created, msg_accumulator_2, tries=10, interval=0.25)
 
@@ -162,21 +162,21 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid_and_internal_extension(self):
         linkedid = '123456789.1011'
         self.confd.set_users(
-            MockUser(USER_1_UUID, TENANT_1_UUID, line_ids=[1]),
-            MockUser(USER_2_UUID, TENANT_2_UUID, line_ids=[2])
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2])
         )
         self.confd.set_lines(
             MockLine(id=1, name='as2mkq',
                      users=[{'uuid': USER_1_UUID}],
                      extensions=[{'exten': '101', 'context': 'default',
-                                  'tenant_uuid': TENANT_1_UUID}]),
+                                  'tenant_uuid': USERS_TENANT}]),
             MockLine(id=2, name='je5qtq',
                      users=[{'uuid': USER_2_UUID}],
                      extensions=[{'exten': '102', 'context': 'default',
-                                  'tenant_uuid': TENANT_1_UUID}]),
+                                  'tenant_uuid': USERS_TENANT}]),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=TENANT_1_UUID)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
         msg_accumulator_1 = self.bus.accumulator('call_log.created')
         msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
@@ -187,23 +187,16 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, has_properties({
+                        'tenant_uuid': USERS_TENANT,
                         'source_internal_exten': '101',
                         'source_internal_context': 'default',
-                        'source_internal_tenant_uuid': TENANT_1_UUID,
                         'source_user_uuid': USER_1_UUID,
-                        'source_tenant_uuid': TENANT_1_UUID,
                         'destination_internal_exten': '102',
                         'destination_internal_context': 'default',
-                        'destination_internal_tenant_uuid': TENANT_1_UUID,
                         'destination_user_uuid': USER_2_UUID,
-                        'destination_tenant_uuid': TENANT_2_UUID,
                     }))
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
-                    tenant_uuids = queries.get_call_log_tenant_uuids(call_log.id)
                     assert_that(user_uuids, contains_inanyorder(USER_1_UUID, USER_2_UUID))
-                    assert_that(tenant_uuids, contains_inanyorder(
-                        TENANT_1_UUID, TENANT_2_UUID
-                    ))
 
             def bus_event_call_log_created(accumulator):
                 assert_that(accumulator.accumulate(), contains_inanyorder(has_entries(
@@ -252,13 +245,13 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self.confd.set_lines(
             MockLine(id=1, name='101',
                      extensions=[{'exten': '101', 'context': 'default',
-                                  'tenant_uuid': TENANT_1_UUID}]),
+                                  'tenant_uuid': USERS_TENANT}]),
             MockLine(id=2, name='rku3uo',
                      extensions=[{'exten': '103', 'context': 'default',
-                                  'tenant_uuid': TENANT_1_UUID}]),
+                                  'tenant_uuid': USERS_TENANT}]),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=TENANT_1_UUID)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
 
         with self.no_call_logs():
@@ -268,16 +261,14 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, has_properties({
+                        'tenant_uuid': USERS_TENANT,
                         'source_internal_exten': '101',
                         'source_internal_context': 'default',
-                        'source_internal_tenant_uuid': TENANT_1_UUID,
                         'requested_exten': '102',
                         'requested_context': 'default',
-                        'requested_tenant_uuid': TENANT_1_UUID,
                         'destination_exten': '103',
                         'destination_internal_exten': '103',
                         'destination_internal_context': 'default',
-                        'destination_internal_tenant_uuid': TENANT_1_UUID,
                     }))
 
             until.assert_(call_log_has_destination_different_from_requested, tries=10)
@@ -305,10 +296,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self.confd.set_lines(
             MockLine(id=1, name='101',
                      extensions=[{'exten': '101', 'context': 'default',
-                                  'tenant_uuid': TENANT_1_UUID}]),
+                                  'tenant_uuid': USERS_TENANT}]),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=TENANT_1_UUID)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
 
         with self.no_call_logs():
@@ -318,18 +309,16 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, has_properties({
+                        'tenant_uuid': USERS_TENANT,
                         'source_internal_exten': None,
                         'source_internal_context': None,
-                        'source_internal_tenant_uuid': None,
                         'requested_exten': '999101',
                         'requested_context': 'from-extern',
                         'requested_internal_exten': '101',
                         'requested_internal_context': 'default',
-                        'requested_internal_tenant_uuid': TENANT_1_UUID,
                         'destination_exten': '101',
                         'destination_internal_exten': '101',
                         'destination_internal_context': 'default',
-                        'destination_internal_tenant_uuid': TENANT_1_UUID,
                     }))
 
             until.assert_(call_log_has_destination_different_from_requested, tries=5)

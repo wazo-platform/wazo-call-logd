@@ -10,12 +10,17 @@ from sqlalchemy.orm import (
     sessionmaker
 )
 from xivo_dao.alchemy.call_log import CallLog
-from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 
 logger = logging.getLogger(__name__)
 
 TO_MIGRATE_TENANT_UUID = '00000000-0000-0000-0000-000000000000'
+CONTEXT_ATTRIBUTES = (
+    'requested_context',
+    'source_internal_context',
+    'destination_internal_context'
+    'requested_internal_context',
+)
 
 
 class CallLogdTenantUpgradeService(object):
@@ -24,6 +29,7 @@ class CallLogdTenantUpgradeService(object):
         engine = create_engine(config['db_uri'])
         self._Session = scoped_session(sessionmaker())
         self._Session.configure(bind=engine)
+        self._service_tenant_uuid = None
 
     @contextlib.contextmanager
     def rw_session(self):
@@ -37,32 +43,19 @@ class CallLogdTenantUpgradeService(object):
         finally:
             self._Session.remove()
 
-    def update_participants(self, user_uuid, tenant_uuid):
-        logger.info('updating user(%s) tenant to %s', user_uuid, tenant_uuid)
-        with self.rw_session() as session:
-            query = session.query(CallLogParticipant)
-            query = query.filter(CallLogParticipant.tenant_uuid == TO_MIGRATE_TENANT_UUID)
-            query = query.filter(CallLogParticipant.user_uuid == user_uuid)
-            query.update({CallLogParticipant.tenant_uuid: tenant_uuid})
+    def set_token(self, token):
+        self._service_tenant_uuid = token["metadata"]["tenant_uuid"]
 
     def update_contexts(self, context, tenant_uuid):
         with self.rw_session() as session:
-            query = session.query(CallLog)
-            query = query.filter(CallLog.requested_tenant_uuid == TO_MIGRATE_TENANT_UUID)
-            query = query.filter(CallLog.requested_context == context)
-            query.update({CallLog.requested_tenant_uuid: tenant_uuid})
+            for field in CONTEXT_ATTRIBUTES:
+                query = session.query(CallLog)
+                query = query.filter(CallLog.tenant_uuid == TO_MIGRATE_TENANT_UUID)
+                query = query.filter(CallLog.requested_context == context)
+                query.update({CallLog.tenant_uuid: tenant_uuid})
 
+    def update_remaining_call_logs(self):
+        with self.rw_session() as session:
             query = session.query(CallLog)
-            query = query.filter(CallLog.requested_internal_tenant_uuid == TO_MIGRATE_TENANT_UUID)
-            query = query.filter(CallLog.requested_internal_context == context)
-            query.update({CallLog.requested_internal_tenant_uuid: tenant_uuid})
-
-            query = session.query(CallLog)
-            query = query.filter(CallLog.source_internal_tenant_uuid == TO_MIGRATE_TENANT_UUID)
-            query = query.filter(CallLog.source_internal_context == context)
-            query.update({CallLog.source_internal_tenant_uuid: tenant_uuid})
-
-            query = session.query(CallLog)
-            query = query.filter(CallLog.destination_internal_tenant_uuid == TO_MIGRATE_TENANT_UUID)
-            query = query.filter(CallLog.destination_internal_context == context)
-            query.update({CallLog.destination_internal_tenant_uuid: tenant_uuid})
+            query = query.filter(CallLog.tenant_uuid == TO_MIGRATE_TENANT_UUID)
+            query.update({CallLog.tenant_uuid: self._service_tenant_uuid})

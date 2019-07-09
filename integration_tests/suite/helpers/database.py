@@ -23,25 +23,10 @@ def call_logs(call_logs):
             with self.database.queries() as queries:
                 for call_log in call_logs:
                     participants = call_log.pop('participants', [])
-
-                    have_at_least_one_context_set = False
-                    for prefix in ('requested', 'requested_internal',
-                                   'source_internal', 'destination_internal'):
-                        if '%s_context' % prefix in call_log:
-                            have_at_least_one_context_set = True
-                            call_log.setdefault('%s_tenant_uuid' % prefix, MASTER_TENANT)
-
-                    if not have_at_least_one_context_set:
-                        call_log.setdefault('requested_internal_context',
-                                            'default')
-                        call_log.setdefault('requested_internal_tenant_uuid',
-                                            MASTER_TENANT)
-
+                    call_log.setdefault('tenant_uuid', MASTER_TENANT)
                     call_log['id'] = queries.insert_call_log(**call_log)
                     call_log['participants'] = participants
                     for participant in participants:
-                        if 'user_uuid' in participant:
-                            participant.setdefault('tenant_uuid', MASTER_TENANT)
                         queries.insert_call_log_participant(call_log_id=call_log['id'],
                                                             **participant)
             try:
@@ -160,9 +145,8 @@ class DatabaseQueries(object):
     def get_call_log_tenant_uuids(self, call_log_id):
         session = self.Session()
         call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
-        result = tuple(call_log.participant_tenant_uuids)
         session.commit()
-        return result
+        return call_log.tenant_uuid
 
     def insert_cel(
             self,
