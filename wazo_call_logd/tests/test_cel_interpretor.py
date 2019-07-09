@@ -106,7 +106,11 @@ class TestFindMainInternalExtension(TestCase):
         assert_that(result, none())
 
     def test_find_main_internal_extension_when_line_has_user(self):
-        extension = {'exten': '101', 'context': 'default'}
+        extension = {
+            'exten': '101',
+            'context': 'default',
+            'tenant_uuid': 'tenant'
+        }
         lines = [{'id': 12, 'extensions': [extension]}]
         confd = confd_mock(lines)
         channame = 'sip/something-suffix'
