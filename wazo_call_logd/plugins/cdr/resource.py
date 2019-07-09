@@ -144,7 +144,7 @@ class CDRUserResource(CDRAuthResource):
 class CDRUserMeResource(CDRAuthResource):
 
     def __init__(self, auth_client, cdr_service):
-        super(CDRUserMeResource, self).__init__(cdr_service)
+        super().__init__(cdr_service)
         self.auth_client = auth_client
 
     @required_acl('call-logd.users.me.cdr.read')
