@@ -152,6 +152,6 @@ class CDRUserMeResource(CDRAuthResource):
         args = CDRListRequestSchema().load(request.args).data
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         args['me_user_uuid'] = user_uuid
-        args['tenant_uuids'] = [Tenant.autodetect().uuid]
+        args['tenant_uuids'] = [token.tenant_uuid]
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs).data
