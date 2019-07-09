@@ -105,8 +105,10 @@ class TestTenantMigration(IntegrationTest):
                 for cl in query.all():
                     for prefix in ('requested', 'requested_internal',
                                    'source_internal', 'destination_internal'):
-                        context = getattr(cl, '%s_context' % prefix)
-                        tenant_uuid = getattr(cl, '%s_tenant_uuid' % prefix)
+                        context = getattr(cl, '{}_context'.format(prefix))
+                        tenant_uuid = getattr(
+                            cl, '{}_tenant_uuid'.format(prefix)
+                        )
                         if context == 'default':
                             assert_that(tenant_uuid, USERS_TENANT)
                         else:
