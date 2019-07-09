@@ -95,19 +95,21 @@ class TestTenantMigration(IntegrationTest):
         with self.database.queries() as queries:
             with closing(queries.Session()) as session:
                 query = session.query(CallLogParticipant)
-                for clp in query.all():
-                    if clp.user_uuid in [USER_1_UUID, USER_2_UUID]:
-                        assert_that(clp.tenant_uuid, USERS_TENANT)
+                for participant in query.all():
+                    if participant.user_uuid in [USER_1_UUID, USER_2_UUID]:
+                        assert_that(participant.tenant_uuid, USERS_TENANT)
                     else:
-                        assert_that(clp.tenant_uuid, OTHER_TENANT)
+                        assert_that(participant.tenant_uuid, OTHER_TENANT)
 
                 query = session.query(CallLog)
-                for cl in query.all():
+                for call_log in query.all():
                     for prefix in ('requested', 'requested_internal',
                                    'source_internal', 'destination_internal'):
-                        context = getattr(cl, '{}_context'.format(prefix))
+                        context = getattr(
+                            call_log, '{}_context'.format(prefix)
+                        )
                         tenant_uuid = getattr(
-                            cl, '{}_tenant_uuid'.format(prefix)
+                            call_log, '{}_tenant_uuid'.format(prefix)
                         )
                         if context == 'default':
                             assert_that(tenant_uuid, USERS_TENANT)
