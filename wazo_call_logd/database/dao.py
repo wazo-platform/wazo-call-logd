@@ -74,6 +74,7 @@ class CallLogDAO(object):
                                   subqueryload('source_participant'),
                                   subqueryload('destination_participant'))
 
+            query = self._apply_user_filter(query, params)
             query = self._apply_filters(query, params)
 
             order_field = None
@@ -106,6 +107,7 @@ class CallLogDAO(object):
     def count_in_period(self, params):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
+            query = self._apply_user_filter(query, params)
 
             total = query.count()
 
@@ -114,6 +116,12 @@ class CallLogDAO(object):
             filtered = query.count()
 
         return {'total': total, 'filtered': filtered}
+
+    def _apply_user_filter(self, query, params):
+        if params.get('me_user_uuid'):
+            me_user_uuid = params['me_user_uuid']
+            query = query.filter(CallLogSchema.participant_user_uuids.contains(str(me_user_uuid)))
+        return query
 
     def _apply_filters(self, query, params):
         if params.get('start'):
@@ -139,10 +147,6 @@ class CallLogDAO(object):
             query = query.filter(CallLogSchema.participants.any(
                 CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
             ))
-
-        if params.get('me_user_uuid'):
-            me_user_uuid = params['me_user_uuid']
-            query = query.filter(CallLogSchema.participant_user_uuids.contains(str(me_user_uuid)))
 
         if params.get('user_uuids'):
             filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))

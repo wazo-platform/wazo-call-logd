@@ -631,7 +631,7 @@ class TestListCDR(IntegrationTest):
             results,
             has_entries(
                 filtered=1,
-                total=3,
+                total=2,
                 items=contains_inanyorder(
                     has_entries(start='2019-06-13T13:00:00+00:00'),
                 ),
@@ -647,7 +647,7 @@ class TestListCDR(IntegrationTest):
             results,
             has_entries(
                 filtered=2,
-                total=3,
+                total=2,
                 items=contains_inanyorder(
                     has_entries(start='2019-06-13T12:00:00+00:00'),
                     has_entries(start='2019-06-13T13:00:00+00:00'),
@@ -745,7 +745,7 @@ class TestListCDR(IntegrationTest):
         self.call_logd.set_token(VALID_TOKEN)
 
         assert_that(result, has_entries(filtered=4,
-                                        total=6,
+                                        total=4,
                                         items=contains_inanyorder(
                                             has_entries(start='2017-04-13T00:00:00+00:00'),
                                             has_entries(start='2017-04-12T00:00:00+00:00'),
