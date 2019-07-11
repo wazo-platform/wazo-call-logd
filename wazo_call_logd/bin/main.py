@@ -86,7 +86,9 @@ def _generate_call_logs():
     auth_client = AuthClient(**config['auth'])
     confd_client = ConfdClient(**config['confd'])
     token_renewer = TokenRenewer(auth_client)
-    token_renewer.subscribe_to_token_change(confd_client.set_token)
+    token_renewer.subscribe_to_token_change(
+        lambda token: confd_client.set_token(token['token'])
+    )
 
     cel_fetcher = CELFetcher()
     generator = CallLogsGenerator([

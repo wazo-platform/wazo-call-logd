@@ -42,7 +42,9 @@ class Controller(object):
         self.bus_client = BusClient(config)
         self.rest_api = CoreRestApi(config)
         self.token_renewer = TokenRenewer(auth_client)
-        self.token_renewer.subscribe_to_token_change(confd_client.set_token)
+        self.token_renewer.subscribe_to_token_change(
+            lambda token: confd_client.set_token(token['token'])
+        )
         self.status_aggregator = StatusAggregator()
         self.token_status = TokenStatus()
         plugin_helpers.load(
