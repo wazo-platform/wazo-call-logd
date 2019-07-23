@@ -7,7 +7,7 @@ from hamcrest import (
     assert_that,
     contains,
     equal_to,
-    has_properties,
+    has_entries,
     none,
     same_instance,
 )
@@ -42,7 +42,7 @@ class TestFindParticipant(TestCase):
         confd = confd_mock()
         channame = 'something'
 
-        result = find_participant(confd, channame, role='source')
+        result = find_participant(confd, channame)
 
         assert_that(result, none())
 
@@ -50,7 +50,7 @@ class TestFindParticipant(TestCase):
         confd = confd_mock()
         channame = 'sip/something-suffix'
 
-        result = find_participant(confd, channame, role='source')
+        result = find_participant(confd, channame)
 
         assert_that(result, none())
 
@@ -59,7 +59,7 @@ class TestFindParticipant(TestCase):
         confd = confd_mock(lines)
         channame = 'sip/something-suffix'
 
-        result = find_participant(confd, channame, role='source')
+        result = find_participant(confd, channame)
 
         assert_that(result, none())
 
@@ -69,13 +69,12 @@ class TestFindParticipant(TestCase):
         confd = confd_mock(lines)
         channame = 'sip/something-suffix'
 
-        result = find_participant(confd, channame, role='source')
+        result = find_participant(confd, channame)
 
-        assert_that(result, has_properties(role='source',
-                                           user_uuid='user_uuid',
-                                           tenant_uuid='tenant_uuid',
-                                           line_id=12,
-                                           tags=['user_userfield', 'toto']))
+        assert_that(result, has_entries(uuid='user_uuid',
+                                        tenant_uuid='tenant_uuid',
+                                        line_id=12,
+                                        tags=['user_userfield', 'toto']))
 
 
 class TestFindMainInternalExtension(TestCase):
