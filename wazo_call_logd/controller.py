@@ -39,8 +39,8 @@ class Controller(object):
         writer = CallLogsWriter()
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)
-        self.token_renewer.subscribe_to_next_token_change(
-            generator.set_token, True
+        self.token_renewer.subscribe_to_next_token_details_change(
+            generator.set_token
         )
         self._publisher = BusPublisher(config)
         self.manager = CallLogsManager(cel_fetcher, generator, writer, self._publisher)
