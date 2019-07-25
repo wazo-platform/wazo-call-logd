@@ -15,12 +15,6 @@ from xivo_dao.alchemy.call_log import CallLog
 logger = logging.getLogger(__name__)
 
 TO_MIGRATE_TENANT_UUID = '00000000-0000-0000-0000-000000000000'
-CONTEXT_ATTRIBUTES = (
-    'requested_context',
-    'source_internal_context',
-    'destination_internal_context'
-    'requested_internal_context',
-)
 
 
 class CallLogdTenantUpgradeService(object):
@@ -48,11 +42,10 @@ class CallLogdTenantUpgradeService(object):
 
     def update_contexts(self, context, tenant_uuid):
         with self.rw_session() as session:
-            for field in CONTEXT_ATTRIBUTES:
-                query = session.query(CallLog)
-                query = query.filter(CallLog.tenant_uuid == TO_MIGRATE_TENANT_UUID)
-                query = query.filter(CallLog.requested_context == context)
-                query.update({CallLog.tenant_uuid: tenant_uuid})
+            query = session.query(CallLog)
+            query = query.filter(CallLog.tenant_uuid == TO_MIGRATE_TENANT_UUID)
+            query = query.filter(CallLog.requested_context == context)
+            query.update({CallLog.tenant_uuid: tenant_uuid})
 
     def update_remaining_call_logs(self):
         with self.rw_session() as session:
