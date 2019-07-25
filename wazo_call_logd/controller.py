@@ -40,7 +40,7 @@ class Controller(object):
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)
         self.token_renewer.subscribe_to_next_token_details_change(
-            generator.set_token
+            generator.set_default_tenant_uuid
         )
         self._publisher = BusPublisher(config)
         self.manager = CallLogsManager(cel_fetcher, generator, writer, self._publisher)

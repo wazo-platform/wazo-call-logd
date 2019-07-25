@@ -21,7 +21,7 @@ class CallLogsGenerator(object):
         self._cel_interpretors = cel_interpretors
         self._service_tenant_uuid = None
 
-    def set_token(self, token):
+    def set_default_tenant_uuid(self, token):
         self._service_tenant_uuid = token['metadata']['tenant_uuid']
 
     def from_cel(self, cels):

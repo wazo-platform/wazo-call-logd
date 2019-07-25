@@ -43,7 +43,7 @@ class CallLogdTenantUpgradeService(object):
         finally:
             self._Session.remove()
 
-    def set_token(self, token):
+    def set_default_tenant_uuid(self, token):
         self._service_tenant_uuid = token["metadata"]["tenant_uuid"]
 
     def update_contexts(self, context, tenant_uuid):

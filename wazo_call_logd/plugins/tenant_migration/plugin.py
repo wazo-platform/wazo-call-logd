@@ -18,7 +18,7 @@ class Plugin(object):
 
         tenant_upgrade_service = service.CallLogdTenantUpgradeService(config)
         token_renewer.subscribe_to_next_token_details_change(
-            tenant_upgrade_service.set_token
+            tenant_upgrade_service.set_default_tenant_uuid
         )
         api.add_resource(
             http.CallLogdTenantUpgradeResource,
