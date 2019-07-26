@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -52,6 +52,13 @@ class ConfdClient(object):
 
         requests.post(url, json=body, verify=False)
 
+    def set_contexts(self, *mock_contexts):
+        url = self.url('_set_response')
+        body = {'response': 'contexts',
+                'content': {context.id_(): context.to_dict()
+                            for context in mock_contexts}}
+        requests.post(url, json=body, verify=False)
+
     def reset(self):
         url = self.url('_reset')
         requests.post(url, verify=False)
@@ -59,8 +66,9 @@ class ConfdClient(object):
 
 class MockUser(object):
 
-    def __init__(self, uuid, line_ids=None, mobile=None, userfield=None):
+    def __init__(self, uuid, tenant_uuid, line_ids=None, mobile=None, userfield=None):
         self._uuid = uuid
+        self._tenant_uuid = tenant_uuid
         self._line_ids = line_ids or []
         self._mobile = mobile
         self._userfield = userfield
@@ -71,6 +79,7 @@ class MockUser(object):
     def to_dict(self):
         return {
             'uuid': self._uuid,
+            'tenant_uuid': self._tenant_uuid,
             'lines': [{'id': line_id} for line_id in self._line_ids],
             'mobile_phone_number': self._mobile,
             'userfield': self._userfield,
@@ -79,13 +88,15 @@ class MockUser(object):
 
 class MockLine(object):
 
-    def __init__(self, id, name=None, protocol=None, users=None, context=None, extensions=None):
+    def __init__(self, id, name=None, protocol=None, users=None, context=None,
+                 extensions=None, tenant_uuid=None):
         self._id = id
         self._name = name
         self._protocol = protocol
         self._users = users or []
         self._extensions = extensions or []
         self._context = context
+        self._tenant_uuid = tenant_uuid
 
     def id_(self):
         return self._id
@@ -99,6 +110,7 @@ class MockLine(object):
             'name': self._name,
             'protocol': self._protocol,
             'context': self._context,
+            'tenant_uuid': self._tenant_uuid,
             'users': self._users,
             'extensions': self._extensions,
         }
@@ -117,4 +129,21 @@ class MockSwitchboard(object):
         return {
             'uuid': self._uuid,
             'name': self._name
+        }
+
+
+class MockContext(object):
+    def __init__(self, id, name, tenant_uuid):
+        self._id = id
+        self._name = name
+        self._tenant_uuid = tenant_uuid
+
+    def id_(self):
+        return self._id
+
+    def to_dict(self):
+        return {
+            'id': self._id,
+            'name': self._name,
+            'tenant_uuid': self._tenant_uuid,
         }

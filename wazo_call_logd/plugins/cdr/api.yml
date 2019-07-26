@@ -18,6 +18,8 @@ paths:
       - $ref: '#/parameters/tags'
       - $ref: '#/parameters/user_uuid'
       - $ref: '#/parameters/from_id'
+      - $ref: '#/parameters/recurse'
+      - $ref: '#/parameters/tenantuuid'
       responses:
         '200':
           description: List CDR
@@ -236,7 +238,11 @@ definitions:
         description: the internal extension of the line that placed the call
       source_internal_context:
         type: string
+      source_internal_tenant_uuid:
+        type: string
       source_user_uuid:
+        type: string
+      source_tenant_uuid:
         type: string
       source_line_id:
         type: integer
@@ -244,10 +250,14 @@ definitions:
         type: string
       requested_context:
         type: string
+      requested_tenant_uuid:
+        type: string
       requested_internal_extension:
         type: string
         description: the internal extension of the first line to ring
       requested_internal_context:
+        type: string
+      requested_internal_tenant_uuid:
         type: string
       destination_name:
         type: string
@@ -258,7 +268,11 @@ definitions:
         description: the internal extension of the line that answers
       destination_internal_context:
         type: string
+      destination_internal_tenant_uuid:
+        type: string
       destination_user_uuid:
+        type: string
+      destination_tenant_uuid:
         type: string
       destination_line_id:
         type: integer

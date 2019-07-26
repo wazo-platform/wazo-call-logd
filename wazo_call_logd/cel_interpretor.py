@@ -1,4 +1,4 @@
-# Copyright 2013-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -12,7 +12,7 @@ from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 logger = logging.getLogger(__name__)
 
 
-def find_participant(confd, channame, role):
+def find_participant(confd, channame):
     # TODO PJSIP clean after migration
     channame = channame.replace('PJSIP', 'SIP')
 
@@ -34,12 +34,14 @@ def find_participant(confd, channame, role):
 
     user = confd.users.get(users[0]['uuid'])
     tags = [tag.strip() for tag in user['userfield'].split(',')] if user['userfield'] else []
-    logger.debug('Found participant user uuid %s', user['uuid'])
-    participant = CallLogParticipant(role=role,
-                                     user_uuid=user['uuid'],
-                                     line_id=line['id'],
-                                     tags=tags)
-    return participant
+    logger.debug('Found participant user uuid %s tenant uuid %s',
+                 user['uuid'], user['tenant_uuid'])
+    return {
+        'uuid': user['uuid'],
+        'tenant_uuid': user['tenant_uuid'],
+        'line_id': line['id'],
+        'tags': tags
+    }
 
 
 def find_main_internal_extension(confd, channame):
@@ -63,7 +65,12 @@ def find_main_internal_extension(confd, channame):
         return
 
     main_extension = extensions[0]
-    logger.debug('Found main internal extension %s@%s', main_extension['exten'], main_extension['context'])
+    main_extension["tenant_uuid"] = line["tenant_uuid"]
+
+    logger.debug('Found main internal extension %s@%s (%s)',
+                 main_extension['exten'],
+                 main_extension['context'],
+                 main_extension['tenant_uuid'])
     return main_extension
 
 
@@ -136,13 +143,21 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.requested_context = cel.context
         call.destination_exten = cel.exten if cel.exten != 's' else ''
         call.source_line_identity = identity_from_channel(cel.channame)
-        participant = find_participant(self._confd, cel.channame, role='source')
+        participant = find_participant(self._confd, cel.channame)
         if participant:
-            call.participants.append(participant)
+            call.participants.append(CallLogParticipant(
+                role='source',
+                user_uuid=participant['uuid'],
+                line_id=participant['line_id'],
+                tags=participant['tags']
+            ))
+            call.set_tenant_uuid(participant['tenant_uuid'])
+
         extension = find_main_internal_extension(self._confd, cel.channame)
         if extension:
             call.source_internal_exten = extension['exten']
             call.source_internal_context = extension['context']
+            call.set_tenant_uuid(extension['tenant_uuid'])
 
         return call
 
@@ -181,7 +196,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.requested_exten = cel.exten
         call.requested_context = cel.context
         call.destination_exten = cel.exten
-
         return call
 
     def interpret_xivo_incall(self, cel, call):
@@ -207,20 +221,28 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
 
-        participant = find_participant(self._confd, cel.channame, role='destination')
+        participant = find_participant(self._confd, cel.channame)
         if participant:
-            call.participants.append(participant)
+            call.participants.append(CallLogParticipant(
+                role='destination',
+                user_uuid=participant['uuid'],
+                line_id=participant['line_id'],
+                tags=participant['tags']
+            ))
+            call.set_tenant_uuid(participant['tenant_uuid'])
 
         if not call.requested_internal_exten:
             requested_extension = find_main_internal_extension(self._confd, cel.channame)
             if requested_extension:
                 call.requested_internal_exten = requested_extension['exten']
                 call.requested_internal_context = requested_extension['context']
+                call.set_tenant_uuid(requested_extension['tenant_uuid'])
 
         extension = find_main_internal_extension(self._confd, cel.channame)
         if extension:
             call.destination_internal_exten = extension['exten']
             call.destination_internal_context = extension['context']
+            call.set_tenant_uuid(extension['tenant_uuid'])
 
         return call
 
@@ -258,7 +280,14 @@ class LocalOriginateCELInterpretor(object):
         call.source_line_identity = identity_from_channel(source_channel_answer.channame)
         participant = find_participant(self._confd, source_channel_answer.channame, role='source')
         if participant:
-            call.participants.append(participant)
+            call.participants.append(CallLogParticipant(
+                role='source',
+                user_uuid=participant['uuid'],
+                line_id=participant['line_id'],
+                tags=participant['tags']
+            ))
+            call.set_tenant_uuid(participant['tenant_uuid'])
+
         call.destination_exten = local_channel2_answer.cid_num
 
         local_channel1_app_start = next((cel for cel in cels if cel.uniqueid == local_channel1 and cel.eventtype == 'APP_START'), None)
@@ -284,7 +313,13 @@ class LocalOriginateCELInterpretor(object):
             call.destination_line_identity = identity_from_channel(destination_channel_answer.channame)
             participant = find_participant(self._confd, destination_channel_answer.channame, role='destination')
             if participant:
-                call.participants.append(participant)
+                call.participants.append(CallLogParticipant(
+                    role='destination',
+                    user_uuid=participant['uuid'],
+                    line_id=participant['line_id'],
+                    tags=participant['tags']
+                ))
+                call.set_tenant_uuid(participant['tenant_uuid'])
             call.date_answer = destination_channel_bridge_enter.eventtime
 
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])

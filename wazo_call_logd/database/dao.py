@@ -58,11 +58,14 @@ class CallLogDAO(object):
         finally:
             self._Session.remove()
 
-    def get_by_id(self, cdr_id):
+    def get_by_id(self, cdr_id, tenant_uuids):
         with self.new_session() as session:
-            cdr = session.query(CallLogSchema).options(joinedload('participants'),
-                                                       subqueryload('source_participant'),
-                                                       subqueryload('destination_participant')).get(cdr_id)
+            query = session.query(CallLogSchema).options(joinedload('participants'),
+                                                         subqueryload('source_participant'),
+                                                         subqueryload('destination_participant'))
+            query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})
+            query = query.filter(CallLogSchema.id == cdr_id)
+            cdr = query.one_or_none()
             if cdr:
                 session.expunge_all()
                 return cdr
@@ -109,6 +112,11 @@ class CallLogDAO(object):
             query = session.query(CallLogSchema)
             query = self._apply_user_filter(query, params)
 
+            segregation_fields = ('tenant_uuids', 'me_user_uuid')
+            count_params = dict([(p, params.get(p))
+                                 for p in segregation_fields])
+            query = self._apply_filters(query, count_params)
+
             total = query.count()
 
             query = self._apply_filters(query, params)
@@ -147,6 +155,13 @@ class CallLogDAO(object):
             query = query.filter(CallLogSchema.participants.any(
                 CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
             ))
+
+        if params.get('tenant_uuids'):
+            query = query.filter(CallLogSchema.tenant_uuid.in_(params['tenant_uuids']))
+
+        if params.get('me_user_uuid'):
+            me_user_uuid = params['me_user_uuid']
+            query = query.filter(CallLogSchema.participant_user_uuids.contains(str(me_user_uuid)))
 
         if params.get('user_uuids'):
             filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))

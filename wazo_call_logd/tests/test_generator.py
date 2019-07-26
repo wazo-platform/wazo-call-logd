@@ -1,4 +1,4 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -23,7 +23,8 @@ from wazo_call_logd.exceptions import InvalidCallLogException
 class TestCallLogsGenerator(TestCase):
     def setUp(self):
         self.interpretor = Mock()
-        self.generator = CallLogsGenerator([self.interpretor])
+        self.confd_client = Mock()
+        self.generator = CallLogsGenerator(self.confd_client, [self.interpretor])
 
     def test_from_cel(self):
         self.generator.call_logs_from_cel = Mock()
@@ -105,7 +106,10 @@ class TestCallLogsGenerator(TestCase):
         interpretor_true_1.can_interpret.return_value = True
         interpretor_true_2.can_interpret.return_value = True
         interpretor_false.can_interpret.return_value = False
-        generator = CallLogsGenerator([interpretor_false, interpretor_true_1, interpretor_true_2, interpretor_false])
+        generator = CallLogsGenerator(
+            self.confd_client,
+            [interpretor_false, interpretor_true_1, interpretor_true_2, interpretor_false]
+        )
         cels = self._generate_cel_for_call(['545783248'])
 
         generator.call_logs_from_cel(cels)
@@ -117,7 +121,7 @@ class TestCallLogsGenerator(TestCase):
     def test_given_no_interpretor_can_interpret_then_raise(self):
         interpretor = Mock()
         interpretor.can_interpret.return_value = False
-        generator = CallLogsGenerator([interpretor])
+        generator = CallLogsGenerator(self.confd_client, [interpretor])
         cels = self._generate_cel_for_call(['545783248'])
 
         assert_that(calling(generator.call_logs_from_cel).with_args(cels), raises(RuntimeError))

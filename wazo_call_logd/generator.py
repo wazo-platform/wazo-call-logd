@@ -1,4 +1,4 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -16,8 +16,13 @@ CallLogsCreation = namedtuple('CallLogsCreation', ('new_call_logs', 'call_logs_t
 
 class CallLogsGenerator(object):
 
-    def __init__(self, cel_interpretors):
+    def __init__(self, confd, cel_interpretors):
+        self.confd = confd
         self._cel_interpretors = cel_interpretors
+        self._service_tenant_uuid = None
+
+    def set_default_tenant_uuid(self, token):
+        self._service_tenant_uuid = token['metadata']['tenant_uuid']
 
     def from_cel(self, cels):
         call_logs_to_delete = self.list_call_log_ids(cels)
@@ -34,6 +39,9 @@ class CallLogsGenerator(object):
 
             interpretor = self._get_interpretor(cels_by_call)
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
+
+            self._ensure_tenant_uuid_is_set(call_log)
+
             try:
                 result.append(call_log.to_call_log())
             except InvalidCallLogException as e:
@@ -54,3 +62,17 @@ class CallLogsGenerator(object):
                 return interpretor
 
         raise RuntimeError('Could not find suitable interpretor in {}'.format(self._cel_interpretors))
+
+    def _ensure_tenant_uuid_is_set(self, call_log):
+        if not call_log.tenant_uuid:
+            # NOTE(sileht): requested_context
+            if call_log.requested_context:
+                contexts = self.confd.contexts.list(name=call_log.requested_context)['items']
+                if contexts:
+                    call_log.set_tenant_uuid(contexts[0]['tenant_uuid'])
+                    return
+
+            logger.warning("call log of cels `%s` is not attached to a "
+                           "tenant_uuid, fallback to service tenant %s",
+                           call_log.cel_ids, self._service_tenant_uuid)
+            call_log.set_tenant_uuid(self._service_tenant_uuid)

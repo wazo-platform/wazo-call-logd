@@ -1,4 +1,4 @@
-# Copyright 2013-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -7,7 +7,7 @@ from hamcrest import (
     assert_that,
     contains,
     equal_to,
-    has_properties,
+    has_entries,
     none,
     same_instance,
 )
@@ -42,7 +42,7 @@ class TestFindParticipant(TestCase):
         confd = confd_mock()
         channame = 'something'
 
-        result = find_participant(confd, channame, role='source')
+        result = find_participant(confd, channame)
 
         assert_that(result, none())
 
@@ -50,7 +50,7 @@ class TestFindParticipant(TestCase):
         confd = confd_mock()
         channame = 'sip/something-suffix'
 
-        result = find_participant(confd, channame, role='source')
+        result = find_participant(confd, channame)
 
         assert_that(result, none())
 
@@ -59,22 +59,22 @@ class TestFindParticipant(TestCase):
         confd = confd_mock(lines)
         channame = 'sip/something-suffix'
 
-        result = find_participant(confd, channame, role='source')
+        result = find_participant(confd, channame)
 
         assert_that(result, none())
 
     def test_find_participants_when_line_has_user(self):
-        user = {'uuid': 'user_uuid', 'userfield': 'user_userfield, toto'}
+        user = {'uuid': 'user_uuid', 'tenant_uuid': 'tenant_uuid', 'userfield': 'user_userfield, toto'}
         lines = [{'id': 12, 'users': [user]}]
         confd = confd_mock(lines)
         channame = 'sip/something-suffix'
 
-        result = find_participant(confd, channame, role='source')
+        result = find_participant(confd, channame)
 
-        assert_that(result, has_properties(role='source',
-                                           user_uuid='user_uuid',
-                                           line_id=12,
-                                           tags=['user_userfield', 'toto']))
+        assert_that(result, has_entries(uuid='user_uuid',
+                                        tenant_uuid='tenant_uuid',
+                                        line_id=12,
+                                        tags=['user_userfield', 'toto']))
 
 
 class TestFindMainInternalExtension(TestCase):
@@ -105,8 +105,15 @@ class TestFindMainInternalExtension(TestCase):
         assert_that(result, none())
 
     def test_find_main_internal_extension_when_line_has_user(self):
-        extension = {'exten': '101', 'context': 'default'}
-        lines = [{'id': 12, 'extensions': [extension]}]
+        extension = {
+            'exten': '101',
+            'context': 'default',
+        }
+        lines = [{
+            'id': 12,
+            'extensions': [extension],
+            'tenant_uuid': 'tenant',
+        }]
         confd = confd_mock(lines)
         channame = 'sip/something-suffix'
 

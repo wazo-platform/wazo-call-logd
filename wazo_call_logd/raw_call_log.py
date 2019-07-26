@@ -1,9 +1,13 @@
-# Copyright 2013-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+import logging
 
 from xivo_dao.alchemy.call_log import CallLog
 
 from wazo_call_logd.exceptions import InvalidCallLogException
+
+logger = logging.getLogger(__name__)
 
 
 class RawCallLog(object):
@@ -31,6 +35,18 @@ class RawCallLog(object):
         self.participants = []
         self.cel_ids = []
         self.interpret_callee_bridge_enter = True
+        self._tenant_uuid = None
+
+    @property
+    def tenant_uuid(self):
+        return self._tenant_uuid
+
+    def set_tenant_uuid(self, tenant_uuid):
+        if self._tenant_uuid is None:
+            self._tenant_uuid = tenant_uuid
+        elif self._tenant_uuid != tenant_uuid:
+            logger.error("We got a cel with an expected tenant_uuid: "
+                         "%s instead of %s", tenant_uuid, self._tenant_uuid)
 
     def to_call_log(self):
         if not self.date:
@@ -39,6 +55,7 @@ class RawCallLog(object):
             raise InvalidCallLogException('source name and exten not found')
 
         result = CallLog(
+            tenant_uuid=self._tenant_uuid,
             date=self.date,
             date_answer=self.date_answer,
             date_end=self.date_end,

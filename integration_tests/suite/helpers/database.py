@@ -1,17 +1,42 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from functools import wraps
 import logging
 import sqlalchemy as sa
 
 from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.session import make_transient
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.tests.test_dao import ItemInserter
 
+from .constants import MASTER_TENANT
+
 logger = logging.getLogger(__name__)
+
+
+def call_logs(call_logs):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.database.queries() as queries:
+                for call_log in call_logs:
+                    participants = call_log.pop('participants', [])
+                    call_log.setdefault('tenant_uuid', MASTER_TENANT)
+                    call_log['id'] = queries.insert_call_log(**call_log)
+                    call_log['participants'] = participants
+                    for participant in participants:
+                        queries.insert_call_log_participant(call_log_id=call_log['id'],
+                                                            **participant)
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    for call_log in call_logs:
+                        queries.delete_call_log(call_log['id'])
+        return wrapped_function
+    return _decorate
 
 
 class DbHelper(object):
@@ -83,7 +108,7 @@ class DatabaseQueries(object):
     @contextmanager
     def inserter(self):
         session = self.Session()
-        yield ItemInserter(session)
+        yield ItemInserter(session, tenant_uuid=MASTER_TENANT)
         session.commit()
 
     def insert_call_log(self, **kwargs):
@@ -107,8 +132,6 @@ class DatabaseQueries(object):
     def find_last_call_log(self):
         session = self.Session()
         call_log = session.query(CallLog).order_by(CallLog.date).first()
-        if call_log:
-            make_transient(call_log)
         session.commit()
         return call_log
 
@@ -117,8 +140,13 @@ class DatabaseQueries(object):
         call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
         result = tuple(call_log.participant_user_uuids)
         session.commit()
-
         return result
+
+    def get_call_log_tenant_uuids(self, call_log_id):
+        session = self.Session()
+        call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
+        session.commit()
+        return call_log.tenant_uuid
 
     def insert_cel(
             self,

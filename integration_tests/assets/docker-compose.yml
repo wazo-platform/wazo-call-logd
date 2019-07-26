@@ -22,6 +22,7 @@ services:
       - "./etc/wazo-call-logd/conf.d/db_uri.yml:/etc/wazo-call-logd/conf.d/50-db_uri.yml"
       - "./etc/wazo-call-logd/conf.d/bus.yml:/etc/wazo-call-logd/conf.d/50-bus.yml"
       - "./etc/wazo-call-logd/conf.d/confd.yml:/etc/wazo-call-logd/conf.d/50-confd.yml"
+      - "./etc/wazo-call-logd/conf.d/tenant_migration.yml:/etc/wazo-call-logd/conf.d/50-tenant_migration.yml"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.5/site-packages/xivo"
       # - "${LOCAL_GIT_REPOS}/xivo-dao/xivo_dao:/usr/local/lib/python3.5/site-packages/xivo_dao"
       # - "${LOCAL_GIT_REPOS}/xivo-bus/xivo_bus:/usr/local/lib/python3.5/site-packages/xivo_bus"
