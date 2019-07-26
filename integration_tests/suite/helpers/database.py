@@ -108,7 +108,7 @@ class DatabaseQueries(object):
     @contextmanager
     def inserter(self):
         session = self.Session()
-        yield ItemInserter(session)
+        yield ItemInserter(session, tenant_uuid=MASTER_TENANT)
         session.commit()
 
     def insert_call_log(self, **kwargs):
