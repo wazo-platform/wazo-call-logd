@@ -65,7 +65,7 @@ def find_main_internal_extension(confd, channame):
         return
 
     main_extension = extensions[0]
-    main_extension = line["tenant_uuid"]
+    main_extension["tenant_uuid"] = line["tenant_uuid"]
 
     logger.debug('Found main internal extension %s@%s (%s)',
                  main_extension['exten'],
