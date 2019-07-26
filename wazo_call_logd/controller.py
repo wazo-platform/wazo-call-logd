@@ -26,16 +26,20 @@ logger = logging.getLogger(__name__)
 
 
 class Controller(object):
-
     def __init__(self, config):
         auth_client = AuthClient(**config['auth'])
         cel_fetcher = CELFetcher()
         confd_client = ConfdClient(**config['confd'])
-        generator = CallLogsGenerator(confd_client, [
-            LocalOriginateCELInterpretor(confd_client),
-            DispatchCELInterpretor(CallerCELInterpretor(confd_client),
-                                   CalleeCELInterpretor(confd_client))
-        ])
+        generator = CallLogsGenerator(
+            confd_client,
+            [
+                LocalOriginateCELInterpretor(confd_client),
+                DispatchCELInterpretor(
+                    CallerCELInterpretor(confd_client),
+                    CalleeCELInterpretor(confd_client),
+                ),
+            ],
+        )
         writer = CallLogsWriter()
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)
@@ -56,17 +60,21 @@ class Controller(object):
                 'config': config,
                 'token_renewer': self.token_renewer,
                 'status_aggregator': self.status_aggregator,
-            }
+            },
         )
 
     def run(self):
         logger.info('Starting wazo-call-logd')
-        self.token_renewer.subscribe_to_token_change(self.token_status.token_change_callback)
+        self.token_renewer.subscribe_to_token_change(
+            self.token_status.token_change_callback
+        )
         self.status_aggregator.add_provider(self.bus_client.provide_status)
         self.status_aggregator.add_provider(self.token_status.provide_status)
         bus_publisher_thread = Thread(target=self._publisher.run)
         bus_publisher_thread.start()
-        bus_consumer_thread = Thread(target=self.bus_client.run, args=[self.manager], name='bus_consumer_thread')
+        bus_consumer_thread = Thread(
+            target=self.bus_client.run, args=[self.manager], name='bus_consumer_thread'
+        )
         bus_consumer_thread.start()
 
         try:

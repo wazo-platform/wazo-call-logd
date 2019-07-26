@@ -1,4 +1,4 @@
-# Copyright 2011 hamcrest.org
+# Copyright 2011-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: BSD-3-Clause
 
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
@@ -15,7 +15,6 @@ __license__ = "SPDX-License-Identifier: BSD-3-Clause"
 
 
 class StringContains(SubstringMatcher):
-
     def __init__(self, substring):
         super(StringContains, self).__init__(substring)
 

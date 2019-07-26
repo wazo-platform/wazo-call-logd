@@ -1,4 +1,4 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -28,16 +28,19 @@ class TestRawCallLog(TestCase):
 
         result = self.raw_call_log.to_call_log()
 
-        assert_that(result, all_of(
-            has_property('date', self.raw_call_log.date),
-            has_property('date_answer', self.raw_call_log.date_answer),
-            has_property('date_end', self.raw_call_log.date_end),
-            has_property('source_name', self.raw_call_log.source_name),
-            has_property('source_exten', self.raw_call_log.source_exten),
-            has_property('destination_name', self.raw_call_log.destination_name),
-            has_property('destination_exten', self.raw_call_log.destination_exten),
-            has_property('user_field', self.raw_call_log.user_field),
-        ))
+        assert_that(
+            result,
+            all_of(
+                has_property('date', self.raw_call_log.date),
+                has_property('date_answer', self.raw_call_log.date_answer),
+                has_property('date_end', self.raw_call_log.date_end),
+                has_property('source_name', self.raw_call_log.source_name),
+                has_property('source_exten', self.raw_call_log.source_exten),
+                has_property('destination_name', self.raw_call_log.destination_name),
+                has_property('destination_exten', self.raw_call_log.destination_exten),
+                has_property('user_field', self.raw_call_log.user_field),
+            ),
+        )
         assert_that(result.cel_ids, equal_to([1, 2, 3]))
 
     def test_to_call_log_invalid_date(self):

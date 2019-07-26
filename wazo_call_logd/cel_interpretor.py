@@ -21,7 +21,11 @@ def find_participant(confd, channame):
     except InvalidChannelError:
         return None
 
-    logger.debug('Looking up participant with protocol %s and line name "%s"', protocol, line_name)
+    logger.debug(
+        'Looking up participant with protocol %s and line name "%s"',
+        protocol,
+        line_name,
+    )
     lines = confd.lines.list(name=line_name, recurse=True)['items']
     if not lines:
         return
@@ -33,14 +37,21 @@ def find_participant(confd, channame):
         return
 
     user = confd.users.get(users[0]['uuid'])
-    tags = [tag.strip() for tag in user['userfield'].split(',')] if user['userfield'] else []
-    logger.debug('Found participant user uuid %s tenant uuid %s',
-                 user['uuid'], user['tenant_uuid'])
+    tags = (
+        [tag.strip() for tag in user['userfield'].split(',')]
+        if user['userfield']
+        else []
+    )
+    logger.debug(
+        'Found participant user uuid %s tenant uuid %s',
+        user['uuid'],
+        user['tenant_uuid'],
+    )
     return {
         'uuid': user['uuid'],
         'tenant_uuid': user['tenant_uuid'],
         'line_id': line['id'],
-        'tags': tags
+        'tags': tags,
     }
 
 
@@ -53,7 +64,11 @@ def find_main_internal_extension(confd, channame):
     except InvalidChannelError:
         return None
 
-    logger.debug('Looking up main internal extension with protocol %s and line name "%s"', protocol, line_name)
+    logger.debug(
+        'Looking up main internal extension with protocol %s and line name "%s"',
+        protocol,
+        line_name,
+    )
     lines = confd.lines.list(name=line_name, recurse=True)['items']
     if not lines:
         return
@@ -67,15 +82,16 @@ def find_main_internal_extension(confd, channame):
     main_extension = extensions[0]
     main_extension["tenant_uuid"] = line["tenant_uuid"]
 
-    logger.debug('Found main internal extension %s@%s (%s)',
-                 main_extension['exten'],
-                 main_extension['context'],
-                 main_extension['tenant_uuid'])
+    logger.debug(
+        'Found main internal extension %s@%s (%s)',
+        main_extension['exten'],
+        main_extension['context'],
+        main_extension['tenant_uuid'],
+    )
     return main_extension
 
 
 class DispatchCELInterpretor(object):
-
     def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
         self.caller_cel_interpretor = caller_cel_interpretor
         self.callee_cel_interpretor = callee_cel_interpretor
@@ -87,7 +103,9 @@ class DispatchCELInterpretor(object):
         return call_log
 
     def split_caller_callee_cels(self, cels):
-        uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == CELEventType.chan_start]
+        uniqueids = [
+            cel.uniqueid for cel in cels if cel.eventtype == CELEventType.chan_start
+        ]
         caller_uniqueid = uniqueids[0] if len(uniqueids) > 0 else None
         callee_uniqueids = uniqueids[1:]
 
@@ -120,7 +138,6 @@ class AbstractCELInterpretor(object):
 
 
 class CallerCELInterpretor(AbstractCELInterpretor):
-
     def __init__(self, confd):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
@@ -145,12 +162,14 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.source_line_identity = identity_from_channel(cel.channame)
         participant = find_participant(self._confd, cel.channame)
         if participant:
-            call.participants.append(CallLogParticipant(
-                role='source',
-                user_uuid=participant['uuid'],
-                line_id=participant['line_id'],
-                tags=participant['tags']
-            ))
+            call.participants.append(
+                CallLogParticipant(
+                    role='source',
+                    user_uuid=participant['uuid'],
+                    line_id=participant['line_id'],
+                    tags=participant['tags'],
+                )
+            )
             call.set_tenant_uuid(participant['tenant_uuid'])
 
         extension = find_main_internal_extension(self._confd, cel.channame)
@@ -223,16 +242,20 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         participant = find_participant(self._confd, cel.channame)
         if participant:
-            call.participants.append(CallLogParticipant(
-                role='destination',
-                user_uuid=participant['uuid'],
-                line_id=participant['line_id'],
-                tags=participant['tags']
-            ))
+            call.participants.append(
+                CallLogParticipant(
+                    role='destination',
+                    user_uuid=participant['uuid'],
+                    line_id=participant['line_id'],
+                    tags=participant['tags'],
+                )
+            )
             call.set_tenant_uuid(participant['tenant_uuid'])
 
         if not call.requested_internal_exten:
-            requested_extension = find_main_internal_extension(self._confd, cel.channame)
+            requested_extension = find_main_internal_extension(
+                self._confd, cel.channame
+            )
             if requested_extension:
                 call.requested_internal_exten = requested_extension['exten']
                 call.requested_internal_context = requested_extension['context']
@@ -261,15 +284,33 @@ class LocalOriginateCELInterpretor(object):
     def interpret_cels(self, cels, call):
         uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
         try:
-            local_channel1, local_channel2, source_channel = starting_channels = uniqueids[:3]
+            local_channel1, local_channel2, source_channel = (
+                starting_channels
+            ) = uniqueids[:3]
         except ValueError:  # in case a CHAN_START is missing...
             return call
 
         try:
-            local_channel1_start = next(cel for cel in cels if cel.uniqueid == local_channel1 and cel.eventtype == 'CHAN_START')
-            source_channel_answer = next(cel for cel in cels if cel.uniqueid == source_channel and cel.eventtype == 'ANSWER')
-            source_channel_end = next(cel for cel in cels if cel.uniqueid == source_channel and cel.eventtype == 'CHAN_END')
-            local_channel2_answer = next(cel for cel in cels if cel.uniqueid == local_channel2 and cel.eventtype == 'ANSWER')
+            local_channel1_start = next(
+                cel
+                for cel in cels
+                if cel.uniqueid == local_channel1 and cel.eventtype == 'CHAN_START'
+            )
+            source_channel_answer = next(
+                cel
+                for cel in cels
+                if cel.uniqueid == source_channel and cel.eventtype == 'ANSWER'
+            )
+            source_channel_end = next(
+                cel
+                for cel in cels
+                if cel.uniqueid == source_channel and cel.eventtype == 'CHAN_END'
+            )
+            local_channel2_answer = next(
+                cel
+                for cel in cels
+                if cel.uniqueid == local_channel2 and cel.eventtype == 'ANSWER'
+            )
         except StopIteration:
             return call
 
@@ -277,48 +318,97 @@ class LocalOriginateCELInterpretor(object):
         call.date_end = source_channel_end.eventtime
         call.source_name = source_channel_answer.cid_name
         call.source_exten = source_channel_answer.cid_num
-        call.source_line_identity = identity_from_channel(source_channel_answer.channame)
-        participant = find_participant(self._confd, source_channel_answer.channame, role='source')
+        call.source_line_identity = identity_from_channel(
+            source_channel_answer.channame
+        )
+        participant = find_participant(
+            self._confd, source_channel_answer.channame, role='source'
+        )
         if participant:
-            call.participants.append(CallLogParticipant(
-                role='source',
-                user_uuid=participant['uuid'],
-                line_id=participant['line_id'],
-                tags=participant['tags']
-            ))
+            call.participants.append(
+                CallLogParticipant(
+                    role='source',
+                    user_uuid=participant['uuid'],
+                    line_id=participant['line_id'],
+                    tags=participant['tags'],
+                )
+            )
             call.set_tenant_uuid(participant['tenant_uuid'])
 
         call.destination_exten = local_channel2_answer.cid_num
 
-        local_channel1_app_start = next((cel for cel in cels if cel.uniqueid == local_channel1 and cel.eventtype == 'APP_START'), None)
+        local_channel1_app_start = next(
+            (
+                cel
+                for cel in cels
+                if cel.uniqueid == local_channel1 and cel.eventtype == 'APP_START'
+            ),
+            None,
+        )
         if local_channel1_app_start:
             call.user_field = local_channel1_app_start.userfield
 
-        other_channels_start = [cel for cel in cels if cel.uniqueid not in starting_channels and cel.eventtype == 'CHAN_START']
-        non_local_other_channels = [cel.uniqueid for cel in other_channels_start if not cel.channame.lower().startswith('local/')]
-        other_channels_bridge_enter = [cel for cel in cels if cel.uniqueid in non_local_other_channels and cel.eventtype == 'BRIDGE_ENTER']
-        destination_channel = other_channels_bridge_enter[-1].uniqueid if other_channels_bridge_enter else None
+        other_channels_start = [
+            cel
+            for cel in cels
+            if cel.uniqueid not in starting_channels and cel.eventtype == 'CHAN_START'
+        ]
+        non_local_other_channels = [
+            cel.uniqueid
+            for cel in other_channels_start
+            if not cel.channame.lower().startswith('local/')
+        ]
+        other_channels_bridge_enter = [
+            cel
+            for cel in cels
+            if cel.uniqueid in non_local_other_channels
+            and cel.eventtype == 'BRIDGE_ENTER'
+        ]
+        destination_channel = (
+            other_channels_bridge_enter[-1].uniqueid
+            if other_channels_bridge_enter
+            else None
+        )
 
         if destination_channel:
             try:
                 # in outgoing calls, destination ANSWER event has more callerid information than START event
-                destination_channel_answer = next(cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'ANSWER')
+                destination_channel_answer = next(
+                    cel
+                    for cel in cels
+                    if cel.uniqueid == destination_channel and cel.eventtype == 'ANSWER'
+                )
                 # take the last bridge enter/exit to skip local channel optimization
-                destination_channel_bridge_enter = next(reversed([cel for cel in cels if cel.uniqueid == destination_channel and cel.eventtype == 'BRIDGE_ENTER']))
+                destination_channel_bridge_enter = next(
+                    reversed(
+                        [
+                            cel
+                            for cel in cels
+                            if cel.uniqueid == destination_channel
+                            and cel.eventtype == 'BRIDGE_ENTER'
+                        ]
+                    )
+                )
             except StopIteration:
                 return call
 
             call.destination_name = destination_channel_answer.cid_name
             call.destination_exten = destination_channel_answer.cid_num
-            call.destination_line_identity = identity_from_channel(destination_channel_answer.channame)
-            participant = find_participant(self._confd, destination_channel_answer.channame, role='destination')
+            call.destination_line_identity = identity_from_channel(
+                destination_channel_answer.channame
+            )
+            participant = find_participant(
+                self._confd, destination_channel_answer.channame, role='destination'
+            )
             if participant:
-                call.participants.append(CallLogParticipant(
-                    role='destination',
-                    user_uuid=participant['uuid'],
-                    line_id=participant['line_id'],
-                    tags=participant['tags']
-                ))
+                call.participants.append(
+                    CallLogParticipant(
+                        role='destination',
+                        user_uuid=participant['uuid'],
+                        line_id=participant['line_id'],
+                        tags=participant['tags'],
+                    )
+                )
                 call.set_tenant_uuid(participant['tenant_uuid'])
             call.date_answer = destination_channel_bridge_enter.eventtime
 
@@ -333,9 +423,11 @@ class LocalOriginateCELInterpretor(object):
 
     @classmethod
     def can_interpret(cls, cels):
-        return (cls.three_channels_minimum(cels)
-                and cls.first_two_channels_are_local(cels)
-                and cls.first_channel_is_answered_before_any_other_operation(cels))
+        return (
+            cls.three_channels_minimum(cels)
+            and cls.first_two_channels_are_local(cels)
+            and cls.first_channel_is_answered_before_any_other_operation(cels)
+        )
 
     @classmethod
     def three_channels_minimum(cls, cels):
@@ -345,13 +437,17 @@ class LocalOriginateCELInterpretor(object):
     @classmethod
     def first_two_channels_are_local(cls, cels):
         names = [cel.channame for cel in cels if cel.eventtype == 'CHAN_START']
-        return (len(names) >= 2
-                and names[0].lower().startswith('local/')
-                and names[1].lower().startswith('local/'))
+        return (
+            len(names) >= 2
+            and names[0].lower().startswith('local/')
+            and names[1].lower().startswith('local/')
+        )
 
     @classmethod
     def first_channel_is_answered_before_any_other_operation(cls, cels):
         first_channel_cels = [cel for cel in cels if cel.uniqueid == cels[0].uniqueid]
-        return (len(first_channel_cels) >= 2
-                and first_channel_cels[0].eventtype == 'CHAN_START'
-                and first_channel_cels[1].eventtype == 'ANSWER')
+        return (
+            len(first_channel_cels) >= 2
+            and first_channel_cels[0].eventtype == 'CHAN_START'
+            and first_channel_cels[1].eventtype == 'ANSWER'
+        )

@@ -1,4 +1,4 @@
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import unittest
@@ -12,10 +12,8 @@ from ..manager import CallLogsManager
 
 
 class TestCelConsumer(unittest.TestCase):
-
     def setUp(self):
-        self.body = {'data': {'EventName': 'LINKEDID_END',
-                              'LinkedID': 'a-linked-id'}}
+        self.body = {'data': {'EventName': 'LINKEDID_END', 'LinkedID': 'a-linked-id'}}
         self.consumer = _CELConsumer(Mock(Queue))
         self.consumer._call_logs_manager = Mock(CallLogsManager)
 
@@ -29,11 +27,12 @@ class TestCelConsumer(unittest.TestCase):
     def test_that_the_manager_is_called(self):
         self.consumer.on_message(self.body, Mock())
 
-        self.consumer._call_logs_manager.generate_from_linked_id.assert_called_once_with('a-linked-id')
+        self.consumer._call_logs_manager.generate_from_linked_id.assert_called_once_with(
+            'a-linked-id'
+        )
 
 
 class TestBusClient(unittest.TestCase):
-
     def setUp(self):
         self._config = {
             'bus': {
@@ -50,9 +49,9 @@ class TestBusClient(unittest.TestCase):
         self.bus_client = BusClient(self._config)
 
     def test_that_the_queue_is_created(self):
-        expected_queue = Queue(exchange=self.expected_exchange,
-                               routing_key=BusClient._KEY,
-                               exclusive=True)
+        expected_queue = Queue(
+            exchange=self.expected_exchange, routing_key=BusClient._KEY, exclusive=True
+        )
 
         assert_that(self.bus_client.queue, equal_to(expected_queue))
 

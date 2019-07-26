@@ -1,4 +1,4 @@
-# Copyright 2012-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2012-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -24,7 +24,9 @@ def main(argv):
     if user:
         change_user(user)
 
-    setup_logging(config['logfile'], config['foreground'], config['debug'], config['log_level'])
+    setup_logging(
+        config['logfile'], config['foreground'], config['debug'], config['log_level']
+    )
     xivo_dao.init_db_from_config(config)
 
     set_xivo_uuid(config, logger)

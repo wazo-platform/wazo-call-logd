@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    equal_to,
-    has_entries,
-    has_entry,
-)
+from hamcrest import assert_that, equal_to, has_entries, has_entry
 from xivo_test_helpers import until
 
 from .helpers.base import IntegrationTest
@@ -50,12 +45,14 @@ class TestStatusAllOK(IntegrationTest):
         until.true(self.bus.is_up, timeout=10)
 
     def test_given_auth_and_ari_and_rabbitmq_when_status_then_status_ok(self):
-
         def all_ok():
             result = self.call_logd.status.get()
-            assert_that(result, has_entries(
-                bus_consumer=has_entry('status', 'ok'),
-                service_token=has_entry('status', 'ok'),
-            ))
+            assert_that(
+                result,
+                has_entries(
+                    bus_consumer=has_entry('status', 'ok'),
+                    service_token=has_entry('status', 'ok'),
+                ),
+            )
 
         until.assert_(all_ok, tries=10)

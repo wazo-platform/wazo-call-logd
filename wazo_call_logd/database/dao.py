@@ -60,9 +60,11 @@ class CallLogDAO(object):
 
     def get_by_id(self, cdr_id, tenant_uuids):
         with self.new_session() as session:
-            query = session.query(CallLogSchema).options(joinedload('participants'),
-                                                         subqueryload('source_participant'),
-                                                         subqueryload('destination_participant'))
+            query = session.query(CallLogSchema).options(
+                joinedload('participants'),
+                subqueryload('source_participant'),
+                subqueryload('destination_participant'),
+            )
             query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})
             query = query.filter(CallLogSchema.id == cdr_id)
             cdr = query.one_or_none()
@@ -73,9 +75,11 @@ class CallLogDAO(object):
     def find_all_in_period(self, params):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
-            query = query.options(joinedload('participants'),
-                                  subqueryload('source_participant'),
-                                  subqueryload('destination_participant'))
+            query = query.options(
+                joinedload('participants'),
+                subqueryload('source_participant'),
+                subqueryload('destination_participant'),
+            )
 
             query = self._apply_user_filter(query, params)
             query = self._apply_filters(query, params)
@@ -113,8 +117,7 @@ class CallLogDAO(object):
             query = self._apply_user_filter(query, params)
 
             segregation_fields = ('tenant_uuids', 'me_user_uuid')
-            count_params = dict([(p, params.get(p))
-                                 for p in segregation_fields])
+            count_params = dict([(p, params.get(p)) for p in segregation_fields])
             query = self._apply_filters(query, count_params)
 
             total = query.count()
@@ -128,7 +131,9 @@ class CallLogDAO(object):
     def _apply_user_filter(self, query, params):
         if params.get('me_user_uuid'):
             me_user_uuid = params['me_user_uuid']
-            query = query.filter(CallLogSchema.participant_user_uuids.contains(str(me_user_uuid)))
+            query = query.filter(
+                CallLogSchema.participant_user_uuids.contains(str(me_user_uuid))
+            )
         return query
 
     def _apply_filters(self, query, params):
@@ -141,31 +146,44 @@ class CallLogDAO(object):
             query = query.filter(CallLogSchema.direction == params['call_direction'])
 
         if params.get('search'):
-            filters = (sql.cast(column, sa.String).ilike('%%%s%%' % params['search'])
-                       for column in self.searched_columns)
+            filters = (
+                sql.cast(column, sa.String).ilike('%%%s%%' % params['search'])
+                for column in self.searched_columns
+            )
             query = query.filter(sql.or_(*filters))
 
         if params.get('number'):
             sql_regex = params['number'].replace('_', '%')
-            filters = (sql.cast(column, sa.String).like('%s' % sql_regex)
-                       for column in [CallLogSchema.source_exten, CallLogSchema.destination_exten])
+            filters = (
+                sql.cast(column, sa.String).like('%s' % sql_regex)
+                for column in [
+                    CallLogSchema.source_exten,
+                    CallLogSchema.destination_exten,
+                ]
+            )
             query = query.filter(sql.or_(*filters))
 
         for tag in params.get('tags', []):
-            query = query.filter(CallLogSchema.participants.any(
-                CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
-            ))
+            query = query.filter(
+                CallLogSchema.participants.any(
+                    CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
+                )
+            )
 
         if params.get('tenant_uuids'):
             query = query.filter(CallLogSchema.tenant_uuid.in_(params['tenant_uuids']))
 
         if params.get('me_user_uuid'):
             me_user_uuid = params['me_user_uuid']
-            query = query.filter(CallLogSchema.participant_user_uuids.contains(str(me_user_uuid)))
+            query = query.filter(
+                CallLogSchema.participant_user_uuids.contains(str(me_user_uuid))
+            )
 
         if params.get('user_uuids'):
-            filters = (CallLogSchema.participant_user_uuids.contains(str(user_uuid))
-                       for user_uuid in params['user_uuids'])
+            filters = (
+                CallLogSchema.participant_user_uuids.contains(str(user_uuid))
+                for user_uuid in params['user_uuids']
+            )
             query = query.filter(sql.or_(*filters))
 
         if params.get('start_id'):

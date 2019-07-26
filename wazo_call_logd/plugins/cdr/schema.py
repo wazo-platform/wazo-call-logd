@@ -5,16 +5,12 @@ from marshmallow import fields
 from marshmallow import post_load
 from marshmallow import Schema
 from marshmallow import pre_dump, pre_load, post_dump
-from marshmallow.validate import (
-    OneOf,
-    Range,
-    Regexp,
-)
+from marshmallow.validate import OneOf, Range, Regexp
+
 NUMBER_REGEX = r'^_?[0-9]+_?$'
 
 
 class CDRSchema(Schema):
-
     class Meta(object):
         strict = True
         ordered = True
@@ -29,7 +25,9 @@ class CDRSchema(Schema):
     call_direction = fields.String(attribute='direction')
     destination_extension = fields.String(attribute='destination_exten')
     destination_internal_context = fields.String()
-    destination_internal_extension = fields.String(attribute='destination_internal_exten')
+    destination_internal_extension = fields.String(
+        attribute='destination_internal_exten'
+    )
     destination_line_id = fields.Integer()
     destination_name = fields.String()
     destination_user_uuid = fields.UUID()
@@ -70,11 +68,15 @@ class CDRListRequestSchema(Schema):
     from_ = fields.DateTime(load_from='from', attribute='start', missing=None)
     until = fields.DateTime(attribute='end', missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
-    order = fields.String(validate=OneOf(set(CDRSchema().fields) - {'end', 'tags'}), missing='start')
+    order = fields.String(
+        validate=OneOf(set(CDRSchema().fields) - {'end', 'tags'}), missing='start'
+    )
     limit = fields.Integer(validate=Range(min=0), missing=1000)
     offset = fields.Integer(validate=Range(min=0), missing=None)
     search = fields.String(missing=None)
-    call_direction = fields.String(validate=OneOf(['internal', 'inbound', 'outbound']), missing=None)
+    call_direction = fields.String(
+        validate=OneOf(['internal', 'inbound', 'outbound']), missing=None
+    )
     number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
     tags = fields.List(fields.String(), missing=[])
     user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
@@ -101,7 +103,6 @@ class CDRListRequestSchema(Schema):
 
 
 class CDRSchemaList(Schema):
-
     class Meta(object):
         strict = True
         ordered = True

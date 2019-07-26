@@ -9,9 +9,11 @@ class CDRService(object):
     def list(self, search_params):
         call_logs = self._dao.find_all_in_period(search_params)
         count = self._dao.count_in_period(search_params)
-        return {'items': call_logs,
-                'filtered': count['filtered'],
-                'total': count['total']}
+        return {
+            'items': call_logs,
+            'filtered': count['filtered'],
+            'total': count['total'],
+        }
 
     def get(self, cdr_id, tenant_uuids):
         return self._dao.get_by_id(cdr_id, tenant_uuids)

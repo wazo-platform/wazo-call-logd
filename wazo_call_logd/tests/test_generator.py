@@ -36,8 +36,13 @@ class TestCallLogsGenerator(TestCase):
         result = self.generator.from_cel(cels)
 
         self.generator.call_logs_from_cel.assert_called_once_with(cels)
-        assert_that(result, all_of(has_property('new_call_logs', expected_calls),
-                                   has_property('call_logs_to_delete', expected_to_delete)))
+        assert_that(
+            result,
+            all_of(
+                has_property('new_call_logs', expected_calls),
+                has_property('call_logs_to_delete', expected_to_delete),
+            ),
+        )
 
     def test_call_logs_from_cel_no_cels(self):
         cels = []
@@ -50,7 +55,9 @@ class TestCallLogsGenerator(TestCase):
     def test_call_logs_from_cel_one_call(self, raw_call_log_constructor):
         linkedid = '9328742934'
         cels = self._generate_cel_for_call([linkedid])
-        call = raw_call_log_constructor.return_value = self.interpretor.interpret_cels.return_value
+        call = (
+            raw_call_log_constructor.return_value
+        ) = self.interpretor.interpret_cels.return_value
         expected_call = call.to_call_log.return_value
 
         result = self.generator.call_logs_from_cel(cels)
@@ -63,9 +70,9 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1, call_2 = self.interpretor.interpret_cels.side_effect \
-                       = raw_call_log_constructor.side_effect \
-                       = [Mock(), Mock()]
+        call_1, call_2 = (
+            self.interpretor.interpret_cels.side_effect
+        ) = raw_call_log_constructor.side_effect = [Mock(), Mock()]
         expected_call_1 = call_1.to_call_log.return_value
         expected_call_2 = call_2.to_call_log.return_value
 
@@ -76,13 +83,15 @@ class TestCallLogsGenerator(TestCase):
         assert_that(result, contains_inanyorder(expected_call_1, expected_call_2))
 
     @patch('wazo_call_logd.raw_call_log.RawCallLog')
-    def test_call_logs_from_cel_two_calls_one_valid_one_invalid(self, raw_call_log_constructor):
+    def test_call_logs_from_cel_two_calls_one_valid_one_invalid(
+        self, raw_call_log_constructor
+    ):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1, call_2 = self.interpretor.interpret_cels.side_effect \
-                       = raw_call_log_constructor.side_effect \
-                       = [Mock(), Mock()]
+        call_1, call_2 = (
+            self.interpretor.interpret_cels.side_effect
+        ) = raw_call_log_constructor.side_effect = [Mock(), Mock()]
         expected_call_1 = call_1.to_call_log.return_value
         call_2.to_call_log.side_effect = InvalidCallLogException()
 
@@ -102,13 +111,22 @@ class TestCallLogsGenerator(TestCase):
         assert_that(result, contains_inanyorder(1, 2))
 
     def test_given_interpretors_can_interpret_then_use_first_interpretor(self):
-        interpretor_true_1, interpretor_true_2, interpretor_false = Mock(), Mock(), Mock()
+        interpretor_true_1, interpretor_true_2, interpretor_false = (
+            Mock(),
+            Mock(),
+            Mock(),
+        )
         interpretor_true_1.can_interpret.return_value = True
         interpretor_true_2.can_interpret.return_value = True
         interpretor_false.can_interpret.return_value = False
         generator = CallLogsGenerator(
             self.confd_client,
-            [interpretor_false, interpretor_true_1, interpretor_true_2, interpretor_false]
+            [
+                interpretor_false,
+                interpretor_true_1,
+                interpretor_true_2,
+                interpretor_false,
+            ],
         )
         cels = self._generate_cel_for_call(['545783248'])
 
@@ -124,7 +142,9 @@ class TestCallLogsGenerator(TestCase):
         generator = CallLogsGenerator(self.confd_client, [interpretor])
         cels = self._generate_cel_for_call(['545783248'])
 
-        assert_that(calling(generator.call_logs_from_cel).with_args(cels), raises(RuntimeError))
+        assert_that(
+            calling(generator.call_logs_from_cel).with_args(cels), raises(RuntimeError)
+        )
 
     def _generate_cel_for_call(self, linked_id, cel_count=3):
         result = []
