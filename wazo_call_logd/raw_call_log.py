@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class RawCallLog(object):
-
     def __init__(self):
         self.date = None
         self.date_end = None
@@ -45,8 +44,11 @@ class RawCallLog(object):
         if self._tenant_uuid is None:
             self._tenant_uuid = tenant_uuid
         elif self._tenant_uuid != tenant_uuid:
-            logger.error("We got a cel with an expected tenant_uuid: "
-                         "%s instead of %s", tenant_uuid, self._tenant_uuid)
+            logger.error(
+                "We got a cel with an expected tenant_uuid: " "%s instead of %s",
+                tenant_uuid,
+                self._tenant_uuid,
+            )
 
     def to_call_log(self):
         if not self.date:

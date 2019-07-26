@@ -5,10 +5,7 @@ import contextlib
 import logging
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import (
-    scoped_session,
-    sessionmaker
-)
+from sqlalchemy.orm import scoped_session, sessionmaker
 from xivo_dao.alchemy.call_log import CallLog
 
 
@@ -18,7 +15,6 @@ TO_MIGRATE_TENANT_UUID = '00000000-0000-0000-0000-000000000000'
 
 
 class CallLogdTenantUpgradeService(object):
-
     def __init__(self, config):
         engine = create_engine(config['db_uri'])
         self._Session = scoped_session(sessionmaker())

@@ -1,4 +1,4 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -19,8 +19,9 @@ class TestCallLogsWriter(TestCase):
     @patch('xivo_dao.resources.call_log.dao.create_from_list')
     @patch('xivo_dao.resources.call_log.dao.delete_from_list')
     def test_write(self, mock_dao_delete, mock_dao_create):
-        call_logs_creation = CallLogsCreation(new_call_logs=[Mock(), Mock()],
-                                              call_logs_to_delete=None)
+        call_logs_creation = CallLogsCreation(
+            new_call_logs=[Mock(), Mock()], call_logs_to_delete=None
+        )
 
         self.writer.write(call_logs_creation)
 

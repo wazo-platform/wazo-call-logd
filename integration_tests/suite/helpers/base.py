@@ -9,10 +9,7 @@ from contextlib import contextmanager
 from requests.packages import urllib3
 from wazo_call_logd_client.client import Client as CallLogdClient
 from xivo_test_helpers import until
-from xivo_test_helpers.auth import (
-    AuthClient,
-    MockUserToken
-)
+from xivo_test_helpers.auth import AuthClient, MockUserToken
 from xivo_test_helpers.wait_strategy import NoWaitStrategy
 from xivo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
@@ -34,7 +31,7 @@ from .constants import (
     USER_2_TOKEN,
     USER_2_UUID,
     USERS_TENANT,
-    WAZO_UUID
+    WAZO_UUID,
 )
 from .database import DbHelper
 
@@ -77,10 +74,12 @@ class IntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def reset_clients(cls):
         try:
-            cls.call_logd = CallLogdClient('localhost',
-                                           cls.service_port(9298, 'call-logd'),
-                                           verify_certificate=False,
-                                           token=MASTER_TOKEN)
+            cls.call_logd = CallLogdClient(
+                'localhost',
+                cls.service_port(9298, 'call-logd'),
+                verify_certificate=False,
+                token=MASTER_TOKEN,
+            )
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
             cls.call_logd = WrongClient(name='call-logd')
@@ -98,7 +97,7 @@ class IntegrationTest(AssetLaunchingTestCase):
                 'proformatique',
                 'localhost',
                 cls.service_port(5432, 'postgres'),
-                'asterisk'
+                'asterisk',
             )
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
@@ -106,7 +105,9 @@ class IntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def make_bus(cls):
-        return CallLogBusClient.from_connection_fields(port=cls.service_port(5672, 'rabbitmq'))
+        return CallLogBusClient.from_connection_fields(
+            port=cls.service_port(5672, 'rabbitmq')
+        )
 
     @classmethod
     def make_confd(cls):
@@ -123,24 +124,52 @@ class IntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def configure_wazo_auth_for_multitenants(cls):
         # NOTE(sileht): This creates a tenant tree and associated users
-        cls.auth.set_token(MockUserToken(MASTER_TOKEN, MASTER_USER_UUID, WAZO_UUID,
-                                         {"tenant_uuid": MASTER_TENANT,
-                                          "uuid": MASTER_USER_UUID}))
-        cls.auth.set_token(MockUserToken(USER_1_TOKEN, USER_1_UUID, WAZO_UUID,
-                                         {"tenant_uuid": USERS_TENANT,
-                                          "uuid": USER_1_UUID}))
-        cls.auth.set_token(MockUserToken(USER_2_TOKEN, USER_2_UUID, WAZO_UUID,
-                                         {"tenant_uuid": USERS_TENANT,
-                                          "uuid": USER_2_UUID}))
-        cls.auth.set_token(MockUserToken(OTHER_USER_TOKEN, OTHER_USER_UUID, WAZO_UUID,
-                                         {"tenant_uuid": OTHER_TENANT,
-                                          "uuid": OTHER_USER_UUID}))
-        cls.auth.set_tenants({'uuid': MASTER_TENANT,
-                              'name': 'call-logd-tests-master',
-                              'parent_uuid': MASTER_TENANT},
-                             {'uuid': USERS_TENANT,
-                              'name': 'call-logd-tests-users',
-                              'parent_uuid': MASTER_TENANT},
-                             {'uuid': OTHER_TENANT,
-                              'name': 'call-logd-tests-other',
-                              'parent_uuid': MASTER_TENANT})
+        cls.auth.set_token(
+            MockUserToken(
+                MASTER_TOKEN,
+                MASTER_USER_UUID,
+                WAZO_UUID,
+                {"tenant_uuid": MASTER_TENANT, "uuid": MASTER_USER_UUID},
+            )
+        )
+        cls.auth.set_token(
+            MockUserToken(
+                USER_1_TOKEN,
+                USER_1_UUID,
+                WAZO_UUID,
+                {"tenant_uuid": USERS_TENANT, "uuid": USER_1_UUID},
+            )
+        )
+        cls.auth.set_token(
+            MockUserToken(
+                USER_2_TOKEN,
+                USER_2_UUID,
+                WAZO_UUID,
+                {"tenant_uuid": USERS_TENANT, "uuid": USER_2_UUID},
+            )
+        )
+        cls.auth.set_token(
+            MockUserToken(
+                OTHER_USER_TOKEN,
+                OTHER_USER_UUID,
+                WAZO_UUID,
+                {"tenant_uuid": OTHER_TENANT, "uuid": OTHER_USER_UUID},
+            )
+        )
+        cls.auth.set_tenants(
+            {
+                'uuid': MASTER_TENANT,
+                'name': 'call-logd-tests-master',
+                'parent_uuid': MASTER_TENANT,
+            },
+            {
+                'uuid': USERS_TENANT,
+                'name': 'call-logd-tests-users',
+                'parent_uuid': MASTER_TENANT,
+            },
+            {
+                'uuid': OTHER_TENANT,
+                'name': 'call-logd-tests-other',
+                'parent_uuid': MASTER_TENANT,
+            },
+        )

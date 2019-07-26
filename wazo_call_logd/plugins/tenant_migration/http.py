@@ -8,7 +8,6 @@ from wazo_call_logd.rest_api import AuthResource
 
 
 class CallLogdTenantUpgradeResource(AuthResource):
-
     def __init__(self, service):
         self._service = service
 

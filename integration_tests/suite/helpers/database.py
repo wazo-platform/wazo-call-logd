@@ -27,15 +27,18 @@ def call_logs(call_logs):
                     call_log['id'] = queries.insert_call_log(**call_log)
                     call_log['participants'] = participants
                     for participant in participants:
-                        queries.insert_call_log_participant(call_log_id=call_log['id'],
-                                                            **participant)
+                        queries.insert_call_log_participant(
+                            call_log_id=call_log['id'], **participant
+                        )
             try:
                 return func(self, *args, **kwargs)
             finally:
                 with self.database.queries() as queries:
                     for call_log in call_logs:
                         queries.delete_call_log(call_log['id'])
+
         return wrapped_function
+
     return _decorate
 
 
@@ -46,10 +49,7 @@ class DbHelper(object):
     @classmethod
     def build(cls, user, password, host, port, db):
         tpl = "postgresql://{user}:{password}@{host}:{port}"
-        uri = tpl.format(user=user,
-                         password=password,
-                         host=host,
-                         port=port)
+        uri = tpl.format(user=user, password=password, host=host, port=port)
         return cls(uri, db)
 
     def __init__(self, uri, db):
@@ -78,15 +78,22 @@ class DbHelper(object):
     def recreate(self):
         engine = self.create_engine("postgres", isolate=True)
         connection = engine.connect()
-        connection.execute("""
+        connection.execute(
+            """
                            SELECT pg_terminate_backend(pg_stat_activity.pid)
                            FROM pg_stat_activity
                            WHERE pg_stat_activity.datname = '{db}'
                            AND pid <> pg_backend_pid()
-                           """.format(db=self.db))
+                           """.format(
+                db=self.db
+            )
+        )
         connection.execute("DROP DATABASE IF EXISTS {db}".format(db=self.db))
-        connection.execute("CREATE DATABASE {db} TEMPLATE {template}".format(db=self.db,
-                                                                             template=self.TEMPLATE))
+        connection.execute(
+            "CREATE DATABASE {db} TEMPLATE {template}".format(
+                db=self.db, template=self.TEMPLATE
+            )
+        )
         connection.close()
 
     def execute(self, query, **kwargs):
@@ -100,7 +107,6 @@ class DbHelper(object):
 
 
 class DatabaseQueries(object):
-
     def __init__(self, connection):
         self.connection = connection
         self.Session = sessionmaker(bind=connection)
@@ -149,31 +155,32 @@ class DatabaseQueries(object):
         return call_log.tenant_uuid
 
     def insert_cel(
-            self,
-            eventtype,
-            eventtime,
-            uniqueid,
-            linkedid,
-            userdeftype='',
-            cid_name='default name',
-            cid_num='9999',
-            cid_ani='',
-            cid_rdnis='',
-            cid_dnid='',
-            exten='',
-            context='',
-            channame='',
-            appname='',
-            appdata='',
-            amaflags=0,
-            accountcode='',
-            peeraccount='',
-            userfield='',
-            peer='',
-            call_log_id=None,
-            extra=None,
+        self,
+        eventtype,
+        eventtime,
+        uniqueid,
+        linkedid,
+        userdeftype='',
+        cid_name='default name',
+        cid_num='9999',
+        cid_ani='',
+        cid_rdnis='',
+        cid_dnid='',
+        exten='',
+        context='',
+        channame='',
+        appname='',
+        appdata='',
+        amaflags=0,
+        accountcode='',
+        peeraccount='',
+        userfield='',
+        peer='',
+        call_log_id=None,
+        extra=None,
     ):
-        query = text("""
+        query = text(
+            """
         INSERT INTO cel (
             eventtype,
             eventtime,
@@ -223,33 +230,34 @@ class DatabaseQueries(object):
             :extra
         )
         RETURNING id
-        """)
+        """
+        )
 
-        cel_id = (self.connection
-                  .execute(query,
-                           eventtype=eventtype,
-                           eventtime=eventtime,
-                           uniqueid=uniqueid,
-                           linkedid=linkedid,
-                           userdeftype=userdeftype,
-                           cid_name=cid_name,
-                           cid_num=cid_num,
-                           cid_ani=cid_ani,
-                           cid_rdnis=cid_rdnis,
-                           cid_dnid=cid_dnid,
-                           exten=exten,
-                           context=context,
-                           channame=channame,
-                           appname=appname,
-                           appdata=appdata,
-                           amaflags=amaflags,
-                           accountcode=accountcode,
-                           peeraccount=peeraccount,
-                           userfield=userfield,
-                           peer=peer,
-                           call_log_id=call_log_id,
-                           extra=extra)
-                  .scalar())
+        cel_id = self.connection.execute(
+            query,
+            eventtype=eventtype,
+            eventtime=eventtime,
+            uniqueid=uniqueid,
+            linkedid=linkedid,
+            userdeftype=userdeftype,
+            cid_name=cid_name,
+            cid_num=cid_num,
+            cid_ani=cid_ani,
+            cid_rdnis=cid_rdnis,
+            cid_dnid=cid_dnid,
+            exten=exten,
+            context=context,
+            channame=channame,
+            appname=appname,
+            appdata=appdata,
+            amaflags=amaflags,
+            accountcode=accountcode,
+            peeraccount=peeraccount,
+            userfield=userfield,
+            peer=peer,
+            call_log_id=call_log_id,
+            extra=extra,
+        ).scalar()
         return cel_id
 
     def delete_cel(self, cel_id):

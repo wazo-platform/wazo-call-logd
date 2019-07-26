@@ -1,4 +1,4 @@
-# Copyright 2015-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -11,15 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class _CELConsumer(ConsumerMixin):
-
     def __init__(self, queue):
         self._queue = queue
         self._is_running = False
 
     def get_consumers(self, Consumer, channel):
-        return [
-            Consumer(self._queue, callbacks=[self.on_message]),
-        ]
+        return [Consumer(self._queue, callbacks=[self.on_message])]
 
     def on_message(self, body, message):
         if body['data']['EventName'] == 'LINKEDID_END':
@@ -55,9 +52,12 @@ class BusClient(object):
     _KEY = 'ami.CEL'
 
     def __init__(self, config):
-        self.bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(**config['bus'])
-        exchange = Exchange(config['bus']['exchange_name'],
-                            type=config['bus']['exchange_type'])
+        self.bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(
+            **config['bus']
+        )
+        exchange = Exchange(
+            config['bus']['exchange_name'], type=config['bus']['exchange_type']
+        )
         self.queue = Queue(exchange=exchange, routing_key=self._KEY, exclusive=True)
         self._consumer = _CELConsumer(self.queue)
 
@@ -69,4 +69,6 @@ class BusClient(object):
         self._consumer.should_stop = True
 
     def provide_status(self, status):
-        status['bus_consumer']['status'] = Status.ok if self._consumer.is_running() else Status.fail
+        status['bus_consumer']['status'] = (
+            Status.ok if self._consumer.is_running() else Status.fail
+        )

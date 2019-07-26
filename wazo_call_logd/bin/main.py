@@ -51,11 +51,7 @@ DEFAULT_CONFIG = {
         'exchange_type': 'topic',
         'exchange_durable': True,
     },
-    'confd': {
-        'host': 'localhost',
-        'port': 9486,
-        'verify_certificate': _CERT_FILE,
-    },
+    'confd': {'host': 'localhost', 'port': 9486, 'verify_certificate': _CERT_FILE},
 }
 
 
@@ -70,16 +66,20 @@ def main():
 
 def _print_deprecation_notice():
     if sys.argv[0].endswith('xivo-call-logs'):
-        print('Warning: xivo-call-logs is a deprecated alias to wazo-call-logs: use wazo-call-logs instead')
+        print(
+            'Warning: xivo-call-logs is a deprecated alias to wazo-call-logs: use wazo-call-logs instead'
+        )
 
 
 def _generate_call_logs():
     parser = argparse.ArgumentParser(description='Call logs generator')
     options = parse_args(parser)
 
-    file_config = {key: value
-                   for key, value in read_config_file_hierarchy(DEFAULT_CONFIG).items()
-                   if key in ('confd', 'bus', 'auth', 'db_uri')}
+    file_config = {
+        key: value
+        for key, value in read_config_file_hierarchy(DEFAULT_CONFIG).items()
+        if key in ('confd', 'bus', 'auth', 'db_uri')
+    }
     key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
     config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
 
@@ -89,11 +89,14 @@ def _generate_call_logs():
     token_renewer.subscribe_to_token_change(confd_client.set_token)
 
     cel_fetcher = CELFetcher()
-    generator = CallLogsGenerator([
-        LocalOriginateCELInterpretor(confd_client),
-        DispatchCELInterpretor(CallerCELInterpretor(confd_client),
-                               CalleeCELInterpretor(confd_client))
-    ])
+    generator = CallLogsGenerator(
+        [
+            LocalOriginateCELInterpretor(confd_client),
+            DispatchCELInterpretor(
+                CallerCELInterpretor(confd_client), CalleeCELInterpretor(confd_client)
+            ),
+        ]
+    )
     writer = CallLogsWriter()
     publisher = BusPublisher(config)
     manager = CallLogsManager(cel_fetcher, generator, writer, publisher)
@@ -114,23 +117,33 @@ def _generate_call_logs():
 
 def parse_args(parser):
     group_action = parser.add_mutually_exclusive_group()
-    group_action.add_argument('action', nargs='?', choices=['delete', 'generate'], default='generate')
+    group_action.add_argument(
+        'action', nargs='?', choices=['delete', 'generate'], default='generate'
+    )
 
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('-A', '--all',
-                       action='store_true',
-                       help='Delete all call logs. Can only be used with argument delete')
-    group.add_argument('-c', '--cel-count',
-                       default=DEFAULT_CEL_COUNT,
-                       type=int,
-                       help='Minimum number of CEL entries to process')
-    group.add_argument('-d', '--days',
-                       type=int,
-                       help='Number of days to process')
+    group.add_argument(
+        '-A',
+        '--all',
+        action='store_true',
+        help='Delete all call logs. Can only be used with argument delete',
+    )
+    group.add_argument(
+        '-c',
+        '--cel-count',
+        default=DEFAULT_CEL_COUNT,
+        type=int,
+        help='Minimum number of CEL entries to process',
+    )
+    group.add_argument('-d', '--days', type=int, help='Number of days to process')
     return parser.parse_args()
 
 
 def load_key_file(config):
     key_file = parse_config_file(config['auth']['key_file'])
-    return {'auth': {'username': key_file['service_id'],
-                     'password': key_file['service_key']}}
+    return {
+        'auth': {
+            'username': key_file['service_id'],
+            'password': key_file['service_key'],
+        }
+    }

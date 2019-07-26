@@ -3,15 +3,11 @@
 
 from wazo_call_logd.rest_api import api
 
-from . import (
-    http,
-    service,
-)
+from . import http, service
 
 
 # This plugin is used for the tenant uuid migration between wazo-auth and webhookd
 class Plugin(object):
-
     def load(self, dependencies):
         config = dependencies['config']
         token_renewer = dependencies['token_renewer']

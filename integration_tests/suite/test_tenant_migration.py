@@ -28,59 +28,69 @@ class TestTenantMigration(IntegrationTest):
 
     asset = 'base'
 
-    @call_logs([
-        {'id': 10,
-         'tenant_uuid': NOT_MIGRATED_TENANT,
-         'date': '2017-03-23 00:00:00',
-         'requested_context': 'default',
-         'requested_internal_context': 'default',
-         'source_internal_context': 'default',
-         'destination_internal_context': 'default',
-         'participants': [{'user_uuid': USER_1_UUID,
-                           'line_id': '1',
-                           'role': 'source'}]},
-        {'id': 11,
-         'tenant_uuid': NOT_MIGRATED_TENANT,
-         'date': '2017-03-23 00:00:00',
-         'requested_context': 'default',
-         'requested_internal_context': 'default',
-         'source_internal_context': 'default',
-         'destination_internal_context': 'default',
-         'participants': [{'user_uuid': USER_2_UUID,
-                           'line_id': '1',
-                           'role': 'source'}]},
-        {'id': 12,
-         'tenant_uuid': NOT_MIGRATED_TENANT,
-         'date': '2017-03-23 00:00:00',
-         'requested_context': 'other',
-         'requested_internal_context': 'other',
-         'source_internal_context': 'other',
-         'destination_internal_context': 'other',
-         'participants': [{'user_uuid': OTHER_USER_UUID,
-                           'line_id': '1',
-                           'role': 'source'}]},
-        {'id': 13,
-         'tenant_uuid': NOT_MIGRATED_TENANT,
-         'date': '2017-03-23 00:00:00',
-         'requested_context': 'no-longer-exists',
-         'requested_internal_context': 'other',
-         'source_internal_context': 'other',
-         'destination_internal_context': 'other',
-         'participants': [{'user_uuid': OTHER_USER_UUID,
-                           'line_id': '1',
-                           'role': 'source'}]}
-
-    ])
+    @call_logs(
+        [
+            {
+                'id': 10,
+                'tenant_uuid': NOT_MIGRATED_TENANT,
+                'date': '2017-03-23 00:00:00',
+                'requested_context': 'default',
+                'requested_internal_context': 'default',
+                'source_internal_context': 'default',
+                'destination_internal_context': 'default',
+                'participants': [
+                    {'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'}
+                ],
+            },
+            {
+                'id': 11,
+                'tenant_uuid': NOT_MIGRATED_TENANT,
+                'date': '2017-03-23 00:00:00',
+                'requested_context': 'default',
+                'requested_internal_context': 'default',
+                'source_internal_context': 'default',
+                'destination_internal_context': 'default',
+                'participants': [
+                    {'user_uuid': USER_2_UUID, 'line_id': '1', 'role': 'source'}
+                ],
+            },
+            {
+                'id': 12,
+                'tenant_uuid': NOT_MIGRATED_TENANT,
+                'date': '2017-03-23 00:00:00',
+                'requested_context': 'other',
+                'requested_internal_context': 'other',
+                'source_internal_context': 'other',
+                'destination_internal_context': 'other',
+                'participants': [
+                    {'user_uuid': OTHER_USER_UUID, 'line_id': '1', 'role': 'source'}
+                ],
+            },
+            {
+                'id': 13,
+                'tenant_uuid': NOT_MIGRATED_TENANT,
+                'date': '2017-03-23 00:00:00',
+                'requested_context': 'no-longer-exists',
+                'requested_internal_context': 'other',
+                'source_internal_context': 'other',
+                'destination_internal_context': 'other',
+                'participants': [
+                    {'user_uuid': OTHER_USER_UUID, 'line_id': '1', 'role': 'source'}
+                ],
+            },
+        ]
+    )
     def test_tenant_migration(self):
         base = 'https://localhost:{port}/1.0/'.format(
-            port=self.service_port(9298, 'call-logd'))
+            port=self.service_port(9298, 'call-logd')
+        )
         url = url_helpers.base_join(base, 'tenant-migration')
 
         payload = {
             'contexts': [
                 {'context': 'default', 'tenant_uuid': USERS_TENANT},
                 {'context': 'other', 'tenant_uuid': OTHER_TENANT},
-            ],
+            ]
         }
         headers = {'X-Auth-Token': MASTER_TOKEN, 'Content-Type': 'application/json'}
         resp = requests.post(url, json=payload, headers=headers, verify=False)

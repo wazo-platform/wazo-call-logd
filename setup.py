@@ -15,9 +15,7 @@ setup(
     url='http://wazo.community',
     license='GPLv3',
     packages=find_packages(),
-    package_data={
-        'wazo_call_logd.plugins': ['*/api.yml'],
-    },
+    package_data={'wazo_call_logd.plugins': ['*/api.yml']},
     scripts=['bin/wazo-call-logs', 'bin/wazo-call-logd'],
     entry_points={
         'wazo_call_logd.plugins': [
@@ -25,7 +23,6 @@ setup(
             'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
             'tenant_migration = wazo_call_logd.plugins.tenant_migration.plugin:Plugin',
-
         ]
-    }
+    },
 )

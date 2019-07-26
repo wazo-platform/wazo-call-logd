@@ -6,52 +6,43 @@ import csv
 
 from io import StringIO
 
-from flask import (
-    jsonify,
-    make_response,
-    request,
-)
+from flask import jsonify, make_response, request
 from xivo.auth_verifier import required_acl
-from xivo.tenant_flask_helpers import (
-    token,
-    Tenant,
-)
+from xivo.tenant_flask_helpers import token, Tenant
 from wazo_call_logd.auth import get_token_user_uuid_from_request
 from wazo_call_logd.rest_api import AuthResource
 
 from .exceptions import CDRNotFoundException
-from .schema import (
-    CDRSchema,
-    CDRSchemaList,
-    CDRListRequestSchema,
-)
+from .schema import CDRSchema, CDRSchemaList, CDRListRequestSchema
 
 logger = logging.getLogger(__name__)
-CSV_HEADERS = ['id',
-               'tenant_uuid',
-               'answered',
-               'start',
-               'answer',
-               'end',
-               'destination_extension',
-               'destination_name',
-               'destination_internal_extension',
-               'destination_internal_context',
-               'destination_user_uuid',
-               'destination_line_id',
-               'duration',
-               'call_direction',
-               'requested_extension',
-               'requested_context',
-               'requested_internal_extension',
-               'requested_internal_context',
-               'source_extension',
-               'source_name',
-               'source_internal_extension',
-               'source_internal_context',
-               'source_user_uuid',
-               'source_line_id',
-               'tags']
+CSV_HEADERS = [
+    'id',
+    'tenant_uuid',
+    'answered',
+    'start',
+    'answer',
+    'end',
+    'destination_extension',
+    'destination_name',
+    'destination_internal_extension',
+    'destination_internal_context',
+    'destination_user_uuid',
+    'destination_line_id',
+    'duration',
+    'call_direction',
+    'requested_extension',
+    'requested_context',
+    'requested_internal_extension',
+    'requested_internal_context',
+    'source_extension',
+    'source_name',
+    'source_internal_extension',
+    'source_internal_context',
+    'source_user_uuid',
+    'source_line_id',
+    'tags',
+]
 
 
 def _is_error(data):
@@ -105,7 +96,6 @@ class CDRAuthResource(AuthResource):
 
 
 class CDRResource(CDRAuthResource):
-
     @required_acl('call-logd.cdr.read')
     def get(self):
         args = CDRListRequestSchema().load(request.args).data
@@ -115,7 +105,6 @@ class CDRResource(CDRAuthResource):
 
 
 class CDRIdResource(CDRAuthResource):
-
     @required_acl('call-logd.cdr.{cdr_id}.read')
     def get(self, cdr_id):
         tenant_uuids = self.visible_tenants(True)
@@ -126,7 +115,6 @@ class CDRIdResource(CDRAuthResource):
 
 
 class CDRUserResource(CDRAuthResource):
-
     @required_acl('call-logd.users.{user_uuid}.cdr.read')
     def get(self, user_uuid):
         args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args).data
@@ -137,7 +125,6 @@ class CDRUserResource(CDRAuthResource):
 
 
 class CDRUserMeResource(CDRAuthResource):
-
     def __init__(self, auth_client, cdr_service):
         super().__init__(cdr_service)
         self.auth_client = auth_client

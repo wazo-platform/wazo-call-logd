@@ -17,17 +17,8 @@ from hamcrest import (
 from xivo_test_helpers import until
 
 from .helpers.base import IntegrationTest
-from .helpers.confd import (
-    MockContext,
-    MockLine,
-    MockUser,
-)
-from .helpers.constants import (
-    USER_1_UUID,
-    USER_2_UUID,
-    USERS_TENANT,
-    SERVICE_TENANT,
-)
+from .helpers.confd import MockContext, MockLine, MockUser
+from .helpers.constants import USER_1_UUID, USER_2_UUID, USERS_TENANT, SERVICE_TENANT
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
@@ -45,7 +36,9 @@ def raw_cels(cel_output):
         def wrapped_function(self, *args, **kwargs):
             with self.cels(cels):
                 return func(self, *args, **kwargs)
+
         return wrapped_function
+
     return _decorate
 
 
@@ -59,7 +52,8 @@ class TestCallLogGeneration(IntegrationTest):
         self.confd = self.make_confd()
         self.confd.reset()
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
   eventtype   |         eventtime          |       channame        |   uniqueid    |   linkedid    | cid_name | cid_num
 --------------+----------------------------+-----------------------+---------------+---------------+----------+---------
  CHAN_START   | 2017-11-10 10:07:08.620283 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 042302
@@ -77,7 +71,8 @@ class TestCallLogGeneration(IntegrationTest):
  HANGUP       | 2017-11-10 10:07:13.761307 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
  CHAN_END     | 2017-11-10 10:07:13.762793 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
  LINKEDID_END | 2017-11-10 10:07:13.764775 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302
-''')
+'''
+    )
     def test_incoming_call_no_cid_name_rewritten_cid_num(self):
         linkedid = '1510326428.26'
         with self.no_call_logs():
@@ -88,13 +83,13 @@ class TestCallLogGeneration(IntegrationTest):
                     call_log = queries.find_last_call_log()
                     assert_that(
                         call_log,
-                        has_properties(
-                            'source_name', '',
-                            'source_exten', '42302'))
+                        has_properties('source_name', '', 'source_exten', '42302'),
+                    )
 
             until.assert_(call_log_has_transformed_number, tries=5)
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
 eventtype    | eventtime                  | channame            |      uniqueid | linkedid
 -------------+----------------------------+---------------------+---------------+---------------
 CHAN_START   | 2015-06-18 14:08:56.910686 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
@@ -111,8 +106,11 @@ BRIDGE_EXIT  | 2015-06-18 14:09:02.268    | SIP/as2mkq-0000001f | 1434650936.31 
 HANGUP       | 2015-06-18 14:09:02.269498 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 CHAN_END     | 2015-06-18 14:09:02.271033 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
-''')
-    def test_given_cels_with_unknown_line_identities_when_generate_call_log_then_no_user_uuid(self):
+'''
+    )
+    def test_given_cels_with_unknown_line_identities_when_generate_call_log_then_no_user_uuid(
+        self
+    ):
         linkedid = '123456789.1011'
         msg_accumulator_1 = self.bus.accumulator('call_log.created')
         msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
@@ -127,21 +125,32 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     assert_that(user_uuids, empty())
 
             def bus_event_call_log_created(accumulator):
-                assert_that(accumulator.accumulate(), contains_inanyorder(has_entries(
-                    name='call_log_created',
-                    data=has_entries({
-                        'tenant_uuid': SERVICE_TENANT
-                    })
-                )))
+                assert_that(
+                    accumulator.accumulate(),
+                    contains_inanyorder(
+                        has_entries(
+                            name='call_log_created',
+                            data=has_entries({'tenant_uuid': SERVICE_TENANT}),
+                        )
+                    ),
+                )
 
             def bus_event_call_log_user_created(accumulator):
                 assert_that(accumulator.accumulate(), empty())
 
             until.assert_(call_log_has_no_user_uuid, tries=5)
-            until.assert_(bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25)
-            until.assert_(bus_event_call_log_user_created, msg_accumulator_2, tries=10, interval=0.25)
+            until.assert_(
+                bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25
+            )
+            until.assert_(
+                bus_event_call_log_user_created,
+                msg_accumulator_2,
+                tries=10,
+                interval=0.25,
+            )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
 eventtype    | eventtime                  | channame            |      uniqueid | linkedid
 -------------+----------------------------+---------------------+---------------+---------------
 CHAN_START   | 2015-06-18 14:08:56.910686 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
@@ -158,22 +167,31 @@ BRIDGE_EXIT  | 2015-06-18 14:09:02.268    | SIP/as2mkq-0000001f | 1434650936.31 
 HANGUP       | 2015-06-18 14:09:02.269498 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 CHAN_END     | 2015-06-18 14:09:02.271033 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
-''')
-    def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid_and_internal_extension(self):
+'''
+    )
+    def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid_and_internal_extension(
+        self
+    ):
         linkedid = '123456789.1011'
         self.confd.set_users(
             MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
-            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2])
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
         )
         self.confd.set_lines(
-            MockLine(id=1, name='as2mkq',
-                     users=[{'uuid': USER_1_UUID}],
-                     tenant_uuid=USERS_TENANT,
-                     extensions=[{'exten': '101', 'context': 'default'}]),
-            MockLine(id=2, name='je5qtq',
-                     users=[{'uuid': USER_2_UUID}],
-                     tenant_uuid=USERS_TENANT,
-                     extensions=[{'exten': '102', 'context': 'default'}]),
+            MockLine(
+                id=1,
+                name='as2mkq',
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '101', 'context': 'default'}],
+            ),
+            MockLine(
+                id=2,
+                name='je5qtq',
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '102', 'context': 'default'}],
+            ),
         )
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
@@ -186,43 +204,67 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             def call_log_has_both_user_uuid_and_tenant_uuid():
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
-                    assert_that(call_log, has_properties({
-                        'tenant_uuid': USERS_TENANT,
-                        'source_internal_exten': '101',
-                        'source_internal_context': 'default',
-                        'source_user_uuid': USER_1_UUID,
-                        'destination_internal_exten': '102',
-                        'destination_internal_context': 'default',
-                        'destination_user_uuid': USER_2_UUID,
-                    }))
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            {
+                                'tenant_uuid': USERS_TENANT,
+                                'source_internal_exten': '101',
+                                'source_internal_context': 'default',
+                                'source_user_uuid': USER_1_UUID,
+                                'destination_internal_exten': '102',
+                                'destination_internal_context': 'default',
+                                'destination_user_uuid': USER_2_UUID,
+                            }
+                        ),
+                    )
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
-                    assert_that(user_uuids, contains_inanyorder(USER_1_UUID, USER_2_UUID))
+                    assert_that(
+                        user_uuids, contains_inanyorder(USER_1_UUID, USER_2_UUID)
+                    )
 
             def bus_event_call_log_created(accumulator):
-                assert_that(accumulator.accumulate(), contains_inanyorder(has_entries(
-                    name='call_log_created',
-                    data=has_key('tags')
-                )))
+                assert_that(
+                    accumulator.accumulate(),
+                    contains_inanyorder(
+                        has_entries(name='call_log_created', data=has_key('tags'))
+                    ),
+                )
 
             def bus_event_call_log_user_created(accumulator):
-                assert_that(accumulator.accumulate(), contains_inanyorder(
-                    has_entries(
-                        name='call_log_user_created',
-                        required_acl='events.call_log.user.{}.created'.format(USER_1_UUID),
-                        data=not_(has_key('tags')),
+                assert_that(
+                    accumulator.accumulate(),
+                    contains_inanyorder(
+                        has_entries(
+                            name='call_log_user_created',
+                            required_acl='events.call_log.user.{}.created'.format(
+                                USER_1_UUID
+                            ),
+                            data=not_(has_key('tags')),
+                        ),
+                        has_entries(
+                            name='call_log_user_created',
+                            required_acl='events.call_log.user.{}.created'.format(
+                                USER_2_UUID
+                            ),
+                            data=not_(has_key('tags')),
+                        ),
                     ),
-                    has_entries(
-                        name='call_log_user_created',
-                        required_acl='events.call_log.user.{}.created'.format(USER_2_UUID),
-                        data=not_(has_key('tags')),
-                    )
-                ))
+                )
 
             until.assert_(call_log_has_both_user_uuid_and_tenant_uuid, tries=5)
-            until.assert_(bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25)
-            until.assert_(bus_event_call_log_user_created, msg_accumulator_2, tries=10, interval=0.25)
+            until.assert_(
+                bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25
+            )
+            until.assert_(
+                bus_event_call_log_user_created,
+                msg_accumulator_2,
+                tries=10,
+                interval=0.25,
+            )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
    eventtype   |         eventtime          | cid_name | cid_num |       exten       |   context   |      channame       |   uniqueid   |   linkedid   | userfield
 ---------------+----------------------------+----------+---------+-------------------+-------------+---------------------+--------------+--------------+-----------
  CHAN_START    | 2018-04-24 14:27:17.922298 | Alicé    | 101     | 102               | default     | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
@@ -240,15 +282,24 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2018-04-24 14:27:27.226649 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
  CHAN_END      | 2018-04-24 14:27:27.250875 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
  LINKEDID_END  | 2018-04-24 14:27:27.25419  | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
-''')
-    def test_given_cels_of_forwarded_call_when_generate_call_log_then_requested_different_from_destination(self):
+'''
+    )
+    def test_given_cels_of_forwarded_call_when_generate_call_log_then_requested_different_from_destination(
+        self
+    ):
         self.confd.set_lines(
-            MockLine(id=1, name='101',
-                     tenant_uuid=USERS_TENANT,
-                     extensions=[{'exten': '101', 'context': 'default'}]),
-            MockLine(id=2, name='rku3uo',
-                     tenant_uuid=USERS_TENANT,
-                     extensions=[{'exten': '103', 'context': 'default'}]),
+            MockLine(
+                id=1,
+                name='101',
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '101', 'context': 'default'}],
+            ),
+            MockLine(
+                id=2,
+                name='rku3uo',
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '103', 'context': 'default'}],
+            ),
         )
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
@@ -260,20 +311,26 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             def call_log_has_destination_different_from_requested():
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
-                    assert_that(call_log, has_properties({
-                        'tenant_uuid': USERS_TENANT,
-                        'source_internal_exten': '101',
-                        'source_internal_context': 'default',
-                        'requested_exten': '102',
-                        'requested_context': 'default',
-                        'destination_exten': '103',
-                        'destination_internal_exten': '103',
-                        'destination_internal_context': 'default',
-                    }))
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            {
+                                'tenant_uuid': USERS_TENANT,
+                                'source_internal_exten': '101',
+                                'source_internal_context': 'default',
+                                'requested_exten': '102',
+                                'requested_context': 'default',
+                                'destination_exten': '103',
+                                'destination_internal_exten': '103',
+                                'destination_internal_context': 'default',
+                            }
+                        ),
+                    )
 
             until.assert_(call_log_has_destination_different_from_requested, tries=10)
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
    eventtype   |         eventtime          | cid_name     | cid_num | exten  |   context   |      channame       |   uniqueid    |   linkedid
 ---------------+----------------------------+--------------+---------+--------+-------------+---------------------+---------------+-------------
  CHAN_START    | 2018-04-24 15:15:50.146287 | John Rambo   | 42309   | 999101 | from-extern | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
@@ -291,13 +348,18 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2018-04-24 15:15:53.812298 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
  CHAN_END      | 2018-04-24 15:15:53.819273 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
  LINKEDID_END  | 2018-04-24 15:15:53.830883 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
- ''')
-    def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(self):
+ '''
+    )
+    def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(
+        self
+    ):
         self.confd.set_lines(
-            MockLine(id=1,
-                     name='101',
-                     tenant_uuid=USERS_TENANT,
-                     extensions=[{'exten': '101', 'context': 'default'}])
+            MockLine(
+                id=1,
+                name='101',
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '101', 'context': 'default'}],
+            )
         )
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
@@ -309,18 +371,23 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             def call_log_has_destination_different_from_requested():
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
-                    assert_that(call_log, has_properties({
-                        'tenant_uuid': USERS_TENANT,
-                        'source_internal_exten': None,
-                        'source_internal_context': None,
-                        'requested_exten': '999101',
-                        'requested_context': 'from-extern',
-                        'requested_internal_exten': '101',
-                        'requested_internal_context': 'default',
-                        'destination_exten': '101',
-                        'destination_internal_exten': '101',
-                        'destination_internal_context': 'default',
-                    }))
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            {
+                                'tenant_uuid': USERS_TENANT,
+                                'source_internal_exten': None,
+                                'source_internal_context': None,
+                                'requested_exten': '999101',
+                                'requested_context': 'from-extern',
+                                'requested_internal_exten': '101',
+                                'requested_internal_context': 'default',
+                                'destination_exten': '101',
+                                'destination_internal_exten': '101',
+                                'destination_internal_context': 'default',
+                            }
+                        ),
+                    )
 
             until.assert_(call_log_has_destination_different_from_requested, tries=5)
 

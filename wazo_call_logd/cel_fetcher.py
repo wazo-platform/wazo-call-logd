@@ -1,11 +1,10 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo_dao.resources.cel import dao as cel_dao
 
 
 class CELFetcher(object):
-
     def fetch_last_unprocessed(self, cel_count=None, older=None):
         return cel_dao.find_last_unprocessed(cel_count, older)
 

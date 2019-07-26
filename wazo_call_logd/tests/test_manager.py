@@ -1,4 +1,4 @@
-# Copyright 2015-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -18,7 +18,9 @@ class TestCallLogsManager(TestCase):
         self.generator = Mock(CallLogsGenerator)
         self.writer = Mock(CallLogsWriter)
         self.publisher = Mock(BusPublisher)
-        self.manager = CallLogsManager(self.cel_fetcher, self.generator, self.writer, self.publisher)
+        self.manager = CallLogsManager(
+            self.cel_fetcher, self.generator, self.writer, self.publisher
+        )
 
     def tearDown(self):
         pass

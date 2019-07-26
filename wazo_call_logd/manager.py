@@ -1,4 +1,4 @@
-# Copyright 2013-2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class CallLogsManager(object):
-
     def __init__(self, cel_fetcher, generator, writer, publisher):
         self.cel_fetcher = cel_fetcher
         self.generator = generator
@@ -36,13 +35,19 @@ class CallLogsManager(object):
     def generate_from_count(self, cel_count):
         with session_scope():
             cels = self.cel_fetcher.fetch_last_unprocessed(cel_count)
-            logger.debug('Generating call logs from the last %s CEL (found %s)', cel_count, len(cels))
+            logger.debug(
+                'Generating call logs from the last %s CEL (found %s)',
+                cel_count,
+                len(cels),
+            )
             self._generate_from_cels(cels)
 
     def generate_from_linked_id(self, linked_id):
         with session_scope():
             cels = self.cel_fetcher.fetch_from_linked_id(linked_id)
-            logger.debug('Generating call log for linked_id %s from %s CEL', linked_id, len(cels))
+            logger.debug(
+                'Generating call log for linked_id %s from %s CEL', linked_id, len(cels)
+            )
             self._generate_from_cels(cels)
 
     def _generate_from_cels(self, cels):
