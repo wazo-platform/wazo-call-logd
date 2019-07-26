@@ -88,13 +88,15 @@ class MockUser(object):
 
 class MockLine(object):
 
-    def __init__(self, id, name=None, protocol=None, users=None, context=None, extensions=None):
+    def __init__(self, id, name=None, protocol=None, users=None, context=None,
+                 extensions=None, tenant_uuid=None):
         self._id = id
         self._name = name
         self._protocol = protocol
         self._users = users or []
         self._extensions = extensions or []
         self._context = context
+        self._tenant_uuid = tenant_uuid
 
     def id_(self):
         return self._id
@@ -108,6 +110,7 @@ class MockLine(object):
             'name': self._name,
             'protocol': self._protocol,
             'context': self._context,
+            'tenant_uuid': self._tenant_uuid,
             'users': self._users,
             'extensions': self._extensions,
         }

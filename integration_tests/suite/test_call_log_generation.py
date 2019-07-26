@@ -168,12 +168,12 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self.confd.set_lines(
             MockLine(id=1, name='as2mkq',
                      users=[{'uuid': USER_1_UUID}],
-                     extensions=[{'exten': '101', 'context': 'default',
-                                  'tenant_uuid': USERS_TENANT}]),
+                     tenant_uuid=USERS_TENANT,
+                     extensions=[{'exten': '101', 'context': 'default'}]),
             MockLine(id=2, name='je5qtq',
                      users=[{'uuid': USER_2_UUID}],
-                     extensions=[{'exten': '102', 'context': 'default',
-                                  'tenant_uuid': USERS_TENANT}]),
+                     tenant_uuid=USERS_TENANT,
+                     extensions=[{'exten': '102', 'context': 'default'}]),
         )
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
@@ -244,11 +244,11 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     def test_given_cels_of_forwarded_call_when_generate_call_log_then_requested_different_from_destination(self):
         self.confd.set_lines(
             MockLine(id=1, name='101',
-                     extensions=[{'exten': '101', 'context': 'default',
-                                  'tenant_uuid': USERS_TENANT}]),
+                     tenant_uuid=USERS_TENANT,
+                     extensions=[{'exten': '101', 'context': 'default'}]),
             MockLine(id=2, name='rku3uo',
-                     extensions=[{'exten': '103', 'context': 'default',
-                                  'tenant_uuid': USERS_TENANT}]),
+                     tenant_uuid=USERS_TENANT,
+                     extensions=[{'exten': '103', 'context': 'default'}]),
         )
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
@@ -294,9 +294,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  ''')
     def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(self):
         self.confd.set_lines(
-            MockLine(id=1, name='101',
-                     extensions=[{'exten': '101', 'context': 'default',
-                                  'tenant_uuid': USERS_TENANT}]),
+            MockLine(id=1,
+                     name='101',
+                     tenant_uuid=USERS_TENANT,
+                     extensions=[{'exten': '101', 'context': 'default'}])
         )
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
