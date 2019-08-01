@@ -90,12 +90,16 @@ def _generate_call_logs():
 
     cel_fetcher = CELFetcher()
     generator = CallLogsGenerator(
+        confd_client,
         [
             LocalOriginateCELInterpretor(confd_client),
             DispatchCELInterpretor(
                 CallerCELInterpretor(confd_client), CalleeCELInterpretor(confd_client)
             ),
-        ]
+        ],
+    )
+    token_renewer.subscribe_to_next_token_details_change(
+        generator.set_default_tenant_uuid
     )
     writer = CallLogsWriter()
     publisher = BusPublisher(config)
