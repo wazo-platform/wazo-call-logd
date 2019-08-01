@@ -79,7 +79,7 @@ class CallLogsGenerator(object):
                     call_log.set_tenant_uuid(contexts[0]['tenant_uuid'])
                     return
 
-            logger.warning(
+            logger.debug(
                 "call log of cels `%s` is not attached to a "
                 "tenant_uuid, fallback to service tenant %s",
                 call_log.cel_ids,
