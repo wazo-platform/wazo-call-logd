@@ -391,6 +391,62 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
             until.assert_(call_log_has_destination_different_from_requested, tries=5)
 
+    @raw_cels(
+        '''\
+   eventtype   |         eventtime          |     cid_name      |  cid_num  |       exten       |          context           |                   channame                    |   uniqueid    |   linkedid
+---------------+----------------------------+-------------------+-----------+-------------------+----------------------------+-----------------------------------------------+---------------+---------------
+ CHAN_START    | 2019-08-02 14:20:00.516634 |                   |           | s                 | wazo-originate-mobile-leg1 | Local/s@wazo-originate-mobile-leg1-00000001;1 | 1564770000.21 | 1564770000.21
+ CHAN_START    | 2019-08-02 14:20:00.523812 |                   |           | s                 | wazo-originate-mobile-leg1 | Local/s@wazo-originate-mobile-leg1-00000001;2 | 1564770000.22 | 1564770000.21
+ XIVO_OUTCALL  | 2019-08-02 14:20:00.597891 | 101               | 101       | dial              | outcall                    | Local/s@wazo-originate-mobile-leg1-00000001;2 | 1564770000.22 | 1564770000.21
+ APP_START     | 2019-08-02 14:20:00.601205 | 101               | 101       | dial              | outcall                    | Local/s@wazo-originate-mobile-leg1-00000001;2 | 1564770000.22 | 1564770000.21
+ CHAN_START    | 2019-08-02 14:20:00.603373 | xivo              |           | s                 | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
+ ANSWER        | 2019-08-02 14:20:04.976083 |                   | **9742332 | dial              | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
+ ANSWER        | 2019-08-02 14:20:04.995816 | 101               | 101       | dial              | outcall                    | Local/s@wazo-originate-mobile-leg1-00000001;2 | 1564770000.22 | 1564770000.21
+ BRIDGE_ENTER  | 2019-08-02 14:20:04.99812  |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
+ BRIDGE_ENTER  | 2019-08-02 14:20:05.000422 | 101               | 101       | dial              | outcall                    | Local/s@wazo-originate-mobile-leg1-00000001;2 | 1564770000.22 | 1564770000.21
+ ANSWER        | 2019-08-02 14:20:05.002815 |                   | **9742332 | s                 | wazo-originate-mobile-leg1 | Local/s@wazo-originate-mobile-leg1-00000001;1 | 1564770000.21 | 1564770000.21
+ APP_START     | 2019-08-02 14:20:05.389309 | **9742332         | **9742332 | s                 | user                       | Local/s@wazo-originate-mobile-leg1-00000001;1 | 1564770000.21 | 1564770000.21
+ CHAN_START    | 2019-08-02 14:20:05.401146 | Alice Woonderland | 101       | s                 | default                    | SCCP/101-0000000a                             | 1564770005.24 | 1564770000.21
+ ANSWER        | 2019-08-02 14:20:09.269941 | Alice Woonderland | 101       | s                 | default                    | SCCP/101-0000000a                             | 1564770005.24 | 1564770000.21
+ BRIDGE_ENTER  | 2019-08-02 14:20:09.279343 | Alice Woonderland | 101       |                   | default                    | SCCP/101-0000000a                             | 1564770005.24 | 1564770000.21
+ BRIDGE_ENTER  | 2019-08-02 14:20:09.281647 | **9742332         | **9742332 | s                 | user                       | Local/s@wazo-originate-mobile-leg1-00000001;1 | 1564770000.21 | 1564770000.21
+ BRIDGE_EXIT   | 2019-08-02 14:20:12.292321 | Alice Woonderland | 101       |                   | default                    | SCCP/101-0000000a                             | 1564770005.24 | 1564770000.21
+ HANGUP        | 2019-08-02 14:20:12.297821 | Alice Woonderland | 101       |                   | default                    | SCCP/101-0000000a                             | 1564770005.24 | 1564770000.21
+ CHAN_END      | 2019-08-02 14:20:12.300253 | Alice Woonderland | 101       |                   | default                    | SCCP/101-0000000a                             | 1564770005.24 | 1564770000.21
+ BRIDGE_EXIT   | 2019-08-02 14:20:12.302639 | **9742332         | **9742332 | s                 | user                       | Local/s@wazo-originate-mobile-leg1-00000001;1 | 1564770000.21 | 1564770000.21
+ HANGUP        | 2019-08-02 14:20:12.304888 | **9742332         | **9742332 | s                 | user                       | Local/s@wazo-originate-mobile-leg1-00000001;1 | 1564770000.21 | 1564770000.21
+ CHAN_END      | 2019-08-02 14:20:12.307043 | **9742332         | **9742332 | s                 | user                       | Local/s@wazo-originate-mobile-leg1-00000001;1 | 1564770000.21 | 1564770000.21
+ BRIDGE_EXIT   | 2019-08-02 14:20:12.312344 | Alice Woonderland | 101       | dial              | outcall                    | Local/s@wazo-originate-mobile-leg1-00000001;2 | 1564770000.22 | 1564770000.21
+ HANGUP        | 2019-08-02 14:20:12.315722 | Alice Woonderland | 101       | dial              | outcall                    | Local/s@wazo-originate-mobile-leg1-00000001;2 | 1564770000.22 | 1564770000.21
+ BRIDGE_EXIT   | 2019-08-02 14:20:12.318094 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
+ CHAN_END      | 2019-08-02 14:20:12.320487 | Alice Woonderland | 101       | dial              | outcall                    | Local/s@wazo-originate-mobile-leg1-00000001;2 | 1564770000.22 | 1564770000.21
+ HANGUP        | 2019-08-02 14:20:12.322631 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
+ CHAN_END      | 2019-08-02 14:20:12.327546 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
+ LINKEDID_END  | 2019-08-02 14:20:12.329958 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
+
+'''
+    )
+    def test_originate_from_mobile(self):
+        linkedid = '1564770000.21'
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_has_transformed_number():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(
+                        call_log,
+                        has_properties('source_name', '', 'source_exten', '**9742332'),
+                        has_properties(
+                            'destination_name',
+                            'Alice Woonderland',
+                            'destination_exten',
+                            '101',
+                        ),
+                    )
+
+            until.assert_(call_log_has_transformed_number, tries=5)
+
     @contextmanager
     def cels(self, cels):
         with self.database.queries() as queries:

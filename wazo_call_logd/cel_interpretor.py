@@ -321,9 +321,7 @@ class LocalOriginateCELInterpretor(object):
         call.source_line_identity = identity_from_channel(
             source_channel_answer.channame
         )
-        participant = find_participant(
-            self._confd, source_channel_answer.channame, role='source'
-        )
+        participant = find_participant(self._confd, source_channel_answer.channame)
         if participant:
             call.participants.append(
                 CallLogParticipant(
@@ -398,7 +396,7 @@ class LocalOriginateCELInterpretor(object):
                 destination_channel_answer.channame
             )
             participant = find_participant(
-                self._confd, destination_channel_answer.channame, role='destination'
+                self._confd, destination_channel_answer.channame
             )
             if participant:
                 call.participants.append(
