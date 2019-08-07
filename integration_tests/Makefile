@@ -18,7 +18,7 @@ docker-pull:
 	docker pull wazopbx/wazo-confd-mock
 
 call-logd:
-	docker build --pull -t wazopbx/wazo-call-logd ..
+	docker build -t wazopbx/wazo-call-logd ..
 	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..
 
 update-db:
