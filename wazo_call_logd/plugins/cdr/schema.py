@@ -1,10 +1,15 @@
 # Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import fields
-from marshmallow import post_load
-from marshmallow import Schema
-from marshmallow import pre_dump, pre_load, post_dump
+from marshmallow import (
+    EXCLUDE,
+    fields,
+    post_load,
+    Schema,
+    pre_dump,
+    pre_load,
+    post_dump
+)
 from marshmallow.validate import OneOf, Range, Regexp
 
 NUMBER_REGEX = r'^_?[0-9]+_?$'
@@ -12,8 +17,8 @@ NUMBER_REGEX = r'^_?[0-9]+_?$'
 
 class CDRSchema(Schema):
     class Meta(object):
-        strict = True
         ordered = True
+        unknown = EXCLUDE
 
     id = fields.Integer()
     tenant_uuid = fields.UUID()
@@ -65,7 +70,7 @@ class CDRSchema(Schema):
 
 
 class CDRListRequestSchema(Schema):
-    from_ = fields.DateTime(load_from='from', attribute='start', missing=None)
+    from_ = fields.DateTime(data_key='from', attribute='start', missing=None)
     until = fields.DateTime(attribute='end', missing=None)
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
     order = fields.String(
@@ -83,9 +88,6 @@ class CDRListRequestSchema(Schema):
     from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
     recurse = fields.Boolean(missing=False)
 
-    class Meta(object):
-        strict = True
-
     @pre_load
     def convert_tags_and_user_uuid_to_list(self, data):
         result = data.to_dict()
@@ -100,11 +102,11 @@ class CDRListRequestSchema(Schema):
         mapped_order = CDRSchema().fields[in_data['order']].attribute
         if mapped_order:
             in_data['order'] = mapped_order
+        return in_data
 
 
 class CDRSchemaList(Schema):
     class Meta(object):
-        strict = True
         ordered = True
 
     items = fields.Nested(CDRSchema, many=True)
