@@ -12,3 +12,7 @@ pyhamcrest
 requests
 sqlalchemy
 stevedore  # from wazo-call-logd-client
+
+
+# for database tests
+-e ..
