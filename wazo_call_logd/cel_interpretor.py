@@ -12,6 +12,15 @@ from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 logger = logging.getLogger(__name__)
 
 
+def _identity_from_channame(channame):
+    if '@wazo_wait_for_registration' in channame:
+        begin, _ = channame.split('@', 1)
+        _, name = begin.split('/')
+        return 'pjsip/{}'.format(name)
+
+    return identity_from_channel(channame)
+
+
 def _find_line_by_channame(confd, channame):
     # TODO PJSIP clean after migration
     channame = channame.replace('PJSIP', 'SIP')
@@ -150,7 +159,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.requested_exten = cel.exten if cel.exten != 's' else ''
         call.requested_context = cel.context
         call.destination_exten = cel.exten if cel.exten != 's' else ''
-        call.source_line_identity = identity_from_channel(cel.channame)
+        call.source_line_identity = _identity_from_channame(cel.channame)
         participant = find_participant(self._confd, cel.channame)
         if participant:
             call.participants.append(
@@ -229,7 +238,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         self._confd = confd
 
     def interpret_chan_start(self, cel, call):
-        call.destination_line_identity = identity_from_channel(cel.channame)
+        call.destination_line_identity = _identity_from_channame(cel.channame)
 
         participant = find_participant(self._confd, cel.channame)
         if participant:
