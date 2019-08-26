@@ -9,6 +9,7 @@ from hamcrest import (
     empty,
     has_entries,
     has_key,
+    has_length,
     has_properties,
     is_,
     not_,
@@ -126,8 +127,23 @@ class TestCallLogGeneration(IntegrationTest):
 '''
     )
     def test_answered_push_mobile_2_webrtc_contact_single_line(self):
+        linked_id_1 = '1566820902.57'
+        linked_id_2 = '1566820918.58'
+        linked_id_3 = '1566820902.54'
+
         with self.no_call_logs():
-            self.bus.send_linkedid_end()
+            self.bus.send_linkedid_end(linked_id_1)
+            self.bus.send_linkedid_end(linked_id_2)
+            self.bus.send_linkedid_end(linked_id_3)
+
+            def only_one_call_log_is_generated():
+                with self.database.queries() as queries:
+                    call_logs = queries.list_call_logs()
+                    assert_that(call_logs, has_length(1))
+
+            until.assert_(only_one_call_log_is_generated, tries=5)
+
+        # TODO make a real test for other values
 
     @raw_cels(
         '''\
