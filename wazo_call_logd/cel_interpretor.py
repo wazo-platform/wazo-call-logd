@@ -12,7 +12,7 @@ from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 logger = logging.getLogger(__name__)
 
 
-def find_participant(confd, channame):
+def _find_line_by_channame(confd, channame):
     # TODO PJSIP clean after migration
     channame = channame.replace('PJSIP', 'SIP')
 
@@ -21,16 +21,21 @@ def find_participant(confd, channame):
     except InvalidChannelError:
         return None
 
-    logger.debug(
-        'Looking up participant with protocol %s and line name "%s"',
-        protocol,
-        line_name,
-    )
+    if protocol == 'Local' and line_name.endswith('@wazo_wait_for_registration'):
+        protocol = 'SIP'
+        line_name, _ = line_name.split('@')
+
+    logger.debug('Looking up line with protocol %s and line name "%s"', protocol, line_name)
     lines = confd.lines.list(name=line_name, recurse=True)['items']
-    if not lines:
+    for line in lines:
+        return line
+
+
+def find_participant(confd, channame):
+    line = _find_line_by_channame(confd, channame)
+    if not line:
         return
 
-    line = lines[0]
     logger.debug('Found participant line id %s', line['id'])
     users = line['users']
     if not users:
@@ -56,24 +61,10 @@ def find_participant(confd, channame):
 
 
 def find_main_internal_extension(confd, channame):
-    # TODO PJSIP clean after migration
-    channame = channame.replace('PJSIP', 'SIP')
-
-    try:
-        protocol, line_name = protocol_interface_from_channel(channame)
-    except InvalidChannelError:
-        return None
-
-    logger.debug(
-        'Looking up main internal extension with protocol %s and line name "%s"',
-        protocol,
-        line_name,
-    )
-    lines = confd.lines.list(name=line_name, recurse=True)['items']
-    if not lines:
+    line = _find_line_by_channame(confd, channame)
+    if not line:
         return
 
-    line = lines[0]
     logger.debug('Found line id %s', line['id'])
     extensions = line['extensions']
     if not extensions:
