@@ -426,7 +426,17 @@ class LocalOriginateCELInterpretor(object):
             cls.three_channels_minimum(cels)
             and cls.first_two_channels_are_local(cels)
             and cls.first_channel_is_answered_before_any_other_operation(cels)
+            and cls.is_not_a_local_to_push_mobile(cels)
         )
+
+    @classmethod
+    def is_not_a_local_to_push_mobile(cls, cels):
+        names = [cel.channame for cel in cels if cel.eventtype == 'CHAN_START']
+        for name in names:
+            if 'wazo_wait_for_registration' in name:
+                return False
+
+        return True
 
     @classmethod
     def three_channels_minimum(cls, cels):
