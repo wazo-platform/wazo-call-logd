@@ -8,6 +8,7 @@ from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo.asterisk.protocol_interface import InvalidChannelError
 from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
+from wazo_call_logd.helpers import skipped_call_sentinel
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +118,50 @@ class DispatchCELInterpretor(object):
     def can_interpret(self, cels):
         del cels
         return True
+
+
+class MobilePushCELInterpretor(object):
+    def __init__(self, confd):
+        self._confd = confd
+
+    def interpret_cels(self, cels, call):
+        if self._is_the_empty_call_of_a_push_mobile(cels):
+            return skipped_call_sentinel
+        elif self._is_the_empty_call_of_a_push_mobile(cels):
+            return skipped_call_sentinel
+
+        return call
+
+    def can_interpret(self, cels):
+        for cel in cels:
+            if self._is_the_empty_call_of_a_push_mobile(cels):
+                return True
+            elif self._is_a_join_wait_for_mobile(cels):
+                return True
+
+        return False
+
+    def _is_the_empty_call_of_a_push_mobile(self, cels):
+        for cel in cels:
+            if (
+                cel.eventtype == 'LINKEDID_END'
+                and cel.appname == 'AppDial2'
+                and cel.appdata == '(Outgoing Line)'
+            ):
+                return True
+
+        return False
+
+    def _is_a_join_wait_for_mobile(self, cels):
+        for cel in cels:
+            if (
+                cel.eventtype == 'BRIDGE_ENTER'
+                and cel.appname == 'Stasis'
+                and cel.appdata.startswith('dial_mobile,join')
+            ):
+                return True
+
+        return False
 
 
 class AbstractCELInterpretor(object):

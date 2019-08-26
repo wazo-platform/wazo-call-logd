@@ -7,6 +7,7 @@ from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
 from wazo_call_logd.exceptions import InvalidCallLogException
+from wazo_call_logd.helpers import skipped_call_sentinel
 from wazo_call_logd import raw_call_log
 
 
@@ -42,6 +43,8 @@ class CallLogsGenerator(object):
 
             interpretor = self._get_interpretor(cels_by_call)
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
+            if call_log is skipped_call_sentinel:
+                continue
 
             self._ensure_tenant_uuid_is_set(call_log)
 

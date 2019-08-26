@@ -16,6 +16,7 @@ from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
 from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
 from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
+from wazo_call_logd.cel_interpretor import MobilePushCELInterpretor
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
@@ -33,6 +34,7 @@ class Controller(object):
         generator = CallLogsGenerator(
             confd_client,
             [
+                MobilePushCELInterpretor(confd_client),
                 LocalOriginateCELInterpretor(confd_client),
                 DispatchCELInterpretor(
                     CallerCELInterpretor(confd_client),
