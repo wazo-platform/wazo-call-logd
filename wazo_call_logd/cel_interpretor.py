@@ -8,11 +8,21 @@ from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo.asterisk.protocol_interface import InvalidChannelError
 from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
+from wazo_call_logd.helpers import skipped_call_sentinel
 
 logger = logging.getLogger(__name__)
 
 
-def find_participant(confd, channame):
+def _identity_from_channame(channame):
+    if '@wazo_wait_for_registration' in channame:
+        begin, _ = channame.split('@', 1)
+        _, name = begin.split('/')
+        return 'pjsip/{}'.format(name)
+
+    return identity_from_channel(channame)
+
+
+def _find_line_by_channame(confd, channame):
     # TODO PJSIP clean after migration
     channame = channame.replace('PJSIP', 'SIP')
 
@@ -21,16 +31,21 @@ def find_participant(confd, channame):
     except InvalidChannelError:
         return None
 
-    logger.debug(
-        'Looking up participant with protocol %s and line name "%s"',
-        protocol,
-        line_name,
-    )
+    if protocol == 'Local' and line_name.endswith('@wazo_wait_for_registration'):
+        protocol = 'SIP'
+        line_name, _ = line_name.split('@')
+
+    logger.debug('Looking up line with protocol %s and line name "%s"', protocol, line_name)
     lines = confd.lines.list(name=line_name, recurse=True)['items']
-    if not lines:
+    for line in lines:
+        return line
+
+
+def find_participant(confd, channame):
+    line = _find_line_by_channame(confd, channame)
+    if not line:
         return
 
-    line = lines[0]
     logger.debug('Found participant line id %s', line['id'])
     users = line['users']
     if not users:
@@ -56,24 +71,10 @@ def find_participant(confd, channame):
 
 
 def find_main_internal_extension(confd, channame):
-    # TODO PJSIP clean after migration
-    channame = channame.replace('PJSIP', 'SIP')
-
-    try:
-        protocol, line_name = protocol_interface_from_channel(channame)
-    except InvalidChannelError:
-        return None
-
-    logger.debug(
-        'Looking up main internal extension with protocol %s and line name "%s"',
-        protocol,
-        line_name,
-    )
-    lines = confd.lines.list(name=line_name, recurse=True)['items']
-    if not lines:
+    line = _find_line_by_channame(confd, channame)
+    if not line:
         return
 
-    line = lines[0]
     logger.debug('Found line id %s', line['id'])
     extensions = line['extensions']
     if not extensions:
@@ -119,6 +120,50 @@ class DispatchCELInterpretor(object):
         return True
 
 
+class MobilePushCELInterpretor(object):
+    def __init__(self, confd):
+        self._confd = confd
+
+    def interpret_cels(self, cels, call):
+        if self._is_the_empty_call_of_a_push_mobile(cels):
+            return skipped_call_sentinel
+        elif self._is_the_empty_call_of_a_push_mobile(cels):
+            return skipped_call_sentinel
+
+        return call
+
+    def can_interpret(self, cels):
+        for cel in cels:
+            if self._is_the_empty_call_of_a_push_mobile(cels):
+                return True
+            elif self._is_a_join_wait_for_mobile(cels):
+                return True
+
+        return False
+
+    def _is_the_empty_call_of_a_push_mobile(self, cels):
+        for cel in cels:
+            if (
+                cel.eventtype == 'LINKEDID_END'
+                and cel.appname == 'AppDial2'
+                and cel.appdata == '(Outgoing Line)'
+            ):
+                return True
+
+        return False
+
+    def _is_a_join_wait_for_mobile(self, cels):
+        for cel in cels:
+            if (
+                cel.eventtype == 'BRIDGE_ENTER'
+                and cel.appname == 'Stasis'
+                and cel.appdata.startswith('dial_mobile,join')
+            ):
+                return True
+
+        return False
+
+
 class AbstractCELInterpretor(object):
 
     eventtype_map = {}
@@ -159,7 +204,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.requested_exten = cel.exten if cel.exten != 's' else ''
         call.requested_context = cel.context
         call.destination_exten = cel.exten if cel.exten != 's' else ''
-        call.source_line_identity = identity_from_channel(cel.channame)
+        call.source_line_identity = _identity_from_channame(cel.channame)
         participant = find_participant(self._confd, cel.channame)
         if participant:
             call.participants.append(
@@ -238,7 +283,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         self._confd = confd
 
     def interpret_chan_start(self, cel, call):
-        call.destination_line_identity = identity_from_channel(cel.channame)
+        call.destination_line_identity = _identity_from_channame(cel.channame)
 
         participant = find_participant(self._confd, cel.channame)
         if participant:
@@ -271,7 +316,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
     def interpret_bridge_enter(self, cel, call):
         if call.interpret_callee_bridge_enter:
-            call.destination_exten = cel.cid_num
+            if cel.cid_num != 's':
+                call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
             call.interpret_callee_bridge_enter = False
         return call
@@ -425,7 +471,17 @@ class LocalOriginateCELInterpretor(object):
             cls.three_channels_minimum(cels)
             and cls.first_two_channels_are_local(cels)
             and cls.first_channel_is_answered_before_any_other_operation(cels)
+            and cls.is_not_a_local_to_push_mobile(cels)
         )
+
+    @classmethod
+    def is_not_a_local_to_push_mobile(cls, cels):
+        names = [cel.channame for cel in cels if cel.eventtype == 'CHAN_START']
+        for name in names:
+            if 'wazo_wait_for_registration' in name:
+                return False
+
+        return True
 
     @classmethod
     def three_channels_minimum(cls, cels):
