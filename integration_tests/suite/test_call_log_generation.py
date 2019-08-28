@@ -9,7 +9,6 @@ from hamcrest import (
     empty,
     has_entries,
     has_key,
-    has_length,
     has_properties,
     is_,
     not_,
@@ -88,62 +87,6 @@ class TestCallLogGeneration(IntegrationTest):
                     )
 
             until.assert_(call_log_has_transformed_number, tries=5)
-
-    @raw_cels(
-        '''\
-  eventtype   |         eventtime          |    cid_name     | cid_num | cid_ani | cid_dnid |  exten   |          context           |                       channame                       | appname  |                        appdata                        |   uniqueid    |   linkedid    |                         peer                         |                                          extra
---------------+----------------------------+-----------------+---------+---------+----------+----------+----------------------------+------------------------------------------------------+----------+-------------------------------------------------------+---------------+---------------+------------------------------------------------------+-------------------------------------------------------------------------------------------
- CHAN_START   | 2019-08-26 12:01:42.635977 | Nicolas Marchal | 8004    |         |          | 8005     | wazo-internal              | PJSIP/mpnu8i9d-00000026                              |          |                                                       | 1566820902.54 | 1566820902.54 |                                                      |
- APP_START    | 2019-08-26 12:01:42.943049 | Nicolas Marchal | 8004    | 8004    | 8005     | s        | user                       | PJSIP/mpnu8i9d-00000026                              | Dial     | Local/7rwvrq6i@wazo_wait_for_registration,30,         | 1566820902.54 | 1566820902.54 |                                                      |
- CHAN_START   | 2019-08-26 12:01:42.945633 |                 |         |         |          | 7rwvrq6i | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;1 |          |                                                       | 1566820902.55 | 1566820902.54 |                                                      |
- CHAN_START   | 2019-08-26 12:01:42.94731  |                 |         |         |          | 7rwvrq6i | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;2 |          |                                                       | 1566820902.56 | 1566820902.54 |                                                      |
- CHAN_START   | 2019-08-26 12:01:42.971076 | Pascal Cadotte  | 8005    |         |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000027                              |          |                                                       | 1566820902.57 | 1566820902.57 |                                                      |
- CHAN_START   | 2019-08-26 12:01:58.216661 | Pascal Cadotte  | 8005    |         |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000028                              |          |                                                       | 1566820918.58 | 1566820918.58 |                                                      |
- ANSWER       | 2019-08-26 12:01:58.73748  | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000028                              | AppDial2 | (Outgoing Line)                                       | 1566820918.58 | 1566820918.58 |                                                      |
- HANGUP       | 2019-08-26 12:01:58.762754 | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000027                              | AppDial2 | (Outgoing Line)                                       | 1566820902.57 | 1566820902.57 |                                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
- CHAN_END     | 2019-08-26 12:01:58.765467 | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000027                              | AppDial2 | (Outgoing Line)                                       | 1566820902.57 | 1566820902.57 |                                                      |
- LINKEDID_END | 2019-08-26 12:01:58.768589 | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000027                              | AppDial2 | (Outgoing Line)                                       | 1566820902.57 | 1566820902.57 |                                                      |
- ANSWER       | 2019-08-26 12:01:58.950907 | Nicolas Marchal | 8004    | 8004    |          | 7rwvrq6i | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;2 | Stasis   | dial_mobile,dial,7rwvrq6i                             | 1566820902.56 | 1566820902.54 |                                                      |
- ANSWER       | 2019-08-26 12:01:58.959928 | Pascal Cadotte  | s       |         |          | s        | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;1 | AppDial  | (Outgoing Line)                                       | 1566820902.55 | 1566820902.54 |                                                      |
- ANSWER       | 2019-08-26 12:01:58.962283 | Nicolas Marchal | 8004    | 8004    | 8005     | s        | user                       | PJSIP/mpnu8i9d-00000026                              | Dial     | Local/7rwvrq6i@wazo_wait_for_registration,30,         | 1566820902.54 | 1566820902.54 |                                                      |
- BRIDGE_ENTER | 2019-08-26 12:01:58.964451 | Pascal Cadotte  | s       |         |          |          | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;1 | AppDial  | (Outgoing Line)                                       | 1566820902.55 | 1566820902.54 |                                                      | {"bridge_id":"8e952749-483d-46d5-bb54-3432be7a676f","bridge_technology":"simple_bridge"}
- BRIDGE_ENTER | 2019-08-26 12:01:58.966981 | Nicolas Marchal | 8004    | 8004    | 8005     | s        | user                       | PJSIP/mpnu8i9d-00000026                              | Dial     | Local/7rwvrq6i@wazo_wait_for_registration,30,         | 1566820902.54 | 1566820902.54 | Local/7rwvrq6i@wazo_wait_for_registration-00000008;1 | {"bridge_id":"8e952749-483d-46d5-bb54-3432be7a676f","bridge_technology":"simple_bridge"}
- BRIDGE_ENTER | 2019-08-26 12:01:59.023662 | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000028                              | Stasis   | dial_mobile,join,200c0cbd-060e-437b-89ee-5b54b4e8ede7 | 1566820918.58 | 1566820918.58 |                                                      | {"bridge_id":"200c0cbd-060e-437b-89ee-5b54b4e8ede7","bridge_technology":"simple_bridge"}
- LINKEDID_END | 2019-08-26 12:01:59.1528   | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000028                              | Stasis   | dial_mobile,join,200c0cbd-060e-437b-89ee-5b54b4e8ede7 | 1566820918.58 | 1566820918.58 |                                                      |
- BRIDGE_ENTER | 2019-08-26 12:01:59.160129 | Nicolas Marchal | 8004    | 8004    |          | 7rwvrq6i | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;2 | Stasis   | dial_mobile,dial,7rwvrq6i                             | 1566820902.56 | 1566820902.54 | PJSIP/7rwvrq6i-00000028                              | {"bridge_id":"200c0cbd-060e-437b-89ee-5b54b4e8ede7","bridge_technology":"simple_bridge"}
- BRIDGE_EXIT  | 2019-08-26 12:02:14.281564 | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000028                              | Stasis   | dial_mobile,join,200c0cbd-060e-437b-89ee-5b54b4e8ede7 | 1566820918.58 | 1566820902.54 | Local/7rwvrq6i@wazo_wait_for_registration-00000008;2 | {"bridge_id":"200c0cbd-060e-437b-89ee-5b54b4e8ede7","bridge_technology":"simple_bridge"}
- HANGUP       | 2019-08-26 12:02:14.288865 | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000028                              | AppDial2 | (Outgoing Line)                                       | 1566820918.58 | 1566820902.54 |                                                      | {"hangupcause":16,"hangupsource":"PJSIP/7rwvrq6i-00000028","dialstatus":""}
- CHAN_END     | 2019-08-26 12:02:14.291579 | Nicolas Marchal | 8004    | 8004    |          | s        | wazo-internal              | PJSIP/7rwvrq6i-00000028                              | AppDial2 | (Outgoing Line)                                       | 1566820918.58 | 1566820902.54 |                                                      |
- BRIDGE_EXIT  | 2019-08-26 12:02:14.309563 | Nicolas Marchal | 8004    | 8004    |          | 7rwvrq6i | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;2 | Stasis   | dial_mobile,dial,7rwvrq6i                             | 1566820902.56 | 1566820902.54 |                                                      | {"bridge_id":"200c0cbd-060e-437b-89ee-5b54b4e8ede7","bridge_technology":"simple_bridge"}
- HANGUP       | 2019-08-26 12:02:14.319181 | Nicolas Marchal | 8004    | 8004    |          | 7rwvrq6i | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;2 |          |                                                       | 1566820902.56 | 1566820902.54 |                                                      | {"hangupcause":16,"hangupsource":"PJSIP/7rwvrq6i-00000028","dialstatus":""}
- CHAN_END     | 2019-08-26 12:02:14.321433 | Nicolas Marchal | 8004    | 8004    |          | 7rwvrq6i | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;2 |          |                                                       | 1566820902.56 | 1566820902.54 |                                                      |
- BRIDGE_EXIT  | 2019-08-26 12:02:14.322883 | Nicolas Marchal | 8004    |         |          |          | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;1 | AppDial  | (Outgoing Line)                                       | 1566820902.55 | 1566820902.54 |                                                      | {"bridge_id":"8e952749-483d-46d5-bb54-3432be7a676f","bridge_technology":"simple_bridge"}
- HANGUP       | 2019-08-26 12:02:14.324537 | Nicolas Marchal | 8004    |         |          |          | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;1 | AppDial  | (Outgoing Line)                                       | 1566820902.55 | 1566820902.54 |                                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
- CHAN_END     | 2019-08-26 12:02:14.325996 | Nicolas Marchal | 8004    |         |          |          | wazo_wait_for_registration | Local/7rwvrq6i@wazo_wait_for_registration-00000008;1 | AppDial  | (Outgoing Line)                                       | 1566820902.55 | 1566820902.54 |                                                      |
- BRIDGE_EXIT  | 2019-08-26 12:02:14.329115 | Nicolas Marchal | 8004    | 8004    | 8005     | s        | user                       | PJSIP/mpnu8i9d-00000026                              | Dial     | Local/7rwvrq6i@wazo_wait_for_registration,30,         | 1566820902.54 | 1566820902.54 |                                                      | {"bridge_id":"8e952749-483d-46d5-bb54-3432be7a676f","bridge_technology":"simple_bridge"}
- HANGUP       | 2019-08-26 12:02:14.330861 | Nicolas Marchal | 8004    | 8004    | 8005     | s        | user                       | PJSIP/mpnu8i9d-00000026                              |          |                                                       | 1566820902.54 | 1566820902.54 |                                                      | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
- CHAN_END     | 2019-08-26 12:02:14.332326 | Nicolas Marchal | 8004    | 8004    | 8005     | s        | user                       | PJSIP/mpnu8i9d-00000026                              |          |                                                       | 1566820902.54 | 1566820902.54 |                                                      |
- LINKEDID_END | 2019-08-26 12:02:14.334345 | Nicolas Marchal | 8004    | 8004    | 8005     | s        | user                       | PJSIP/mpnu8i9d-00000026                              |          |                                                       | 1566820902.54 | 1566820902.54 |                                                      |
-'''
-    )
-    def test_answered_push_mobile_2_webrtc_contact_single_line(self):
-        linked_id_1 = '1566820902.57'
-        linked_id_2 = '1566820918.58'
-        linked_id_3 = '1566820902.54'
-
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linked_id_1)
-            self.bus.send_linkedid_end(linked_id_2)
-            self.bus.send_linkedid_end(linked_id_3)
-
-            def only_one_call_log_is_generated():
-                with self.database.queries() as queries:
-                    call_logs = queries.list_call_logs()
-                    assert_that(call_logs, has_length(1))
-
-            until.assert_(only_one_call_log_is_generated, tries=5)
-
-        # TODO make a real test for other values
 
     @raw_cels(
         '''\
