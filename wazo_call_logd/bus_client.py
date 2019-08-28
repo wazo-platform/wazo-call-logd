@@ -22,12 +22,7 @@ class _CELConsumer(ConsumerMixin):
         if body['data']['EventName'] == 'LINKEDID_END':
             linked_id = body['data']['LinkedID']
             logger.debug('Received LINKEDID_END: %s', linked_id)
-            try:
-                self._call_logs_manager.generate_from_linked_id(linked_id)
-            except Exception:
-                logger.exception(
-                    'Failed to generate call log for linked id="%s"', linked_id
-                )
+            self._call_logs_manager.generate_from_linked_id(linked_id)
 
         message.ack()
 
