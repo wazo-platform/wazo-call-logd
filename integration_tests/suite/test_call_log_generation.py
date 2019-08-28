@@ -54,6 +54,60 @@ class TestCallLogGeneration(IntegrationTest):
 
     @raw_cels(
         '''\
+eventtype    | eventtime                  | cid_name | cid_num | cid_ani | exten    | context                    | channame                                             | appname  | appdata                                               | uniqueid      | linkedid      | peer                                                 | extra
+LINKEDID_END | 2019-08-28 15:29:32.275896 | Alice    | 1001    | 1001    | s        | inside                     | PJSIP/ycetqvtr-00000019                              | AppDial2 | (Outgoing Line)                                       | 1567020561.37 | 1567020560.33 |                                                      |
+CHAN_END     | 2019-08-28 15:29:32.269711 | Alice    | 1001    | 1001    | s        | inside                     | PJSIP/ycetqvtr-00000019                              | AppDial2 | (Outgoing Line)                                       | 1567020561.37 | 1567020560.33 |                                                      |
+HANGUP       | 2019-08-28 15:29:32.261363 | Alice    | 1001    | 1001    | s        | inside                     | PJSIP/ycetqvtr-00000019                              | AppDial2 | (Outgoing Line)                                       | 1567020561.37 | 1567020560.33 |                                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+BRIDGE_EXIT  | 2019-08-28 15:29:32.255203 | Alice    | 1001    | 1001    | s        | inside                     | PJSIP/ycetqvtr-00000019                              | Stasis   | dial_mobile,join,67b292be-e7dd-4d73-8c1a-fc73461dc79a | 1567020561.37 | 1567020560.33 |                                                      | {"bridge_id":"67b292be-e7dd-4d73-8c1a-fc73461dc79a","bridge_technology":"simple_bridge"}
+CHAN_END     | 2019-08-28 15:29:32.234511 | Alice    | 1001    | 1001    | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;2 |          |                                                       | 1567020561.35 | 1567020560.33 |                                                      |
+HANGUP       | 2019-08-28 15:29:32.229211 | Alice    | 1001    | 1001    | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;2 |          |                                                       | 1567020561.35 | 1567020560.33 |                                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+BRIDGE_EXIT  | 2019-08-28 15:29:32.224539 | Alice    | 1001    | 1001    | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;2 | Stasis   | dial_mobile,dial,ycetqvtr                             | 1567020561.35 | 1567020560.33 | PJSIP/ycetqvtr-00000019                              | {"bridge_id":"67b292be-e7dd-4d73-8c1a-fc73461dc79a","bridge_technology":"simple_bridge"}
+CHAN_END     | 2019-08-28 15:29:32.219482 | Alice    | 1001    | 1001    | s        | user                       | PJSIP/qxqz31sq-00000017                              |          |                                                       | 1567020560.33 | 1567020560.33 |                                                      |
+HANGUP       | 2019-08-28 15:29:32.21386  | Alice    | 1001    | 1001    | s        | user                       | PJSIP/qxqz31sq-00000017                              |          |                                                       | 1567020560.33 | 1567020560.33 |                                                      | {"hangupcause":16,"hangupsource":"PJSIP/qxqz31sq-00000017","dialstatus":"ANSWER"}
+CHAN_END     | 2019-08-28 15:29:32.205737 | Alice    | 1001    |         |          | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 | AppDial  | (Outgoing Line)                                       | 1567020561.34 | 1567020560.33 |                                                      |
+HANGUP       | 2019-08-28 15:29:32.188355 | Alice    | 1001    |         |          | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 | AppDial  | (Outgoing Line)                                       | 1567020561.34 | 1567020560.33 |                                                      | {"hangupcause":16,"hangupsource":"PJSIP/qxqz31sq-00000017","dialstatus":""}
+BRIDGE_EXIT  | 2019-08-28 15:29:32.17354  | Alice    | 1001    |         |          | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 | AppDial  | (Outgoing Line)                                       | 1567020561.34 | 1567020560.33 |                                                      | {"bridge_id":"0de77b8c-717e-4e61-b667-ce31e2666426","bridge_technology":"simple_bridge"}
+BRIDGE_EXIT  | 2019-08-28 15:29:32.151658 | Alice    | 1001    | 1001    | s        | user                       | PJSIP/qxqz31sq-00000017                              | Dial     | Local/ycetqvtr@wazo_wait_for_registration,30,         | 1567020560.33 | 1567020560.33 | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 | {"bridge_id":"0de77b8c-717e-4e61-b667-ce31e2666426","bridge_technology":"simple_bridge"}
+BRIDGE_ENTER | 2019-08-28 15:29:26.663414 | Alice    | 1001    | 1001    | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;2 | Stasis   | dial_mobile,dial,ycetqvtr                             | 1567020561.35 | 1567020560.33 | PJSIP/ycetqvtr-00000019                              | {"bridge_id":"67b292be-e7dd-4d73-8c1a-fc73461dc79a","bridge_technology":"simple_bridge"}
+BRIDGE_ENTER | 2019-08-28 15:29:26.635016 | Alice    | 1001    | 1001    | s        | inside                     | PJSIP/ycetqvtr-00000019                              | Stasis   | dial_mobile,join,67b292be-e7dd-4d73-8c1a-fc73461dc79a | 1567020561.37 | 1567020560.33 |                                                      | {"bridge_id":"67b292be-e7dd-4d73-8c1a-fc73461dc79a","bridge_technology":"simple_bridge"}
+BRIDGE_ENTER | 2019-08-28 15:29:26.614724 | Alice    | 1001    | 1001    | s        | user                       | PJSIP/qxqz31sq-00000017                              | Dial     | Local/ycetqvtr@wazo_wait_for_registration,30,         | 1567020560.33 | 1567020560.33 | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 | {"bridge_id":"0de77b8c-717e-4e61-b667-ce31e2666426","bridge_technology":"simple_bridge"}
+BRIDGE_ENTER | 2019-08-28 15:29:26.605061 | Bob      | s       |         |          | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 | AppDial  | (Outgoing Line)                                       | 1567020561.34 | 1567020560.33 |                                                      | {"bridge_id":"0de77b8c-717e-4e61-b667-ce31e2666426","bridge_technology":"simple_bridge"}
+ANSWER       | 2019-08-28 15:29:26.599335 | Alice    | 1001    | 1001    | s        | user                       | PJSIP/qxqz31sq-00000017                              | Dial     | Local/ycetqvtr@wazo_wait_for_registration,30,         | 1567020560.33 | 1567020560.33 |                                                      |
+ANSWER       | 2019-08-28 15:29:26.593743 | Bob      | s       |         | s        | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 | AppDial  | (Outgoing Line)                                       | 1567020561.34 | 1567020560.33 |                                                      |
+ANSWER       | 2019-08-28 15:29:26.583625 | Alice    | 1001    | 1001    | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;2 | Stasis   | dial_mobile,dial,ycetqvtr                             | 1567020561.35 | 1567020560.33 |                                                      |
+CHAN_END     | 2019-08-28 15:29:26.540774 | Alice    | 1001    | 1001    | s        | inside                     | PJSIP/ycetqvtr-00000018                              | AppDial2 | (Outgoing Line)                                       | 1567020561.36 | 1567020560.33 |                                                      |
+HANGUP       | 2019-08-28 15:29:26.533224 | Alice    | 1001    | 1001    | s        | inside                     | PJSIP/ycetqvtr-00000018                              | AppDial2 | (Outgoing Line)                                       | 1567020561.36 | 1567020560.33 |                                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+ANSWER       | 2019-08-28 15:29:26.280173 | Alice    | 1001    | 1001    | s        | inside                     | PJSIP/ycetqvtr-00000019                              | AppDial2 | (Outgoing Line)                                       | 1567020561.37 | 1567020560.33 |                                                      |
+CHAN_START   | 2019-08-28 15:29:21.253562 | Bob      | 1002    |         | s        | inside                     | PJSIP/ycetqvtr-00000019                              |          |                                                       | 1567020561.37 | 1567020560.33 |                                                      |
+CHAN_START   | 2019-08-28 15:29:21.23432  | Bob      | 1002    |         | s        | inside                     | PJSIP/ycetqvtr-00000018                              |          |                                                       | 1567020561.36 | 1567020560.33 |                                                      |
+CHAN_START   | 2019-08-28 15:29:21.159727 |          |         |         | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;2 |          |                                                       | 1567020561.35 | 1567020560.33 |                                                      |
+CHAN_START   | 2019-08-28 15:29:21.154157 |          |         |         | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 |          |                                                       | 1567020561.34 | 1567020560.33 |                                                      |
+APP_START    | 2019-08-28 15:29:21.145952 | Alice    | 1001    | 1001    | s        | user                       | PJSIP/qxqz31sq-00000017                              | Dial     | Local/ycetqvtr@wazo_wait_for_registration,30,         | 1567020560.33 | 1567020560.33 |                                                      |
+CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002     | inside                     | PJSIP/qxqz31sq-00000017                              |          |                                                       | 1567020560.33 | 1567020560.33 |                                                      |
+    '''
+    )
+    def test_call_to_mobile_dial(self):
+        linkedid = '1567020560.33'
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_received():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            source_name='Alice',
+                            source_exten='1001',
+                            destination_name='Bob',
+                            destination_exten='1002',
+                        ),
+                    )
+
+            until.assert_(call_log_received, tries=5)
+
+    @raw_cels(
+        '''\
   eventtype   |         eventtime          |       channame        |   uniqueid    |   linkedid    | cid_name | cid_num
 --------------+----------------------------+-----------------------+---------------+---------------+----------+---------
  CHAN_START   | 2017-11-10 10:07:08.620283 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 042302

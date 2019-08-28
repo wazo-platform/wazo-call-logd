@@ -271,7 +271,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
     def interpret_bridge_enter(self, cel, call):
         if call.interpret_callee_bridge_enter:
-            call.destination_exten = cel.cid_num
+            if cel.cid_num and cel.cid_num != 's':
+                call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
             call.interpret_callee_bridge_enter = False
         return call
