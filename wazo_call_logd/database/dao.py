@@ -7,7 +7,7 @@ import sqlalchemy as sa
 
 from sqlalchemy import create_engine
 from sqlalchemy import exc
-from sqlalchemy import sql
+from sqlalchemy import sql, func, and_
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import subqueryload
@@ -74,7 +74,24 @@ class CallLogDAO(object):
 
     def find_all_in_period(self, params):
         with self.new_session() as session:
-            query = session.query(CallLogSchema)
+            distinct = params.get('distinct')
+            if distinct == 'peer_exten':
+                # TODO(pcm) use the most recent call log not the most recent id
+                sub_query = session.query(
+                    func.max(CallLogParticipant.call_log_id).label('max_id'),
+                ).group_by(
+                    CallLogParticipant.user_uuid,
+                    CallLogParticipant.peer_exten,
+                ).subquery()
+                query = session.query(
+                    CallLogSchema,
+                ).join(
+                    sub_query,
+                    and_(CallLogSchema.id == sub_query.c.max_id),
+                )
+            else:
+                query = session.query(CallLogSchema)
+
             query = query.options(
                 joinedload('participants'),
                 subqueryload('source_participant'),
