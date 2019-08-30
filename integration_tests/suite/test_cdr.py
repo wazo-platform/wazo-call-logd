@@ -713,6 +713,27 @@ class TestListCDR(IntegrationTest):
 
     @call_logs(
         [
+            cdr(id_=1, caller=alice, callee=bob, start_time=NOW),
+            cdr(id_=2, caller=alice, callee=bob, start_time=NOW + 1 * MINUTES),
+            cdr(id_=3, caller=bob, callee=alice, start_time=NOW + 2 * MINUTES),
+            cdr(id_=4, caller=alice, callee=charles, start_time=NOW - 5 * MINUTES)
+
+        ]
+    )
+    def test_distinc_exten(self):
+        result = self.call_logd.cdr.list(distinct='exten')
+        assert_that(
+            result,
+            has_entries(
+                filtered=42,
+                total=42,
+                items=contains_inanyorder(
+                ),
+            ),
+        )
+
+    @call_logs(
+        [
             {'date': '2016-04-10', 'source_exten': '12345'},
             {'date': '2017-04-10', 'source_exten': '123'},
             {'date': '2016-04-12'},
