@@ -2,7 +2,7 @@
     name: wazo-tox-integration-call-logd
     parent: wazo-tox-integration
     required-projects:
-      wazo-pbx/xivo-manage-db
+      wazo-platform/xivo-manage-db
 
 - project:
     templates:
