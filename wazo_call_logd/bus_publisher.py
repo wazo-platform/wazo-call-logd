@@ -31,12 +31,12 @@ class BusPublisher(object):
             self.publish(call_log)
 
     def publish(self, call_log):
-        payload = CDRSchema().dump(call_log).data
+        payload = CDRSchema().dump(call_log)
         logger.debug('publishing new call log: %s', payload)
         event = CallLogCreatedEvent(payload)
         self._publisher.publish(event)
 
-        payload = CDRSchema(exclude=['tags']).dump(call_log).data
+        payload = CDRSchema(exclude=['tags']).dump(call_log)
         for participant in call_log.participants:
             event = CallLogUserCreatedEvent(participant.user_uuid, payload)
             self._publisher.publish(

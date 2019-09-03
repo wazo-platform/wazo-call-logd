@@ -98,10 +98,10 @@ class CDRAuthResource(AuthResource):
 class CDRResource(CDRAuthResource):
     @required_acl('call-logd.cdr.read')
     def get(self):
-        args = CDRListRequestSchema().load(request.args).data
+        args = CDRListRequestSchema().load(request.args)
         args["tenant_uuids"] = self.visible_tenants(args["recurse"])
         cdrs = self.cdr_service.list(args)
-        return CDRSchemaList().dump(cdrs).data
+        return CDRSchemaList().dump(cdrs)
 
 
 class CDRIdResource(CDRAuthResource):
@@ -111,17 +111,17 @@ class CDRIdResource(CDRAuthResource):
         cdr = self.cdr_service.get(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
-        return CDRSchema().dump(cdr).data
+        return CDRSchema().dump(cdr)
 
 
 class CDRUserResource(CDRAuthResource):
     @required_acl('call-logd.users.{user_uuid}.cdr.read')
     def get(self, user_uuid):
-        args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args).data
+        args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args)
         args['user_uuids'] = [user_uuid]
         args['tenant_uuids'] = [Tenant.autodetect().uuid]
         cdrs = self.cdr_service.list(args)
-        return CDRSchemaList().dump(cdrs).data
+        return CDRSchemaList().dump(cdrs)
 
 
 class CDRUserMeResource(CDRAuthResource):
@@ -131,9 +131,9 @@ class CDRUserMeResource(CDRAuthResource):
 
     @required_acl('call-logd.users.me.cdr.read')
     def get(self):
-        args = CDRListRequestSchema().load(request.args).data
+        args = CDRListRequestSchema().load(request.args)
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         args['me_user_uuid'] = user_uuid
         args['tenant_uuids'] = [token.tenant_uuid]
         cdrs = self.cdr_service.list(args)
-        return CDRSchemaList(exclude=['items.tags']).dump(cdrs).data
+        return CDRSchemaList(exclude=['items.tags']).dump(cdrs)
