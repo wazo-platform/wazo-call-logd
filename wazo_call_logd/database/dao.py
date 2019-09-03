@@ -5,7 +5,7 @@ from contextlib import contextmanager
 
 import sqlalchemy as sa
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, distinct
 from sqlalchemy import exc
 from sqlalchemy import sql, func, and_
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -74,33 +74,7 @@ class CallLogDAO(object):
 
     def find_all_in_period(self, params):
         with self.new_session() as session:
-            distinct = params.get('distinct')
-            if distinct == 'peer_exten':
-                # TODO(pcm) use the most recent call log not the most recent id
-                sub_query = session.query(
-                    func.max(CallLogParticipant.call_log_id).label('max_id'),
-                ).group_by(
-                    CallLogParticipant.user_uuid,
-                    CallLogParticipant.peer_exten,
-                ).subquery()
-                query = session.query(
-                    CallLogSchema,
-                ).join(
-                    sub_query,
-                    and_(CallLogSchema.id == sub_query.c.max_id),
-                )
-            else:
-                query = session.query(CallLogSchema)
-
-            query = query.options(
-                joinedload('participants'),
-                subqueryload('source_participant'),
-                subqueryload('destination_participant'),
-            )
-
-            query = self._apply_user_filter(query, params)
-            query = self._apply_filters(query, params)
-
+            query = self._list_query(session, params)
             order_field = None
             if params.get('order'):
                 if params['order'] == 'marshmallow_duration':
@@ -128,6 +102,36 @@ class CallLogDAO(object):
 
             return call_log_rows
 
+    def _list_query(self, session, params):
+        distinct_ = params.get('distinct')
+        if distinct_ == 'peer_exten':
+            # TODO(pcm) use the most recent call log not the most recent id
+            sub_query = session.query(
+                func.max(CallLogParticipant.call_log_id).label('max_id'),
+            ).group_by(
+                CallLogParticipant.user_uuid,
+                CallLogParticipant.peer_exten,
+            ).subquery()
+
+            query = session.query(
+                CallLogSchema,
+            ).join(
+                sub_query,
+                and_(CallLogSchema.id == sub_query.c.max_id),
+            )
+        else:
+            query = session.query(CallLogSchema)
+
+        query = query.options(
+            joinedload('participants'),
+            subqueryload('source_participant'),
+            subqueryload('destination_participant'),
+        )
+
+        query = self._apply_user_filter(query, params)
+        query = self._apply_filters(query, params)
+        return query
+
     def count_in_period(self, params):
         with self.new_session() as session:
             query = session.query(CallLogSchema)
@@ -139,9 +143,10 @@ class CallLogDAO(object):
 
             total = query.count()
 
-            query = self._apply_filters(query, params)
+            session.expunge_all()
 
-            filtered = query.count()
+            subquery = self._list_query(session, params).subquery()
+            filtered = session.query(func.count(distinct(subquery.c.id))).scalar()
 
         return {'total': total, 'filtered': filtered}
 

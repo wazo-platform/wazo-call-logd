@@ -9,6 +9,7 @@ from hamcrest import (
     contains_inanyorder,
     empty,
     has_entry,
+    has_entries,
     has_properties,
 )
 
@@ -104,4 +105,23 @@ class TestDAO(AssetLaunchingTestCase):
         assert_that(result, contains_inanyorder(
             has_properties(id=3),  # The most recent call between Alice and Bob
             has_properties(id=4),  # The most recent call between Alice and Charles
+        ))
+
+    @call_logs(
+        [
+            cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW),
+            cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES),
+            cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES),
+            cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES)
+        ]
+    )
+    def test_count_distinct(self):
+        params = {
+            'distinct': 'peer_exten',
+        }
+
+        result = self.dao.count_in_period(params)
+        assert_that(result, has_entries(
+            total=4,
+            filtered=2
         ))

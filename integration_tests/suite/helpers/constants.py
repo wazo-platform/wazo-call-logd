@@ -32,21 +32,21 @@ SECONDS = datetime.timedelta(seconds=1)
 ALICE = {
     'exten': '101',
     'context': 'internal',
-    'id': 42,
+    'id': 'ce19b2c3-17a6-4f62-a48b-c663aaa8d62c',
     'line_id': '11',
     'name': 'Alice',
 }
 BOB = {
     'exten': '102',
     'context': 'internal',
-    'id': 43,
+    'id': 'e25c7096-312d-4d9e-93b0-b8d7fc6b9477',
     'line_id': '22',
     'name': 'Bob',
 }
 CHARLES = {
     'exten': '103',
     'context': 'internal',
-    'id': 44,
+    'id': 'a0124923-2b2d-42c6-8637-f7e308ee6008',
     'line_id': '33',
     'name': 'Charles',
 }
