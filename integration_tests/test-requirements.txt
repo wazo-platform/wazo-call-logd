@@ -1,8 +1,8 @@
-https://github.com/wazo-pbx/wazo-call-logd-client/archive/buster.zip
-https://github.com/wazo-pbx/xivo-dao/archive/buster.zip
-https://github.com/wazo-pbx/xivo-test-helpers/archive/buster.zip
-https://github.com/wazo-pbx/xivo-lib-rest-client/archive/buster.zip
-https://github.com/wazo-pbx/xivo-lib-python/archive/buster.zip
+https://github.com/wazo-pbx/wazo-call-logd-client/archive/master.zip
+https://github.com/wazo-pbx/xivo-dao/archive/master.zip
+https://github.com/wazo-pbx/xivo-test-helpers/archive/master.zip
+https://github.com/wazo-pbx/xivo-lib-rest-client/archive/master.zip
+https://github.com/wazo-pbx/xivo-lib-python/archive/master.zip
 docker-compose
 kombu
 nose
