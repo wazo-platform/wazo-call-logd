@@ -43,7 +43,9 @@ urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
 
 
-def cdr(id_=None, caller=None, callee=None, start_time=None, ring_seconds=5, talk_time=30):
+def cdr(
+    id_=None, caller=None, callee=None, start_time=None, ring_seconds=5, talk_time=30
+):
     id_ = id_ or random.randint(1, 999999)
     start_time = start_time or NOW
     answer_time = start_time + ring_seconds * SECONDS
@@ -68,7 +70,11 @@ def cdr(id_=None, caller=None, callee=None, start_time=None, ring_seconds=5, tal
         'source_internal_context': caller['context'],
         'participants': [
             {'user_uuid': caller['id'], 'line_id': caller['line_id'], 'role': 'source'},
-            {'user_uuid': callee['id'], 'line_id': caller['line_id'], 'role': 'destination'},
+            {
+                'user_uuid': callee['id'],
+                'line_id': caller['line_id'],
+                'role': 'destination',
+            },
         ],
     }
 

@@ -8,7 +8,7 @@ from marshmallow import (
     Schema,
     pre_dump,
     pre_load,
-    post_dump
+    post_dump,
 )
 from marshmallow.validate import OneOf, Range, Regexp
 

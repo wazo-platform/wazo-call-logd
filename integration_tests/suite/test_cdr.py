@@ -23,10 +23,7 @@ from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.auth import MockUserToken
 from xivo_test_helpers.hamcrest.raises import raises
 
-from .helpers.base import (
-    cdr,
-    IntegrationTest,
-)
+from .helpers.base import cdr, IntegrationTest
 from .helpers.constants import (
     ALICE,
     BOB,
@@ -724,8 +721,7 @@ class TestListCDR(IntegrationTest):
             cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW),
             cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES),
             cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES),
-            cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES)
-
+            cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES),
         ]
     )
     def test_distinct_peer_exten(self):
@@ -735,10 +731,7 @@ class TestListCDR(IntegrationTest):
             has_entries(
                 filtered=2,
                 total=4,
-                items=contains_inanyorder(
-                    has_entries(id=3),
-                    has_entries(id=4),
-                ),
+                items=contains_inanyorder(has_entries(id=3), has_entries(id=4)),
             ),
         )
 

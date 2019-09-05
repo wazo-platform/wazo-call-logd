@@ -106,18 +106,14 @@ class CallLogDAO(object):
         distinct_ = params.get('distinct')
         if distinct_ == 'peer_exten':
             # TODO(pcm) use the most recent call log not the most recent id
-            sub_query = session.query(
-                func.max(CallLogParticipant.call_log_id).label('max_id'),
-            ).group_by(
-                CallLogParticipant.user_uuid,
-                CallLogParticipant.peer_exten,
-            ).subquery()
+            sub_query = (
+                session.query(func.max(CallLogParticipant.call_log_id).label('max_id'))
+                .group_by(CallLogParticipant.user_uuid, CallLogParticipant.peer_exten)
+                .subquery()
+            )
 
-            query = session.query(
-                CallLogSchema,
-            ).join(
-                sub_query,
-                and_(CallLogSchema.id == sub_query.c.max_id),
+            query = session.query(CallLogSchema).join(
+                sub_query, and_(CallLogSchema.id == sub_query.c.max_id)
             )
         else:
             query = session.query(CallLogSchema)

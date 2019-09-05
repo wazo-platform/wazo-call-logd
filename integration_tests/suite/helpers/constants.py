@@ -24,7 +24,7 @@ OTHER_TENANT = '0a5afd22-6325-49b1-8e35-b04618e78b58'
 OTHER_USER_UUID = '35faa8d3-3d89-4a72-b897-0706125c7a35'
 OTHER_USER_TOKEN = '2c369402-fa85-4ea5-84ed-933cbd1002f0'
 
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S'   # 2019-02-05 21:09:48
+TIME_FORMAT = '%Y-%m-%d %H:%M:%S'  # 2019-02-05 21:09:48
 NOW = datetime.datetime.now()
 MINUTES = datetime.timedelta(minutes=1)
 SECONDS = datetime.timedelta(seconds=1)
