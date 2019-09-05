@@ -35,7 +35,9 @@ def _find_line_by_channame(confd, channame):
         protocol = 'SIP'
         line_name, _ = line_name.split('@')
 
-    logger.debug('Looking up line with protocol %s and line name "%s"', protocol, line_name)
+    logger.debug(
+        'Looking up line with protocol %s and line name "%s"', protocol, line_name
+    )
     lines = confd.lines.list(name=line_name, recurse=True)['items']
     for line in lines:
         return line

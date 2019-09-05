@@ -20,6 +20,7 @@ paths:
       - $ref: '#/parameters/from_id'
       - $ref: '#/parameters/recurse'
       - $ref: '#/parameters/tenantuuid'
+      - $ref: '#/parameters/distinct'
       responses:
         '200':
           description: List CDR
@@ -77,6 +78,7 @@ paths:
       - $ref: '#/parameters/call_direction'
       - $ref: '#/parameters/number'
       - $ref: '#/parameters/from_id'
+      - $ref: '#/parameters/distinct'
       responses:
         '200':
           description: List CDR
@@ -106,6 +108,7 @@ paths:
       - $ref: '#/parameters/number'
       - $ref: '#/parameters/from_id'
       - $ref: '#/parameters/user_uuid'
+      - $ref: '#/parameters/distinct'
       responses:
         '200':
           description: List CDR
@@ -175,6 +178,14 @@ parameters:
     - inbound
     - outbound
     description: Filter list of items
+  distinct:
+    required: false
+    name: distinct
+    in: query
+    type: string
+    enum:
+      - peer_exten
+    description: Will only return one result for the selected field
   number:
     required: false
     name: number

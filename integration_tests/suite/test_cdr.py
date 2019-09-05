@@ -23,8 +23,11 @@ from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.auth import MockUserToken
 from xivo_test_helpers.hamcrest.raises import raises
 
-from .helpers.base import IntegrationTest
+from .helpers.base import cdr, IntegrationTest
 from .helpers.constants import (
+    ALICE,
+    BOB,
+    CHARLES,
     NON_USER_TOKEN,
     OTHER_USER_UUID,
     OTHER_USER_TOKEN,
@@ -37,6 +40,8 @@ from .helpers.constants import (
     USER_2_TOKEN,
     MASTER_TOKEN,
     MASTER_TENANT,
+    MINUTES,
+    NOW,
 )
 from .helpers.database import call_logs
 from .helpers.hamcrest.contains_string_ignoring_case import (
@@ -708,6 +713,25 @@ class TestListCDR(IntegrationTest):
                 filtered=1,
                 total=4,
                 items=contains_inanyorder(has_entry('call_direction', 'internal')),
+            ),
+        )
+
+    @call_logs(
+        [
+            cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW),
+            cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES),
+            cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES),
+            cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES),
+        ]
+    )
+    def test_distinct_peer_exten(self):
+        result = self.call_logd.cdr.list(distinct='peer_exten')
+        assert_that(
+            result,
+            has_entries(
+                filtered=2,
+                total=4,
+                items=contains_inanyorder(has_entries(id=3), has_entries(id=4)),
             ),
         )
 

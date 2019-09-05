@@ -3,6 +3,7 @@
 
 import logging
 import os
+import random
 import tempfile
 
 from contextlib import contextmanager
@@ -20,23 +21,62 @@ from xivo_test_helpers.asset_launching_test_case import (
 from .bus import CallLogBusClient
 from .confd import ConfdClient
 from .constants import (
+    MASTER_TENANT,
     MASTER_TOKEN,
     MASTER_USER_UUID,
-    MASTER_TENANT,
+    NOW,
     OTHER_TENANT,
-    OTHER_USER_UUID,
     OTHER_USER_TOKEN,
+    OTHER_USER_UUID,
+    SECONDS,
+    TIME_FORMAT,
+    USERS_TENANT,
     USER_1_TOKEN,
     USER_1_UUID,
     USER_2_TOKEN,
     USER_2_UUID,
-    USERS_TENANT,
     WAZO_UUID,
 )
 from .database import DbHelper
 
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
+
+
+def cdr(
+    id_=None, caller=None, callee=None, start_time=None, ring_seconds=5, talk_time=30
+):
+    id_ = id_ or random.randint(1, 999999)
+    start_time = start_time or NOW
+    answer_time = start_time + ring_seconds * SECONDS
+    end_time = answer_time + talk_time * SECONDS
+
+    return {
+        'id': id_,
+        'date': start_time.strftime(TIME_FORMAT),
+        'date_answer': answer_time.strftime(TIME_FORMAT),
+        'date_end': end_time.strftime(TIME_FORMAT),
+        'destination_exten': callee['exten'],
+        'destination_name': callee['name'],
+        'destination_internal_exten': callee['exten'],
+        'destination_internal_context': callee['context'],
+        'direction': 'internal',
+        'requested_exten': callee['exten'],
+        'requested_internal_exten': callee['exten'],
+        'requested_internal_context': callee['context'],
+        'source_exten': caller['exten'],
+        'source_name': caller['name'],
+        'source_internal_exten': caller['exten'],
+        'source_internal_context': caller['context'],
+        'participants': [
+            {'user_uuid': caller['id'], 'line_id': caller['line_id'], 'role': 'source'},
+            {
+                'user_uuid': callee['id'],
+                'line_id': caller['line_id'],
+                'role': 'destination',
+            },
+        ],
+    }
 
 
 class WrongClient(object):

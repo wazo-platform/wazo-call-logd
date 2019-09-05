@@ -8,7 +8,7 @@ from marshmallow import (
     Schema,
     pre_dump,
     pre_load,
-    post_dump
+    post_dump,
 )
 from marshmallow.validate import OneOf, Range, Regexp
 
@@ -87,6 +87,7 @@ class CDRListRequestSchema(Schema):
     user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
     from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
     recurse = fields.Boolean(missing=False)
+    distinct = fields.String(validate=OneOf(['peer_exten']), missing=None)
 
     @pre_load
     def convert_tags_and_user_uuid_to_list(self, data):
