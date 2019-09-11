@@ -141,12 +141,6 @@ class DatabaseQueries(object):
         session.commit()
         return call_log
 
-    def list_call_logs(self):
-        session = self.Session()
-        call_logs = session.query(CallLog).order_by(CallLog.date).all()
-        session.commit()
-        return call_logs
-
     def get_call_log_user_uuids(self, call_log_id):
         session = self.Session()
         call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
