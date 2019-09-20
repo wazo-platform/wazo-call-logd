@@ -6,14 +6,14 @@
 
 - project:
     templates:
-      - wazo-tox-py35
+      - wazo-tox-py37
       - wazo-tox-linters
     check:
       jobs:
         - wazo-tox-integration-call-logd:
-            nodeset: debian9-vm
+            nodeset: debian10-vm
     gate:
       jobs:
         - wazo-tox-integration-call-logd:
-            nodeset: debian9-vm
+            nodeset: debian10-vm
 
