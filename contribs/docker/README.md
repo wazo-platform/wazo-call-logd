@@ -14,7 +14,7 @@ To install docker on Linux :
 
 To build the image, simply invoke
 
-    docker build -t wazo-call-logd github.com/wazo-pbx/wazo-call-logd
+    docker build -t wazo-call-logd github.com/wazo-platform/wazo-call-logd
 
 Or directly in the sources in contribs/docker
 
