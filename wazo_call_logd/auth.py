@@ -23,7 +23,7 @@ def get_token_user_uuid_from_request(auth_client):
     except HTTPError as e:
         logger.warning('HTTP error from wazo-auth while getting token: %s', e)
         raise TokenWithUserUUIDRequiredError()
-    user_uuid = token_infos['xivo_user_uuid']
+    user_uuid = token_infos['metadata']['pbx_user_uuid']
     if not user_uuid:
         raise TokenWithUserUUIDRequiredError()
     return user_uuid
