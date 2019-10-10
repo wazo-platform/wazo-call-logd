@@ -30,7 +30,7 @@ RUN touch /var/log/wazo-call-logd.log
 RUN mkdir -p /etc/wazo-call-logd
 ADD ./etc/wazo-call-logd/config.yml /etc/wazo-call-logd/config.yml
 ## PID
-RUN mkdir /var/run/wazo-call-logd
+RUN mkdir /run/wazo-call-logd
 
 EXPOSE 9298
 

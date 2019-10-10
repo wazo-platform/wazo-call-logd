@@ -12,7 +12,7 @@ _CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _DEFAULT_CONFIG = {
     'logfile': '/var/log/wazo-call-logd.log',
     'log_level': 'info',
-    'pidfile': '/var/run/wazo-call-logd/wazo-call-logd.pid',
+    'pidfile': '/run/wazo-call-logd/wazo-call-logd.pid',
     'config_file': '/etc/wazo-call-logd/config.yml',
     'extra_config_files': '/etc/wazo-call-logd/conf.d',
     'foreground': False,
