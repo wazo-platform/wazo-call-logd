@@ -6,9 +6,9 @@ Before=monit.service
 
 [Service]
 Type=forking
-ExecStartPre=/usr/bin/install -d -o wazo-call-logd -g wazo-call-logd /var/run/wazo-call-logd
+ExecStartPre=/usr/bin/install -d -o wazo-call-logd -g wazo-call-logd /run/wazo-call-logd
 ExecStart=/usr/bin/wazo-call-logd
-PIDFile=/var/run/wazo-call-logd/wazo-call-logd.pid
+PIDFile=/run/wazo-call-logd/wazo-call-logd.pid
 
 [Install]
 WantedBy=multi-user.target

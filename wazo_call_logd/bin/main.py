@@ -27,7 +27,7 @@ from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
 
 DEFAULT_CEL_COUNT = 20000
-PIDFILENAME = '/var/run/wazo-call-logs.pid'
+PIDFILENAME = '/run/wazo-call-logs.pid'
 
 _CERT_FILE = '/usr/share/xivo-certs/server.crt'
 DEFAULT_CONFIG = {
