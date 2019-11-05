@@ -163,7 +163,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 '''
     )
     def test_given_cels_with_unknown_line_identities_when_generate_call_log_then_no_user_uuid(
-        self
+        self,
     ):
         linkedid = '123456789.1011'
         msg_accumulator_1 = self.bus.accumulator('call_log.created')
@@ -224,7 +224,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 '''
     )
     def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid_and_internal_extension(
-        self
+        self,
     ):
         linkedid = '123456789.1011'
         self.confd.set_users(
@@ -339,7 +339,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 '''
     )
     def test_given_cels_of_forwarded_call_when_generate_call_log_then_requested_different_from_destination(
-        self
+        self,
     ):
         self.confd.set_lines(
             MockLine(
@@ -405,7 +405,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  '''
     )
     def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(
-        self
+        self,
     ):
         self.confd.set_lines(
             MockLine(

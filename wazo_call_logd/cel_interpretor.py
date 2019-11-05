@@ -285,9 +285,11 @@ class LocalOriginateCELInterpretor(object):
     def interpret_cels(self, cels, call):
         uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
         try:
-            local_channel1, local_channel2, source_channel = (
-                starting_channels
-            ) = uniqueids[:3]
+            (
+                local_channel1,
+                local_channel2,
+                source_channel,
+            ) = starting_channels = uniqueids[:3]
         except ValueError:  # in case a CHAN_START is missing...
             return call
 

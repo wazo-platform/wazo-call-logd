@@ -70,7 +70,10 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1, call_2 = (
+        (
+            call_1,
+            call_2,
+        ) = (
             self.interpretor.interpret_cels.side_effect
         ) = raw_call_log_constructor.side_effect = [Mock(), Mock()]
         expected_call_1 = call_1.to_call_log.return_value
@@ -89,7 +92,10 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1, call_2 = (
+        (
+            call_1,
+            call_2,
+        ) = (
             self.interpretor.interpret_cels.side_effect
         ) = raw_call_log_constructor.side_effect = [Mock(), Mock()]
         expected_call_1 = call_1.to_call_log.return_value

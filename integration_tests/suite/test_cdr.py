@@ -640,7 +640,7 @@ class TestListCDR(IntegrationTest):
 
     @call_logs([{'date': '2017-04-10'}, {'date': '2017-04-12'}, {'date': '2017-04-11'}])
     def test_given_call_logs_when_list_cdr_with_pagination_then_list_cdr_paginated(
-        self
+        self,
     ):
         result_unpaginated = self.call_logd.cdr.list()
         result_paginated = self.call_logd.cdr.list(limit=1, offset=1)
@@ -704,7 +704,7 @@ class TestListCDR(IntegrationTest):
         ]
     )
     def test_given_call_logs_when_list_cdr_with_call_direction_then_list_matching_cdr(
-        self
+        self,
     ):
         result = self.call_logd.cdr.list(call_direction='internal')
         assert_that(
@@ -1048,7 +1048,7 @@ class TestListCDR(IntegrationTest):
         ]
     )
     def test_given_call_logs_when_list_cdr_of_user_as_csv_then_list_cdr_of_user_as_csv(
-        self
+        self,
     ):
         result_raw = self.call_logd.cdr.list_for_user_csv(USER_1_UUID)
         result = list(csv.DictReader(StringIO(result_raw)))
