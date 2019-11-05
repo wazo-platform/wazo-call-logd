@@ -6,7 +6,6 @@ from contextlib import closing
 import requests
 from hamcrest import assert_that
 
-from xivo import url_helpers
 from xivo_dao.alchemy.call_log import CallLog
 
 from .helpers.base import IntegrationTest
@@ -81,10 +80,9 @@ class TestTenantMigration(IntegrationTest):
         ]
     )
     def test_tenant_migration(self):
-        base = 'https://localhost:{port}/1.0/'.format(
+        url = 'https://localhost:{port}/1.0/tenant-migration'.format(
             port=self.service_port(9298, 'call-logd')
         )
-        url = url_helpers.base_join(base, 'tenant-migration')
 
         payload = {
             'contexts': [
