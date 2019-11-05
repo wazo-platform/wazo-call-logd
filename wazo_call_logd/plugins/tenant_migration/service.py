@@ -16,7 +16,7 @@ TO_MIGRATE_TENANT_UUID = '00000000-0000-0000-0000-000000000000'
 
 class CallLogdTenantUpgradeService(object):
     def __init__(self, config):
-        engine = create_engine(config['db_uri'])
+        engine = create_engine(config['db_uri'], pool_pre_ping=True)
         self._Session = scoped_session(sessionmaker())
         self._Session.configure(bind=engine)
         self._service_tenant_uuid = None
