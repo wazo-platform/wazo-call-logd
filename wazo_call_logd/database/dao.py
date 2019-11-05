@@ -14,19 +14,15 @@ from sqlalchemy.orm import subqueryload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
-from xivo import sqlalchemy_helper
 from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 from wazo_call_logd.exceptions import DatabaseServiceUnavailable
 
 
-sqlalchemy_helper.handle_db_restart()
-
-
 def new_db_session(db_uri):
     _Session = scoped_session(sessionmaker())
-    engine = create_engine(db_uri)
+    engine = create_engine(db_uri, pool_pre_ping=True)
     _Session.configure(bind=engine)
     return _Session
 

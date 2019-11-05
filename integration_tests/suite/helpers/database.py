@@ -68,8 +68,10 @@ class DbHelper(object):
         db = db or self.db
         uri = "{}/{}".format(self.uri, db)
         if isolate:
-            return sa.create_engine(uri, isolation_level='AUTOCOMMIT')
-        return sa.create_engine(uri)
+            return sa.create_engine(
+                uri, isolation_level='AUTOCOMMIT', pool_pre_ping=True
+            )
+        return sa.create_engine(uri, pool_pre_ping=True)
 
     def connect(self, db=None):
         db = db or self.db
