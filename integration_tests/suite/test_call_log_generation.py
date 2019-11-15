@@ -1,6 +1,7 @@
 # Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import datetime
 from functools import wraps
 from contextlib import contextmanager
 from hamcrest import (
@@ -500,6 +501,50 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     )
 
             until.assert_(call_log_has_transformed_number, tries=5)
+
+    @raw_cels('''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid  | userfield
+--------------+----------------------------+----------+---------+-------+---------+---------------------+---------------+---------------+-----------
+ CHAN_START   | 2015-06-18 14:08:56.910686 | Elès 45  | 1045    | 1001  | default | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ APP_START    | 2015-06-18 14:08:57.014249 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ CHAN_START   | 2015-06-18 14:08:57.019202 | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ ANSWER       | 2015-06-18 14:08:59.864053 | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ ANSWER       | 2015-06-18 14:08:59.877155 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ BRIDGE_ENTER | 2015-06-18 14:08:59.878    | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ BRIDGE_ENTER | 2015-06-18 14:08:59.87976  | Elès 01  | 1001    |       | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ BRIDGE_EXIT  | 2015-06-18 14:09:02.250446 | Elès 01  | 1001    |       | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ HANGUP       | 2015-06-18 14:09:02.26592  | Elès 01  | 1001    |       | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ CHAN_END     | 2015-06-18 14:09:02.267146 | Elès 01  | 1001    |       | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ BRIDGE_EXIT  | 2015-06-18 14:09:02.268    | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ HANGUP       | 2015-06-18 14:09:02.269498 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ CHAN_END     | 2015-06-18 14:09:02.271033 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ LINKEDID_END | 2015-06-18 14:09:02.272325 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+    ''')
+    def test_answered_internal(self):
+        linkedid = '1434650936.31'
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_generated():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            date=datetime.fromisoformat('2015-06-18 14:08:56.910686+00:00'),
+                            date_answer=datetime.fromisoformat('2015-06-18 14:08:59.878+00:00'),
+                            date_end=datetime.fromisoformat('2015-06-18 14:09:02.271033+00:00'),
+                            source_name='Elès 45',
+                            source_exten='1045',
+                            requested_exten='1001',
+                            requested_context='default',
+                            destination_exten='1001',
+                            source_line_identity='sip/as2mkq',
+                            destination_line_identity='sip/je5qtq',
+                        )
+                    )
+
+            until.assert_(call_log_generated, tries=5)
 
     @contextmanager
     def cels(self, cels):
