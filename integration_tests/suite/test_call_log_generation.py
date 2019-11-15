@@ -663,6 +663,80 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
+    @raw_cels('''\
+ eventtype    | eventtime                  | cid_name | cid_num   | exten     | context     | channame              |      uniqueid |     linkedid  | userfield
+
+ CHAN_START   | 2015-06-18 14:12:05.935283 | Elès 01  | 1001      | **9642301 | default     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ XIVO_OUTCALL | 2015-06-18 14:12:06.118509 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ APP_START    | 2015-06-18 14:12:06.123695 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ CHAN_START   | 2015-06-18 14:12:06.124957 |          |           | s         | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ ANSWER       | 2015-06-18 14:12:12.500153 |          | **9642301 | dial      | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ ANSWER       | 2015-06-18 14:12:12.514389 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ BRIDGE_ENTER | 2015-06-18 14:12:12.515753 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ BRIDGE_ENTER | 2015-06-18 14:12:12.517027 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ BRIDGE_EXIT  | 2015-06-18 14:12:16.85455  | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ HANGUP       | 2015-06-18 14:12:16.861414 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ CHAN_END     | 2015-06-18 14:12:16.862638 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ BRIDGE_EXIT  | 2015-06-18 14:12:16.863979 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ HANGUP       | 2015-06-18 14:12:16.865316 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ CHAN_END     | 2015-06-18 14:12:16.866615 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ LINKEDID_END | 2015-06-18 14:12:16.867848 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+    ''')
+    def test_answered_outgoing_call(self):
+        self._assert_last_call_log_matches(
+            '1434651125.37',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:12:05.935283+00:00'),
+                date_answer=datetime.fromisoformat('2015-06-18 14:12:12.515753+00:00'),
+                date_end=datetime.fromisoformat('2015-06-18 14:12:16.862638+00:00'),
+                source_name='Elès 01',
+                source_exten='1001',
+                requested_exten='**9642301',
+                requested_context='default',
+                destination_exten='**9642301',
+                user_field='',
+                source_line_identity='sip/je5qtq',
+                destination_line_identity='sip/dev_34-1',
+            ),
+        )
+
+    @raw_cels('''\
+ eventtype    | eventtime                  | cid_name | cid_num   | exten     | context     | channame              |      uniqueid |     linkedid  | userfield
+
+ CHAN_START   | 2015-06-18 14:13:18.176182 | Elès 01  | 1001      | **9642301 | default     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 |
+ XIVO_OUTCALL | 2015-06-18 14:13:18.250067 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ APP_START    | 2015-06-18 14:13:18.254452 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ CHAN_START   | 2015-06-18 14:13:18.255915 |          |           | s         | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ ANSWER       | 2015-06-18 14:13:20.98612  |          | **9642301 | dial      | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ ANSWER       | 2015-06-18 14:13:20.998113 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ BRIDGE_ENTER | 2015-06-18 14:13:21.190246 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ BRIDGE_ENTER | 2015-06-18 14:13:21.192798 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ BRIDGE_EXIT  | 2015-06-18 14:13:24.137056 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ HANGUP       | 2015-06-18 14:13:24.146256 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ CHAN_END     | 2015-06-18 14:13:24.14759  | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ BRIDGE_EXIT  | 2015-06-18 14:13:24.148734 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ HANGUP       | 2015-06-18 14:13:24.149943 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ CHAN_END     | 2015-06-18 14:13:24.151296 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ LINKEDID_END | 2015-06-18 14:13:24.152458 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+    ''')
+    def test_answered_outgoing_call_with_userfield(self):
+        self._assert_last_call_log_matches(
+            '1434651198.39',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:13:18.176182+00:00'),
+                date_answer=datetime.fromisoformat('2015-06-18 14:13:21.190246+00:00'),
+                date_end=datetime.fromisoformat('2015-06-18 14:13:24.147590+00:00'),
+                source_name='Elès 01',
+                source_exten='1001',
+                requested_exten='**9642301',
+                requested_context='default',
+                destination_exten='**9642301',
+                user_field='foo',
+                source_line_identity='sip/je5qtq',
+                destination_line_identity='sip/dev_34-1',
+            ),
+        )
+
     @contextmanager
     def cels(self, cels):
         with self.database.queries() as queries:
