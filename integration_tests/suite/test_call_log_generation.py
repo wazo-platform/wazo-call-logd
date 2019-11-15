@@ -546,6 +546,44 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
             until.assert_(call_log_generated, tries=5)
 
+    @raw_cels('''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid  | userfield
+
+ CHAN_START   | 2015-06-18 14:10:24.586638 | Elès 45  | 1045    | 1001  | default | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+ APP_START    | 2015-06-18 14:10:24.6893   | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+ CHAN_START   | 2015-06-18 14:10:24.694166 | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000022 | 1434651024.34 | 1434651024.33 |
+ HANGUP       | 2015-06-18 14:10:28.280456 | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000022 | 1434651024.34 | 1434651024.33 |
+ CHAN_END     | 2015-06-18 14:10:28.28819  | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000022 | 1434651024.34 | 1434651024.33 |
+ HANGUP       | 2015-06-18 14:10:28.289431 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+ CHAN_END     | 2015-06-18 14:10:28.290746 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+ LINKEDID_END | 2015-06-18 14:10:28.292243 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+    ''')
+    def test_internal_no_answer(self):
+        linkedid = '1434651024.33'
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_generated():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            date=datetime.fromisoformat('2015-06-18 14:10:24.586638+00:00'),
+                            date_answer=None,
+                            date_end=datetime.fromisoformat('2015-06-18 14:10:28.290746+00:00'),
+                            source_name='Elès 45',
+                            source_exten='1045',
+                            requested_exten='1001',
+                            requested_context='default',
+                            destination_exten='1001',
+                            source_line_identity='sip/as2mkq',
+                            destination_line_identity='sip/je5qtq',
+                        )
+                    )
+
+            until.assert_(call_log_generated, tries=5)
+
     @contextmanager
     def cels(self, cels):
         with self.database.queries() as queries:
