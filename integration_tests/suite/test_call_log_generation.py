@@ -770,6 +770,41 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
+    @raw_cels('''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid
+
+ CHAN_START   | 2015-06-18 14:15:12.978338 | Elès 45  | 1045    | s     | default | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ ANSWER       | 2015-06-18 14:15:14.587341 | 1001     | 1001    |       | default | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ APP_START    | 2015-06-18 14:15:14.697414 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ CHAN_START   | 2015-06-18 14:15:14.702394 | Elès 01  | 1001    | s     | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ ANSWER       | 2015-06-18 14:15:16.389857 | Elès 01  | 1001    | s     | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ BRIDGE_ENTER | 2015-06-18 14:15:16.396213 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ BRIDGE_ENTER | 2015-06-18 14:15:16.397787 | Elès 01  | 1001    |       | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ BRIDGE_EXIT  | 2015-06-18 14:15:19.192422 | Elès 01  | 1001    |       | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ HANGUP       | 2015-06-18 14:15:19.206152 | Elès 01  | 1001    |       | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ CHAN_END     | 2015-06-18 14:15:19.208217 | Elès 01  | 1001    |       | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ BRIDGE_EXIT  | 2015-06-18 14:15:19.209432 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ HANGUP       | 2015-06-18 14:15:19.211393 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ CHAN_END     | 2015-06-18 14:15:19.212596 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ LINKEDID_END | 2015-06-18 14:15:19.213763 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+    ''')
+    def test_answered_originate(self):
+        self._assert_last_call_log_matches(
+            '1434651312.43',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:15:12.978338+00:00'),
+                date_answer=datetime.fromisoformat('2015-06-18 14:15:16.396213+00:00'),
+                date_end=datetime.fromisoformat('2015-06-18 14:15:19.212596+00:00'),
+                source_name='Elès 45',
+                source_exten='1045',
+                requested_exten='1001',
+                requested_context='default',
+                destination_exten='1001',
+                source_line_identity='sip/as2mkq',
+                destination_line_identity='sip/je5qtq',
+            ),
+        )
+
     @contextmanager
     def cels(self, cels):
         with self.database.queries() as queries:
