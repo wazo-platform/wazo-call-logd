@@ -88,24 +88,15 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
     '''
     )
     def test_call_to_mobile_dial(self):
-        linkedid = '1567020560.33'
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-
-            def call_log_received():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties(
-                            source_name='Alice',
-                            source_exten='1001',
-                            destination_name='Bob',
-                            destination_exten='1002',
-                        ),
-                    )
-
-            until.assert_(call_log_received, tries=5)
+        self._assert_last_call_log_matches(
+            '1567020560.33',
+            has_properties(
+                source_name='Alice',
+                source_exten='1001',
+                destination_name='Bob',
+                destination_exten='1002',
+            ),
+        )
 
     @raw_cels(
         '''\
@@ -129,19 +120,13 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
 '''
     )
     def test_incoming_call_no_cid_name_rewritten_cid_num(self):
-        linkedid = '1510326428.26'
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-
-            def call_log_has_transformed_number():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties('source_name', '', 'source_exten', '42302'),
-                    )
-
-            until.assert_(call_log_has_transformed_number, tries=5)
+        self._assert_last_call_log_matches(
+            '1510326428.26',
+            has_properties(
+                source_name='',
+                source_exten='42302',
+            ),
+        )
 
     @raw_cels(
         '''\
@@ -359,30 +344,19 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
-
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid='1524594437.7')
-
-            def call_log_has_destination_different_from_requested():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties(
-                            {
-                                'tenant_uuid': USERS_TENANT,
-                                'source_internal_exten': '101',
-                                'source_internal_context': 'default',
-                                'requested_exten': '102',
-                                'requested_context': 'default',
-                                'destination_exten': '103',
-                                'destination_internal_exten': '103',
-                                'destination_internal_context': 'default',
-                            }
-                        ),
-                    )
-
-            until.assert_(call_log_has_destination_different_from_requested, tries=10)
+        self._assert_last_call_log_matches(
+            '1524594437.7',
+            has_properties(
+                tenant_uuid=USERS_TENANT,
+                source_internal_exten='101',
+                source_internal_context='default',
+                requested_exten='102',
+                requested_context='default',
+                destination_exten='103',
+                destination_internal_exten='103',
+                destination_internal_context='default',
+            ),
+        )
 
     @raw_cels(
         '''\
@@ -420,31 +394,21 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
 
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid='1524597350.9')
-
-            def call_log_has_destination_different_from_requested():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties(
-                            {
-                                'tenant_uuid': USERS_TENANT,
-                                'source_internal_exten': None,
-                                'source_internal_context': None,
-                                'requested_exten': '999101',
-                                'requested_context': 'from-extern',
-                                'requested_internal_exten': '101',
-                                'requested_internal_context': 'default',
-                                'destination_exten': '101',
-                                'destination_internal_exten': '101',
-                                'destination_internal_context': 'default',
-                            }
-                        ),
-                    )
-
-            until.assert_(call_log_has_destination_different_from_requested, tries=5)
+        self._assert_last_call_log_matches(
+            '1524597350.9',
+            has_properties(
+                tenant_uuid=USERS_TENANT,
+                source_internal_exten=None,
+                source_internal_context=None,
+                requested_exten='999101',
+                requested_context='from-extern',
+                requested_internal_exten='101',
+                requested_internal_context='default',
+                destination_exten='101',
+                destination_internal_exten='101',
+                destination_internal_context='default',
+            ),
+        )
 
     @raw_cels(
         '''\
@@ -482,25 +446,15 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 '''
     )
     def test_originate_from_mobile(self):
-        linkedid = '1564770000.21'
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-
-            def call_log_has_transformed_number():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties('source_name', '', 'source_exten', '**9742332'),
-                        has_properties(
-                            'destination_name',
-                            'Alice Woonderland',
-                            'destination_exten',
-                            '101',
-                        ),
-                    )
-
-            until.assert_(call_log_has_transformed_number, tries=5)
+        self._assert_last_call_log_matches(
+            '1564770000.21',
+            has_properties(
+                source_name='',
+                source_exten='**9742332',
+                destination_name='Alice Woonderland',
+                destination_exten='101',
+            ),
+        )
 
     @raw_cels('''\
  eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid  | userfield
@@ -521,30 +475,21 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  LINKEDID_END | 2015-06-18 14:09:02.272325 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
     ''')
     def test_answered_internal(self):
-        linkedid = '1434650936.31'
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-
-            def call_log_generated():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties(
-                            date=datetime.fromisoformat('2015-06-18 14:08:56.910686+00:00'),
-                            date_answer=datetime.fromisoformat('2015-06-18 14:08:59.878+00:00'),
-                            date_end=datetime.fromisoformat('2015-06-18 14:09:02.271033+00:00'),
-                            source_name='Elès 45',
-                            source_exten='1045',
-                            requested_exten='1001',
-                            requested_context='default',
-                            destination_exten='1001',
-                            source_line_identity='sip/as2mkq',
-                            destination_line_identity='sip/je5qtq',
-                        )
-                    )
-
-            until.assert_(call_log_generated, tries=5)
+        self._assert_last_call_log_matches(
+            '1434650936.31',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:08:56.910686+00:00'),
+                date_answer=datetime.fromisoformat('2015-06-18 14:08:59.878+00:00'),
+                date_end=datetime.fromisoformat('2015-06-18 14:09:02.271033+00:00'),
+                source_name='Elès 45',
+                source_exten='1045',
+                requested_exten='1001',
+                requested_context='default',
+                destination_exten='1001',
+                source_line_identity='sip/as2mkq',
+                destination_line_identity='sip/je5qtq',
+            )
+        )
 
     @raw_cels('''\
  eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid  | userfield
@@ -559,30 +504,21 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  LINKEDID_END | 2015-06-18 14:10:28.292243 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
     ''')
     def test_internal_no_answer(self):
-        linkedid = '1434651024.33'
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-
-            def call_log_generated():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties(
-                            date=datetime.fromisoformat('2015-06-18 14:10:24.586638+00:00'),
-                            date_answer=None,
-                            date_end=datetime.fromisoformat('2015-06-18 14:10:28.290746+00:00'),
-                            source_name='Elès 45',
-                            source_exten='1045',
-                            requested_exten='1001',
-                            requested_context='default',
-                            destination_exten='1001',
-                            source_line_identity='sip/as2mkq',
-                            destination_line_identity='sip/je5qtq',
-                        )
-                    )
-
-            until.assert_(call_log_generated, tries=5)
+        self._assert_last_call_log_matches(
+            '1434651024.33',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:10:24.586638+00:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2015-06-18 14:10:28.290746+00:00'),
+                source_name='Elès 45',
+                source_exten='1045',
+                requested_exten='1001',
+                requested_context='default',
+                destination_exten='1001',
+                source_line_identity='sip/as2mkq',
+                destination_line_identity='sip/je5qtq',
+            ),
+        )
 
     @contextmanager
     def cels(self, cels):
@@ -605,3 +541,14 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
         with self.database.queries() as queries:
             queries.clear_call_logs()
+
+    def _assert_last_call_log_matches(self, linkedid, expected):
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_generated():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(call_log, expected)
+
+            until.assert_(call_log_generated, tries=5)
