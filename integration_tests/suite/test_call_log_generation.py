@@ -737,6 +737,39 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
+    @raw_cels('''\
+ eventtype    | eventtime             | cid_name         | cid_num | exten | context | channame            | uniqueid      | linkedid
+
+ CHAN_START   | 2013-12-04 14:20:58.0 | Neelix Talaxian  | 1066    | 1624  | default | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ APP_START    | 2013-12-04 14:20:58.1 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ CHAN_START   | 2013-12-04 14:20:58.2 | Donald MacRonald | 1624    | s     | default | SIP/zsp7wv-0000000a | 1386184858.10 | 1386184858.9
+ ANSWER       | 2013-12-04 14:21:05.3 | Donald MacRonald | 1624    | s     | default | SIP/zsp7wv-0000000a | 1386184858.10 | 1386184858.9
+ ANSWER       | 2013-12-04 14:21:05.4 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ BRIDGE_START | 2013-12-04 14:21:05.5 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ BRIDGE_END   | 2013-12-04 14:21:06.6 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ HANGUP       | 2013-12-04 14:21:06.7 | Donald MacRonald | 1624    |       | user    | SIP/zsp7wv-0000000a | 1386184858.10 | 1386184858.9
+ CHAN_END     | 2013-12-04 14:21:06.8 | Donald MacRonald | 1624    |       | user    | SIP/zsp7wv-0000000a | 1386184858.10 | 1386184858.9
+ HANGUP       | 2013-12-04 14:21:06.9 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ CHAN_END     | 2013-12-04 14:21:07.1 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ LINKEDID_END | 2013-12-04 14:21:07.2 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+    ''')
+    def test_uniqueids_that_do_not_have_the_same_sort_order_chonologically_and_alphabetically(self):
+        self._assert_last_call_log_matches(
+            '1386184858.9',
+            has_properties(
+                date=datetime.fromisoformat('2013-12-04 14:20:58.000000+00:00'),
+                date_answer=datetime.fromisoformat('2013-12-04 14:21:05.500000+00:00'),
+                date_end=datetime.fromisoformat('2013-12-04 14:21:07.100000+00:00'),
+                source_name='Neelix Talaxian',
+                source_exten='1066',
+                requested_exten='1624',
+                requested_context='default',
+                destination_exten='1624',
+                source_line_identity='sip/2dvtpb',
+                destination_line_identity='sip/zsp7wv',
+            ),
+        )
+
     @contextmanager
     def cels(self, cels):
         with self.database.queries() as queries:
