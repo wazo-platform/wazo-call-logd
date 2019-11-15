@@ -835,6 +835,37 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
+    @raw_cels('''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten                | context | channame            |     uniqueid |     linkedid
+
+ CHAN_START   | 2014-02-20 09:28:46.683014 | Carlos   |    1003 | s                    | pcmdev  | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ ANSWER       | 2014-02-20 09:28:47.183651 | 1002     |    1002 |                      | pcmdev  | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ APP_START    | 2014-02-20 09:28:47.288346 | Carlos   |    1003 | s                    | user    | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ CHAN_START   | 2014-02-20 09:28:47.288466 | Bõb      |    1002 | s                    | pcmdev  | SCCP/1002-00000001  | 1392906527.5 | 1392906526.4
+ HANGUP       | 2014-02-20 09:29:00.306587 | Bõb      |    1002 | s                    | pcmdev  | SCCP/1002-00000001  | 1392906527.5 | 1392906526.4
+ CHAN_END     | 2014-02-20 09:29:00.307651 | Bõb      |    1002 | s                    | pcmdev  | SCCP/1002-00000001  | 1392906527.5 | 1392906526.4
+ HANGUP       | 2014-02-20 09:29:00.308165 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ CHAN_END     | 2014-02-20 09:29:00.309786 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ LINKEDID_END | 2014-02-20 09:29:00.309806 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+    ''')
+    def test_originate_hung_up_by_switchboard(self):
+        self._assert_last_call_log_matches(
+            '1392906526.4',
+            has_properties(
+                date=datetime.fromisoformat('2014-02-20 09:28:46.683014+00:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2014-02-20 09:29:00.309786+00:00'),
+                source_name='Carlos',
+                source_exten='1003',
+                requested_exten='1002',
+                requested_context='pcmdev',
+                destination_exten='1002',
+                source_line_identity='sip/d49t0y',
+                destination_line_identity='sccp/1002',
+            ),
+
+        )
+
     @contextmanager
     def cels(self, cels):
         with self.database.queries() as queries:
