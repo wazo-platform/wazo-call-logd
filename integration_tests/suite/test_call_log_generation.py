@@ -1,6 +1,7 @@
 # Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import datetime
 from functools import wraps
 from contextlib import contextmanager
 from hamcrest import (
@@ -87,24 +88,15 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
     '''
     )
     def test_call_to_mobile_dial(self):
-        linkedid = '1567020560.33'
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-
-            def call_log_received():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties(
-                            source_name='Alice',
-                            source_exten='1001',
-                            destination_name='Bob',
-                            destination_exten='1002',
-                        ),
-                    )
-
-            until.assert_(call_log_received, tries=5)
+        self._assert_last_call_log_matches(
+            '1567020560.33',
+            has_properties(
+                source_name='Alice',
+                source_exten='1001',
+                destination_name='Bob',
+                destination_exten='1002',
+            ),
+        )
 
     @raw_cels(
         '''\
@@ -128,19 +120,9 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
 '''
     )
     def test_incoming_call_no_cid_name_rewritten_cid_num(self):
-        linkedid = '1510326428.26'
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-
-            def call_log_has_transformed_number():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties('source_name', '', 'source_exten', '42302'),
-                    )
-
-            until.assert_(call_log_has_transformed_number, tries=5)
+        self._assert_last_call_log_matches(
+            '1510326428.26', has_properties(source_name='', source_exten='42302',),
+        )
 
     @raw_cels(
         '''\
@@ -358,30 +340,19 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
-
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid='1524594437.7')
-
-            def call_log_has_destination_different_from_requested():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties(
-                            {
-                                'tenant_uuid': USERS_TENANT,
-                                'source_internal_exten': '101',
-                                'source_internal_context': 'default',
-                                'requested_exten': '102',
-                                'requested_context': 'default',
-                                'destination_exten': '103',
-                                'destination_internal_exten': '103',
-                                'destination_internal_context': 'default',
-                            }
-                        ),
-                    )
-
-            until.assert_(call_log_has_destination_different_from_requested, tries=10)
+        self._assert_last_call_log_matches(
+            '1524594437.7',
+            has_properties(
+                tenant_uuid=USERS_TENANT,
+                source_internal_exten='101',
+                source_internal_context='default',
+                requested_exten='102',
+                requested_context='default',
+                destination_exten='103',
+                destination_internal_exten='103',
+                destination_internal_context='default',
+            ),
+        )
 
     @raw_cels(
         '''\
@@ -419,31 +390,21 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
 
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid='1524597350.9')
-
-            def call_log_has_destination_different_from_requested():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties(
-                            {
-                                'tenant_uuid': USERS_TENANT,
-                                'source_internal_exten': None,
-                                'source_internal_context': None,
-                                'requested_exten': '999101',
-                                'requested_context': 'from-extern',
-                                'requested_internal_exten': '101',
-                                'requested_internal_context': 'default',
-                                'destination_exten': '101',
-                                'destination_internal_exten': '101',
-                                'destination_internal_context': 'default',
-                            }
-                        ),
-                    )
-
-            until.assert_(call_log_has_destination_different_from_requested, tries=5)
+        self._assert_last_call_log_matches(
+            '1524597350.9',
+            has_properties(
+                tenant_uuid=USERS_TENANT,
+                source_internal_exten=None,
+                source_internal_context=None,
+                requested_exten='999101',
+                requested_context='from-extern',
+                requested_internal_exten='101',
+                requested_internal_context='default',
+                destination_exten='101',
+                destination_internal_exten='101',
+                destination_internal_context='default',
+            ),
+        )
 
     @raw_cels(
         '''\
@@ -481,25 +442,449 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 '''
     )
     def test_originate_from_mobile(self):
-        linkedid = '1564770000.21'
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
+        self._assert_last_call_log_matches(
+            '1564770000.21',
+            has_properties(
+                source_name='',
+                source_exten='**9742332',
+                destination_name='Alice Woonderland',
+                destination_exten='101',
+            ),
+        )
 
-            def call_log_has_transformed_number():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(
-                        call_log,
-                        has_properties('source_name', '', 'source_exten', '**9742332'),
-                        has_properties(
-                            'destination_name',
-                            'Alice Woonderland',
-                            'destination_exten',
-                            '101',
-                        ),
-                    )
+    @raw_cels(
+        '''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid  | userfield
+--------------+----------------------------+----------+---------+-------+---------+---------------------+---------------+---------------+-----------
+ CHAN_START   | 2015-06-18 14:08:56.910686 | Elès 45  | 1045    | 1001  | default | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ APP_START    | 2015-06-18 14:08:57.014249 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ CHAN_START   | 2015-06-18 14:08:57.019202 | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ ANSWER       | 2015-06-18 14:08:59.864053 | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ ANSWER       | 2015-06-18 14:08:59.877155 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ BRIDGE_ENTER | 2015-06-18 14:08:59.878    | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ BRIDGE_ENTER | 2015-06-18 14:08:59.87976  | Elès 01  | 1001    |       | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ BRIDGE_EXIT  | 2015-06-18 14:09:02.250446 | Elès 01  | 1001    |       | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ HANGUP       | 2015-06-18 14:09:02.26592  | Elès 01  | 1001    |       | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ CHAN_END     | 2015-06-18 14:09:02.267146 | Elès 01  | 1001    |       | default | SIP/je5qtq-00000020 | 1434650937.32 | 1434650936.31 |
+ BRIDGE_EXIT  | 2015-06-18 14:09:02.268    | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ HANGUP       | 2015-06-18 14:09:02.269498 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ CHAN_END     | 2015-06-18 14:09:02.271033 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+ LINKEDID_END | 2015-06-18 14:09:02.272325 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
+    '''
+    )
+    def test_answered_internal(self):
+        self._assert_last_call_log_matches(
+            '1434650936.31',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:08:56.910686+00:00'),
+                date_answer=datetime.fromisoformat('2015-06-18 14:08:59.878+00:00'),
+                date_end=datetime.fromisoformat('2015-06-18 14:09:02.271033+00:00'),
+                source_name='Elès 45',
+                source_exten='1045',
+                requested_exten='1001',
+                requested_context='default',
+                destination_exten='1001',
+                source_line_identity='sip/as2mkq',
+                destination_line_identity='sip/je5qtq',
+            ),
+        )
 
-            until.assert_(call_log_has_transformed_number, tries=5)
+    @raw_cels(
+        '''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid  | userfield
+
+ CHAN_START   | 2015-06-18 14:10:24.586638 | Elès 45  | 1045    | 1001  | default | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+ APP_START    | 2015-06-18 14:10:24.6893   | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+ CHAN_START   | 2015-06-18 14:10:24.694166 | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000022 | 1434651024.34 | 1434651024.33 |
+ HANGUP       | 2015-06-18 14:10:28.280456 | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000022 | 1434651024.34 | 1434651024.33 |
+ CHAN_END     | 2015-06-18 14:10:28.28819  | Elès 01  | 1001    | s     | default | SIP/je5qtq-00000022 | 1434651024.34 | 1434651024.33 |
+ HANGUP       | 2015-06-18 14:10:28.289431 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+ CHAN_END     | 2015-06-18 14:10:28.290746 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+ LINKEDID_END | 2015-06-18 14:10:28.292243 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
+    '''
+    )
+    def test_internal_no_answer(self):
+        self._assert_last_call_log_matches(
+            '1434651024.33',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:10:24.586638+00:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2015-06-18 14:10:28.290746+00:00'),
+                source_name='Elès 45',
+                source_exten='1045',
+                requested_exten='1001',
+                requested_context='default',
+                destination_exten='1001',
+                source_line_identity='sip/as2mkq',
+                destination_line_identity='sip/je5qtq',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype     | eventtime                  | cid_name         | cid_num | exten             | context     | channame            |      uniqueid |      linkedid
+
+ CHAN_START    | 2018-02-02 15:00:25.106723 | Alice            |     101 | 103               | default     | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ XIVO_USER_FWD | 2018-02-02 15:00:25.546267 | Alice            |     101 | forward_voicemail | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ ANSWER        | 2018-02-02 15:00:26.051203 | Alice            |     101 | pickup            | xivo-pickup | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ APP_START     | 2018-02-02 15:00:27.373161 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ CHAN_START    | 2018-02-02 15:00:27.392589 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
+ ANSWER        | 2018-02-02 15:00:29.207311 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
+ BRIDGE_ENTER  | 2018-02-02 15:00:29.227529 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
+ BRIDGE_ENTER  | 2018-02-02 15:00:29.22922  | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ BRIDGE_EXIT   | 2018-02-02 15:00:30.464687 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
+ HANGUP        | 2018-02-02 15:00:30.471676 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
+ CHAN_END      | 2018-02-02 15:00:30.476368 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
+ BRIDGE_EXIT   | 2018-02-02 15:00:30.478914 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ HANGUP        | 2018-02-02 15:00:30.481403 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ CHAN_END      | 2018-02-02 15:00:30.484065 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ LINKEDID_END  | 2018-02-02 15:00:30.486225 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+    '''
+    )
+    def test_internal_unconditional_forwarded_answered_call(self):
+        self._assert_last_call_log_matches(
+            '1517601625.17',
+            has_properties(
+                date=datetime.fromisoformat('2018-02-02 15:00:25.106723+00:00'),
+                date_answer=datetime.fromisoformat('2018-02-02 15:00:29.229220+00:00'),
+                date_end=datetime.fromisoformat('2018-02-02 15:00:30.484065+00:00'),
+                source_exten='101',
+                requested_exten='103',
+                requested_context='default',
+                destination_exten='102',
+                destination_name='Bernard',
+                source_line_identity='sccp/101',
+                destination_line_identity='sip/dm77z3',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype     | eventtime                  | cid_name         | cid_num | exten             | context     | channame            |      uniqueid |      linkedid
+
+ CHAN_START    | 2018-02-06 13:33:31.114956 | Alice            |     101 | 103               | default     | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ APP_START     | 2018-02-06 13:33:31.897767 | Alice            |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ CHAN_START    | 2018-02-06 13:33:31.927285 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16
+ HANGUP        | 2018-02-06 13:33:33.272605 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16
+ CHAN_END      | 2018-02-06 13:33:33.287358 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16
+ XIVO_USER_FWD | 2018-02-06 13:33:33.28969  | Alice            |     101 | forward_voicemail | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ ANSWER        | 2018-02-06 13:33:33.778962 | Alice            |     101 | pickup            | xivo-pickup | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ APP_START     | 2018-02-06 13:33:35.089841 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ CHAN_START    | 2018-02-06 13:33:35.107786 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
+ ANSWER        | 2018-02-06 13:33:36.315745 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
+ BRIDGE_ENTER  | 2018-02-06 13:33:36.331304 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
+ BRIDGE_ENTER  | 2018-02-06 13:33:36.333193 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ BRIDGE_EXIT   | 2018-02-06 13:33:37.393726 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
+ HANGUP        | 2018-02-06 13:33:37.401862 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
+ CHAN_END      | 2018-02-06 13:33:37.404542 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
+ BRIDGE_EXIT   | 2018-02-06 13:33:37.407847 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ HANGUP        | 2018-02-06 13:33:37.410228 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ CHAN_END      | 2018-02-06 13:33:37.412453 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ LINKEDID_END  | 2018-02-06 13:33:37.414762 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+    '''
+    )
+    def test_internal_busy_fwd_answered_call(self):
+        self._assert_last_call_log_matches(
+            '1517942011.16',
+            has_properties(
+                date=datetime.fromisoformat('2018-02-06 13:33:31.114956+00:00'),
+                date_answer=datetime.fromisoformat('2018-02-06 13:33:36.333193+00:00'),
+                date_end=datetime.fromisoformat('2018-02-06 13:33:37.412453+00:00'),
+                source_exten='101',
+                requested_exten='103',
+                requested_context='default',
+                destination_exten='102',
+                source_line_identity='sccp/101',
+                destination_line_identity='sip/dm77z3',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype    | eventtime             | cid_name   |    cid_num | exten | context     | channame            |      uniqueid |      linkedid
+
+ CHAN_START   | 2013-01-01 11:02:38.0 | 612345678  |  612345678 | 1002  | from-extern | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ APP_START    | 2013-01-01 11:02:38.1 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ CHAN_START   | 2013-01-01 11:02:38.2 | Bob Marley |       1002 | s     | default     | SIP/hg63xv-00000013 | 1376060558.18 | 1376060558.17
+ ANSWER       | 2013-01-01 11:02:42.0 | Bob Marley |       1002 | s     | default     | SIP/hg63xv-00000013 | 1376060558.18 | 1376060558.17
+ ANSWER       | 2013-01-01 11:02:42.1 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ BRIDGE_START | 2013-01-01 11:02:42.2 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ BRIDGE_END   | 2013-01-01 11:02:45.0 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ HANGUP       | 2013-01-01 11:02:45.1 | Bob Marley |       1002 |       | user        | SIP/hg63xv-00000013 | 1376060558.18 | 1376060558.17
+ CHAN_END     | 2013-01-01 11:02:45.2 | Bob Marley |       1002 |       | user        | SIP/hg63xv-00000013 | 1376060558.18 | 1376060558.17
+ HANGUP       | 2013-01-01 11:02:45.3 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ CHAN_END     | 2013-01-01 11:02:45.4 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ LINKEDID_END | 2013-01-01 11:02:45.5 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+    '''
+    )
+    def test_answered_incoming_call(self):
+        self._assert_last_call_log_matches(
+            '1376060558.17',
+            has_properties(
+                date=datetime.fromisoformat('2013-01-01 11:02:38.000000+00:00'),
+                date_answer=datetime.fromisoformat('2013-01-01 11:02:42.200000+00:00'),
+                date_end=datetime.fromisoformat('2013-01-01 11:02:45.400000+00:00'),
+                source_name='612345678',
+                source_exten='0612345678',
+                requested_exten='1002',
+                requested_context='from-extern',
+                destination_exten='1002',
+                source_line_identity='sip/trunk',
+                destination_line_identity='sip/hg63xv',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype    | eventtime             | cid_name   |    cid_num | exten | context     | channame            |      uniqueid |      linkedid
+
+ CHAN_START   | 2013-01-01 11:02:38.0 | 612345678  |  612345678 | s     | from-extern | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ XIVO_FROM_S  | 2013-01-01 11:02:38.1 | 612345678  |  612345678 | 1002  | from-extern | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ APP_START    | 2013-01-01 11:02:38.1 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ CHAN_START   | 2013-01-01 11:02:38.2 | Bob Marley |       1002 | s     | default     | SIP/hg63xv-00000013 | 1376060558.18 | 1376060558.17
+ ANSWER       | 2013-01-01 11:02:42.0 | Bob Marley |       1002 | s     | default     | SIP/hg63xv-00000013 | 1376060558.18 | 1376060558.17
+ ANSWER       | 2013-01-01 11:02:42.1 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ BRIDGE_START | 2013-01-01 11:02:42.2 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ BRIDGE_END   | 2013-01-01 11:02:45.0 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ HANGUP       | 2013-01-01 11:02:45.1 | Bob Marley |       1002 |       | user        | SIP/hg63xv-00000013 | 1376060558.18 | 1376060558.17
+ CHAN_END     | 2013-01-01 11:02:45.2 | Bob Marley |       1002 |       | user        | SIP/hg63xv-00000013 | 1376060558.18 | 1376060558.17
+ HANGUP       | 2013-01-01 11:02:45.3 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ CHAN_END     | 2013-01-01 11:02:45.4 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+ LINKEDID_END | 2013-01-01 11:02:45.5 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
+    '''
+    )
+    def test_answered_incoming_call_on_s(self):
+        self._assert_last_call_log_matches(
+            '1376060558.17',
+            has_properties(
+                date=datetime.fromisoformat('2013-01-01 11:02:38.000000+00:00'),
+                date_answer=datetime.fromisoformat('2013-01-01 11:02:42.200000+00:00'),
+                date_end=datetime.fromisoformat('2013-01-01 11:02:45.400000+00:00'),
+                source_name='612345678',
+                source_exten='0612345678',
+                requested_exten='1002',
+                requested_context='from-extern',
+                destination_exten='1002',
+                source_line_identity='sip/trunk',
+                destination_line_identity='sip/hg63xv',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype    | eventtime                  | cid_name | cid_num   | exten     | context     | channame              |      uniqueid |     linkedid  | userfield
+
+ CHAN_START   | 2015-06-18 14:12:05.935283 | Elès 01  | 1001      | **9642301 | default     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ XIVO_OUTCALL | 2015-06-18 14:12:06.118509 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ APP_START    | 2015-06-18 14:12:06.123695 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ CHAN_START   | 2015-06-18 14:12:06.124957 |          |           | s         | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ ANSWER       | 2015-06-18 14:12:12.500153 |          | **9642301 | dial      | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ ANSWER       | 2015-06-18 14:12:12.514389 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ BRIDGE_ENTER | 2015-06-18 14:12:12.515753 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ BRIDGE_ENTER | 2015-06-18 14:12:12.517027 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ BRIDGE_EXIT  | 2015-06-18 14:12:16.85455  | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ HANGUP       | 2015-06-18 14:12:16.861414 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ CHAN_END     | 2015-06-18 14:12:16.862638 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
+ BRIDGE_EXIT  | 2015-06-18 14:12:16.863979 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ HANGUP       | 2015-06-18 14:12:16.865316 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ CHAN_END     | 2015-06-18 14:12:16.866615 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+ LINKEDID_END | 2015-06-18 14:12:16.867848 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
+    '''
+    )
+    def test_answered_outgoing_call(self):
+        self._assert_last_call_log_matches(
+            '1434651125.37',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:12:05.935283+00:00'),
+                date_answer=datetime.fromisoformat('2015-06-18 14:12:12.515753+00:00'),
+                date_end=datetime.fromisoformat('2015-06-18 14:12:16.862638+00:00'),
+                source_name='Elès 01',
+                source_exten='1001',
+                requested_exten='**9642301',
+                requested_context='default',
+                destination_exten='**9642301',
+                user_field='',
+                source_line_identity='sip/je5qtq',
+                destination_line_identity='sip/dev_34-1',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype    | eventtime                  | cid_name | cid_num   | exten     | context     | channame              |      uniqueid |     linkedid  | userfield
+
+ CHAN_START   | 2015-06-18 14:13:18.176182 | Elès 01  | 1001      | **9642301 | default     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 |
+ XIVO_OUTCALL | 2015-06-18 14:13:18.250067 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ APP_START    | 2015-06-18 14:13:18.254452 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ CHAN_START   | 2015-06-18 14:13:18.255915 |          |           | s         | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ ANSWER       | 2015-06-18 14:13:20.98612  |          | **9642301 | dial      | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ ANSWER       | 2015-06-18 14:13:20.998113 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ BRIDGE_ENTER | 2015-06-18 14:13:21.190246 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ BRIDGE_ENTER | 2015-06-18 14:13:21.192798 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ BRIDGE_EXIT  | 2015-06-18 14:13:24.137056 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ HANGUP       | 2015-06-18 14:13:24.146256 | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ CHAN_END     | 2015-06-18 14:13:24.14759  | Elès 01  | 1001      | dial      | outcall     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 | foo
+ BRIDGE_EXIT  | 2015-06-18 14:13:24.148734 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ HANGUP       | 2015-06-18 14:13:24.149943 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ CHAN_END     | 2015-06-18 14:13:24.151296 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+ LINKEDID_END | 2015-06-18 14:13:24.152458 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
+    '''
+    )
+    def test_answered_outgoing_call_with_userfield(self):
+        self._assert_last_call_log_matches(
+            '1434651198.39',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:13:18.176182+00:00'),
+                date_answer=datetime.fromisoformat('2015-06-18 14:13:21.190246+00:00'),
+                date_end=datetime.fromisoformat('2015-06-18 14:13:24.147590+00:00'),
+                source_name='Elès 01',
+                source_exten='1001',
+                requested_exten='**9642301',
+                requested_context='default',
+                destination_exten='**9642301',
+                user_field='foo',
+                source_line_identity='sip/je5qtq',
+                destination_line_identity='sip/dev_34-1',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype    | eventtime             | cid_name         | cid_num | exten | context | channame            | uniqueid      | linkedid
+
+ CHAN_START   | 2013-12-04 14:20:58.0 | Neelix Talaxian  | 1066    | 1624  | default | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ APP_START    | 2013-12-04 14:20:58.1 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ CHAN_START   | 2013-12-04 14:20:58.2 | Donald MacRonald | 1624    | s     | default | SIP/zsp7wv-0000000a | 1386184858.10 | 1386184858.9
+ ANSWER       | 2013-12-04 14:21:05.3 | Donald MacRonald | 1624    | s     | default | SIP/zsp7wv-0000000a | 1386184858.10 | 1386184858.9
+ ANSWER       | 2013-12-04 14:21:05.4 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ BRIDGE_START | 2013-12-04 14:21:05.5 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ BRIDGE_END   | 2013-12-04 14:21:06.6 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ HANGUP       | 2013-12-04 14:21:06.7 | Donald MacRonald | 1624    |       | user    | SIP/zsp7wv-0000000a | 1386184858.10 | 1386184858.9
+ CHAN_END     | 2013-12-04 14:21:06.8 | Donald MacRonald | 1624    |       | user    | SIP/zsp7wv-0000000a | 1386184858.10 | 1386184858.9
+ HANGUP       | 2013-12-04 14:21:06.9 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ CHAN_END     | 2013-12-04 14:21:07.1 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+ LINKEDID_END | 2013-12-04 14:21:07.2 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
+    '''
+    )
+    def test_uniqueids_that_do_not_have_the_same_sort_order_chonologically_and_alphabetically(
+        self,
+    ):
+        self._assert_last_call_log_matches(
+            '1386184858.9',
+            has_properties(
+                date=datetime.fromisoformat('2013-12-04 14:20:58.000000+00:00'),
+                date_answer=datetime.fromisoformat('2013-12-04 14:21:05.500000+00:00'),
+                date_end=datetime.fromisoformat('2013-12-04 14:21:07.100000+00:00'),
+                source_name='Neelix Talaxian',
+                source_exten='1066',
+                requested_exten='1624',
+                requested_context='default',
+                destination_exten='1624',
+                source_line_identity='sip/2dvtpb',
+                destination_line_identity='sip/zsp7wv',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid
+
+ CHAN_START   | 2015-06-18 14:15:12.978338 | Elès 45  | 1045    | s     | default | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ ANSWER       | 2015-06-18 14:15:14.587341 | 1001     | 1001    |       | default | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ APP_START    | 2015-06-18 14:15:14.697414 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ CHAN_START   | 2015-06-18 14:15:14.702394 | Elès 01  | 1001    | s     | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ ANSWER       | 2015-06-18 14:15:16.389857 | Elès 01  | 1001    | s     | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ BRIDGE_ENTER | 2015-06-18 14:15:16.396213 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ BRIDGE_ENTER | 2015-06-18 14:15:16.397787 | Elès 01  | 1001    |       | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ BRIDGE_EXIT  | 2015-06-18 14:15:19.192422 | Elès 01  | 1001    |       | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ HANGUP       | 2015-06-18 14:15:19.206152 | Elès 01  | 1001    |       | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ CHAN_END     | 2015-06-18 14:15:19.208217 | Elès 01  | 1001    |       | default | SIP/je5qtq-0000002c | 1434651314.44 | 1434651312.43
+ BRIDGE_EXIT  | 2015-06-18 14:15:19.209432 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ HANGUP       | 2015-06-18 14:15:19.211393 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ CHAN_END     | 2015-06-18 14:15:19.212596 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+ LINKEDID_END | 2015-06-18 14:15:19.213763 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
+    '''
+    )
+    def test_answered_originate(self):
+        self._assert_last_call_log_matches(
+            '1434651312.43',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:15:12.978338+00:00'),
+                date_answer=datetime.fromisoformat('2015-06-18 14:15:16.396213+00:00'),
+                date_end=datetime.fromisoformat('2015-06-18 14:15:19.212596+00:00'),
+                source_name='Elès 45',
+                source_exten='1045',
+                requested_exten='1001',
+                requested_context='default',
+                destination_exten='1001',
+                source_line_identity='sip/as2mkq',
+                destination_line_identity='sip/je5qtq',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid
+
+ CHAN_START   | 2015-06-18 14:15:48.836632 | Elès 45  | 1045    | s     | default | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
+ ANSWER       | 2015-06-18 14:15:50.127815 | 1001     | 1001    |       | default | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
+ APP_START    | 2015-06-18 14:15:50.220755 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
+ CHAN_START   | 2015-06-18 14:15:50.22621  | Elès 01  | 1001    | s     | default | SIP/je5qtq-0000002e | 1434651350.46 | 1434651348.45
+ HANGUP       | 2015-06-18 14:15:54.936991 | Elès 01  | 1001    | s     | default | SIP/je5qtq-0000002e | 1434651350.46 | 1434651348.45
+ CHAN_END     | 2015-06-18 14:15:54.949784 | Elès 01  | 1001    | s     | default | SIP/je5qtq-0000002e | 1434651350.46 | 1434651348.45
+ HANGUP       | 2015-06-18 14:15:54.951351 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
+ CHAN_END     | 2015-06-18 14:15:54.952707 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
+ LINKEDID_END | 2015-06-18 14:15:54.9539   | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
+    '''
+    )
+    def test_unanswered_originate(self):
+        self._assert_last_call_log_matches(
+            '1434651348.45',
+            has_properties(
+                date=datetime.fromisoformat('2015-06-18 14:15:48.836632+00:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2015-06-18 14:15:54.952707+00:00'),
+                source_name='Elès 45',
+                source_exten='1045',
+                requested_exten='1001',
+                requested_context='default',
+                destination_exten='1001',
+                source_line_identity='sip/as2mkq',
+                destination_line_identity='sip/je5qtq',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype    | eventtime                  | cid_name | cid_num | exten                | context | channame            |     uniqueid |     linkedid
+
+ CHAN_START   | 2014-02-20 09:28:46.683014 | Carlos   |    1003 | s                    | pcmdev  | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ ANSWER       | 2014-02-20 09:28:47.183651 | 1002     |    1002 |                      | pcmdev  | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ APP_START    | 2014-02-20 09:28:47.288346 | Carlos   |    1003 | s                    | user    | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ CHAN_START   | 2014-02-20 09:28:47.288466 | Bõb      |    1002 | s                    | pcmdev  | SCCP/1002-00000001  | 1392906527.5 | 1392906526.4
+ HANGUP       | 2014-02-20 09:29:00.306587 | Bõb      |    1002 | s                    | pcmdev  | SCCP/1002-00000001  | 1392906527.5 | 1392906526.4
+ CHAN_END     | 2014-02-20 09:29:00.307651 | Bõb      |    1002 | s                    | pcmdev  | SCCP/1002-00000001  | 1392906527.5 | 1392906526.4
+ HANGUP       | 2014-02-20 09:29:00.308165 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ CHAN_END     | 2014-02-20 09:29:00.309786 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+ LINKEDID_END | 2014-02-20 09:29:00.309806 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
+    '''
+    )
+    def test_originate_hung_up_by_switchboard(self):
+        self._assert_last_call_log_matches(
+            '1392906526.4',
+            has_properties(
+                date=datetime.fromisoformat('2014-02-20 09:28:46.683014+00:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2014-02-20 09:29:00.309786+00:00'),
+                source_name='Carlos',
+                source_exten='1003',
+                requested_exten='1002',
+                requested_context='pcmdev',
+                destination_exten='1002',
+                source_line_identity='sip/d49t0y',
+                destination_line_identity='sccp/1002',
+            ),
+        )
 
     @contextmanager
     def cels(self, cels):
@@ -522,3 +907,14 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
         with self.database.queries() as queries:
             queries.clear_call_logs()
+
+    def _assert_last_call_log_matches(self, linkedid, expected):
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_generated():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(call_log, expected)
+
+            until.assert_(call_log_generated, tries=5)
