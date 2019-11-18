@@ -121,11 +121,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
     )
     def test_incoming_call_no_cid_name_rewritten_cid_num(self):
         self._assert_last_call_log_matches(
-            '1510326428.26',
-            has_properties(
-                source_name='',
-                source_exten='42302',
-            ),
+            '1510326428.26', has_properties(source_name='', source_exten='42302',),
         )
 
     @raw_cels(
@@ -456,7 +452,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid  | userfield
 --------------+----------------------------+----------+---------+-------+---------+---------------------+---------------+---------------+-----------
  CHAN_START   | 2015-06-18 14:08:56.910686 | Elès 45  | 1045    | 1001  | default | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
@@ -473,7 +470,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:09:02.269498 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
  CHAN_END     | 2015-06-18 14:09:02.271033 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
  LINKEDID_END | 2015-06-18 14:09:02.272325 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
-    ''')
+    '''
+    )
     def test_answered_internal(self):
         self._assert_last_call_log_matches(
             '1434650936.31',
@@ -488,10 +486,11 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_exten='1001',
                 source_line_identity='sip/as2mkq',
                 destination_line_identity='sip/je5qtq',
-            )
+            ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid  | userfield
 
  CHAN_START   | 2015-06-18 14:10:24.586638 | Elès 45  | 1045    | 1001  | default | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
@@ -502,7 +501,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:10:28.289431 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
  CHAN_END     | 2015-06-18 14:10:28.290746 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
  LINKEDID_END | 2015-06-18 14:10:28.292243 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
-    ''')
+    '''
+    )
     def test_internal_no_answer(self):
         self._assert_last_call_log_matches(
             '1434651024.33',
@@ -520,7 +520,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype     | eventtime                  | cid_name         | cid_num | exten             | context     | channame            |      uniqueid |      linkedid
 
  CHAN_START    | 2018-02-02 15:00:25.106723 | Alice            |     101 | 103               | default     | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
@@ -538,7 +539,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2018-02-02 15:00:30.481403 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
  CHAN_END      | 2018-02-02 15:00:30.484065 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
  LINKEDID_END  | 2018-02-02 15:00:30.486225 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
-    ''')
+    '''
+    )
     def test_internal_unconditional_forwarded_answered_call(self):
         self._assert_last_call_log_matches(
             '1517601625.17',
@@ -554,10 +556,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 source_line_identity='sccp/101',
                 destination_line_identity='sip/dm77z3',
             ),
-
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype     | eventtime                  | cid_name         | cid_num | exten             | context     | channame            |      uniqueid |      linkedid
 
  CHAN_START    | 2018-02-06 13:33:31.114956 | Alice            |     101 | 103               | default     | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
@@ -579,7 +581,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2018-02-06 13:33:37.410228 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
  CHAN_END      | 2018-02-06 13:33:37.412453 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
  LINKEDID_END  | 2018-02-06 13:33:37.414762 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
-    ''')
+    '''
+    )
     def test_internal_busy_fwd_answered_call(self):
         self._assert_last_call_log_matches(
             '1517942011.16',
@@ -596,7 +599,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime             | cid_name   |    cid_num | exten | context     | channame            |      uniqueid |      linkedid
 
  CHAN_START   | 2013-01-01 11:02:38.0 | 612345678  |  612345678 | 1002  | from-extern | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
@@ -611,7 +615,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2013-01-01 11:02:45.3 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
  CHAN_END     | 2013-01-01 11:02:45.4 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
  LINKEDID_END | 2013-01-01 11:02:45.5 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
-    ''')
+    '''
+    )
     def test_answered_incoming_call(self):
         self._assert_last_call_log_matches(
             '1376060558.17',
@@ -629,7 +634,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime             | cid_name   |    cid_num | exten | context     | channame            |      uniqueid |      linkedid
 
  CHAN_START   | 2013-01-01 11:02:38.0 | 612345678  |  612345678 | s     | from-extern | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
@@ -645,7 +651,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2013-01-01 11:02:45.3 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
  CHAN_END     | 2013-01-01 11:02:45.4 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
  LINKEDID_END | 2013-01-01 11:02:45.5 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
-    ''')
+    '''
+    )
     def test_answered_incoming_call_on_s(self):
         self._assert_last_call_log_matches(
             '1376060558.17',
@@ -663,7 +670,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime                  | cid_name | cid_num   | exten     | context     | channame              |      uniqueid |     linkedid  | userfield
 
  CHAN_START   | 2015-06-18 14:12:05.935283 | Elès 01  | 1001      | **9642301 | default     | SIP/je5qtq-00000025   | 1434651125.37 | 1434651125.37 |
@@ -681,7 +689,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:12:16.865316 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
  CHAN_END     | 2015-06-18 14:12:16.866615 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
  LINKEDID_END | 2015-06-18 14:12:16.867848 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
-    ''')
+    '''
+    )
     def test_answered_outgoing_call(self):
         self._assert_last_call_log_matches(
             '1434651125.37',
@@ -700,7 +709,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime                  | cid_name | cid_num   | exten     | context     | channame              |      uniqueid |     linkedid  | userfield
 
  CHAN_START   | 2015-06-18 14:13:18.176182 | Elès 01  | 1001      | **9642301 | default     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 |
@@ -718,7 +728,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:13:24.149943 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
  CHAN_END     | 2015-06-18 14:13:24.151296 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
  LINKEDID_END | 2015-06-18 14:13:24.152458 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
-    ''')
+    '''
+    )
     def test_answered_outgoing_call_with_userfield(self):
         self._assert_last_call_log_matches(
             '1434651198.39',
@@ -737,7 +748,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime             | cid_name         | cid_num | exten | context | channame            | uniqueid      | linkedid
 
  CHAN_START   | 2013-12-04 14:20:58.0 | Neelix Talaxian  | 1066    | 1624  | default | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
@@ -752,8 +764,11 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2013-12-04 14:21:06.9 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
  CHAN_END     | 2013-12-04 14:21:07.1 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
  LINKEDID_END | 2013-12-04 14:21:07.2 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
-    ''')
-    def test_uniqueids_that_do_not_have_the_same_sort_order_chonologically_and_alphabetically(self):
+    '''
+    )
+    def test_uniqueids_that_do_not_have_the_same_sort_order_chonologically_and_alphabetically(
+        self,
+    ):
         self._assert_last_call_log_matches(
             '1386184858.9',
             has_properties(
@@ -770,7 +785,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid
 
  CHAN_START   | 2015-06-18 14:15:12.978338 | Elès 45  | 1045    | s     | default | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
@@ -787,7 +803,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:15:19.211393 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
  CHAN_END     | 2015-06-18 14:15:19.212596 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
  LINKEDID_END | 2015-06-18 14:15:19.213763 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
-    ''')
+    '''
+    )
     def test_answered_originate(self):
         self._assert_last_call_log_matches(
             '1434651312.43',
@@ -805,7 +822,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime                  | cid_name | cid_num | exten | context | channame            |      uniqueid |     linkedid
 
  CHAN_START   | 2015-06-18 14:15:48.836632 | Elès 45  | 1045    | s     | default | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
@@ -817,7 +835,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:15:54.951351 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
  CHAN_END     | 2015-06-18 14:15:54.952707 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
  LINKEDID_END | 2015-06-18 14:15:54.9539   | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
-    ''')
+    '''
+    )
     def test_unanswered_originate(self):
         self._assert_last_call_log_matches(
             '1434651348.45',
@@ -835,7 +854,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
-    @raw_cels('''\
+    @raw_cels(
+        '''\
  eventtype    | eventtime                  | cid_name | cid_num | exten                | context | channame            |     uniqueid |     linkedid
 
  CHAN_START   | 2014-02-20 09:28:46.683014 | Carlos   |    1003 | s                    | pcmdev  | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
@@ -847,7 +867,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2014-02-20 09:29:00.308165 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
  CHAN_END     | 2014-02-20 09:29:00.309786 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
  LINKEDID_END | 2014-02-20 09:29:00.309806 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
-    ''')
+    '''
+    )
     def test_originate_hung_up_by_switchboard(self):
         self._assert_last_call_log_matches(
             '1392906526.4',
@@ -863,7 +884,6 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 source_line_identity='sip/d49t0y',
                 destination_line_identity='sccp/1002',
             ),
-
         )
 
     @contextmanager
