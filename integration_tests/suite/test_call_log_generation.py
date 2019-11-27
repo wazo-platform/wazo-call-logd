@@ -323,16 +323,22 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     def test_given_cels_of_forwarded_call_when_generate_call_log_then_requested_different_from_destination(
         self,
     ):
+        self.confd.set_users(
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
+        )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='101',
+                users=[{'uuid': USER_1_UUID}],
                 tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '101', 'context': 'default'}],
             ),
             MockLine(
                 id=2,
                 name='rku3uo',
+                users=[{'uuid': USER_2_UUID}],
                 tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '103', 'context': 'default'}],
             ),
@@ -378,10 +384,12 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(
         self,
     ):
+        self.confd.set_users(MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),)
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='101',
+                users=[{'uuid': USER_1_UUID}],
                 tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '101', 'context': 'default'}],
             )
