@@ -51,52 +51,26 @@ def find_participant(confd, channame):
         user['uuid'],
         user['tenant_uuid'],
     )
+
+    extensions = line['extensions']
+    if extensions:
+        main_extension = extensions[0]
+
+        logger.debug(
+            'Found main internal extension %s@%s',
+            main_extension['exten'],
+            main_extension['context'],
+        )
+    else:
+        main_extension = None
+
     return {
         'uuid': user['uuid'],
         'tenant_uuid': user['tenant_uuid'],
         'line_id': line['id'],
         'tags': tags,
+        'main_extension': main_extension,
     }
-
-
-def find_main_internal_extension(confd, channame):
-    # TODO PJSIP clean after migration
-    channame = channame.replace('PJSIP', 'SIP')
-
-    try:
-        protocol, line_name = protocol_interface_from_channel(channame)
-    except InvalidChannelError:
-        return None
-
-    if protocol == 'Local':
-        logger.debug('Ignoring participant %s', channame)
-        return None
-
-    logger.debug(
-        'Looking up main internal extension with protocol %s and line name "%s"',
-        protocol,
-        line_name,
-    )
-    lines = confd.lines.list(name=line_name, recurse=True)['items']
-    if not lines:
-        return
-
-    line = lines[0]
-    logger.debug('Found line id %s', line['id'])
-    extensions = line['extensions']
-    if not extensions:
-        return
-
-    main_extension = extensions[0]
-    main_extension["tenant_uuid"] = line["tenant_uuid"]
-
-    logger.debug(
-        'Found main internal extension %s@%s (%s)',
-        main_extension['exten'],
-        main_extension['context'],
-        main_extension['tenant_uuid'],
-    )
-    return main_extension
 
 
 class DispatchCELInterpretor(object):
@@ -180,11 +154,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             )
             call.set_tenant_uuid(participant['tenant_uuid'])
 
-        extension = find_main_internal_extension(self._confd, cel.channame)
-        if extension:
-            call.source_internal_exten = extension['exten']
-            call.source_internal_context = extension['context']
-            call.set_tenant_uuid(extension['tenant_uuid'])
+            extension = participant['main_extension']
+            if extension:
+                call.source_internal_exten = extension['exten']
+                call.source_internal_context = extension['context']
 
         return call
 
@@ -260,16 +233,14 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             )
             call.set_tenant_uuid(participant['tenant_uuid'])
 
-        extension = find_main_internal_extension(self._confd, cel.channame)
+            extension = participant['main_extension']
+            if extension:
+                call.destination_internal_exten = extension['exten']
+                call.destination_internal_context = extension['context']
 
-        if extension:
-            call.destination_internal_exten = extension['exten']
-            call.destination_internal_context = extension['context']
-            call.set_tenant_uuid(extension['tenant_uuid'])
-
-            if not call.requested_internal_exten:
-                call.requested_internal_exten = extension['exten']
-                call.requested_internal_context = extension['context']
+                if not call.requested_internal_exten:
+                    call.requested_internal_exten = extension['exten']
+                    call.requested_internal_context = extension['context']
 
         return call
 

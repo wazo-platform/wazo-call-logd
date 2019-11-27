@@ -13,7 +13,6 @@ from ..cel_interpretor import (
     CallerCELInterpretor,
     DispatchCELInterpretor,
     find_participant,
-    find_main_internal_extension,
 )
 from ..raw_call_log import RawCallLog
 
@@ -60,7 +59,7 @@ class TestFindParticipant(TestCase):
             'tenant_uuid': 'tenant_uuid',
             'userfield': 'user_userfield, toto',
         }
-        lines = [{'id': 12, 'users': [user]}]
+        lines = [{'id': 12, 'users': [user], 'extensions': []}]
         confd = confd_mock(lines)
         channame = 'sip/something-suffix'
 
@@ -75,43 +74,6 @@ class TestFindParticipant(TestCase):
                 tags=['user_userfield', 'toto'],
             ),
         )
-
-
-class TestFindMainInternalExtension(TestCase):
-    def test_find_main_internal_extension_when_channame_is_not_parsable(self):
-        confd = confd_mock()
-        channame = 'something'
-
-        result = find_main_internal_extension(confd, channame)
-
-        assert_that(result, none())
-
-    def test_find_main_internal_extension_when_no_lines(self):
-        confd = confd_mock()
-        channame = 'sip/something-suffix'
-
-        result = find_main_internal_extension(confd, channame)
-
-        assert_that(result, none())
-
-    def test_find_main_internal_extension_when_line_has_no_extensions(self):
-        lines = [{'id': 12, 'extensions': []}]
-        confd = confd_mock(lines)
-        channame = 'sip/something-suffix'
-
-        result = find_main_internal_extension(confd, channame)
-
-        assert_that(result, none())
-
-    def test_find_main_internal_extension_when_line_has_user(self):
-        extension = {'exten': '101', 'context': 'default'}
-        lines = [{'id': 12, 'extensions': [extension], 'tenant_uuid': 'tenant'}]
-        confd = confd_mock(lines)
-        channame = 'sip/something-suffix'
-
-        result = find_main_internal_extension(confd, channame)
-
-        assert_that(result, equal_to(extension))
 
 
 class TestCELDispatcher(TestCase):
