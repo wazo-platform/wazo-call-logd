@@ -21,6 +21,10 @@ def find_participant(confd, channame):
     except InvalidChannelError:
         return None
 
+    if protocol == 'Local':
+        logger.debug('Ignoring participant %s', channame)
+        return None
+
     logger.debug(
         'Looking up participant with protocol %s and line name "%s"',
         protocol,
@@ -62,6 +66,10 @@ def find_main_internal_extension(confd, channame):
     try:
         protocol, line_name = protocol_interface_from_channel(channame)
     except InvalidChannelError:
+        return None
+
+    if protocol == 'Local':
+        logger.debug('Ignoring participant %s', channame)
         return None
 
     logger.debug(
@@ -252,20 +260,16 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             )
             call.set_tenant_uuid(participant['tenant_uuid'])
 
-        if not call.requested_internal_exten:
-            requested_extension = find_main_internal_extension(
-                self._confd, cel.channame
-            )
-            if requested_extension:
-                call.requested_internal_exten = requested_extension['exten']
-                call.requested_internal_context = requested_extension['context']
-                call.set_tenant_uuid(requested_extension['tenant_uuid'])
-
         extension = find_main_internal_extension(self._confd, cel.channame)
+
         if extension:
             call.destination_internal_exten = extension['exten']
             call.destination_internal_context = extension['context']
             call.set_tenant_uuid(extension['tenant_uuid'])
+
+            if not call.requested_internal_exten:
+                call.requested_internal_exten = extension['exten']
+                call.requested_internal_context = extension['context']
 
         return call
 
