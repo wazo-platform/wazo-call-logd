@@ -21,6 +21,10 @@ def find_participant(confd, channame):
     except InvalidChannelError:
         return None
 
+    if protocol == 'Local':
+        logger.debug('Ignoring participant %s', channame)
+        return None
+
     logger.debug(
         'Looking up participant with protocol %s and line name "%s"',
         protocol,
@@ -62,6 +66,10 @@ def find_main_internal_extension(confd, channame):
     try:
         protocol, line_name = protocol_interface_from_channel(channame)
     except InvalidChannelError:
+        return None
+
+    if protocol == 'Local':
+        logger.debug('Ignoring participant %s', channame)
         return None
 
     logger.debug(
