@@ -50,7 +50,6 @@ _DEFAULT_CONFIG = {
         'api': True,
         'cdr': True,
         'status': True,
-        'tenant_migration': False,
     },
 }
 
