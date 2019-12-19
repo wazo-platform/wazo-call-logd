@@ -22,7 +22,6 @@ setup(
             'api = wazo_call_logd.plugins.api.plugin:Plugin',
             'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
-            'tenant_migration = wazo_call_logd.plugins.tenant_migration.plugin:Plugin',
         ]
     },
 )
