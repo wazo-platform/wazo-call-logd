@@ -3,6 +3,9 @@
     parent: wazo-tox-integration
     required-projects:
       wazo-platform/xivo-manage-db
+    vars:
+      docker_compose_services_override:
+        - call-logd
 
 - project:
     templates:
@@ -17,4 +20,3 @@
       jobs:
         - wazo-tox-integration-call-logd:
             nodeset: debian10-vm
-
