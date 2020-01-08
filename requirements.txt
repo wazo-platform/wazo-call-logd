@@ -12,7 +12,7 @@ kombu==4.2.1
 marshmallow==3.0.0b14
 psycopg2==2.7.7
 python-dateutil==2.7.3  # from marshmallow, to accept more date formats
-pyyaml==3.13
+pyyaml==5.1
 requests==2.21.0  # from xivo-*-client
 sqlalchemy==1.2.18
 stevedore==1.29.0
