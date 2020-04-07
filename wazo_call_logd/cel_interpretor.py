@@ -12,7 +12,7 @@ from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 logger = logging.getLogger(__name__)
 
-EXTRA_NAME_REGEX = r'^.*NAME:(.*?)(?:,|"})'
+EXTRA_NAME_REGEX = r'^.*NAME: *(.*?) *(?:,|"})'
 
 
 def find_participant(confd, channame):
