@@ -221,6 +221,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
 
+        call.destination_exten = cel.cid_num
         call.destination_name = cel.cid_name
 
         participant = find_participant(self._confd, cel.channame)

@@ -645,6 +645,41 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
     @raw_cels(
         '''\
+ eventtype     | eventtime             | cid_name   |    cid_num  | exten             | context     | channame                |      uniqueid |      linkedid
+
+ CHAN_START    | 2020-04-06 14:44:08.0 | fb          | 0123456789 | 000101            | from-extern | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ XIVO_INCALL   | 2020-04-06 14:44:08.1 | fb          | 0123456789 | s                 | did         | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ XIVO_USER_FWD | 2020-04-06 14:44:08.2 | fb          | 0123456789 | forward_voicemail | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ ANSWER        | 2020-04-06 14:44:08.3 | fb          | 0123456789 | pickup            | xivo-pickup | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ APP_START     | 2020-04-06 14:44:13.0 | fb          | 0123456789 | s                 | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ CHAN_START    | 2020-04-06 14:44:13.0 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35
+ HANGUP        | 2020-04-06 14:44:15.0 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35
+ CHAN_END      | 2020-04-06 14:44:15.1 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35
+ XIVO_USER_FWD | 2020-04-06 14:44:15.2 | fb          | 0123456789 | forward_voicemail | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ HANGUP        | 2020-04-06 14:44:17.0 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ CHAN_END      | 2020-04-06 14:44:17.1 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ LINKEDID_END  | 2020-04-06 14:44:17.2 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+    '''
+    )
+    def test_not_answered_incoming_call_with_unconditional_forward(self):
+        self._assert_last_call_log_matches(
+            '1586198648.35',
+            has_properties(
+                date=datetime.fromisoformat('2020-04-06 14:44:08.000000+00:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2020-04-06 14:44:17.100000+00:00'),
+                destination_exten='102',
+                destination_line_identity='pjsip/qo6ac582',
+                requested_context='from-extern',
+                requested_exten='000101',
+                source_exten='0123456789',
+                source_line_identity='pjsip/dev_44',
+                source_name='fb',
+            ),
+        )
+
+    @raw_cels(
+        '''\
  eventtype    | eventtime             | cid_name   |    cid_num | exten | context     | channame            |      uniqueid |      linkedid
 
  CHAN_START   | 2013-01-01 11:02:38.0 | 612345678  |  612345678 | s     | from-extern | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
