@@ -213,9 +213,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_xivo_user_fwd(self, cel, call):
-        match = re.match(EXTRA_NAME_REGEX, cel.extra)
-        if match:
-            call.requested_name = match.group(1)
+        if call.interpret_caller_xivo_user_fwd:
+            match = re.match(EXTRA_NAME_REGEX, cel.extra)
+            if match:
+                call.requested_name = match.group(1)
+            call.interpret_caller_xivo_user_fwd = False
         return call
 
 

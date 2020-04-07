@@ -35,6 +35,7 @@ class RawCallLog(object):
         self.participants = []
         self.cel_ids = []
         self.interpret_callee_bridge_enter = True
+        self.interpret_caller_xivo_user_fwd = True
         self._tenant_uuid = None
 
     @property
