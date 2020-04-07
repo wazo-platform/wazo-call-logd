@@ -235,6 +235,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         call.destination_exten = cel.cid_num
         call.destination_name = cel.cid_name
+        if not call.requested_name:
+            call.requested_name = cel.cid_name
 
         participant = find_participant(self._confd, cel.channame)
         if participant:
