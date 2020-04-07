@@ -1,6 +1,7 @@
 # Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import re
 import logging
 
 from xivo.asterisk.line_identity import identity_from_channel
@@ -10,6 +11,8 @@ from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 logger = logging.getLogger(__name__)
+
+EXTRA_NAME_REGEX = r'^.*NAME:(.*?)(?:,|"})'
 
 
 def find_participant(confd, channame):
@@ -131,6 +134,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_from_s: self.interpret_xivo_from_s,
             CELEventType.xivo_incall: self.interpret_xivo_incall,
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
+            CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
         }
         self._confd = confd
 
@@ -206,6 +210,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_xivo_outcall(self, cel, call):
         call.direction = 'outbound'
 
+        return call
+
+    def interpret_xivo_user_fwd(self, cel, call):
+        match = re.match(EXTRA_NAME_REGEX, cel.extra)
+        if match:
+            call.requested_name = match.group(1)
         return call
 
 
