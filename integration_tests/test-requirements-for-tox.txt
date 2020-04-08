@@ -5,10 +5,10 @@ https://github.com/wazo-platform/xivo-test-helpers/archive/master.zip
 https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 docker-compose
 kombu
-nose
 openapi-spec-validator
 psycopg2-binary  # from sqlalchemy
 pyhamcrest==1.9.0  # Versions 1.10.x are broken
+pytest
 requests
 sqlalchemy
 stevedore  # from wazo-call-logd-client
