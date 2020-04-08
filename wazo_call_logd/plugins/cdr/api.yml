@@ -257,6 +257,8 @@ definitions:
         type: string
       source_line_id:
         type: integer
+      requested_name:
+        type: string
       requested_extension:
         type: string
       requested_context:
