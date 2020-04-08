@@ -209,7 +209,9 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result.requested_name, equal_to('Bob Marley'))
 
     def test_interpret_xivo_user_fwd_regexp_with_value_before(self):
-        cel = Mock(eventtype='XIVO_USER_FWD', extra='{"extra":" NUM:100,NAME:Bob Marley"}')
+        cel = Mock(
+            eventtype='XIVO_USER_FWD', extra='{"extra":" NUM:100,NAME:Bob Marley"}'
+        )
         call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
         result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
@@ -217,7 +219,10 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result.requested_name, equal_to('Bob Marley'))
 
     def test_interpret_xivo_user_fwd_regexp_with_value_after(self):
-        cel = Mock(eventtype='XIVO_USER_FWD', extra='{"extra":" NUM:100,NAME:Bob Marley,OTHER:value"}')
+        cel = Mock(
+            eventtype='XIVO_USER_FWD',
+            extra='{"extra":" NUM:100,NAME:Bob Marley,OTHER:value"}',
+        )
         call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
         result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
