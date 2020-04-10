@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -41,8 +41,9 @@ _DEFAULT_CONFIG = {
     'auth': {
         'host': 'localhost',
         'port': 9497,
+        'prefix': None,
+        'https': False,
         'timeout': 2,
-        'verify_certificate': _CERT_FILE,
         'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-key.yml',
     },
     'confd': {'host': 'localhost', 'port': 9486, 'verify_certificate': _CERT_FILE},

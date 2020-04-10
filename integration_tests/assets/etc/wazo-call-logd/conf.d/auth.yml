@@ -1,4 +1,3 @@
 auth:
   host: auth
-  verify_certificate: /usr/local/share/ssl/auth/server.crt
   key_file: /etc/wazo-call-logd/key.yml
