@@ -1,3 +1,0 @@
-auth:
-  host: auth
-  key_file: /etc/wazo-call-logd/key.yml
