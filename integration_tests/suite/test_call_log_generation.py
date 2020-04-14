@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime
@@ -518,13 +518,14 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date=datetime.fromisoformat('2015-06-18 14:10:24.586638+00:00'),
                 date_answer=None,
                 date_end=datetime.fromisoformat('2015-06-18 14:10:28.290746+00:00'),
-                source_name='Elès 45',
-                source_exten='1045',
-                requested_exten='1001',
-                requested_context='default',
                 destination_exten='1001',
-                source_line_identity='sip/as2mkq',
                 destination_line_identity='sip/je5qtq',
+                destination_name='Elès 01',
+                requested_context='default',
+                requested_exten='1001',
+                source_exten='1045',
+                source_line_identity='sip/as2mkq',
+                source_name='Elès 45',
             ),
         )
 
