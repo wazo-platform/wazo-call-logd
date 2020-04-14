@@ -1,0 +1,9 @@
+db_uri: postgresql://asterisk:proformatique@postgres/asterisk
+auth:
+  host: auth
+  key_file: /etc/wazo-call-logd/key.yml
+bus:
+  host: rabbitmq
+confd:
+  host: confd
+  verify_certificate: /usr/local/share/ssl/confd/server.crt
