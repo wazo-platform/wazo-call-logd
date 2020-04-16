@@ -7,7 +7,7 @@ egg-info:
 	cd .. && python setup.py egg_info
 
 test:
-	nosetests
+	pytest
 
 call-logd:
 	docker build -t wazopbx/wazo-call-logd ..
