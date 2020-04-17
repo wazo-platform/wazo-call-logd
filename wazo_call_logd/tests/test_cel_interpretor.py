@@ -1,4 +1,4 @@
-# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -191,3 +191,40 @@ class TestCallerCELInterpretor(TestCase):
         result = self.caller_cel_interpretor.interpret_cel(cel, call)
 
         assert_that(result, equal_to(call))
+
+    def test_interpret_xivo_user_fwd_regexp(self):
+        cel = Mock(eventtype='XIVO_USER_FWD', extra='{"extra":"NAME:Bob Marley"}')
+        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
+
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+
+        assert_that(result.requested_name, equal_to('Bob Marley'))
+
+    def test_interpret_xivo_user_fwd_regexp_with_space(self):
+        cel = Mock(eventtype='XIVO_USER_FWD', extra='{"extra":"NAME: Bob Marley "}')
+        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
+
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+
+        assert_that(result.requested_name, equal_to('Bob Marley'))
+
+    def test_interpret_xivo_user_fwd_regexp_with_value_before(self):
+        cel = Mock(
+            eventtype='XIVO_USER_FWD', extra='{"extra":" NUM:100,NAME:Bob Marley"}'
+        )
+        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
+
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+
+        assert_that(result.requested_name, equal_to('Bob Marley'))
+
+    def test_interpret_xivo_user_fwd_regexp_with_value_after(self):
+        cel = Mock(
+            eventtype='XIVO_USER_FWD',
+            extra='{"extra":" NUM:100,NAME:Bob Marley,OTHER:value"}',
+        )
+        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
+
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+
+        assert_that(result.requested_name, equal_to('Bob Marley'))

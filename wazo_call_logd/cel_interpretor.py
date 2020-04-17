@@ -1,6 +1,7 @@
 # Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import re
 import logging
 
 from xivo.asterisk.line_identity import identity_from_channel
@@ -10,6 +11,8 @@ from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 logger = logging.getLogger(__name__)
+
+EXTRA_NAME_REGEX = r'^.*NAME: *(.*?) *(?:,|"})'
 
 
 def find_participant(confd, channame):
@@ -131,6 +134,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_from_s: self.interpret_xivo_from_s,
             CELEventType.xivo_incall: self.interpret_xivo_incall,
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
+            CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
         }
         self._confd = confd
 
@@ -208,6 +212,14 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         return call
 
+    def interpret_xivo_user_fwd(self, cel, call):
+        if call.interpret_caller_xivo_user_fwd:
+            match = re.match(EXTRA_NAME_REGEX, cel.extra)
+            if match:
+                call.requested_name = match.group(1)
+            call.interpret_caller_xivo_user_fwd = False
+        return call
+
 
 class CalleeCELInterpretor(AbstractCELInterpretor):
     def __init__(self, confd):
@@ -223,6 +235,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         call.destination_exten = cel.cid_num
         call.destination_name = cel.cid_name
+        if not call.requested_name:
+            call.requested_name = cel.cid_name
 
         participant = find_participant(self._confd, cel.channame)
         if participant:

@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -128,6 +128,7 @@ class TestGetCDRId(IntegrationTest):
                 'destination_internal_exten': '3245',
                 'destination_internal_context': 'internal',
                 'direction': 'internal',
+                'requested_name': 'réques,ted',
                 'requested_exten': '3958',
                 'requested_internal_exten': '3490',
                 'requested_internal_context': 'internal',
@@ -166,6 +167,7 @@ class TestGetCDRId(IntegrationTest):
                 destination_internal_context='internal',
                 duration=87,
                 call_direction='internal',
+                requested_name='réques,ted',
                 requested_extension='3958',
                 requested_internal_extension='3490',
                 requested_internal_context='internal',
@@ -191,6 +193,7 @@ class TestGetCDRId(IntegrationTest):
                 'destination_internal_exten': '3245',
                 'destination_internal_context': 'internal',
                 'direction': 'internal',
+                'requested_name': 'réques,ted',
                 'requested_exten': '3958',
                 'requested_internal_exten': '3490',
                 'requested_internal_context': 'internal',
@@ -226,6 +229,7 @@ class TestGetCDRId(IntegrationTest):
                 destination_internal_extension='3245',
                 destination_internal_context='internal',
                 duration='87',
+                requested_name='réques,ted',
                 requested_extension='3958',
                 requested_internal_extension='3490',
                 requested_internal_context='internal',

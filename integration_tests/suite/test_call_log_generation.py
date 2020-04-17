@@ -301,10 +301,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
     @raw_cels(
         '''\
-   eventtype   |         eventtime          | cid_name | cid_num |       exten       |   context   |      channame       |   uniqueid   |   linkedid   | userfield
+   eventtype   |         eventtime          | cid_name | cid_num |       exten       |   context   |      channame       |   uniqueid   |   linkedid   | extra
 ---------------+----------------------------+----------+---------+-------------------+-------------+---------------------+--------------+--------------+-----------
  CHAN_START    | 2018-04-24 14:27:17.922298 | Alicé    | 101     | 102               | default     | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
- XIVO_USER_FWD | 2018-04-24 14:27:18.249093 | Alicé    | 101     | forward_voicemail | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
+ XIVO_USER_FWD | 2018-04-24 14:27:18.249093 | Alicé    | 101     | forward_voicemail | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 | {"extra":" NUM:100, NAME:Bob Lépine"}
  ANSWER        | 2018-04-24 14:27:18.748307 | Alicé    | 101     | pickup            | xivo-pickup | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
  APP_START     | 2018-04-24 14:27:20.140238 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
  CHAN_START    | 2018-04-24 14:27:20.169787 | Charlié  | 103     | s                 | default     | SIP/rku3uo-00000002 | 1524594440.8 | 1524594437.7 |
@@ -354,9 +354,11 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 source_internal_context='default',
                 requested_exten='102',
                 requested_context='default',
+                requested_name='Bob Lépine',
                 destination_exten='103',
                 destination_internal_exten='103',
                 destination_internal_context='default',
+                destination_name='Charlié',
             ),
         )
 
@@ -404,10 +406,12 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 tenant_uuid=USERS_TENANT,
                 source_internal_exten=None,
                 source_internal_context=None,
+                requested_name='Arsène Lupin',
                 requested_exten='999101',
                 requested_context='from-extern',
                 requested_internal_exten='101',
                 requested_internal_context='default',
+                destination_name='Arsène Lupin',
                 destination_exten='101',
                 destination_internal_exten='101',
                 destination_internal_context='default',
@@ -489,8 +493,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2015-06-18 14:09:02.271033+00:00'),
                 source_name='Elès 45',
                 source_exten='1045',
+                requested_name='Elès 01',
                 requested_exten='1001',
                 requested_context='default',
+                destination_name='Elès 01',
                 destination_exten='1001',
                 source_line_identity='sip/as2mkq',
                 destination_line_identity='sip/je5qtq',
@@ -523,6 +529,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_name='Elès 01',
                 requested_context='default',
                 requested_exten='1001',
+                requested_name='Elès 01',
                 source_exten='1045',
                 source_line_identity='sip/as2mkq',
                 source_name='Elès 45',
@@ -531,23 +538,23 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
     @raw_cels(
         '''\
- eventtype     | eventtime                  | cid_name         | cid_num | exten             | context     | channame            |      uniqueid |      linkedid
+ eventtype     | eventtime                  | cid_name         | cid_num | exten             | context     | channame            | uniqueid      | linkedid      | extra
 
- CHAN_START    | 2018-02-02 15:00:25.106723 | Alice            |     101 | 103               | default     | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
- XIVO_USER_FWD | 2018-02-02 15:00:25.546267 | Alice            |     101 | forward_voicemail | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
- ANSWER        | 2018-02-02 15:00:26.051203 | Alice            |     101 | pickup            | xivo-pickup | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
- APP_START     | 2018-02-02 15:00:27.373161 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
- CHAN_START    | 2018-02-02 15:00:27.392589 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
- ANSWER        | 2018-02-02 15:00:29.207311 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
- BRIDGE_ENTER  | 2018-02-02 15:00:29.227529 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
- BRIDGE_ENTER  | 2018-02-02 15:00:29.22922  | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
- BRIDGE_EXIT   | 2018-02-02 15:00:30.464687 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
- HANGUP        | 2018-02-02 15:00:30.471676 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
- CHAN_END      | 2018-02-02 15:00:30.476368 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17
- BRIDGE_EXIT   | 2018-02-02 15:00:30.478914 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
- HANGUP        | 2018-02-02 15:00:30.481403 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
- CHAN_END      | 2018-02-02 15:00:30.484065 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
- LINKEDID_END  | 2018-02-02 15:00:30.486225 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17
+ CHAN_START    | 2018-02-02 15:00:25.106723 | Alice            |     101 | 103               | default     | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
+ XIVO_USER_FWD | 2018-02-02 15:00:25.546267 | Alice            |     101 | forward_voicemail | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 | {"extra":" NUM:103, NAME:Charlie"}
+ ANSWER        | 2018-02-02 15:00:26.051203 | Alice            |     101 | pickup            | xivo-pickup | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
+ APP_START     | 2018-02-02 15:00:27.373161 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
+ CHAN_START    | 2018-02-02 15:00:27.392589 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17 |
+ ANSWER        | 2018-02-02 15:00:29.207311 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17 |
+ BRIDGE_ENTER  | 2018-02-02 15:00:29.227529 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17 |
+ BRIDGE_ENTER  | 2018-02-02 15:00:29.22922  | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
+ BRIDGE_EXIT   | 2018-02-02 15:00:30.464687 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17 |
+ HANGUP        | 2018-02-02 15:00:30.471676 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17 |
+ CHAN_END      | 2018-02-02 15:00:30.476368 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000a | 1517601627.18 | 1517601625.17 |
+ BRIDGE_EXIT   | 2018-02-02 15:00:30.478914 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
+ HANGUP        | 2018-02-02 15:00:30.481403 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
+ CHAN_END      | 2018-02-02 15:00:30.484065 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
+ LINKEDID_END  | 2018-02-02 15:00:30.486225 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
     '''
     )
     def test_internal_unconditional_forwarded_answered_call(self):
@@ -560,6 +567,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 source_exten='101',
                 requested_exten='103',
                 requested_context='default',
+                requested_name='Charlie',
                 destination_exten='102',
                 destination_name='Bernard',
                 source_line_identity='sccp/101',
@@ -569,27 +577,27 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
     @raw_cels(
         '''\
- eventtype     | eventtime                  | cid_name         | cid_num | exten             | context     | channame            |      uniqueid |      linkedid
+ eventtype     | eventtime                  | cid_name         | cid_num | exten             | context     | channame            | uniqueid      | linkedid      | extra
 
- CHAN_START    | 2018-02-06 13:33:31.114956 | Alice            |     101 | 103               | default     | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- APP_START     | 2018-02-06 13:33:31.897767 | Alice            |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- CHAN_START    | 2018-02-06 13:33:31.927285 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16
- HANGUP        | 2018-02-06 13:33:33.272605 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16
- CHAN_END      | 2018-02-06 13:33:33.287358 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16
- XIVO_USER_FWD | 2018-02-06 13:33:33.28969  | Alice            |     101 | forward_voicemail | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- ANSWER        | 2018-02-06 13:33:33.778962 | Alice            |     101 | pickup            | xivo-pickup | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- APP_START     | 2018-02-06 13:33:35.089841 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- CHAN_START    | 2018-02-06 13:33:35.107786 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
- ANSWER        | 2018-02-06 13:33:36.315745 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
- BRIDGE_ENTER  | 2018-02-06 13:33:36.331304 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
- BRIDGE_ENTER  | 2018-02-06 13:33:36.333193 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- BRIDGE_EXIT   | 2018-02-06 13:33:37.393726 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
- HANGUP        | 2018-02-06 13:33:37.401862 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
- CHAN_END      | 2018-02-06 13:33:37.404542 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16
- BRIDGE_EXIT   | 2018-02-06 13:33:37.407847 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- HANGUP        | 2018-02-06 13:33:37.410228 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- CHAN_END      | 2018-02-06 13:33:37.412453 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
- LINKEDID_END  | 2018-02-06 13:33:37.414762 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16
+ CHAN_START    | 2018-02-06 13:33:31.114956 | Alice            |     101 | 103               | default     | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
+ APP_START     | 2018-02-06 13:33:31.897767 | Alice            |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
+ CHAN_START    | 2018-02-06 13:33:31.927285 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16 |
+ HANGUP        | 2018-02-06 13:33:33.272605 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16 |
+ CHAN_END      | 2018-02-06 13:33:33.287358 | Charlie          |     103 | s                 | default     | SIP/rku3uo-0000000e | 1517942011.17 | 1517942011.16 |
+ XIVO_USER_FWD | 2018-02-06 13:33:33.28969  | Alice            |     101 | forward_voicemail | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 | {"extra":" NUM:103, NAME:Charlie"}
+ ANSWER        | 2018-02-06 13:33:33.778962 | Alice            |     101 | pickup            | xivo-pickup | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
+ APP_START     | 2018-02-06 13:33:35.089841 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
+ CHAN_START    | 2018-02-06 13:33:35.107786 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16 |
+ ANSWER        | 2018-02-06 13:33:36.315745 | Bernard          |     102 | s                 | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16 |
+ BRIDGE_ENTER  | 2018-02-06 13:33:36.331304 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16 |
+ BRIDGE_ENTER  | 2018-02-06 13:33:36.333193 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
+ BRIDGE_EXIT   | 2018-02-06 13:33:37.393726 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16 |
+ HANGUP        | 2018-02-06 13:33:37.401862 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16 |
+ CHAN_END      | 2018-02-06 13:33:37.404542 | Bernard          |     102 |                   | default     | SIP/dm77z3-0000000f | 1517942015.18 | 1517942011.16 |
+ BRIDGE_EXIT   | 2018-02-06 13:33:37.407847 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
+ HANGUP        | 2018-02-06 13:33:37.410228 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
+ CHAN_END      | 2018-02-06 13:33:37.412453 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
+ LINKEDID_END  | 2018-02-06 13:33:37.414762 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
     '''
     )
     def test_internal_busy_fwd_answered_call(self):
@@ -602,7 +610,9 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 source_exten='101',
                 requested_exten='103',
                 requested_context='default',
+                requested_name='Charlie',
                 destination_exten='102',
+                destination_name='Bernard',
                 source_line_identity='sccp/101',
                 destination_line_identity='sip/dm77z3',
             ),
@@ -635,8 +645,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2013-01-01 11:02:45.400000+00:00'),
                 source_name='612345678',
                 source_exten='0612345678',
+                requested_name='Bob Marley',
                 requested_exten='1002',
                 requested_context='from-extern',
+                destination_name='Bob Marley',
                 destination_exten='1002',
                 source_line_identity='sip/trunk',
                 destination_line_identity='sip/hg63xv',
@@ -645,20 +657,20 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
     @raw_cels(
         '''\
- eventtype     | eventtime             | cid_name   |    cid_num  | exten             | context     | channame                |      uniqueid |      linkedid
+ eventtype     | eventtime             | cid_name   |    cid_num  | exten             | context     | channame                | uniqueid      | linkedid      | extra
 
- CHAN_START    | 2020-04-06 14:44:08.0 | fb          | 0123456789 | 000101            | from-extern | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
- XIVO_INCALL   | 2020-04-06 14:44:08.1 | fb          | 0123456789 | s                 | did         | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
- XIVO_USER_FWD | 2020-04-06 14:44:08.2 | fb          | 0123456789 | forward_voicemail | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
- ANSWER        | 2020-04-06 14:44:08.3 | fb          | 0123456789 | pickup            | xivo-pickup | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
- APP_START     | 2020-04-06 14:44:13.0 | fb          | 0123456789 | s                 | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
- CHAN_START    | 2020-04-06 14:44:13.0 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35
- HANGUP        | 2020-04-06 14:44:15.0 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35
- CHAN_END      | 2020-04-06 14:44:15.1 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35
- XIVO_USER_FWD | 2020-04-06 14:44:15.2 | fb          | 0123456789 | forward_voicemail | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
- HANGUP        | 2020-04-06 14:44:17.0 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
- CHAN_END      | 2020-04-06 14:44:17.1 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
- LINKEDID_END  | 2020-04-06 14:44:17.2 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35
+ CHAN_START    | 2020-04-06 14:44:08.0 | fb          | 0123456789 | 000101            | from-extern | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
+ XIVO_INCALL   | 2020-04-06 14:44:08.1 | fb          | 0123456789 | s                 | did         | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
+ XIVO_USER_FWD | 2020-04-06 14:44:08.2 | fb          | 0123456789 | forward_voicemail | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 | {"extra":" NUM:100, NAME:Alicié"}
+ ANSWER        | 2020-04-06 14:44:08.3 | fb          | 0123456789 | pickup            | xivo-pickup | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
+ APP_START     | 2020-04-06 14:44:13.0 | fb          | 0123456789 | s                 | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
+ CHAN_START    | 2020-04-06 14:44:13.0 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35 |
+ HANGUP        | 2020-04-06 14:44:15.0 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35 |
+ CHAN_END      | 2020-04-06 14:44:15.1 | Bob Marley  | 102        | s                 | internal    | PJSIP/qo6ac582-0000001c | 1586198653.36 | 1586198648.35 |
+ XIVO_USER_FWD | 2020-04-06 14:44:15.2 | fb          | 0123456789 | forward_voicemail | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 | {"extra":" NUM:100, NAME:Bob Marley"}
+ HANGUP        | 2020-04-06 14:44:17.0 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
+ CHAN_END      | 2020-04-06 14:44:17.1 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
+ LINKEDID_END  | 2020-04-06 14:44:17.2 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
     '''
     )
     def test_not_answered_incoming_call_with_unconditional_forward(self):
@@ -670,8 +682,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2020-04-06 14:44:17.100000+00:00'),
                 destination_exten='102',
                 destination_line_identity='pjsip/qo6ac582',
+                destination_name='Bob Marley',
                 requested_context='from-extern',
                 requested_exten='000101',
+                requested_name='Alicié',
                 source_exten='0123456789',
                 source_line_identity='pjsip/dev_44',
                 source_name='fb',
@@ -706,8 +720,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2013-01-01 11:02:45.400000+00:00'),
                 source_name='612345678',
                 source_exten='0612345678',
+                requested_name='Bob Marley',
                 requested_exten='1002',
                 requested_context='from-extern',
+                destination_name='Bob Marley',
                 destination_exten='1002',
                 source_line_identity='sip/trunk',
                 destination_line_identity='sip/hg63xv',
@@ -744,8 +760,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2015-06-18 14:12:16.862638+00:00'),
                 source_name='Elès 01',
                 source_exten='1001',
+                requested_name='',
                 requested_exten='**9642301',
                 requested_context='default',
+                destination_name='',
                 destination_exten='**9642301',
                 user_field='',
                 source_line_identity='sip/je5qtq',
@@ -785,6 +803,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 source_exten='1001',
                 requested_exten='**9642301',
                 requested_context='default',
+                destination_name='',
                 destination_exten='**9642301',
                 user_field='foo',
                 source_line_identity='sip/je5qtq',
@@ -821,8 +840,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2013-12-04 14:21:07.100000+00:00'),
                 source_name='Neelix Talaxian',
                 source_exten='1066',
+                requested_name='Donald MacRonald',
                 requested_exten='1624',
                 requested_context='default',
+                destination_name='Donald MacRonald',
                 destination_exten='1624',
                 source_line_identity='sip/2dvtpb',
                 destination_line_identity='sip/zsp7wv',
@@ -858,8 +879,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2015-06-18 14:15:19.212596+00:00'),
                 source_name='Elès 45',
                 source_exten='1045',
+                requested_name='Elès 01',
                 requested_exten='1001',
                 requested_context='default',
+                destination_name='Elès 01',
                 destination_exten='1001',
                 source_line_identity='sip/as2mkq',
                 destination_line_identity='sip/je5qtq',
@@ -890,8 +913,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2015-06-18 14:15:54.952707+00:00'),
                 source_name='Elès 45',
                 source_exten='1045',
+                requested_name='Elès 01',
                 requested_exten='1001',
                 requested_context='default',
+                destination_name='Elès 01',
                 destination_exten='1001',
                 source_line_identity='sip/as2mkq',
                 destination_line_identity='sip/je5qtq',
@@ -922,8 +947,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2014-02-20 09:29:00.309786+00:00'),
                 source_name='Carlos',
                 source_exten='1003',
+                requested_name='Bõb',
                 requested_exten='1002',
                 requested_context='pcmdev',
+                destination_name='Bõb',
                 destination_exten='1002',
                 source_line_identity='sip/d49t0y',
                 destination_line_identity='sccp/1002',

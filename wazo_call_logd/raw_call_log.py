@@ -1,4 +1,4 @@
-# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -18,6 +18,7 @@ class RawCallLog(object):
         self.source_exten = None
         self.source_internal_exten = None
         self.source_internal_context = None
+        self.requested_name = None
         self.requested_exten = None
         self.requested_context = None
         self.requested_internal_exten = None
@@ -34,6 +35,7 @@ class RawCallLog(object):
         self.participants = []
         self.cel_ids = []
         self.interpret_callee_bridge_enter = True
+        self.interpret_caller_xivo_user_fwd = True
         self._tenant_uuid = None
 
     @property
@@ -69,6 +71,7 @@ class RawCallLog(object):
             requested_context=self.requested_context,
             requested_internal_exten=self.requested_internal_exten,
             requested_internal_context=self.requested_internal_context,
+            requested_name=self.requested_name,
             destination_name=self.destination_name,
             destination_exten=self.destination_exten,
             destination_internal_exten=self.destination_internal_exten,

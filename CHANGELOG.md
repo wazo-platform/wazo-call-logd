@@ -1,5 +1,11 @@
 # Changelog
 
+## 20.06
+
+* `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` return new fields:
+
+  * `requested_name`
+
 ## 19.09
 
 * New query parameters have been added to the `GET /users/me/cdr` endpoint:
