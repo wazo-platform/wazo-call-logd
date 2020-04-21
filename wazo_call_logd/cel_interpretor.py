@@ -12,7 +12,7 @@ from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
 logger = logging.getLogger(__name__)
 
-EXTRA_NAME_REGEX = r'^.*NAME: *(.*?) *(?:,|"})'
+EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?:,|"})'
 
 
 def find_participant(confd, channame):
@@ -214,9 +214,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_xivo_user_fwd(self, cel, call):
         if call.interpret_caller_xivo_user_fwd:
-            match = re.match(EXTRA_NAME_REGEX, cel.extra)
+            match = re.match(EXTRA_USER_FWD_REGEX, cel.extra)
             if match:
-                call.requested_name = match.group(1)
+                call.requested_internal_exten = match.group(1)
+                call.requested_internal_context = match.group(2)
+                call.requested_name = match.group(3)
             call.interpret_caller_xivo_user_fwd = False
         return call
 

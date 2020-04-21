@@ -193,38 +193,53 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result, equal_to(call))
 
     def test_interpret_xivo_user_fwd_regexp(self):
-        cel = Mock(eventtype='XIVO_USER_FWD', extra='{"extra":"NAME:Bob Marley"}')
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
-
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
-
-        assert_that(result.requested_name, equal_to('Bob Marley'))
-
-    def test_interpret_xivo_user_fwd_regexp_with_space(self):
-        cel = Mock(eventtype='XIVO_USER_FWD', extra='{"extra":"NAME: Bob Marley "}')
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
-
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
-
-        assert_that(result.requested_name, equal_to('Bob Marley'))
-
-    def test_interpret_xivo_user_fwd_regexp_with_value_before(self):
         cel = Mock(
-            eventtype='XIVO_USER_FWD', extra='{"extra":" NUM:100,NAME:Bob Marley"}'
+            eventtype='XIVO_USER_FWD',
+            extra='{"extra":"NUM:100,CONTEXT:internal,NAME:Bob Marley"}',
         )
         call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
         result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
+        assert_that(result.requested_internal_exten, equal_to('100'))
+        assert_that(result.requested_internal_context, equal_to('internal'))
+
+    def test_interpret_xivo_user_fwd_regexp_with_space(self):
+        cel = Mock(
+            eventtype='XIVO_USER_FWD',
+            extra='{"extra":" NUM: 100 , CONTEXT: internal , NAME: Bob Marley "}',
+        )
+        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
+
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+
+        assert_that(result.requested_name, equal_to('Bob Marley'))
+        assert_that(result.requested_internal_exten, equal_to('100'))
+        assert_that(result.requested_internal_context, equal_to('internal'))
+
+    def test_interpret_xivo_user_fwd_regexp_with_value_before(self):
+        cel = Mock(
+            eventtype='XIVO_USER_FWD',
+            extra='{"extra":"BEFORE:value,NUM:100,CONTEXT:internal,NAME:Bob Marley"}',
+        )
+        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
+
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+
+        assert_that(result.requested_name, equal_to('Bob Marley'))
+        assert_that(result.requested_internal_exten, equal_to('100'))
+        assert_that(result.requested_internal_context, equal_to('internal'))
 
     def test_interpret_xivo_user_fwd_regexp_with_value_after(self):
         cel = Mock(
             eventtype='XIVO_USER_FWD',
-            extra='{"extra":" NUM:100,NAME:Bob Marley,OTHER:value"}',
+            extra='{"extra":"NUM:100,CONTEXT:internal,NAME:Bob Marley,AFTER:value"}',
         )
         call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
         result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
+        assert_that(result.requested_internal_exten, equal_to('100'))
+        assert_that(result.requested_internal_context, equal_to('internal'))
