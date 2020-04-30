@@ -46,7 +46,7 @@ _DEFAULT_CONFIG = {
         'timeout': 2,
         'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-key.yml',
     },
-    'confd': {'host': 'localhost', 'port': 9486, 'verify_certificate': _CERT_FILE},
+    'confd': {'host': 'localhost', 'port': 9486, 'prefix': None, 'https': False},
     'enabled_plugins': {'api': True, 'cdr': True, 'status': True},
 }
 

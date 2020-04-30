@@ -14,7 +14,6 @@ services:
     image: wazo-call-logd-test
     volumes:
       - "../..:/usr/src/wazo-call-logd"
-      - "./ssl:/usr/local/share/ssl"
       - "./etc/wazo-call-logd/key.yml:/etc/wazo-call-logd/key.yml"
       - "./etc/wazo-call-logd/conf.d/50-default.yml:/etc/wazo-call-logd/conf.d/50-default.yml"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.7/site-packages/xivo"
@@ -29,8 +28,6 @@ services:
     image: wazopbx/wazo-confd-mock
     ports:
       - "9486"
-    volumes:
-      - "./ssl:/usr/local/share/ssl"
 
   postgres:
     image: wazopbx/postgres-test
