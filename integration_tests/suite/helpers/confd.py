@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -10,14 +10,14 @@ class ConfdClient(object):
         self._port = port
 
     def url(self, *parts):
-        return 'https://{host}:{port}/{path}'.format(
+        return 'http://{host}:{port}/{path}'.format(
             host=self._host, port=self._port, path='/'.join(parts)
         )
 
     def is_up(self):
         url = self.url()
         try:
-            response = requests.get(url, verify=False)
+            response = requests.get(url)
             return response.status_code == 404
         except requests.RequestException:
             return False
@@ -28,7 +28,7 @@ class ConfdClient(object):
             'response': 'users',
             'content': {user.uuid(): user.to_dict() for user in mock_users},
         }
-        requests.post(url, json=body, verify=False)
+        requests.post(url, json=body)
 
     def set_lines(self, *mock_lines):
         url = self.url('_set_response')
@@ -36,7 +36,7 @@ class ConfdClient(object):
             'response': 'lines',
             'content': {line.id_(): line.to_dict() for line in mock_lines},
         }
-        requests.post(url, json=body, verify=False)
+        requests.post(url, json=body)
 
     def set_user_lines(self, set_user_lines):
         content = {}
@@ -45,7 +45,7 @@ class ConfdClient(object):
 
         url = self.url('_set_response')
         body = {'response': 'user_lines', 'content': content}
-        requests.post(url, json=body, verify=False)
+        requests.post(url, json=body)
 
     def set_switchboards(self, *mock_switchboards):
         url = self.url('_set_response')
@@ -57,7 +57,7 @@ class ConfdClient(object):
             },
         }
 
-        requests.post(url, json=body, verify=False)
+        requests.post(url, json=body)
 
     def set_contexts(self, *mock_contexts):
         url = self.url('_set_response')
@@ -65,11 +65,11 @@ class ConfdClient(object):
             'response': 'contexts',
             'content': {context.id_(): context.to_dict() for context in mock_contexts},
         }
-        requests.post(url, json=body, verify=False)
+        requests.post(url, json=body)
 
     def reset(self):
         url = self.url('_reset')
-        requests.post(url, verify=False)
+        requests.post(url)
 
 
 class MockUser(object):
