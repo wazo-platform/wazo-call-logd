@@ -180,7 +180,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_answer(self, cel, call):
         if not call.destination_exten:
-            call.destination_exten = cel.cid_name
+            call.destination_exten = cel.cid_num
         if not call.requested_exten:
             call.requested_exten = cel.cid_num
 
