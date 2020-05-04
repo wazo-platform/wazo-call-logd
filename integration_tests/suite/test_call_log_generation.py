@@ -994,7 +994,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 requested_exten='**9742310',
                 requested_context='internal',  # FIXME: WAZO-1751 should be to-extern
                 destination_name='',
-                destination_exten='',  # FIXME: should be None
+                destination_exten='**9742310',
                 destination_line_identity='pjsip/dev_44',
             ),
         )

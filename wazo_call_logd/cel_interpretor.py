@@ -235,12 +235,11 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
 
-        call.destination_exten = cel.cid_num
-
         if call.direction == 'outbound':
             call.destination_name = ''
             call.requested_name = ''
         else:
+            call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
             if not call.requested_name:
                 call.requested_name = cel.cid_name
