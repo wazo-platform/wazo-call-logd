@@ -236,9 +236,14 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         call.destination_line_identity = identity_from_channel(cel.channame)
 
         call.destination_exten = cel.cid_num
-        call.destination_name = cel.cid_name
-        if not call.requested_name:
-            call.requested_name = cel.cid_name
+
+        if call.direction == 'outbound':
+            call.destination_name = ''
+            call.requested_name = ''
+        else:
+            call.destination_name = cel.cid_name
+            if not call.requested_name:
+                call.requested_name = cel.cid_name
 
         participant = find_participant(self._confd, cel.channame)
         if participant:
