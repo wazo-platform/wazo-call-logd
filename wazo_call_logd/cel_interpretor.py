@@ -180,7 +180,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_answer(self, cel, call):
         if not call.destination_exten:
-            call.destination_exten = cel.cid_name
+            call.destination_exten = cel.cid_num
         if not call.requested_exten:
             call.requested_exten = cel.cid_num
 
@@ -235,10 +235,14 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
 
-        call.destination_exten = cel.cid_num
-        call.destination_name = cel.cid_name
-        if not call.requested_name:
-            call.requested_name = cel.cid_name
+        if call.direction == 'outbound':
+            call.destination_name = ''
+            call.requested_name = ''
+        else:
+            call.destination_exten = cel.cid_num
+            call.destination_name = cel.cid_name
+            if not call.requested_name:
+                call.requested_name = cel.cid_name
 
         participant = find_participant(self._confd, cel.channame)
         if participant:

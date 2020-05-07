@@ -965,6 +965,40 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             ),
         )
 
+    @raw_cels(
+        '''\
+  eventtype   |        eventtime      | cid_name |  cid_num  |   exten   |   context   |        channame         |   uniqueid   |   linkedid
+
+ CHAN_START   | 2020-05-04 12:21:47.1 | User 01  | 1001      | **9742310 | internal    | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
+ XIVO_OUTCALL | 2020-05-04 12:21:47.2 | User 01  | 1001      | dial      | outcall     | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
+ APP_START    | 2020-05-04 12:21:47.3 | User 01  | 1001      | dial      | outcall     | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
+ CHAN_START   | 2020-05-04 12:21:47.4 | wazo     |           | s         | from-extern | PJSIP/dev_44-00000003   | 1588609307.3 | 1588609307.2
+ HANGUP       | 2020-05-04 12:21:50.1 |          | **9742310 | dial      | from-extern | PJSIP/dev_44-00000003   | 1588609307.3 | 1588609307.2
+ CHAN_END     | 2020-05-04 12:21:50.2 |          | **9742310 | dial      | from-extern | PJSIP/dev_44-00000003   | 1588609307.3 | 1588609307.2
+ HANGUP       | 2020-05-04 12:21:50.3 | User 01  | 1001      | dial      | outcall     | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
+ CHAN_END     | 2020-05-04 12:21:50.4 | User 01  | 1001      | dial      | outcall     | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
+ LINKEDID_END | 2020-05-04 12:21:50.5 | User 01  | 1001      | dial      | outcall     | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
+    '''
+    )
+    def test_unanswered_outcall(self):
+        self._assert_last_call_log_matches(
+            '1588609307.2',
+            has_properties(
+                date=datetime.fromisoformat('2020-05-04 12:21:47.100000+00:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2020-05-04 12:21:50.400000+00:00'),
+                source_name='User 01',
+                source_exten='1001',
+                source_line_identity='pjsip/d6jtulhp',
+                requested_name='',
+                requested_exten='**9742310',
+                requested_context='internal',  # FIXME: WAZO-1751 should be to-extern
+                destination_name='',
+                destination_exten='**9742310',
+                destination_line_identity='pjsip/dev_44',
+            ),
+        )
+
     @contextmanager
     def cels(self, cels):
         with self.database.queries() as queries:
