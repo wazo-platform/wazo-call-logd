@@ -5,7 +5,6 @@ After=network.target asterisk.service postgresql.service
 Before=monit.service
 
 [Service]
-Type=forking
 ExecStartPre=/usr/bin/install -d -o wazo-call-logd -g wazo-call-logd /run/wazo-call-logd
 ExecStart=/usr/bin/wazo-call-logd
 PIDFile=/run/wazo-call-logd/wazo-call-logd.pid
