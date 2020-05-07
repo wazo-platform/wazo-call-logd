@@ -15,7 +15,6 @@ _DEFAULT_CONFIG = {
     'pidfile': '/run/wazo-call-logd/wazo-call-logd.pid',
     'config_file': '/etc/wazo-call-logd/config.yml',
     'extra_config_files': '/etc/wazo-call-logd/conf.d',
-    'foreground': False,
     'debug': False,
     'user': 'wazo-call-logd',
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
@@ -78,12 +77,6 @@ def _parse_cli_args(argv):
         help="Log debug messages. Overrides log_level. Default: %(default)s",
     )
     parser.add_argument(
-        '-f',
-        '--foreground',
-        action='store_true',
-        help="Foreground, don't daemonize. Default: %(default)s",
-    )
-    parser.add_argument(
         '-l',
         '--log-level',
         action='store',
@@ -100,8 +93,6 @@ def _parse_cli_args(argv):
         result['config_file'] = parsed_args.config_file
     if parsed_args.debug:
         result['debug'] = parsed_args.debug
-    if parsed_args.foreground:
-        result['foreground'] = parsed_args.foreground
     if parsed_args.log_level:
         result['log_level'] = parsed_args.log_level
     if parsed_args.user:

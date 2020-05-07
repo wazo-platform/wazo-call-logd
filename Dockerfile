@@ -34,4 +34,4 @@ RUN mkdir /run/wazo-call-logd
 
 EXPOSE 9298
 
-CMD ["wazo-call-logd", "-fd", "-u", "root"]
+CMD ["wazo-call-logd", "-d", "-u", "root"]

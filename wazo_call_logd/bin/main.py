@@ -1,4 +1,4 @@
-# Copyright 2012-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2012-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -26,6 +26,7 @@ from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
 
+FOREGROUND = True
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/run/wazo-call-logs.pid'
 
@@ -57,10 +58,10 @@ DEFAULT_CONFIG = {
 
 def main():
     _print_deprecation_notice()
-    setup_logging('/dev/null', foreground=True, debug=False)
+    setup_logging('/dev/null', FOREGROUND, debug=False)
     silence_loggers(['urllib3.connectionpool'], level=logging.WARNING)
     init_db_from_config(default_config())
-    with pidfile_context(PIDFILENAME, foreground=True):
+    with pidfile_context(PIDFILENAME, FOREGROUND):
         _generate_call_logs()
 
 

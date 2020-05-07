@@ -1,4 +1,4 @@
-# Copyright 2012-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2012-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -15,6 +15,7 @@ from wazo_call_logd.config import load as load_config
 from wazo_call_logd.controller import Controller
 
 logger = logging.getLogger(__name__)
+FOREGROUND = True  # Always in foreground systemd takes care of daemonizing
 
 
 def main(argv):
@@ -24,9 +25,7 @@ def main(argv):
     if user:
         change_user(user)
 
-    setup_logging(
-        config['logfile'], config['foreground'], config['debug'], config['log_level']
-    )
+    setup_logging(config['logfile'], FOREGROUND, config['debug'], config['log_level'])
     xivo_dao.init_db_from_config(config)
 
     set_xivo_uuid(config, logger)
@@ -34,7 +33,7 @@ def main(argv):
     controller = Controller(config)
     signal.signal(signal.SIGTERM, partial(sigterm, controller))
 
-    with pidfile_context(config['pidfile'], config['foreground']):
+    with pidfile_context(config['pidfile'], FOREGROUND):
         controller.run()
 
 
