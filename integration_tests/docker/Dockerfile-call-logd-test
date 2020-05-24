@@ -1,6 +1,6 @@
 FROM wazopbx/wazo-call-logd
 
-ADD . /usr/src/wazo-call-logd
+COPY . /usr/src/wazo-call-logd
 WORKDIR /usr/src/wazo-call-logd
 
 ENV PYTHONDONTWRITEBYTECODE='true'
