@@ -19,7 +19,6 @@ case "$1" in
 					--home /var/lib/wazo-call-logd \
 					$USER
 		fi
-		adduser --quiet $USER www-data
 
 		#setup permissions for log file
 		if [ ! -e "$LOG_FILENAME" ]; then
@@ -30,7 +29,11 @@ case "$1" in
 		if [[ -z "${previous_version}" ]]; then
 			ln -nsf /etc/nginx/locations/https-available/${DAEMONNAME} \
 				/etc/nginx/locations/https-enabled/${DAEMONNAME}
-		fi
+        elif dpkg --compare-versions "${previous_version}" lt '20.08'; then
+            if getent group www-data | grep -q $USER; then
+                deluser --quiet $USER www-data
+            fi
+        fi
 
 	;;
 

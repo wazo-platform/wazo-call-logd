@@ -8,7 +8,6 @@ from xivo.config_helper import parse_config_file
 from xivo.config_helper import read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
-_CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _DEFAULT_CONFIG = {
     'logfile': '/var/log/wazo-call-logd.log',
     'log_level': 'info',
@@ -28,10 +27,10 @@ _DEFAULT_CONFIG = {
         'exchange_durable': True,
     },
     'rest_api': {
-        'listen': '0.0.0.0',
+        'listen': '127.0.0.1',
         'port': 9298,
-        'certificate': _CERT_FILE,
-        'private_key': '/usr/share/xivo-certs/server.key',
+        'certificate': None,
+        'private_key': None,
         'cors': {
             'enabled': True,
             'allow_headers': ['Content-Type', 'X-Auth-Token', 'Wazo-Tenant'],
