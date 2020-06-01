@@ -118,7 +118,8 @@ class IntegrationTest(AssetLaunchingTestCase):
             cls.call_logd = CallLogdClient(
                 'localhost',
                 cls.service_port(9298, 'call-logd'),
-                verify_certificate=False,
+                prefix=None,
+                https=False,
                 token=MASTER_TOKEN,
             )
         except (NoSuchService, NoSuchPort) as e:
