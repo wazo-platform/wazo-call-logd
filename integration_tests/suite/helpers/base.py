@@ -6,8 +6,9 @@ import os
 import random
 import tempfile
 
-from contextlib import contextmanager
+from contextlib import contextmanager, wraps
 from requests.packages import urllib3
+from hamcrest import assert_that
 from wazo_call_logd_client.client import Client as CallLogdClient
 from xivo_test_helpers import until
 from xivo_test_helpers.auth import AuthClient, MockUserToken
@@ -18,6 +19,7 @@ from xivo_test_helpers.asset_launching_test_case import (
     NoSuchPort,
 )
 
+from .wait_strategy import CallLogdEverythingUpWaitStrategy
 from .bus import CallLogBusClient
 from .confd import ConfdClient
 from .constants import (
@@ -41,6 +43,26 @@ from .database import DbHelper
 
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
+
+
+# this decorator takes the output of a psql and changes it into a list of dict
+def raw_cels(cel_output):
+    cels = []
+    lines = cel_output.strip().split('\n')
+    columns = [field.strip() for field in lines[0].split('|')]
+    for line in lines[2:]:
+        cel = [field.strip() for field in line.split('|')]
+        cels.append(dict(zip(columns, cel)))
+
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.cels(cels):
+                return func(self, *args, **kwargs)
+
+        return wrapped_function
+
+    return _decorate
 
 
 def cdr(
@@ -214,3 +236,47 @@ class IntegrationTest(AssetLaunchingTestCase):
                 'parent_uuid': MASTER_TENANT,
             },
         )
+
+
+class RawCelIntegrationTest(IntegrationTest):
+
+    asset = 'base'
+    wait_strategy = CallLogdEverythingUpWaitStrategy()
+
+    def setUp(self):
+        self.bus = self.make_bus()
+        self.confd = self.make_confd()
+        self.confd.reset()
+
+    @contextmanager
+    def cels(self, cels):
+        with self.database.queries() as queries:
+            for cel in cels:
+                cel['id'] = queries.insert_cel(**cel)
+
+        yield
+
+        with self.database.queries() as queries:
+            for cel in cels:
+                queries.delete_cel(cel['id'])
+
+    @contextmanager
+    def no_call_logs(self):
+        with self.database.queries() as queries:
+            queries.clear_call_logs()
+
+        yield
+
+        with self.database.queries() as queries:
+            queries.clear_call_logs()
+
+    def _assert_last_call_log_matches(self, linkedid, expected):
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_generated():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(call_log, expected)
+
+            until.assert_(call_log_generated, tries=5)
