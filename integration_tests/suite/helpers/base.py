@@ -41,7 +41,6 @@ from .database import DbHelper
 
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
-logging.getLogger('amqp').setLevel(logging.INFO)
 
 
 def cdr(
