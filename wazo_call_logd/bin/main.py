@@ -59,7 +59,7 @@ DEFAULT_CONFIG = {
 def main():
     _print_deprecation_notice()
     setup_logging('/dev/null', FOREGROUND, debug=False)
-    silence_loggers(['urllib3.connectionpool'], level=logging.WARNING)
+    silence_loggers(['urllib3.connectionpool', 'amqp'], level=logging.WARNING)
     init_db_from_config(default_config())
     with pidfile_context(PIDFILENAME, FOREGROUND):
         _generate_call_logs()
