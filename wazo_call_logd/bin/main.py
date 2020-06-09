@@ -30,7 +30,6 @@ FOREGROUND = True
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/run/wazo-call-logs.pid'
 
-_CERT_FILE = '/usr/share/xivo-certs/server.crt'
 DEFAULT_CONFIG = {
     'pidfile': PIDFILENAME,
     'config_file': '/etc/wazo-call-logd/config.yml',
@@ -40,7 +39,8 @@ DEFAULT_CONFIG = {
         'host': 'localhost',
         'port': 9497,
         'timeout': 2,
-        'verify_certificate': _CERT_FILE,
+        'prefix': None,
+        'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-key.yml',
     },
     'bus': {
@@ -52,7 +52,7 @@ DEFAULT_CONFIG = {
         'exchange_type': 'topic',
         'exchange_durable': True,
     },
-    'confd': {'host': 'localhost', 'port': 9486, 'verify_certificate': _CERT_FILE},
+    'confd': {'host': 'localhost', 'port': 9486, 'prefix': None, 'https': False},
 }
 
 
