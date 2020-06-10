@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime
-from functools import wraps
-from contextlib import contextmanager
 from hamcrest import (
     assert_that,
     contains_inanyorder,
@@ -17,33 +15,13 @@ from hamcrest import (
 )
 from xivo_test_helpers import until
 
-from .helpers.base import IntegrationTest
+from .helpers.base import raw_cels, RawCelIntegrationTest
 from .helpers.confd import MockContext, MockLine, MockUser
 from .helpers.constants import USER_1_UUID, USER_2_UUID, USERS_TENANT, SERVICE_TENANT
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
-# this decorator takes the output of a psql and changes it into a list of dict
-def raw_cels(cel_output):
-    cels = []
-    lines = cel_output.strip().split('\n')
-    columns = [field.strip() for field in lines[0].split('|')]
-    for line in lines[2:]:
-        cel = [field.strip() for field in line.split('|')]
-        cels.append(dict(zip(columns, cel)))
-
-    def _decorate(func):
-        @wraps(func)
-        def wrapped_function(self, *args, **kwargs):
-            with self.cels(cels):
-                return func(self, *args, **kwargs)
-
-        return wrapped_function
-
-    return _decorate
-
-
-class TestCallLogGeneration(IntegrationTest):
+class TestCallLogGeneration(RawCelIntegrationTest):
 
     asset = 'base'
     wait_strategy = CallLogdEverythingUpWaitStrategy()
@@ -85,7 +63,7 @@ CHAN_START   | 2019-08-28 15:29:21.159727 |          |         |         | ycetq
 CHAN_START   | 2019-08-28 15:29:21.154157 |          |         |         | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 |          |                                                       | 1567020561.34 | 1567020560.33 |                                                      |
 APP_START    | 2019-08-28 15:29:21.145952 | Alice    | 1001    | 1001    | s        | user                       | PJSIP/qxqz31sq-00000017                              | Dial     | Local/ycetqvtr@wazo_wait_for_registration,30,         | 1567020560.33 | 1567020560.33 |                                                      |
 CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002     | inside                     | PJSIP/qxqz31sq-00000017                              |          |                                                       | 1567020560.33 | 1567020560.33 |                                                      |
-    '''
+        '''
     )
     def test_call_to_mobile_dial(self):
         self._assert_last_call_log_matches(
@@ -998,36 +976,3 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_line_identity='pjsip/dev_44',
             ),
         )
-
-    @contextmanager
-    def cels(self, cels):
-        with self.database.queries() as queries:
-            for cel in cels:
-                cel['id'] = queries.insert_cel(**cel)
-
-        yield
-
-        with self.database.queries() as queries:
-            for cel in cels:
-                queries.delete_cel(cel['id'])
-
-    @contextmanager
-    def no_call_logs(self):
-        with self.database.queries() as queries:
-            queries.clear_call_logs()
-
-        yield
-
-        with self.database.queries() as queries:
-            queries.clear_call_logs()
-
-    def _assert_last_call_log_matches(self, linkedid, expected):
-        with self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-
-            def call_log_generated():
-                with self.database.queries() as queries:
-                    call_log = queries.find_last_call_log()
-                    assert_that(call_log, expected)
-
-            until.assert_(call_log_generated, tries=5)
