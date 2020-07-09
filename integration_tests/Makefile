@@ -1,5 +1,5 @@
 MANAGE_DB_DIR ?= ../../xivo-manage-db/
-POSTGRES_DOCKER=$(MANAGE_DB_DIR)/contribs/postgres-test/Dockerfile
+POSTGRES_DOCKER=$(MANAGE_DB_DIR)/contribs/docker/wazo-confd-db-test/Dockerfile
 
 test-setup: call-logd egg-info
 
@@ -14,6 +14,6 @@ call-logd:
 	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..
 
 update-db:
-	docker build --no-cache -t wazopbx/postgres-test -f $(POSTGRES_DOCKER) $(MANAGE_DB_DIR)
+	docker build --no-cache -t wazopbx/wazo-confd-db-test -f $(POSTGRES_DOCKER) $(MANAGE_DB_DIR)
 
 .PHONY: test-setup test call-logd update-db
