@@ -30,7 +30,7 @@ services:
       - "9486"
 
   postgres:
-    image: wazopbx/postgres-test
+    image: wazopbx/wazo-confd-db-test
     ports:
       - "5432"
 
