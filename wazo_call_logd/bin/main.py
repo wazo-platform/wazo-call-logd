@@ -14,7 +14,7 @@ from xivo.daemonize import pidfile_context
 from xivo.token_renewer import TokenRenewer
 from xivo.xivo_logging import setup_logging
 from xivo.xivo_logging import silence_loggers
-from xivo_dao import init_db_from_config, default_config
+from xivo_dao import init_db_from_config
 
 from wazo_call_logd.bus_publisher import BusPublisher
 from wazo_call_logd.cel_fetcher import CELFetcher
@@ -60,7 +60,6 @@ def main():
     _print_deprecation_notice()
     setup_logging('/dev/null', FOREGROUND, debug=False)
     silence_loggers(['urllib3.connectionpool'], level=logging.WARNING)
-    init_db_from_config(default_config())
     with pidfile_context(PIDFILENAME, FOREGROUND):
         _generate_call_logs()
 
@@ -83,6 +82,7 @@ def _generate_call_logs():
     }
     key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
     config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
+    init_db_from_config(config)
 
     auth_client = AuthClient(**config['auth'])
     confd_client = ConfdClient(**config['confd'])
