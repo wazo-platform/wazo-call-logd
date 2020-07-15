@@ -14,7 +14,7 @@ RUN python setup.py install
 FROM python:3.7-slim-buster AS build-image
 COPY --from=compile-image /opt/venv /opt/venv
 
-COPY ./etc/wazo-call-logd /etc/
+COPY ./etc/wazo-call-logd /etc/wazo-call-logd
 RUN true \
     && adduser --quiet --system --group --home /var/lib/wazo-call-logd wazo-call-logd \
     && mkdir -p /etc/wazo-call-logd/conf.d \
