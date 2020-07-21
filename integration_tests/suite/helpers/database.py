@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from functools import wraps
@@ -137,6 +137,12 @@ class DatabaseQueries(object):
         with self.inserter() as inserter:
             return inserter.add_call_log_participant(**kwargs)
 
+    def find_all_call_log(self):
+        session = self.Session()
+        call_logs = session.query(CallLog).order_by(CallLog.date).all()
+        session.commit()
+        return call_logs
+
     def find_last_call_log(self):
         session = self.Session()
         call_log = session.query(CallLog).order_by(CallLog.date).first()
@@ -257,7 +263,7 @@ class DatabaseQueries(object):
             peeraccount=peeraccount,
             userfield=userfield,
             peer=peer,
-            call_log_id=call_log_id,
+            call_log_id=call_log_id or None,
             extra=extra,
         ).scalar()
         return cel_id
