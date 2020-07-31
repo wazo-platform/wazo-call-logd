@@ -11,7 +11,6 @@ from xivo.xivo_logging import get_log_level_by_name
 _DEFAULT_CONFIG = {
     'logfile': '/var/log/wazo-call-logd.log',
     'log_level': 'info',
-    'pidfile': '/run/wazo-call-logd/wazo-call-logd.pid',
     'config_file': '/etc/wazo-call-logd/config.yml',
     'extra_config_files': '/etc/wazo-call-logd/conf.d',
     'debug': False,

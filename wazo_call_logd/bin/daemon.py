@@ -8,14 +8,12 @@ from functools import partial
 
 import xivo_dao
 from xivo.config_helper import set_xivo_uuid
-from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
 from xivo.xivo_logging import setup_logging, silence_loggers
 from wazo_call_logd.config import load as load_config
 from wazo_call_logd.controller import Controller
 
 logger = logging.getLogger(__name__)
-FOREGROUND = True  # Always in foreground systemd takes care of daemonizing
 
 
 def main(argv):
@@ -25,7 +23,9 @@ def main(argv):
     if user:
         change_user(user)
 
-    setup_logging(config['logfile'], FOREGROUND, config['debug'], config['log_level'])
+    setup_logging(
+        config['logfile'], debug=config['debug'], log_level=config['log_level']
+    )
     silence_loggers(['amqp'], level=logging.WARNING)
     xivo_dao.init_db_from_config(config)
 
@@ -34,8 +34,7 @@ def main(argv):
     controller = Controller(config)
     signal.signal(signal.SIGTERM, partial(sigterm, controller))
 
-    with pidfile_context(config['pidfile'], FOREGROUND):
-        controller.run()
+    controller.run()
 
 
 def sigterm(controller, signum, frame):
