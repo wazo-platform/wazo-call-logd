@@ -2,12 +2,13 @@
 Description=wazo-call-logd server
 ConditionPathExists=!/var/lib/wazo/disabled
 After=network.target asterisk.service postgresql.service
-Before=monit.service
+StartLimitBurst=15
+StartLimitIntervalSec=150
 
 [Service]
-ExecStartPre=/usr/bin/install -d -o wazo-call-logd -g wazo-call-logd /run/wazo-call-logd
 ExecStart=/usr/bin/wazo-call-logd
-PIDFile=/run/wazo-call-logd/wazo-call-logd.pid
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

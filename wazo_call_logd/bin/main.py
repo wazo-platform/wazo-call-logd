@@ -58,7 +58,7 @@ DEFAULT_CONFIG = {
 
 def main():
     _print_deprecation_notice()
-    setup_logging('/dev/null', FOREGROUND, debug=False)
+    setup_logging('/dev/null', debug=False)
     silence_loggers(['urllib3.connectionpool'], level=logging.WARNING)
     with pidfile_context(PIDFILENAME, FOREGROUND):
         _generate_call_logs()
