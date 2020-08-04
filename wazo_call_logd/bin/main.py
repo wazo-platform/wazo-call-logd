@@ -26,7 +26,6 @@ from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
 
-FOREGROUND = True
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/run/wazo-call-logs.pid'
 
@@ -60,7 +59,7 @@ def main():
     _print_deprecation_notice()
     setup_logging('/dev/null', debug=False)
     silence_loggers(['urllib3.connectionpool'], level=logging.WARNING)
-    with pidfile_context(PIDFILENAME, FOREGROUND):
+    with pidfile_context(PIDFILENAME):
         _generate_call_logs()
 
 
