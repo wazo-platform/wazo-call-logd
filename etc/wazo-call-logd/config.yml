@@ -46,7 +46,7 @@ auth:
   port: 9497
   prefix: null
   https: false
-  timeout: 2
+  timeout: 10
   key_file: /var/lib/wazo-auth-keys/wazo-call-logd-key.yml
 
 # wazo-confd (configuration daemon) connection informations.
