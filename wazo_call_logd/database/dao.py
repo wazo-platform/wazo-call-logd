@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -14,6 +14,7 @@ from sqlalchemy.orm import subqueryload
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
+from xivo_dao.alchemy.endpoint_sip import EndpointSIP  # noqa
 from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
