@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -25,7 +25,7 @@ from .rest_api import api, CoreRestApi
 logger = logging.getLogger(__name__)
 
 
-class Controller(object):
+class Controller:
     def __init__(self, config):
         auth_client = AuthClient(**config['auth'])
         cel_fetcher = CELFetcher()

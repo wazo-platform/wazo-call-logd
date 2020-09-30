@@ -1,10 +1,10 @@
-# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo_dao.resources.call_log import dao as call_log_dao
 
 
-class CallLogsWriter(object):
+class CallLogsWriter:
     def write(self, call_logs_creation):
         call_log_dao.delete_from_list(call_logs_creation.call_logs_to_delete)
         call_log_dao.create_from_list(call_logs_creation.new_call_logs)

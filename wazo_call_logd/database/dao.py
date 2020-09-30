@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -27,7 +27,7 @@ def new_db_session(db_uri):
     return _Session
 
 
-class CallLogDAO(object):
+class CallLogDAO:
 
     searched_columns = (
         CallLogSchema.source_name,

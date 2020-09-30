@@ -1,4 +1,4 @@
-# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -10,7 +10,7 @@ from xivo_dao.resources.call_log import dao as call_log_dao
 logger = logging.getLogger(__name__)
 
 
-class CallLogsManager(object):
+class CallLogsManager:
     def __init__(self, cel_fetcher, generator, writer, publisher):
         self.cel_fetcher = cel_fetcher
         self.generator = generator

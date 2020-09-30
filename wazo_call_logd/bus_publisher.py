@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -15,7 +15,7 @@ from wazo_call_logd.plugins.cdr.schema import CDRSchema
 logger = logging.getLogger(__name__)
 
 
-class BusPublisher(object):
+class BusPublisher:
     def __init__(self, config):
         uuid = config.get('uuid')
         bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(**config['bus'])
