@@ -1,0 +1,190 @@
+paths:
+  /queues/statistics:
+    get:
+      summary: Statistics for all queues
+      description: '**Required ACL:** `call-logd.queues.statistics.read`
+
+
+      Statistics are aggregated by queues over the period specified by the `from` and `until`
+      query parameters.'
+      tags:
+        - queue_statistics
+      parameters:
+      - $ref: '#/parameters/tenantuuid'
+      - $ref: '#/parameters/from'
+      - $ref: '#/parameters/until'
+      - $ref: '#/parameters/qos_threshold'
+      - $ref: '#/parameters/day_start_time'
+      - $ref: '#/parameters/day_end_time'
+      - $ref: '#/parameters/week_days'
+      responses:
+        '200':
+          description: Get aggregated statistics for all queues.
+          schema:
+            $ref: '#/definitions/QueuesStatistics'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+  /queues/{queue_id}/statistics:
+    get:
+      summary: Statistics for a specific queue
+      description: '**Required ACL:** `call-logd.queues.statistics.{queue_id}.read`
+
+
+      Statistics for a queue are aggregated by the `interval` query parameter, or if not
+      specified or empty, as a unique result over the period. The period is specified by the
+      `from` and `until` query parameters. The last result returned by this route is always the
+      aggregation of all calls over the whole specified period.'
+      tags:
+        - queue_statistics
+      parameters:
+        - name: queue_id
+          description: ID of the queue.
+          required: true
+          type: integer
+          in: path
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/interval'
+        - $ref: '#/parameters/qos_threshold'
+        - $ref: '#/parameters/day_start_time'
+        - $ref: '#/parameters/day_end_time'
+        - $ref: '#/parameters/week_days'
+      responses:
+        '200':
+          description: Get a queue statistics by ID
+          schema:
+            $ref: '#/definitions/QueueStatistics'
+        '404':
+          $ref: '#/responses/NotFoundError'
+
+parameters:
+  from:
+    name: from
+    description: |
+      Ignore calls before the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
+      If missing, the statistics will start at the oldest available call.
+    in: query
+    type: string
+    required: false
+  until:
+    name: until
+    description: |
+      Ignore calls starting at or after the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
+      If the value is missing, the statistics will include the current day.
+    in: query
+    type: string
+    required: false
+  interval:
+    name: interval
+    description: Aggregation interval. An empty value means no interval, so an aggregation on all values.
+    in: query
+    type: string
+    enum:
+      - hour
+      - day
+      - month
+    required: false
+  qos_threshold:
+    name: qos_threshold
+    description: The number of seconds representing a good quality of service.
+    in: query
+    type: integer
+    required: false
+  day_start_time:
+    name: day_start_time
+    description: The time at which a day starts.
+    in: query
+    type: string
+    default: '00:00:00'
+    required: false
+  day_end_time:
+    name: day_end_time
+    description: The time at which a day ends.
+    in: query
+    type: string
+    default: '23:59:59'
+    required: false
+  week_days:
+    name: week_days
+    description: The days of the week that should be included. A week starts on Monday (1) and ends on Sunday (7).
+    in: query
+    type: array
+    items:
+      type: integer
+      description: Day from 1 to 7.
+      minimum: 1
+      maximum: 7
+    default: [1,2,3,4,5,6,7]
+    required: false
+
+definitions:
+  QueuesStatistics:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/QueueStatistic'
+      total:
+        type: integer
+  QueueStatistics:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/QueueStatistic'
+      total:
+        type: integer
+  QueueStatistic:
+    type: object
+    properties:
+      from:
+        type: string
+        description: Start of the statistic interval.
+      until:
+        type: string
+        description: End of the statistic interval.
+      tenant_uuid:
+        type: string
+        format: uuid
+        description: Tenant UUID of the corresponding queue.
+      queue_id:
+        type: integer
+        description: ID of the corresponding queue.
+      queue_name:
+        type: string
+        description: Name of the corresponding queue.
+      received:
+        type: integer
+        description: Total number of calls received in the interval.
+      answered:
+        type: integer
+        description: Number of calls answered by an agent.
+      abandoned:
+        type: integer
+        description: Number of calls that were abandoned while they were waiting for an answer.
+      closed:
+        type: integer
+        description: Number of calls received when the queue was closed.
+      not_answered:
+        type: integer
+        description: Number of calls that reached the ring timeout delay.
+      saturated:
+        type: integer
+        description: Number of calls received when the queue was full or when one of the diversion parameter was reached.
+      blocked:
+        type: integer
+        description: Number of calls received when no agent was available, when there was no agent to take the call, when the join an empty queue condition is reached, or when the drop callers if no agent condition is reached.
+      average_waiting_time:
+        type: integer
+        description: The average waiting time of calls
+      answered_rate:
+        type: number
+        format: float
+        description: The number of answered called over (received calls - closed calls)
+      quality_of_service:
+        type: number
+        format: float
+        description: Percentage based on the number of calls answered in less than the defined quality of service threshold over the number of answered calls.
