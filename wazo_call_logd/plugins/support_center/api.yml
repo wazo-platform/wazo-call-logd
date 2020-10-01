@@ -1,3 +1,36 @@
+swagger: '2.0'
+info:
+  title: wazo-call-logd
+  description: Consult call logs from a REST API
+  version: 1.0.0
+schemes:
+- http
+basePath: /1.0
+produces:
+- application/json
+x-xivo-port: 9298
+x-xivo-name: call-logs
+securityDefinitions:
+  wazo_auth_token:
+    type: apiKey
+    name: X-Auth-Token
+    in: header
+security:
+- wazo_auth_token: []
+responses:
+  AnotherServiceUnavailable:
+    description: Another service is unavailable (e.g. wazo-auth, ...)
+    schema:
+      $ref: '#/definitions/Error'
+  NotFoundError:
+    description: The resource requested was not found on the server
+    schema:
+      $ref: '#/definitions/Error'
+  InvalidRequest:
+    description: Invalid request
+    schema:
+      $ref: '#/definitions/Error'
+
 paths:
   /queues/statistics:
     get:
@@ -59,6 +92,24 @@ paths:
           $ref: '#/responses/NotFoundError'
 
 parameters:
+  TokenID:
+    name: token
+    in: query
+    description: The token's ID
+    type: string
+  recurse:
+    name: recurse
+    in: query
+    type: boolean
+    description: Should the query include sub-tenants
+    default: false
+    required: false
+  tenantuuid:
+    name: Wazo-Tenant
+    type: string
+    in: header
+    description: "The tenant's UUID, defining the ownership of a given resource."
+    required: false
   from:
     name: from
     description: |
@@ -119,6 +170,25 @@ parameters:
     required: false
 
 definitions:
+  Error:
+    title: Error
+    description: Error message for the client
+    properties:
+      message:
+        description: Human readable explanation of the error
+        type: string
+      error_id:
+        description: Identifier of the type of error. It is more precise than the
+          HTTP status code.
+        type: string
+      details:
+        description: Additional information about the error. The keys are specific
+          to each error.
+        type: object
+      timestamp:
+        description: Time when the error occured
+        type: number
+        format: timestamp
   QueuesStatistics:
     type: object
     properties:
