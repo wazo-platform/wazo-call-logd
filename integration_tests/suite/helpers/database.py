@@ -44,8 +44,6 @@ def call_logs(call_logs):
 
 class DbHelper(object):
 
-    TEMPLATE = "xivotemplate"
-
     @classmethod
     def build(cls, user, password, host, port, db):
         tpl = "postgresql://{user}:{password}@{host}:{port}"
@@ -64,39 +62,9 @@ class DbHelper(object):
             logger.debug('Database is down: %s', e)
             return False
 
-    def create_engine(self, db=None, isolate=False):
-        db = db or self.db
-        uri = "{}/{}".format(self.uri, db)
-        if isolate:
-            return sa.create_engine(
-                uri, isolation_level='AUTOCOMMIT', pool_pre_ping=True
-            )
-        return sa.create_engine(uri, pool_pre_ping=True)
-
-    def connect(self, db=None):
-        db = db or self.db
-        return self.create_engine(db).connect()
-
-    def recreate(self):
-        engine = self.create_engine("postgres", isolate=True)
-        connection = engine.connect()
-        connection.execute(
-            """
-                           SELECT pg_terminate_backend(pg_stat_activity.pid)
-                           FROM pg_stat_activity
-                           WHERE pg_stat_activity.datname = '{db}'
-                           AND pid <> pg_backend_pid()
-                           """.format(
-                db=self.db
-            )
-        )
-        connection.execute("DROP DATABASE IF EXISTS {db}".format(db=self.db))
-        connection.execute(
-            "CREATE DATABASE {db} TEMPLATE {template}".format(
-                db=self.db, template=self.TEMPLATE
-            )
-        )
-        connection.close()
+    def connect(self):
+        uri = "{}/{}".format(self.uri, self.db)
+        return sa.create_engine(uri, pool_pre_ping=True).connect()
 
     def execute(self, query, **kwargs):
         with self.connect() as connection:
@@ -162,31 +130,30 @@ class DatabaseQueries(object):
         session.commit()
         return call_log.tenant_uuid
 
-    def insert_cel(
-        self,
-        eventtype,
-        eventtime,
-        uniqueid,
-        linkedid,
-        userdeftype='',
-        cid_name='default name',
-        cid_num='9999',
-        cid_ani='',
-        cid_rdnis='',
-        cid_dnid='',
-        exten='',
-        context='',
-        channame='',
-        appname='',
-        appdata='',
-        amaflags=0,
-        accountcode='',
-        peeraccount='',
-        userfield='',
-        peer='',
-        call_log_id=None,
-        extra=None,
-    ):
+    def insert_cel(self, **kwargs):
+        kwargs.setdefault('userdeftype', '')
+        kwargs.setdefault('cid_name', 'default name')
+        kwargs.setdefault('cid_num', '9999')
+        kwargs.setdefault('cid_ani', '')
+        kwargs.setdefault('cid_rdnis', '')
+        kwargs.setdefault('cid_dnid', '')
+        kwargs.setdefault('exten', '')
+        kwargs.setdefault('context', '')
+        kwargs.setdefault('channame', '')
+        kwargs.setdefault('appname', '')
+        kwargs.setdefault('appdata', '')
+        kwargs.setdefault('amaflags', 0)
+        kwargs.setdefault('accountcode', '')
+        kwargs.setdefault('peeraccount', '')
+        kwargs.setdefault('userfield', '')
+        kwargs.setdefault('peer', '')
+
+        # NOTE(flackburn): remove empty string value
+        if not kwargs.get('call_log_id'):
+            kwargs['call_log_id'] = None
+        if not kwargs.get('extra'):
+            kwargs['extra'] = None
+
         query = text(
             """
         INSERT INTO cel (
@@ -241,31 +208,7 @@ class DatabaseQueries(object):
         """
         )
 
-        cel_id = self.connection.execute(
-            query,
-            eventtype=eventtype,
-            eventtime=eventtime,
-            uniqueid=uniqueid,
-            linkedid=linkedid,
-            userdeftype=userdeftype,
-            cid_name=cid_name,
-            cid_num=cid_num,
-            cid_ani=cid_ani,
-            cid_rdnis=cid_rdnis,
-            cid_dnid=cid_dnid,
-            exten=exten,
-            context=context,
-            channame=channame,
-            appname=appname,
-            appdata=appdata,
-            amaflags=amaflags,
-            accountcode=accountcode,
-            peeraccount=peeraccount,
-            userfield=userfield,
-            peer=peer,
-            call_log_id=call_log_id or None,
-            extra=extra,
-        ).scalar()
+        cel_id = self.connection.execute(query, **kwargs).scalar()
         return cel_id
 
     def delete_cel(self, cel_id):
