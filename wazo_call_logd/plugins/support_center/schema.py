@@ -39,7 +39,6 @@ class QueueStatisticsSchema(Schema):
 class QueueStatisticsListRequestSchema(Schema):
     from_ = fields.DateTime(data_key='from', missing=None)
     until = fields.DateTime(missing=None)
-    interval = fields.String(validate=OneOf(['hour', 'day', 'month']))
     qos_threshold = fields.Integer()
     day_start_time = fields.Time(attribute='start_time')
     day_end_time = fields.Time(attribute='end_time')
@@ -59,6 +58,11 @@ class QueueStatisticsListRequestSchema(Schema):
         if data.get('end_time'):
             data['end_time'] = data['end_time'].hour
         return data
+
+
+class QueueStatisticsRequestSchema(QueueStatisticsListRequestSchema):
+    interval = fields.String(validate=OneOf(['hour', 'day', 'month']))
+
 
 class QueueStatisticsSchemaList(Schema):
     class Meta(object):

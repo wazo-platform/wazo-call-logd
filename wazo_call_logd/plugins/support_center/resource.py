@@ -40,6 +40,7 @@ class QueuesStatisticsResource(QueuesStatisticsAuthResource):
 class QueueStatisticsResource(QueuesStatisticsAuthResource):
     @required_acl('call-logd.queues.{queue_id}.statistics.read')
     def get(self, queue_id):
+        args = QueueStatisticsListRequestSchema().load(request.args)
         tenant_uuids = self.visible_tenants(True)
-        queue_stats = self.queue_statistics_service.get(tenant_uuids, queue_id, **kwargs)
+        queue_stats = self.queue_statistics_service.get(tenant_uuids, queue_id, **args)
         return QueueStatisticsSchemaList().dump(queue_stats)
