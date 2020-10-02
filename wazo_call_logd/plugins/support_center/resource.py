@@ -42,6 +42,4 @@ class QueueStatisticsResource(QueuesStatisticsAuthResource):
     def get(self, queue_id):
         tenant_uuids = self.visible_tenants(True)
         queue_stats = self.queue_statistics_service.get(tenant_uuids, queue_id, **kwargs)
-        if not queue_stats:
-            raise QueueNotFoundException(details={'queue_id': queue_id})
         return QueueStatisticsSchemaList().dump(queue_stats)
