@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from setuptools import setup
@@ -21,6 +21,7 @@ setup(
         'wazo_call_logd.plugins': [
             'api = wazo_call_logd.plugins.api.plugin:Plugin',
             'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
+            'support_center = wazo_call_logd.plugins.support_center.plugin:Plugin',
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
         ]
     },
