@@ -9,6 +9,7 @@ from marshmallow import (
     pre_dump,
     pre_load,
     post_dump,
+    validates,
 )
 from marshmallow.validate import OneOf, Range, Regexp
 
@@ -40,17 +41,24 @@ class QueueStatisticsListRequestSchema(Schema):
     until = fields.DateTime(missing=None)
     interval = fields.String(validate=OneOf(['hour', 'day', 'month']))
     qos_threshold = fields.Integer()
-    day_start_time = fields.String(attribute='start_time')  # TODO(afournier): validate Regex?
-    day_end_time = fields.String(attribute='end_time')  # TODO(afournier): validate Regex?
+    day_start_time = fields.Time(attribute='start_time')
+    day_end_time = fields.Time(attribute='end_time')
     week_days = fields.List(fields.Integer(), missing=[1, 2, 3, 4, 5, 6, 7])
 
     @pre_load
     def convert_week_days_to_list(self, data):
         result = data.to_dict()
         if data.get('week_days'):
-            result['week_days'] = data['week_days'].split(',')
+            result['week_days'] = list(set(data['week_days'].split(',')))
         return result
 
+    @post_load
+    def convert_time_to_hour(self, data, **kwargs):
+        if data.get('start_time'):
+            data['start_time'] = data['start_time'].hour
+        if data.get('end_time'):
+            data['end_time'] = data['end_time'].hour
+        return data
 
 class QueueStatisticsSchemaList(Schema):
     class Meta(object):
