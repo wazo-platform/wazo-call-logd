@@ -9,6 +9,9 @@ from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
+from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
+from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
+from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.tests.test_dao import ItemInserter
 
 from .constants import MASTER_TENANT
@@ -42,8 +45,51 @@ def call_logs(call_logs):
     return _decorate
 
 
-class DbHelper(object):
+def stat_queue_periodic(stat):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.database.queries() as queries:
+                stat.setdefault('queue_id', 1)
+                queue_args = {'id': stat['queue_id'], 'name': 'queue'}
+                queries.insert_stat_queue(**queue_args)
+                stat['id'] = queries.insert_stat_queue_periodic(**stat)
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_stat_queue_periodic(stat['id'])
+                    queries.delete_stat_queue(stat['queue_id'])
 
+        return wrapped_function
+
+    return _decorate
+
+
+def stat_call_on_queue(call):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.database.queries() as queries:
+                call.setdefault('callid', '123')
+                call.setdefault('status', 'answered')
+                call.setdefault('queue_id', 1)
+                queue_args = {'id': call['queue_id'], 'name': 'queue'}
+                queries.insert_stat_queue(**queue_args)
+                call['id'] = queries.insert_stat_call_on_queue(**call)
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_stat_call_on_queue(call['id'])
+                    queries.delete_stat_queue(call['queue_id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
+class DbHelper(object):
     @classmethod
     def build(cls, user, password, host, port, db):
         tpl = "postgresql://{user}:{password}@{host}:{port}"
@@ -214,3 +260,56 @@ class DatabaseQueries(object):
     def delete_cel(self, cel_id):
         query = text("DELETE FROM cel WHERE id = :id")
         self.connection.execute(query, id=cel_id)
+
+    def insert_stat_queue_periodic(self, **kwargs):
+        session = self.Session()
+        stat = StatQueuePeriodic(**kwargs)
+        session.add(stat)
+        session.flush()
+        # NOTE(fblackburn) Avoid BEGIN new session after commit
+        stat_id = stat.id
+        session.commit()
+        return stat_id
+
+    def delete_stat_queue_periodic(self, stat_id):
+        session = self.Session()
+        session.query(StatQueuePeriodic).filter(
+            StatQueuePeriodic.id == stat_id
+        ).delete()
+        session.commit()
+
+    def insert_stat_call_on_queue(self, **kwargs):
+        session = self.Session()
+        call = StatCallOnQueue(**kwargs)
+        session.add(call)
+        session.flush()
+        # NOTE(fblackburn) Avoid BEGIN new session after commit
+        call_id = call.id
+        session.commit()
+        return call_id
+
+    def delete_stat_call_on_queue(self, call_id):
+        session = self.Session()
+        session.query(StatCallOnQueue).filter(StatCallOnQueue.id == call_id).delete()
+        session.commit()
+
+    def insert_stat_queue(self, **kwargs):
+        session = self.Session()
+        queue_id = kwargs['id']
+        query = session.query(StatQueue).filter(StatQueue.id == queue_id)
+        if not query.count() > 0:
+            queue = StatQueue(**kwargs)
+            session.add(queue)
+        session.commit()
+
+    def delete_stat_queue(self, queue_id):
+        session = self.Session()
+        query_1 = session.query(StatQueuePeriodic).filter(
+            StatQueuePeriodic.queue_id == queue_id
+        )
+        query_2 = session.query(StatCallOnQueue).filter(
+            StatCallOnQueue.queue_id == queue_id
+        )
+        if not query_1.count() > 0 and not query_2.count() > 0:
+            session.query(StatQueue).filter(StatQueue.id == queue_id).delete()
+        session.commit()

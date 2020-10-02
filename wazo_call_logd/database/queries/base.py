@@ -9,7 +9,6 @@ from wazo_call_logd.exceptions import DatabaseServiceUnavailable
 
 
 class BaseDAO:
-
     def __init__(self, Session):
         self._Session = Session
 

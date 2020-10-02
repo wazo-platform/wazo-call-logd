@@ -14,7 +14,6 @@ from .helpers.constants import ALICE, BOB, CHARLES, NOW, MINUTES
 
 
 class TestCallLog(DBIntegrationTest):
-
     @call_logs(
         [
             cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW),
