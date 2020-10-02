@@ -33,8 +33,8 @@ class QueuesStatisticsResource(QueuesStatisticsAuthResource):
     def get(self):
         args = QueueStatisticsListRequestSchema().load(request.args)
         tenant_uuids = self.visible_tenants(True)
-        cdrs = self.queue_statistics_service.list(tenant_uuids, **args)
-        return QueueStatisticsSchemaList().dump(cdrs)
+        queue_stats = self.queue_statistics_service.list(tenant_uuids, **args)
+        return QueueStatisticsSchemaList().dump(queue_stats)
 
 
 class QueueStatisticsResource(QueuesStatisticsAuthResource):
