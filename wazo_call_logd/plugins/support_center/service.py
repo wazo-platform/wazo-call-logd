@@ -15,7 +15,7 @@ class QueueStatisticsService(object):
 
         return {
             'items': [queue_stats],
-            'total': count,
+            'total': 1,
         }
 
     def list(self, tenant_uuids, **kwargs):
