@@ -24,16 +24,16 @@ class QueueStatisticsSchema(Schema):
     tenant_uuid = fields.UUID()
     queue_id = fields.Integer()
     queue_name = fields.String()
-    received = fields.Integer()
+    received = fields.Integer(attribute='total')
     answered = fields.Integer()
     abandoned = fields.Integer()
     closed = fields.Integer()
-    not_answered = fields.Integer()
+    not_answered = fields.Integer(attribute='timeout')
     saturated = fields.Integer()
-    blocked = fields.Integer()
+    blocked = fields.Integer(attribute='blocking')
     average_waiting_time = fields.Integer()
     answered_rate = fields.Float()
-    quality_of_service = fields.Float()
+    quality_of_service = fields.Float(attribute='qos')
 
 
 class QueueStatisticsListRequestSchema(Schema):
