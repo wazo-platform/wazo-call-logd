@@ -50,12 +50,13 @@ def stat_queue_periodic(stat):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             with self.database.queries() as queries:
+                tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
                 queue_id = stat.pop('queue_id', 1)
                 stat['stat_queue_id'] = queue_id
                 queue_args = {
                     'id': stat['stat_queue_id'],
                     'name': 'queue',
-                    'tenant_uuid': stat.get('tenant_uuid', MASTER_TENANT),
+                    'tenant_uuid': tenant_uuid,
                     'queue_id': queue_id,
                 }
                 queries.insert_stat_queue(**queue_args)
@@ -79,12 +80,13 @@ def stat_call_on_queue(call):
             with self.database.queries() as queries:
                 call.setdefault('callid', '123')
                 call.setdefault('status', 'answered')
+                tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT)
                 queue_id = call.pop('queue_id', 1)
                 call['stat_queue_id'] = queue_id
                 queue_args = {
                     'id': call['stat_queue_id'],
                     'name': 'queue',
-                    'tenant_uuid': call.get('tenant_uuid', MASTER_TENANT),
+                    'tenant_uuid': tenant_uuid,
                     'queue_id': queue_id,
                 }
                 queries.insert_stat_queue(**queue_args)

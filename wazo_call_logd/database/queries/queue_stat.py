@@ -69,11 +69,10 @@ class QueueStatDAO(BaseDAO):
         until=None,
         **ignored,
     ):
-        # FIXME(fblackburn): Not implemented
-        # if tenant_uuids:
-        #     query = query.filter(table.tenant_uuid.in_(tenant_uuids))
-        # elif not tenant_uuids and tenant_uuids is not None:
-        #     query = query.filter(text('false'))
+        if tenant_uuids:
+            query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
+        elif not tenant_uuids and tenant_uuids is not None:
+            query = query.filter(text('false'))
 
         if from_ and until:
             query = query.filter(table.time.between(from_, until))

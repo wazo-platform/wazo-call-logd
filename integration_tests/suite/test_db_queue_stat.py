@@ -10,6 +10,7 @@ from hamcrest import (
 )
 from .helpers.base import DBIntegrationTest
 from .helpers.database import stat_queue_periodic, stat_call_on_queue
+from .helpers.constants import OTHER_TENANT, USERS_TENANT
 
 QUEUE_ID = 1
 
@@ -192,6 +193,29 @@ class TestQueueStat(DBIntegrationTest):
         tenant_uuids = None
         result = self.dao.queue_stat.get_interval(tenant_uuids)
         assert_that(result[0], has_entries(saturated=3))
+
+    # fmt: off
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'tenant_uuid': OTHER_TENANT})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'tenant_uuid': USERS_TENANT})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': OTHER_TENANT})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 2, 'tenant_uuid': USERS_TENANT})
+    # fmt: on
+    def test_get_interval_filtered_by_tenant(self):
+        tenant_uuids = [USERS_TENANT]
+        result = self.dao.queue_stat.get_interval(tenant_uuids, qos_threshold=0)
+        res = 2
+        assert_that(result[0], has_entries(queue_id=2, answered=res, qos=self.qos(res, 1)))
+
+    # fmt: off
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'tenant_uuid': OTHER_TENANT})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'tenant_uuid': USERS_TENANT})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': OTHER_TENANT})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 2, 'tenant_uuid': USERS_TENANT})
+    # fmt: on
+    def test_get_interval_filtered_by_empty_tenant(self):
+        tenant_uuids = []
+        result = self.dao.queue_stat.get_interval(tenant_uuids, qos_threshold=0)
+        assert_that(result, empty())
 
     @stat_call_on_queue(
         {
