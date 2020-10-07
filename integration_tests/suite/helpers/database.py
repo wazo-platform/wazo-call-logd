@@ -50,8 +50,14 @@ def stat_queue_periodic(stat):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             with self.database.queries() as queries:
-                stat.setdefault('queue_id', 1)
-                queue_args = {'id': stat['queue_id'], 'name': 'queue'}
+                queue_id = stat.pop('queue_id', 1)
+                stat['stat_queue_id'] = queue_id
+                queue_args = {
+                    'id': stat['stat_queue_id'],
+                    'name': 'queue',
+                    'tenant_uuid': stat.get('tenant_uuid', MASTER_TENANT),
+                    'queue_id': queue_id,
+                }
                 queries.insert_stat_queue(**queue_args)
                 stat['id'] = queries.insert_stat_queue_periodic(**stat)
             try:
@@ -59,7 +65,7 @@ def stat_queue_periodic(stat):
             finally:
                 with self.database.queries() as queries:
                     queries.delete_stat_queue_periodic(stat['id'])
-                    queries.delete_stat_queue(stat['queue_id'])
+                    queries.delete_stat_queue(stat['stat_queue_id'])
 
         return wrapped_function
 
@@ -73,8 +79,14 @@ def stat_call_on_queue(call):
             with self.database.queries() as queries:
                 call.setdefault('callid', '123')
                 call.setdefault('status', 'answered')
-                call.setdefault('queue_id', 1)
-                queue_args = {'id': call['queue_id'], 'name': 'queue'}
+                queue_id = call.pop('queue_id', 1)
+                call['stat_queue_id'] = queue_id
+                queue_args = {
+                    'id': call['stat_queue_id'],
+                    'name': 'queue',
+                    'tenant_uuid': call.get('tenant_uuid', MASTER_TENANT),
+                    'queue_id': queue_id,
+                }
                 queries.insert_stat_queue(**queue_args)
                 call['id'] = queries.insert_stat_call_on_queue(**call)
             try:
@@ -82,7 +94,7 @@ def stat_call_on_queue(call):
             finally:
                 with self.database.queries() as queries:
                     queries.delete_stat_call_on_queue(call['id'])
-                    queries.delete_stat_queue(call['queue_id'])
+                    queries.delete_stat_queue(call['stat_queue_id'])
 
         return wrapped_function
 
@@ -302,14 +314,14 @@ class DatabaseQueries(object):
             session.add(queue)
         session.commit()
 
-    def delete_stat_queue(self, queue_id):
+    def delete_stat_queue(self, stat_queue_id):
         session = self.Session()
         query_1 = session.query(StatQueuePeriodic).filter(
-            StatQueuePeriodic.queue_id == queue_id
+            StatQueuePeriodic.stat_queue_id == stat_queue_id
         )
         query_2 = session.query(StatCallOnQueue).filter(
-            StatCallOnQueue.queue_id == queue_id
+            StatCallOnQueue.stat_queue_id == stat_queue_id
         )
         if not query_1.count() > 0 and not query_2.count() > 0:
-            session.query(StatQueue).filter(StatQueue.id == queue_id).delete()
+            session.query(StatQueue).filter(StatQueue.id == stat_queue_id).delete()
         session.commit()

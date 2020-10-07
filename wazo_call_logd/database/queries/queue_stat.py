@@ -3,8 +3,9 @@
 
 from sqlalchemy import func, text
 
-from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
+from xivo_dao.alchemy.stat_queue import StatQueue
+from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 
 from .base import BaseDAO
 
@@ -31,7 +32,7 @@ class QueueStatDAO(BaseDAO):
             query = self._queue_stat_query(
                 session, tenant_uuids=tenant_uuids, **filters
             )
-            query = query.filter(StatQueuePeriodic.queue_id == queue_id)
+            query = query.filter(StatQueue.queue_id == queue_id)
             row = query.first()
             result = None
             if row:
@@ -90,19 +91,25 @@ class QueueStatDAO(BaseDAO):
         return query
 
     def _queue_stat_query(self, session, **filters):
-        query = session.query(
-            StatQueuePeriodic.queue_id,
-            func.sum(StatQueuePeriodic.answered).label('answered'),
-            func.sum(StatQueuePeriodic.abandoned).label('abandoned'),
-            func.sum(StatQueuePeriodic.total).label('total'),
-            func.sum(StatQueuePeriodic.full).label('full'),
-            func.sum(StatQueuePeriodic.closed).label('closed'),
-            func.sum(StatQueuePeriodic.joinempty).label('joinempty'),
-            func.sum(StatQueuePeriodic.leaveempty).label('leaveempty'),
-            func.sum(StatQueuePeriodic.divert_ca_ratio).label('divert_ca_ratio'),
-            func.sum(StatQueuePeriodic.divert_waittime).label('divert_waittime'),
-            func.sum(StatQueuePeriodic.timeout).label('timeout'),
-        ).group_by(StatQueuePeriodic.queue_id)
+        query = (
+            session.query(
+                # NOTE(fblackburn): func.min is a hack to only take one value
+                func.min(StatQueue.queue_id).label('queue_id'),
+                func.sum(StatQueuePeriodic.answered).label('answered'),
+                func.sum(StatQueuePeriodic.abandoned).label('abandoned'),
+                func.sum(StatQueuePeriodic.total).label('total'),
+                func.sum(StatQueuePeriodic.full).label('full'),
+                func.sum(StatQueuePeriodic.closed).label('closed'),
+                func.sum(StatQueuePeriodic.joinempty).label('joinempty'),
+                func.sum(StatQueuePeriodic.leaveempty).label('leaveempty'),
+                func.sum(StatQueuePeriodic.divert_ca_ratio).label('divert_ca_ratio'),
+                func.sum(StatQueuePeriodic.divert_waittime).label('divert_waittime'),
+                func.sum(StatQueuePeriodic.timeout).label('timeout'),
+            )
+            .select_from(StatQueue)
+            .join(StatQueuePeriodic)
+            .group_by(StatQueuePeriodic.stat_queue_id)
+        )
         query = self._add_interval_query(StatQueuePeriodic, query, **filters)
         return query
 
@@ -158,16 +165,19 @@ class QueueStatDAO(BaseDAO):
 
         query = (
             session.query(func.count(StatCallOnQueue.status))
+            .filter(StatQueue.queue_id == queue_id)
             .filter(StatCallOnQueue.status == 'answered')
-            .filter(StatCallOnQueue.queue_id == queue_id)
             .filter(StatCallOnQueue.waittime <= qos_threshold)
+            .join(StatQueue)
         )
         query = self._add_interval_query(StatCallOnQueue, query, **filters)
         return query.scalar() or 0
 
     def _get_total_wait_time(self, session, queue_id, **filters):
-        query = session.query(func.sum(StatCallOnQueue.waittime)).filter(
-            StatCallOnQueue.queue_id == queue_id
+        query = (
+            session.query(func.sum(StatCallOnQueue.waittime))
+            .filter(StatQueue.queue_id == queue_id)
+            .join(StatQueue)
         )
         query = self._add_interval_query(StatCallOnQueue, query, **filters)
         return query.scalar() or 0
