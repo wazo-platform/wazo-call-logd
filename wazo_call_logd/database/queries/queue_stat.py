@@ -14,6 +14,8 @@ from marshmallow import Schema, fields
 
 class StatRow(Schema):
     queue_id = fields.Integer()
+    queue_name = fields.String()
+    tenant_uuid = fields.UUID()
     answered = fields.Integer()
     abandoned = fields.Integer()
     total = fields.Integer()
@@ -94,6 +96,8 @@ class QueueStatDAO(BaseDAO):
             session.query(
                 # NOTE(fblackburn): func.min is a hack to only take one value
                 func.min(StatQueue.queue_id).label('queue_id'),
+                func.min(StatQueue.name).label('queue_name'),
+                func.min(StatQueue.tenant_uuid).label('tenant_uuid'),
                 func.sum(StatQueuePeriodic.answered).label('answered'),
                 func.sum(StatQueuePeriodic.abandoned).label('abandoned'),
                 func.sum(StatQueuePeriodic.total).label('total'),
