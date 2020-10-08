@@ -99,7 +99,11 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
     )
     def test_incoming_call_no_cid_name_rewritten_cid_num(self):
         self._assert_last_call_log_matches(
-            '1510326428.26', has_properties(source_name='', source_exten='42302',),
+            '1510326428.26',
+            has_properties(
+                source_name='',
+                source_exten='42302',
+            ),
         )
 
     @raw_cels(
@@ -366,7 +370,9 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(
         self,
     ):
-        self.confd.set_users(MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),)
+        self.confd.set_users(
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+        )
         self.confd.set_lines(
             MockLine(
                 id=1,
