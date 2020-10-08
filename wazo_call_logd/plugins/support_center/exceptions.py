@@ -12,3 +12,13 @@ class QueueNotFoundException(APIException):
             error_id='queue-not-found-with-given-id',
             details=details,
         )
+
+
+class RangeTooLargeException(APIException):
+    def __init__(self, details=None):
+        super(RangeTooLargeException, self).__init__(
+            status_code=400,
+            message='Date range is too large for the given interval',
+            error_id='date-range-too-large-for-interval',
+            details=details,
+        )

@@ -1,10 +1,10 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import date, datetime
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from .exceptions import QueueNotFoundException
+from .exceptions import QueueNotFoundException, RangeTooLargeException
 
 
 class QueueStatisticsService(object):
@@ -19,12 +19,19 @@ class QueueStatisticsService(object):
         }
 
         if not until:
-            until = date.today() + relativedelta(days=1)
+            today = datetime.now()
+            until = datetime(today.year, today.month, today.day) + relativedelta(days=1)
 
         if not from_:
             interval = None
 
         time_delta = time_deltas.get(interval, 'hour')
+
+        if time_delta == time_deltas['hour']:
+            if from_ + relativedelta(months=1) < until:
+                raise RangeTooLargeException(
+                    details='Maximum of 1 month for interval by hour'
+                )
         if interval:
             current = from_
             while current < until:
@@ -32,7 +39,7 @@ class QueueStatisticsService(object):
                 yield current, next_datetime
                 current = next_datetime
         else:
-            yield None, None
+            yield from_, until
 
     def get(self, tenant_uuids, queue_id, **kwargs):
         queue_stats = list()
