@@ -10,10 +10,10 @@ test:
 	pytest
 
 call-logd:
-	docker build -t wazopbx/wazo-call-logd ..
+	docker build -t wazoplatform/wazo-call-logd ..
 	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..
 
 update-db:
-	docker build --no-cache -t wazopbx/wazo-confd-db-test -f $(POSTGRES_DOCKER) $(MANAGE_DB_DIR)
+	docker build --no-cache -t wazoplatform/wazo-confd-db-test -f $(POSTGRES_DOCKER) $(MANAGE_DB_DIR)
 
 .PHONY: test-setup test call-logd update-db
