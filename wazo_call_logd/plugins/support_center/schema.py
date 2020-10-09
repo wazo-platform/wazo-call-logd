@@ -19,7 +19,7 @@ class QueueStatisticsSchema(Schema):
         ordered = True
         unknown = EXCLUDE
 
-    from_ = fields.String(attribute='from')
+    from_ = fields.String(attribute='from', data_key='from')
     until = fields.String()
     tenant_uuid = fields.UUID(default=None)
     queue_id = fields.Integer(default=None)

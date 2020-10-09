@@ -15,6 +15,8 @@ from marshmallow import Schema, fields
 class StatRow(Schema):
     queue_id = fields.Integer()
     queue_name = fields.String()
+    from_ = fields.DateTime(attribute='from', data_key='from')
+    until = fields.DateTime()
     tenant_uuid = fields.UUID()
     answered = fields.Integer()
     abandoned = fields.Integer()
@@ -97,6 +99,8 @@ class QueueStatDAO(BaseDAO):
                 # NOTE(fblackburn): func.min is a hack to only take one value
                 func.min(StatQueue.queue_id).label('queue_id'),
                 func.min(StatQueue.name).label('queue_name'),
+                func.min(StatQueuePeriodic.time).label('from'),
+                func.max(StatQueuePeriodic.time).label('until'),
                 func.min(StatQueue.tenant_uuid).label('tenant_uuid'),
                 func.sum(StatQueuePeriodic.answered).label('answered'),
                 func.sum(StatQueuePeriodic.abandoned).label('abandoned'),

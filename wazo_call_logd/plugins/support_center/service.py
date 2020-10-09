@@ -48,31 +48,28 @@ class QueueStatisticsService(object):
         from_ = kwargs.pop('from_', None)
         until = kwargs.pop('until', None)
 
-        for start, end in self._generate_interval(interval, from_, until):
-            queue_stat = {
-                'from': start,
-                'until': end,
-            }
-            interval_stat = self._dao.get_interval_by_queue(
-                tenant_uuids, queue_id=queue_id, from_=start, until=end, **kwargs
-            )
-            if interval_stat:
-                queue_stat.update(interval_stat)
+        if interval:
+            for start, end in self._generate_interval(interval, from_, until):
+                interval_timeframe = {
+                    'from': start,
+                    'until': end,
+                }
+                interval_stats = self._dao.get_interval_by_queue(
+                    tenant_uuids, queue_id=queue_id, from_=start, until=end, **kwargs
+                ) or {}
+                interval_stats.update(interval_timeframe)
+                queue_stats.append(interval_stats)
 
-            queue_stats.append(queue_stat)
-
-
-        whole_interval_stats = {
+        period_timeframe = {
             'from': from_,
             'until': until,
         }
         period_stats = self._dao.get_interval_by_queue(
             tenant_uuids, queue_id=queue_id, from_=from_, until=until, **kwargs
-        )
-        if period_stats:
-            whole_interval_stats.update(period_stats)
+        ) or {}
+        period_stats.update(period_timeframe)
 
-        queue_stats.append(whole_interval_stats)
+        queue_stats.append(period_stats)
 
         if not queue_stats:
             raise QueueNotFoundException(details={'queue_id': queue_id})
