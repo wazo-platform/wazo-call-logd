@@ -91,10 +91,12 @@ class QueueStatisticsService(object):
         queue_stats_items = []
         for queue_stat in queue_stats:
             queue_stats_item = {
-                'from': from_,
-                'until': until,
                 **queue_stat
             }
+            queue_stats_item.update({
+                'from': from_,
+                'until': until,
+            })
             queue_stats_items.append(queue_stats_item)
 
         return {
