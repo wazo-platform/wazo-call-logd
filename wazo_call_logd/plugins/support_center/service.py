@@ -34,10 +34,13 @@ class QueueStatisticsService(object):
                 )
         if interval:
             current = from_
+            next_datetime = current + time_delta
             while current < until:
-                next_datetime = current + time_delta
                 yield current, next_datetime
                 current = next_datetime
+                next_datetime = current + time_delta
+                if next_datetime > until:
+                    next_datetime = until
         else:
             yield from_, until
 
