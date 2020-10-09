@@ -34,7 +34,7 @@ class TestQueueStat(DBIntegrationTest):
         tenant_uuids = None
         interval = {
             'from_': '2020-10-01 14:00:00',
-            'until': '2020-10-01 15:59:59',
+            'until': '2020-10-01 16:00:00',
             'qos_threshold': 0,
         }
 
@@ -61,7 +61,7 @@ class TestQueueStat(DBIntegrationTest):
         tenant_uuids = None
         interval = {
             'from_': '2020-10-01 14:00:00',
-            'until': '2020-10-01 15:00:00',
+            'until': '2020-10-01 16:00:00',
             'qos_threshold': 0,
         }
 
@@ -300,7 +300,7 @@ class TestQueueStat(DBIntegrationTest):
         tenant_uuids = None
         interval = {
             'from_': '2020-10-01 14:00:00',
-            'until': '2020-10-01 15:59:59',
+            'until': '2020-10-01 16:00:00',
         }
 
         result = self.dao.queue_stat.get_interval_by_queue(tenant_uuids, 1, **interval)

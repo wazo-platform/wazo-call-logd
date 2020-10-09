@@ -79,7 +79,7 @@ class QueueStatDAO(BaseDAO):
             query = query.filter(text('false'))
 
         if from_ and until:
-            query = query.filter(table.time.between(from_, until))
+            query = query.filter(table.time >= from_).filter(table.time < until)
 
         if start_time and end_time:
             hour = func.extract('HOUR', table.time)
