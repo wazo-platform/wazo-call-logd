@@ -11,6 +11,7 @@ from marshmallow import (
     post_dump,
     validates,
 )
+from datetime import timezone
 from marshmallow.validate import OneOf, Range, Regexp
 
 
@@ -57,6 +58,16 @@ class QueueStatisticsListRequestSchema(Schema):
             data['start_time'] = data['start_time'].hour
         if data.get('end_time'):
             data['end_time'] = data['end_time'].hour
+        return data
+
+    @post_load
+    def default_timezone_on_datetime(self, data, **kwargs):
+        if data.get('from_'):
+            if not data['from_'].tzinfo:
+                data['from_'] = data['from_'].replace(tzinfo=timezone.utc)
+        if data.get('until'):
+            if not data['until'].tzinfo:
+                data['until'] = data['until'].replace(tzinfo=timezone.utc)
         return data
 
 

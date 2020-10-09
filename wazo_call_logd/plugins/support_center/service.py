@@ -1,7 +1,7 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 
 from .exceptions import QueueNotFoundException, RangeTooLargeException
@@ -19,8 +19,8 @@ class QueueStatisticsService(object):
         }
 
         if not until:
-            today = datetime.now()
-            until = datetime(today.year, today.month, today.day) + relativedelta(days=1)
+            today = datetime.now(tz=timezone.utc)
+            until = datetime(today.year, today.month, today.day, tzinfo=timezone.utc) + relativedelta(days=1)
 
         if not from_:
             interval = None
