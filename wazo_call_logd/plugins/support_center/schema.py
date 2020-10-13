@@ -2,24 +2,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
-    EXCLUDE,
     fields,
     post_load,
-    Schema,
     pre_dump,
     pre_load,
     post_dump,
-    validates,
 )
 from datetime import timezone
 from marshmallow.validate import OneOf, Range, Regexp
+from xivo.mallow_helpers import Schema
 
 
 class QueueStatisticsSchema(Schema):
-    class Meta(object):
-        ordered = True
-        unknown = EXCLUDE
-
     from_ = fields.DateTime(attribute='from', data_key='from')
     until = fields.DateTime()
     tenant_uuid = fields.UUID(default=None)
@@ -76,8 +70,5 @@ class QueueStatisticsRequestSchema(QueueStatisticsListRequestSchema):
 
 
 class QueueStatisticsSchemaList(Schema):
-    class Meta(object):
-        ordered = True
-
     items = fields.Nested(QueueStatisticsSchema, many=True)
     total = fields.Integer()
