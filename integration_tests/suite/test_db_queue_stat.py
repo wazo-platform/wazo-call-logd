@@ -272,6 +272,9 @@ class TestQueueStat(DBIntegrationTest):
             result[0],
             has_entries(
                 queue_id=1,
+                queue_name='queue',
+                **{'from': '2020-10-01T13:00:00+00:00'},
+                until='2020-10-01T14:00:00+00:00',
                 answered=2,
                 abandoned=2,
                 total=2,
