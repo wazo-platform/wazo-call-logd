@@ -26,7 +26,16 @@ from .helpers.hamcrest.contains_string_ignoring_case import (
 )
 
 
-class TestNoAuth(IntegrationTest):
+class BaseTest(IntegrationTest):
+
+    def _assert_error(self, expected_error_code, command, **kwargs):
+        assert_that(
+            calling(command).with_args(**kwargs),
+            raises(CallLogdError).matching(has_properties(status_code=expected_error_code)),
+        )
+
+
+class TestNoAuth(BaseTest):
 
     asset = 'base'
 
@@ -77,15 +86,9 @@ class TestNoAuth(IntegrationTest):
         )
 
 
-class TestInputParameters(IntegrationTest):
+class TestInputParameters(BaseTest):
 
     asset = 'base'
-
-    def _assert_error(self, expected_error_code, command, **kwargs):
-        assert_that(
-            calling(command).with_args(**kwargs),
-            raises(CallLogdError).matching(has_properties(status_code=expected_error_code)),
-        )
 
     # fmt: off
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'answered': 1})
@@ -232,7 +235,7 @@ class TestInputParameters(IntegrationTest):
         self._assert_error(400, self.call_logd.queue_statistics.list, interval='day')
 
 
-class TestStatistics(IntegrationTest):
+class TestStatistics(BaseTest):
 
     asset = 'base'
 
