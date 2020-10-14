@@ -9,7 +9,7 @@ from marshmallow import (
     post_dump,
 )
 from datetime import timezone, time
-from marshmallow.validate import OneOf, Range, Regexp
+from marshmallow.validate import OneOf, ContainsOnly, Regexp
 from xivo.mallow_helpers import Schema
 
 HOUR_REGEX = r"^([0,1][0-9]|2[0-3]):[0-5][0-9]$"
@@ -39,7 +39,7 @@ class QueueStatisticsListRequestSchema(Schema):
     qos_threshold = fields.Integer()
     day_start_time = fields.String(attribute='start_time', validate=Regexp(HOUR_REGEX))
     day_end_time = fields.String(attribute='end_time', validate=Regexp(HOUR_REGEX))
-    week_days = fields.List(fields.Integer(), missing=[1, 2, 3, 4, 5, 6, 7])
+    week_days = fields.List(fields.Integer(), missing=[1, 2, 3, 4, 5, 6, 7], validate=ContainsOnly([1, 2, 3, 4, 5, 6, 7]))
 
     @pre_load
     def convert_week_days_to_list(self, data):
