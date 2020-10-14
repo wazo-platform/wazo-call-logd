@@ -5,28 +5,19 @@
 from hamcrest import (
     assert_that,
     calling,
-    contains,
     empty,
     equal_to,
     has_entries,
-    has_entry,
     has_item,
     has_items,
     has_properties,
-    not_,
 )
-from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.raises import raises
 
 from wazo_call_logd_client.exceptions import CallLogdError
 
 from .helpers.base import IntegrationTest
-from .helpers.constants import (
-    MASTER_TENANT,
-    OTHER_TENANT,
-    USER_1_TOKEN,
-    USERS_TENANT,
-)
+from .helpers.constants import MASTER_TENANT
 from .helpers.database import stat_queue_periodic, stat_call_on_queue
 from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
@@ -383,8 +374,8 @@ class TestStatistics(BaseTest):
                 'abandoned': 2,
                 'closed': 1,
                 'not_answered': 5,
-                'saturated': 6+7+8,
-                'blocked': 3+4,
+                'saturated': 6 + 7 + 8,
+                'blocked': 3 + 4,
                 'average_waiting_time': 0,
                 'answered_rate': 0.0,
                 'quality_of_service': None,
@@ -423,8 +414,8 @@ class TestStatistics(BaseTest):
                 'abandoned': 2,
                 'closed': 1,
                 'not_answered': 5,
-                'saturated': 6+7+8,
-                'blocked': 3+4,
+                'saturated': 6 + 7 + 8,
+                'blocked': 3 + 4,
                 'average_waiting_time': 0,
                 'answered_rate': 8.0,
                 'quality_of_service': None,
