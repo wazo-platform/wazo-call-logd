@@ -11,6 +11,16 @@ class QueueStatisticsService(object):
     def __init__(self, dao):
         self._dao = dao
 
+    def _generate_subinterval(self, from_, until, time_delta):
+        current = from_
+        next_datetime = current + time_delta
+        while current < until:
+            yield current, next_datetime
+            current = next_datetime
+            next_datetime = current + time_delta
+            if next_datetime > until:
+                next_datetime = until
+
     def _generate_interval(self, interval, from_, until):
         time_deltas = {
             'hour': relativedelta(hours=1),
@@ -33,14 +43,7 @@ class QueueStatisticsService(object):
                     details='Maximum of 1 month for interval by hour'
                 )
         if interval:
-            current = from_
-            next_datetime = current + time_delta
-            while current < until:
-                yield current, next_datetime
-                current = next_datetime
-                next_datetime = current + time_delta
-                if next_datetime > until:
-                    next_datetime = until
+            yield from self._generate_subinterval(from_, until, time_delta)
         else:
             yield from_, until
 
