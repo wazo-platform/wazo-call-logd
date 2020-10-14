@@ -28,13 +28,6 @@ class QueueStatisticsService(object):
             'month': relativedelta(months=1),
         }
 
-        if not until:
-            today = datetime.now(tz=timezone.utc)
-            until = datetime(today.year, today.month, today.day, tzinfo=timezone.utc) + relativedelta(days=1)
-
-        if not from_:
-            interval = None
-
         time_delta = time_deltas.get(interval, 'hour')
 
         if time_delta == time_deltas['hour']:
@@ -47,12 +40,16 @@ class QueueStatisticsService(object):
         else:
             yield from_, until
 
+    def _get_tomorrow(self):
+        today = datetime.now(tz=timezone.utc)
+        return datetime(today.year, today.month, today.day, tzinfo=timezone.utc) + relativedelta(days=1)
+
     def get(self, tenant_uuids, queue_id, **kwargs):
         queue_stats = list()
 
         interval = kwargs.pop('interval', None)
-        from_ = kwargs.pop('from_', None)
-        until = kwargs.pop('until', None)
+        from_ = kwargs.pop('from_', self._dao.find_oldest_time(queue_id))
+        until = kwargs.pop('until', self._get_tomorrow())
 
         if interval:
             for start, end in self._generate_interval(interval, from_, until):
@@ -89,13 +86,17 @@ class QueueStatisticsService(object):
 
         queue_stats = self._dao.get_interval(tenant_uuids, **kwargs)
         from_ = kwargs.pop('from_', None)
-        until = kwargs.pop('until', None)
+        until = kwargs.pop('until', self._get_tomorrow())
 
         queue_stats_items = []
         for queue_stat in queue_stats:
             queue_stats_item = {
                 **queue_stat
             }
+
+            if queue_stat.get('queue_id') and not from_:
+                from_ = self._dao.find_oldest_time(queue_stat['queue_id'])
+
             queue_stats_item.update({
                 'from': from_,
                 'until': until,

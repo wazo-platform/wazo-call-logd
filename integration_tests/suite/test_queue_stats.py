@@ -239,15 +239,13 @@ class TestInputParameters(BaseTest):
             qos_threshold='2020-10-06 10:00:00',
         )
 
-        self._assert_error(400, self.call_logd.queue_statistics.list, interval='day')
-
 
 class TestStatistics(BaseTest):
 
     asset = 'base'
 
     def test_list_queue_statistics_when_no_stats(self):
-        results = self.call_logd.queue_statistics.list(from_='1969-12-31T23:59:59')
+        results = self.call_logd.queue_statistics.list()
         assert_that(
             results,
             has_entries(
