@@ -314,5 +314,15 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_interval_by_queue(tenant_uuids, 1)
         assert_that(result, equal_to(None))
 
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 14:00:00', 'answered': 2})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1})
+    def test_find_oldest_time(self):
+        result = self.dao.queue_stat.find_oldest_time(1)
+        assert_that(result.isoformat(), equal_to('2020-10-01T14:00:00+00:00'))
+
+    def test_find_oldest_time_when_empty(self):
+        result = self.dao.queue_stat.find_oldest_time(1)
+        assert_that(result, equal_to(None))
+
     def qos(self, answered, nb_calls):
         return round(100.0 * nb_calls / answered, 2)

@@ -31,6 +31,17 @@ class StatRow(Schema):
 
 
 class QueueStatDAO(BaseDAO):
+    def find_oldest_time(self, queue_id):
+        with self.new_session() as session:
+            query = (
+                session.query(StatQueuePeriodic.time)
+                .join(StatQueue)
+                .filter(StatQueue.queue_id == queue_id)
+                .order_by(StatQueuePeriodic.time.desc())
+                .limit(1)
+            )
+            return query.scalar()
+
     def get_interval_by_queue(self, tenant_uuids, queue_id, **filters):
         with self.new_session() as session:
             query = self._queue_stat_query(
