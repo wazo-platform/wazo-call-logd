@@ -16,7 +16,7 @@ NUMBER_REGEX = r'^_?[0-9]+_?$'
 
 
 class CDRSchema(Schema):
-    class Meta(object):
+    class Meta:
         ordered = True
         unknown = EXCLUDE
 
@@ -108,7 +108,7 @@ class CDRListRequestSchema(Schema):
 
 
 class CDRSchemaList(Schema):
-    class Meta(object):
+    class Meta:
         ordered = True
 
     items = fields.Nested(CDRSchema, many=True)

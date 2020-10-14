@@ -1,8 +1,8 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-class CDRService(object):
+class CDRService:
     def __init__(self, dao):
         self._dao = dao
 

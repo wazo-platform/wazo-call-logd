@@ -19,6 +19,9 @@ from xivo_test_helpers.asset_launching_test_case import (
     NoSuchPort,
 )
 
+from wazo_call_logd.database.helpers import new_db_session
+from wazo_call_logd.database.queries import DAO
+
 from .wait_strategy import CallLogdEverythingUpWaitStrategy
 from .bus import CallLogBusClient
 from .confd import ConfdClient
@@ -43,6 +46,8 @@ from .database import DbHelper
 
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
+
+DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}')
 
 
 # this decorator takes the output of a psql and changes it into a list of dict
@@ -236,6 +241,33 @@ class IntegrationTest(AssetLaunchingTestCase):
                 'parent_uuid': MASTER_TENANT,
             },
         )
+
+
+class DBIntegrationTest(AssetLaunchingTestCase):
+
+    asset = 'database'
+    assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
+    service = 'postgres'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        try:
+            cls.database = DbHelper.build(
+                'asterisk',
+                'proformatique',
+                'localhost',
+                cls.service_port(5432, 'postgres'),
+                'asterisk',
+            )
+        except (NoSuchService, NoSuchPort) as e:
+            logger.debug(e)
+            cls.database = WrongClient(name='database')
+
+    def setUp(self):
+        db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
+        Session = new_db_session(db_uri)
+        self.dao = DAO(Session)
 
 
 class RawCelIntegrationTest(IntegrationTest):

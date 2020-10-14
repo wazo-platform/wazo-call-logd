@@ -9,6 +9,9 @@ from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
+from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
+from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
+from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.tests.test_dao import ItemInserter
 
 from .constants import MASTER_TENANT
@@ -42,10 +45,65 @@ def call_logs(call_logs):
     return _decorate
 
 
+def stat_queue_periodic(stat):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.database.queries() as queries:
+                tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
+                queue_id = stat.pop('queue_id', 1)
+                stat['stat_queue_id'] = queue_id
+                queue_args = {
+                    'id': stat['stat_queue_id'],
+                    'name': 'queue',
+                    'tenant_uuid': tenant_uuid,
+                    'queue_id': queue_id,
+                }
+                queries.insert_stat_queue(**queue_args)
+                stat['id'] = queries.insert_stat_queue_periodic(**stat)
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_stat_queue_periodic(stat['id'])
+                    queries.delete_stat_queue(stat['stat_queue_id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
+def stat_call_on_queue(call):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.database.queries() as queries:
+                call.setdefault('callid', '123')
+                call.setdefault('status', 'answered')
+                tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT)
+                queue_id = call.pop('queue_id', 1)
+                call['stat_queue_id'] = queue_id
+                queue_args = {
+                    'id': call['stat_queue_id'],
+                    'name': 'queue',
+                    'tenant_uuid': tenant_uuid,
+                    'queue_id': queue_id,
+                }
+                queries.insert_stat_queue(**queue_args)
+                call['id'] = queries.insert_stat_call_on_queue(**call)
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_stat_call_on_queue(call['id'])
+                    queries.delete_stat_queue(call['stat_queue_id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
 class DbHelper(object):
-
-    TEMPLATE = "xivotemplate"
-
     @classmethod
     def build(cls, user, password, host, port, db):
         tpl = "postgresql://{user}:{password}@{host}:{port}"
@@ -64,39 +122,9 @@ class DbHelper(object):
             logger.debug('Database is down: %s', e)
             return False
 
-    def create_engine(self, db=None, isolate=False):
-        db = db or self.db
-        uri = "{}/{}".format(self.uri, db)
-        if isolate:
-            return sa.create_engine(
-                uri, isolation_level='AUTOCOMMIT', pool_pre_ping=True
-            )
-        return sa.create_engine(uri, pool_pre_ping=True)
-
-    def connect(self, db=None):
-        db = db or self.db
-        return self.create_engine(db).connect()
-
-    def recreate(self):
-        engine = self.create_engine("postgres", isolate=True)
-        connection = engine.connect()
-        connection.execute(
-            """
-                           SELECT pg_terminate_backend(pg_stat_activity.pid)
-                           FROM pg_stat_activity
-                           WHERE pg_stat_activity.datname = '{db}'
-                           AND pid <> pg_backend_pid()
-                           """.format(
-                db=self.db
-            )
-        )
-        connection.execute("DROP DATABASE IF EXISTS {db}".format(db=self.db))
-        connection.execute(
-            "CREATE DATABASE {db} TEMPLATE {template}".format(
-                db=self.db, template=self.TEMPLATE
-            )
-        )
-        connection.close()
+    def connect(self):
+        uri = "{}/{}".format(self.uri, self.db)
+        return sa.create_engine(uri, pool_pre_ping=True).connect()
 
     def execute(self, query, **kwargs):
         with self.connect() as connection:
@@ -162,31 +190,30 @@ class DatabaseQueries(object):
         session.commit()
         return call_log.tenant_uuid
 
-    def insert_cel(
-        self,
-        eventtype,
-        eventtime,
-        uniqueid,
-        linkedid,
-        userdeftype='',
-        cid_name='default name',
-        cid_num='9999',
-        cid_ani='',
-        cid_rdnis='',
-        cid_dnid='',
-        exten='',
-        context='',
-        channame='',
-        appname='',
-        appdata='',
-        amaflags=0,
-        accountcode='',
-        peeraccount='',
-        userfield='',
-        peer='',
-        call_log_id=None,
-        extra=None,
-    ):
+    def insert_cel(self, **kwargs):
+        kwargs.setdefault('userdeftype', '')
+        kwargs.setdefault('cid_name', 'default name')
+        kwargs.setdefault('cid_num', '9999')
+        kwargs.setdefault('cid_ani', '')
+        kwargs.setdefault('cid_rdnis', '')
+        kwargs.setdefault('cid_dnid', '')
+        kwargs.setdefault('exten', '')
+        kwargs.setdefault('context', '')
+        kwargs.setdefault('channame', '')
+        kwargs.setdefault('appname', '')
+        kwargs.setdefault('appdata', '')
+        kwargs.setdefault('amaflags', 0)
+        kwargs.setdefault('accountcode', '')
+        kwargs.setdefault('peeraccount', '')
+        kwargs.setdefault('userfield', '')
+        kwargs.setdefault('peer', '')
+
+        # NOTE(flackburn): remove empty string value
+        if not kwargs.get('call_log_id'):
+            kwargs['call_log_id'] = None
+        if not kwargs.get('extra'):
+            kwargs['extra'] = None
+
         query = text(
             """
         INSERT INTO cel (
@@ -241,33 +268,62 @@ class DatabaseQueries(object):
         """
         )
 
-        cel_id = self.connection.execute(
-            query,
-            eventtype=eventtype,
-            eventtime=eventtime,
-            uniqueid=uniqueid,
-            linkedid=linkedid,
-            userdeftype=userdeftype,
-            cid_name=cid_name,
-            cid_num=cid_num,
-            cid_ani=cid_ani,
-            cid_rdnis=cid_rdnis,
-            cid_dnid=cid_dnid,
-            exten=exten,
-            context=context,
-            channame=channame,
-            appname=appname,
-            appdata=appdata,
-            amaflags=amaflags,
-            accountcode=accountcode,
-            peeraccount=peeraccount,
-            userfield=userfield,
-            peer=peer,
-            call_log_id=call_log_id or None,
-            extra=extra,
-        ).scalar()
+        cel_id = self.connection.execute(query, **kwargs).scalar()
         return cel_id
 
     def delete_cel(self, cel_id):
         query = text("DELETE FROM cel WHERE id = :id")
         self.connection.execute(query, id=cel_id)
+
+    def insert_stat_queue_periodic(self, **kwargs):
+        session = self.Session()
+        stat = StatQueuePeriodic(**kwargs)
+        session.add(stat)
+        session.flush()
+        # NOTE(fblackburn) Avoid BEGIN new session after commit
+        stat_id = stat.id
+        session.commit()
+        return stat_id
+
+    def delete_stat_queue_periodic(self, stat_id):
+        session = self.Session()
+        session.query(StatQueuePeriodic).filter(
+            StatQueuePeriodic.id == stat_id
+        ).delete()
+        session.commit()
+
+    def insert_stat_call_on_queue(self, **kwargs):
+        session = self.Session()
+        call = StatCallOnQueue(**kwargs)
+        session.add(call)
+        session.flush()
+        # NOTE(fblackburn) Avoid BEGIN new session after commit
+        call_id = call.id
+        session.commit()
+        return call_id
+
+    def delete_stat_call_on_queue(self, call_id):
+        session = self.Session()
+        session.query(StatCallOnQueue).filter(StatCallOnQueue.id == call_id).delete()
+        session.commit()
+
+    def insert_stat_queue(self, **kwargs):
+        session = self.Session()
+        queue_id = kwargs['id']
+        query = session.query(StatQueue).filter(StatQueue.id == queue_id)
+        if not query.count() > 0:
+            queue = StatQueue(**kwargs)
+            session.add(queue)
+        session.commit()
+
+    def delete_stat_queue(self, stat_queue_id):
+        session = self.Session()
+        query_1 = session.query(StatQueuePeriodic).filter(
+            StatQueuePeriodic.stat_queue_id == stat_queue_id
+        )
+        query_2 = session.query(StatCallOnQueue).filter(
+            StatCallOnQueue.stat_queue_id == stat_queue_id
+        )
+        if not query_1.count() > 0 and not query_2.count() > 0:
+            session.query(StatQueue).filter(StatQueue.id == stat_queue_id).delete()
+        session.commit()

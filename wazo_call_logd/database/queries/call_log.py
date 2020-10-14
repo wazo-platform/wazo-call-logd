@@ -1,33 +1,21 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-from contextlib import contextmanager
 
 import sqlalchemy as sa
 
-from sqlalchemy import create_engine, distinct
-from sqlalchemy import exc
+from sqlalchemy import distinct
 from sqlalchemy import sql, func, and_
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import subqueryload
-from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
 
 from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
-from wazo_call_logd.exceptions import DatabaseServiceUnavailable
+from .base import BaseDAO
 
 
-def new_db_session(db_uri):
-    _Session = scoped_session(sessionmaker())
-    engine = create_engine(db_uri, pool_pre_ping=True)
-    _Session.configure(bind=engine)
-    return _Session
-
-
-class CallLogDAO(object):
+class CallLogDAO(BaseDAO):
 
     searched_columns = (
         CallLogSchema.source_name,
@@ -35,24 +23,6 @@ class CallLogDAO(object):
         CallLogSchema.destination_name,
         CallLogSchema.destination_exten,
     )
-
-    def __init__(self, Session):
-        self._Session = Session
-
-    @contextmanager
-    def new_session(self):
-        session = self._Session()
-        try:
-            yield session
-            session.commit()
-        except exc.OperationalError:
-            session.rollback()
-            raise DatabaseServiceUnavailable()
-        except BaseException:
-            session.rollback()
-            raise
-        finally:
-            self._Session.remove()
 
     def get_by_id(self, cdr_id, tenant_uuids):
         with self.new_session() as session:

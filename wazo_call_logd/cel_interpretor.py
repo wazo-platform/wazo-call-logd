@@ -76,7 +76,7 @@ def find_participant(confd, channame):
     }
 
 
-class DispatchCELInterpretor(object):
+class DispatchCELInterpretor:
     def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
         self.caller_cel_interpretor = caller_cel_interpretor
         self.callee_cel_interpretor = callee_cel_interpretor
@@ -104,7 +104,7 @@ class DispatchCELInterpretor(object):
         return True
 
 
-class AbstractCELInterpretor(object):
+class AbstractCELInterpretor:
 
     eventtype_map = {}
 
@@ -276,7 +276,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         return call
 
 
-class LocalOriginateCELInterpretor(object):
+class LocalOriginateCELInterpretor:
     def __init__(self, confd):
         self._confd = confd
 

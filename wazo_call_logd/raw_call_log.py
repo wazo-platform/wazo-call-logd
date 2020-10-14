@@ -10,7 +10,7 @@ from wazo_call_logd.exceptions import InvalidCallLogException
 logger = logging.getLogger(__name__)
 
 
-class RawCallLog(object):
+class RawCallLog:
     def __init__(self):
         self.date = None
         self.date_end = None
