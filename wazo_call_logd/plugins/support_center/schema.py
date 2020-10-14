@@ -8,9 +8,11 @@ from marshmallow import (
     pre_load,
     post_dump,
 )
-from datetime import timezone
+from datetime import timezone, time
 from marshmallow.validate import OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
+
+HOUR_REGEX = r"^([0,1][0-9]|2[0-3]):[0-5][0-9]$"
 
 
 class QueueStatisticsSchema(Schema):
@@ -28,15 +30,15 @@ class QueueStatisticsSchema(Schema):
     blocked = fields.Integer(attribute='blocking', default=0)
     average_waiting_time = fields.Integer(default=0)
     answered_rate = fields.Float(default=0.0)
-    quality_of_service = fields.Float(attribute='qos', default=0.0)
+    quality_of_service = fields.Float(attribute='qos', default=None)
 
 
 class QueueStatisticsListRequestSchema(Schema):
     from_ = fields.DateTime(data_key='from', missing=None)
     until = fields.DateTime(missing=None)
     qos_threshold = fields.Integer()
-    day_start_time = fields.Time(attribute='start_time')
-    day_end_time = fields.Time(attribute='end_time')
+    day_start_time = fields.String(attribute='start_time', validate=Regexp(HOUR_REGEX))
+    day_end_time = fields.String(attribute='end_time', validate=Regexp(HOUR_REGEX))
     week_days = fields.List(fields.Integer(), missing=[1, 2, 3, 4, 5, 6, 7])
 
     @pre_load
@@ -49,9 +51,11 @@ class QueueStatisticsListRequestSchema(Schema):
     @post_load
     def convert_time_to_hour(self, data, **kwargs):
         if data.get('start_time'):
-            data['start_time'] = data['start_time'].hour
+            start_time = time.fromisoformat(data['start_time'])
+            data['start_time'] = start_time.hour
         if data.get('end_time'):
-            data['end_time'] = data['end_time'].hour
+            end_time = time.fromisoformat(data['end_time'])
+            data['end_time'] = end_time.hour
         return data
 
     @post_load

@@ -166,41 +166,41 @@ class TestInputParameters(BaseTest):
             400,
             self.call_logd.queue_statistics.get_by_id,
             queue_id=1,
-            start_time='test',
+            day_start_time='test',
         )
         self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, start_time=False
+            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, day_start_time=False
         )
         self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, start_time=124
+            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, day_start_time=124
         )
         self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, start_time=124.5
+            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, day_start_time=124.5
         )
         self._assert_error(
             400,
             self.call_logd.queue_statistics.get_by_id,
             queue_id=1,
-            start_time='2020-10-06 10:00:00',
+            day_start_time='2020-10-06 10:00:00',
         )
 
         self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, end_time='test'
+            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, day_end_time='test'
         )
         self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, end_time=False
+            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, day_end_time=False
         )
         self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, end_time=124
+            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, day_end_time=124
         )
         self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, end_time=124.5
+            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, day_end_time=124.5
         )
         self._assert_error(
             400,
             self.call_logd.queue_statistics.get_by_id,
             queue_id=1,
-            end_time='2020-10-06 10:00:00',
+            day_end_time='2020-10-06 10:00:00',
         )
 
         self._assert_error(
@@ -247,7 +247,7 @@ class TestStatistics(BaseTest):
     asset = 'base'
 
     def test_list_queue_statistics_when_no_stats(self):
-        results = self.call_logd.queue_statistics.list()
+        results = self.call_logd.queue_statistics.list(from_='1969-12-31T23:59:59')
         assert_that(
             results,
             has_entries(
