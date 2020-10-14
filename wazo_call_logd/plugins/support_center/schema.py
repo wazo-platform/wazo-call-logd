@@ -11,7 +11,7 @@ from marshmallow import (
     ValidationError,
 )
 from datetime import timezone, time
-from marshmallow.validate import OneOf, ContainsOnly, Regexp
+from marshmallow.validate import OneOf, ContainsOnly, Range, Regexp
 from xivo.mallow_helpers import Schema
 
 HOUR_REGEX = r"^([0,1][0-9]|2[0-3]):[0-5][0-9]$"
@@ -38,7 +38,7 @@ class QueueStatisticsSchema(Schema):
 class QueueStatisticsListRequestSchema(Schema):
     from_ = fields.DateTime(data_key='from', missing=None)
     until = fields.DateTime(missing=None)
-    qos_threshold = fields.Integer()
+    qos_threshold = fields.Integer(validate=Range(min=0))
     day_start_time = fields.String(attribute='start_time', validate=Regexp(HOUR_REGEX))
     day_end_time = fields.String(attribute='end_time', validate=Regexp(HOUR_REGEX))
     week_days = fields.List(fields.Integer(), missing=[1, 2, 3, 4, 5, 6, 7], validate=ContainsOnly([1, 2, 3, 4, 5, 6, 7]))

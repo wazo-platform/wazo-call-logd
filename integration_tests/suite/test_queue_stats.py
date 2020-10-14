@@ -157,6 +157,7 @@ class TestInputParameters(BaseTest):
             queue_id=1,
             qos_threshold='2020-10-06 10:00:00',
         )
+        self._assert_error(400, self.call_logd.queue_statistics.get_by_id, queue_id=1, qos_threshold=-1)
 
         self._assert_error(
             400, self.call_logd.queue_statistics.get_by_id, queue_id=1, interval='test'
