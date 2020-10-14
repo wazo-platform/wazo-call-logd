@@ -97,7 +97,7 @@ class QueueStatisticsService(object):
 
     def list(self, tenant_uuids, from_=None, until=None, **kwargs):
 
-        queue_stats = self._dao.get_interval(tenant_uuids, **kwargs)
+        queue_stats = self._dao.get_interval(tenant_uuids, from_=from_, until=until, **kwargs)
         until = until or self._get_tomorrow()
 
         queue_stats_items = []
