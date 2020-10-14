@@ -14,16 +14,29 @@ from wazo_call_logd.plugins.support_center.service import QueueStatisticsService
 
 
 class TestSupportCenterService(TestCase):
-
     def setUp(self):
         self.service = QueueStatisticsService(None)
 
     def test_that_intervals_stays_within_limits(self):
         from_ = datetime.fromisoformat('2020-10-10T00:00:00')
         until = datetime.fromisoformat('2020-10-12T12:00:00')
-        result = list(self.service._generate_subinterval(from_, until, relativedelta(days=1)))
-        assert_that(result, contains(
-            (datetime.fromisoformat('2020-10-10T00:00:00'), datetime.fromisoformat('2020-10-11T00:00:00')),
-            (datetime.fromisoformat('2020-10-11T00:00:00'), datetime.fromisoformat('2020-10-12T00:00:00')),
-            (datetime.fromisoformat('2020-10-12T00:00:00'), datetime.fromisoformat('2020-10-12T12:00:00')),
-        ))
+        result = list(
+            self.service._generate_subinterval(from_, until, relativedelta(days=1))
+        )
+        assert_that(
+            result,
+            contains(
+                (
+                    datetime.fromisoformat('2020-10-10T00:00:00'),
+                    datetime.fromisoformat('2020-10-11T00:00:00'),
+                ),
+                (
+                    datetime.fromisoformat('2020-10-11T00:00:00'),
+                    datetime.fromisoformat('2020-10-12T00:00:00'),
+                ),
+                (
+                    datetime.fromisoformat('2020-10-12T00:00:00'),
+                    datetime.fromisoformat('2020-10-12T12:00:00'),
+                ),
+            ),
+        )

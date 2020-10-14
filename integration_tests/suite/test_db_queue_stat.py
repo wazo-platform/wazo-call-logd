@@ -142,8 +142,8 @@ class TestQueueStat(DBIntegrationTest):
                 answered_rate=None,
                 blocking=0,
                 saturated=0,
-                average_waiting_time=None
-            )
+                average_waiting_time=None,
+            ),
         )
 
     @stat_call_on_queue({'time': '2020-10-01 13:00:00', 'waittime': 10})
@@ -204,7 +204,9 @@ class TestQueueStat(DBIntegrationTest):
         tenant_uuids = [USERS_TENANT]
         result = self.dao.queue_stat.get_interval(tenant_uuids, qos_threshold=0)
         res = 2
-        assert_that(result[0], has_entries(queue_id=2, answered=res, qos=self.qos(res, 1)))
+        assert_that(
+            result[0], has_entries(queue_id=2, answered=res, qos=self.qos(res, 1))
+        )
 
     # fmt: off
     @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'tenant_uuid': OTHER_TENANT})

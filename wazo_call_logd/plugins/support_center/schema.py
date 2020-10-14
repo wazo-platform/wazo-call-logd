@@ -39,7 +39,11 @@ class QueueStatisticsListRequestSchema(Schema):
     qos_threshold = fields.Integer(validate=Range(min=0))
     day_start_time = fields.String(attribute='start_time', validate=Regexp(HOUR_REGEX))
     day_end_time = fields.String(attribute='end_time', validate=Regexp(HOUR_REGEX))
-    week_days = fields.List(fields.Integer(), missing=[1, 2, 3, 4, 5, 6, 7], validate=ContainsOnly([1, 2, 3, 4, 5, 6, 7]))
+    week_days = fields.List(
+        fields.Integer(),
+        missing=[1, 2, 3, 4, 5, 6, 7],
+        validate=ContainsOnly([1, 2, 3, 4, 5, 6, 7]),
+    )
 
     @pre_load
     def convert_week_days_to_list(self, data):

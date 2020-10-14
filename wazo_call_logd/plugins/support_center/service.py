@@ -42,7 +42,9 @@ class QueueStatisticsService(object):
 
     def _get_tomorrow(self):
         today = datetime.now(tz=timezone.utc)
-        return datetime(today.year, today.month, today.day, tzinfo=timezone.utc) + relativedelta(days=1)
+        return datetime(
+            today.year, today.month, today.day, tzinfo=timezone.utc
+        ) + relativedelta(days=1)
 
     def get(self, tenant_uuids, queue_id, **kwargs):
         queue_stats = list()
@@ -57,9 +59,16 @@ class QueueStatisticsService(object):
                     'from': start,
                     'until': end,
                 }
-                interval_stats = self._dao.get_interval_by_queue(
-                    tenant_uuids, queue_id=queue_id, from_=start, until=end, **kwargs
-                ) or {}
+                interval_stats = (
+                    self._dao.get_interval_by_queue(
+                        tenant_uuids,
+                        queue_id=queue_id,
+                        from_=start,
+                        until=end,
+                        **kwargs
+                    )
+                    or {}
+                )
                 interval_stats.update(interval_timeframe)
                 queue_stats.append(interval_stats)
 
@@ -67,9 +76,12 @@ class QueueStatisticsService(object):
             'from': from_,
             'until': until,
         }
-        period_stats = self._dao.get_interval_by_queue(
-            tenant_uuids, queue_id=queue_id, from_=from_, until=until, **kwargs
-        ) or {}
+        period_stats = (
+            self._dao.get_interval_by_queue(
+                tenant_uuids, queue_id=queue_id, from_=from_, until=until, **kwargs
+            )
+            or {}
+        )
         period_stats.update(period_timeframe)
 
         queue_stats.append(period_stats)
@@ -90,17 +102,17 @@ class QueueStatisticsService(object):
 
         queue_stats_items = []
         for queue_stat in queue_stats:
-            queue_stats_item = {
-                **queue_stat
-            }
+            queue_stats_item = {**queue_stat}
 
             if queue_stat.get('queue_id') and not from_:
                 from_ = self._dao.find_oldest_time(queue_stat['queue_id'])
 
-            queue_stats_item.update({
-                'from': from_,
-                'until': until,
-            })
+            queue_stats_item.update(
+                {
+                    'from': from_,
+                    'until': until,
+                }
+            )
             queue_stats_items.append(queue_stats_item)
 
         return {

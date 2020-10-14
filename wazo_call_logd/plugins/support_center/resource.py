@@ -11,14 +11,15 @@ from wazo_call_logd.rest_api import AuthResource
 
 from .exceptions import QueueNotFoundException
 from .schema import (
-    QueueStatisticsListRequestSchema, QueueStatisticsRequestSchema, QueueStatisticsSchemaList
+    QueueStatisticsListRequestSchema,
+    QueueStatisticsRequestSchema,
+    QueueStatisticsSchemaList,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class QueuesStatisticsAuthResource(AuthResource):
-
     def __init__(self, queue_statistics_service):
         super().__init__()
         self.queue_statistics_service = queue_statistics_service
@@ -29,6 +30,7 @@ class QueuesStatisticsAuthResource(AuthResource):
             return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
         else:
             return [tenant_uuid]
+
 
 class QueuesStatisticsResource(QueuesStatisticsAuthResource):
     @required_acl('call-logd.queues.statistics.read')
