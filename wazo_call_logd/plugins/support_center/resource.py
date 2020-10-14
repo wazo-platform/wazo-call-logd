@@ -9,7 +9,6 @@ from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import token, Tenant
 from wazo_call_logd.rest_api import AuthResource
 
-from .exceptions import QueueNotFoundException
 from .schema import (
     QueueStatisticsListRequestSchema,
     QueueStatisticsRequestSchema,
