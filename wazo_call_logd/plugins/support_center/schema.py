@@ -7,6 +7,8 @@ from marshmallow import (
     pre_dump,
     pre_load,
     post_dump,
+    validates_schema,
+    ValidationError,
 )
 from datetime import timezone, time
 from marshmallow.validate import OneOf, ContainsOnly, Regexp
@@ -67,6 +69,11 @@ class QueueStatisticsListRequestSchema(Schema):
             if not data['until'].tzinfo:
                 data['until'] = data['until'].replace(tzinfo=timezone.utc)
         return data
+
+    @validates_schema
+    def validate_dates(self, data, **kwargs):
+        if data['until'] <= data['from_']:
+            raise ValidationError({'until': 'Field must be greater than from'})
 
 
 class QueueStatisticsRequestSchema(QueueStatisticsListRequestSchema):

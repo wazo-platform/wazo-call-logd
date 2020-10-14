@@ -216,6 +216,8 @@ class TestInputParameters(BaseTest):
         self._assert_error(400, self.call_logd.queue_statistics.get_by_id, queue_id=1, week_days='6,7,8')
         self._assert_error(400, self.call_logd.queue_statistics.get_by_id, queue_id=1, week_days='test')
 
+        self._assert_error(400, self.call_logd.queue_statistics.get_by_id, queue_id=1, from_='2020-10-10T00:00:00', until='2020-10-09T23:59:59')
+
     # fmt: off
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'answered': 1})
     # fmt: on
