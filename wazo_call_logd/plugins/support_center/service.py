@@ -46,12 +46,13 @@ class QueueStatisticsService(object):
             today.year, today.month, today.day, tzinfo=timezone.utc
         ) + relativedelta(days=1)
 
-    def get(self, tenant_uuids, queue_id, **kwargs):
+    def get(
+        self, tenant_uuids, queue_id, from_=None, until=None, interval=None, **kwargs
+    ):
         queue_stats = list()
 
-        interval = kwargs.pop('interval', None)
-        from_ = kwargs.pop('from_', self._dao.find_oldest_time(queue_id))
-        until = kwargs.pop('until', self._get_tomorrow())
+        from_ = from_ or self._dao.find_oldest_time(queue_id)
+        until = until or self._get_tomorrow()
 
         if interval:
             for start, end in self._generate_interval(interval, from_, until):
@@ -94,11 +95,10 @@ class QueueStatisticsService(object):
             'total': len(queue_stats),
         }
 
-    def list(self, tenant_uuids, **kwargs):
+    def list(self, tenant_uuids, from_=None, until=None, **kwargs):
 
         queue_stats = self._dao.get_interval(tenant_uuids, **kwargs)
-        from_ = kwargs.pop('from_', None)
-        until = kwargs.pop('until', self._get_tomorrow())
+        until = until or self._get_tomorrow()
 
         queue_stats_items = []
         for queue_stat in queue_stats:
