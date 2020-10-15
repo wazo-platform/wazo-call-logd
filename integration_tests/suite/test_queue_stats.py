@@ -2,6 +2,8 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 from hamcrest import (
     assert_that,
     calling,
@@ -280,6 +282,12 @@ class TestStatistics(BaseTest):
 
     asset = 'base'
 
+    def _get_tomorrow(self):
+        today = datetime.now(tz=timezone.utc)
+        return datetime(
+            today.year, today.month, today.day, tzinfo=timezone.utc
+        ) + relativedelta(days=1)
+
     def test_list_queue_statistics_when_no_stats(self):
         results = self.call_logd.queue_statistics.list()
         assert_that(
@@ -287,6 +295,59 @@ class TestStatistics(BaseTest):
             has_entries(
                 items=empty(),
                 total=equal_to(0),
+            ),
+        )
+
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-05 13:00:00', 'total': 1, 'answered': 1})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-06 13:00:00', 'total': 2, 'answered': 2})
+    # fmt: on
+    def test_list_queue_statistics_when_no_param_with_stats(self):
+        results = self.call_logd.queue_statistics.list()
+        assert_that(
+            results,
+            has_entries(
+                items=has_items(
+                    has_entries(
+                        {
+                            'from': '2020-10-05T13:00:00+00:00',
+                            'until': self._get_tomorrow().isoformat(timespec='seconds'),
+                            'tenant_uuid': MASTER_TENANT,
+                            'queue_id': 1,
+                            'queue_name': 'queue',
+                            'received': 1,
+                            'answered': 1,
+                            'abandoned': 0,
+                            'closed': 0,
+                            'not_answered': 0,
+                            'saturated': 0,
+                            'blocked': 0,
+                            'average_waiting_time': 0,
+                            'answered_rate': 100.0,
+                            'quality_of_service': None,
+                        }
+                    ),
+                    has_entries(
+                        {
+                            'from': '2020-10-06T13:00:00+00:00',
+                            'until': self._get_tomorrow().isoformat(timespec='seconds'),
+                            'tenant_uuid': MASTER_TENANT,
+                            'queue_id': 2,
+                            'queue_name': 'queue',
+                            'received': 2,
+                            'answered': 2,
+                            'abandoned': 0,
+                            'closed': 0,
+                            'not_answered': 0,
+                            'saturated': 0,
+                            'blocked': 0,
+                            'average_waiting_time': 0,
+                            'answered_rate': 100.0,
+                            'quality_of_service': None,
+                        }
+                    ),
+                ),
+                total=equal_to(2),
             ),
         )
 

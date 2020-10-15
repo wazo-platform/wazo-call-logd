@@ -106,12 +106,13 @@ class QueueStatisticsService(object):
         for queue_stat in queue_stats:
             queue_stats_item = {**queue_stat}
 
-            if queue_stat.get('queue_id') and not from_:
-                from_ = self._dao.find_oldest_time(queue_stat['queue_id'])
+            from_date = from_ or None
+            if queue_stat.get('queue_id') and not from_date:
+                from_date = self._dao.find_oldest_time(queue_stat['queue_id'])
 
             queue_stats_item.update(
                 {
-                    'from': from_,
+                    'from': from_date,
                     'until': until,
                 }
             )
