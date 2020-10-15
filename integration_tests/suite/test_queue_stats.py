@@ -459,8 +459,8 @@ class TestStatistics(BaseTest):
                         'not_answered': 0,
                         'saturated': 0,
                         'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 0.0,
+                        'average_waiting_time': None,
+                        'answered_rate': None,
                         'quality_of_service': None,
                     }
                 )
@@ -526,15 +526,11 @@ class TestStatistics(BaseTest):
             ),
         )
 
-    @stat_queue_periodic(
-        {'queue_id': 1, 'time': '2020-10-06 7:00:00', 'total': 3, 'answered': 3}
-    )
-    @stat_queue_periodic(
-        {'queue_id': 1, 'time': '2020-10-06 13:00:00', 'total': 3, 'answered': 3}
-    )
-    @stat_queue_periodic(
-        {'queue_id': 1, 'time': '2020-10-06 18:00:00', 'total': 3, 'answered': 3}
-    )
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 7:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 18:00:00', 'total': 3, 'answered': 3})
+    # fmt: on
     def test_get_queue_when_call_out_of_time_range(self):
         results = self.call_logd.queue_statistics.get_by_id(
             queue_id=1,
@@ -564,8 +560,8 @@ class TestStatistics(BaseTest):
                         'not_answered': 0,
                         'saturated': 0,
                         'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 0.0,
+                        'average_waiting_time': None,
+                        'answered_rate': None,
                         'quality_of_service': None,
                     }
                 )
@@ -614,8 +610,8 @@ class TestStatistics(BaseTest):
                         'not_answered': 0,
                         'saturated': 0,
                         'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 0.0,
+                        'average_waiting_time': None,
+                        'answered_rate': None,
                         'quality_of_service': None,
                     }
                 )

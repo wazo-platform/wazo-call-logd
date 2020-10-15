@@ -28,8 +28,8 @@ class QueueStatisticsSchema(Schema):
     not_answered = fields.Integer(attribute='timeout', default=0)
     saturated = fields.Integer(default=0)
     blocked = fields.Integer(attribute='blocking', default=0)
-    average_waiting_time = fields.Integer(default=0)
-    answered_rate = fields.Float(default=0.0)
+    average_waiting_time = fields.Integer(default=None)
+    answered_rate = fields.Float(default=None)
     quality_of_service = fields.Float(attribute='qos', default=None)
 
 
