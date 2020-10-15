@@ -98,14 +98,14 @@ parameters:
     description: The time at which a day starts.
     in: query
     type: string
-    default: '00:00:00'
+    default: '00:00'
     required: false
   day_end_time:
     name: day_end_time
     description: The time at which a day ends.
     in: query
     type: string
-    default: '23:59:59'
+    default: '23:59'
     required: false
   week_days:
     name: week_days
