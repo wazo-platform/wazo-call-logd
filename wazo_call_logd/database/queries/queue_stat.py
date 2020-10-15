@@ -37,7 +37,7 @@ class QueueStatDAO(BaseDAO):
                 session.query(StatQueuePeriodic.time)
                 .join(StatQueue)
                 .filter(StatQueue.queue_id == queue_id)
-                .order_by(StatQueuePeriodic.time.desc())
+                .order_by(StatQueuePeriodic.time.asc())
                 .limit(1)
             )
             return query.scalar()
