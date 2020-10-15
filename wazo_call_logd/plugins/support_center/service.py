@@ -46,8 +46,23 @@ class QueueStatisticsService(object):
             today.year, today.month, today.day, tzinfo=timezone.utc
         ) + relativedelta(days=1)
 
+    def _datetime_in_week_days(self, date_time, week_days):
+        return date_time.isoweekday() in week_days
+
+    def _datetime_in_time_interval(self, date_time, start_time, end_time):
+        return start_time <= date_time.hour <= end_time
+
     def get(
-        self, tenant_uuids, queue_id, from_=None, until=None, interval=None, **kwargs
+        self,
+        tenant_uuids,
+        queue_id,
+        from_=None,
+        until=None,
+        interval=None,
+        start_time=None,
+        end_time=None,
+        week_days=None,
+        **kwargs
     ):
         queue_stats = list()
 
@@ -56,6 +71,17 @@ class QueueStatisticsService(object):
 
         if interval:
             for start, end in self._generate_interval(interval, from_, until):
+                if start_time and not self._datetime_in_time_interval(
+                    start, start_time, end_time
+                ):
+                    continue
+                if end_time and not self._datetime_in_time_interval(
+                    end, start_time, end_time
+                ):
+                    continue
+                if week_days and not self._datetime_in_week_days(start, week_days):
+                    continue
+
                 interval_timeframe = {
                     'from': start,
                     'until': end,
@@ -66,6 +92,9 @@ class QueueStatisticsService(object):
                         queue_id=queue_id,
                         from_=start,
                         until=end,
+                        start_time=start_time,
+                        end_time=end_time,
+                        week_days=week_days,
                         **kwargs
                     )
                     or {}
@@ -79,7 +108,14 @@ class QueueStatisticsService(object):
         }
         period_stats = (
             self._dao.get_interval_by_queue(
-                tenant_uuids, queue_id=queue_id, from_=from_, until=until, **kwargs
+                tenant_uuids,
+                queue_id=queue_id,
+                from_=from_,
+                until=until,
+                start_time=start_time,
+                end_time=end_time,
+                week_days=week_days,
+                **kwargs
             )
             or {}
         )

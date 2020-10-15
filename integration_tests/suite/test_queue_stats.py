@@ -590,7 +590,7 @@ class TestStatistics(BaseTest):
     # fmt: off
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 7:00:00', 'total': 3, 'answered': 3})
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'total': 3, 'answered': 3})
-    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 18:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 16:00:00', 'total': 3, 'answered': 3})
     # fmt: on
     def test_get_queue_when_call_out_of_time_range(self):
         results = self.call_logd.queue_statistics.get_by_id(
@@ -602,15 +602,15 @@ class TestStatistics(BaseTest):
             day_end_time='17:00',
         )
 
-        assert_that(results, has_entries(total=equal_to(25)))
+        assert_that(results, has_entries(total=equal_to(10)))
 
         assert_that(
             results['items'],
             has_item(
                 has_entries(
                     {
-                        'from': '2020-10-06T07:00:00+00:00',
-                        'until': '2020-10-06T08:00:00+00:00',
+                        'from': '2020-10-06T08:00:00+00:00',
+                        'until': '2020-10-06T09:00:00+00:00',
                         'tenant_uuid': None,
                         'queue_id': None,
                         'queue_name': None,
@@ -659,20 +659,238 @@ class TestStatistics(BaseTest):
             has_item(
                 has_entries(
                     {
-                        'from': '2020-10-06T18:00:00+00:00',
-                        'until': '2020-10-06T19:00:00+00:00',
-                        'tenant_uuid': None,
-                        'queue_id': None,
-                        'queue_name': None,
-                        'received': 0,
-                        'answered': 0,
+                        'from': '2020-10-06T16:00:00+00:00',
+                        'until': '2020-10-06T17:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 3,
+                        'answered': 3,
                         'abandoned': 0,
                         'closed': 0,
                         'not_answered': 0,
                         'saturated': 0,
                         'blocked': 0,
-                        'average_waiting_time': None,
-                        'answered_rate': None,
+                        'average_waiting_time': 0.0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 7:00:00', 'total': 1, 'answered': 1})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-07 13:00:00', 'total': 2, 'answered': 2})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-08 18:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-09 18:00:00', 'total': 4, 'answered': 4})
+    # fmt: on
+    def test_get_queue_when_call_not_in_week_days(self):
+        results = self.call_logd.queue_statistics.get_by_id(
+            queue_id=1,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-10 00:00:00',
+            interval='day',
+            week_days='3,4',
+        )
+
+        assert_that(results, has_entries(total=equal_to(3)))
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-07T00:00:00+00:00',
+                        'until': '2020-10-08T00:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 2,
+                        'answered': 2,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0.0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-08T00:00:00+00:00',
+                        'until': '2020-10-09T00:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 3,
+                        'answered': 3,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0.0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-06T00:00:00+00:00',
+                        'until': '2020-10-10T00:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 5,
+                        'answered': 5,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0.0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 23:00:00', 'total': 1, 'answered': 1})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-07 00:00:00', 'total': 2, 'answered': 2})
+    # fmt: on
+    def test_get_queue_stats_week_days_hours_overlapping(self):
+        # 2020-10-06 is the 2nd week day
+        results = self.call_logd.queue_statistics.get_by_id(
+            queue_id=1,
+            from_='2020-10-06 23:00:00',
+            until='2020-10-07 01:00:00',
+            interval='hour',
+            week_days='2',
+        )
+
+        assert_that(results, has_entries(total=equal_to(2)))
+
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-06T23:00:00+00:00',
+                        'until': '2020-10-07T00:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 1,
+                        'answered': 1,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0.0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-06T23:00:00+00:00',
+                        'until': '2020-10-07T01:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 1,
+                        'answered': 1,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0.0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+
+        # 2020-10-07 is the 3rd week day
+        results = self.call_logd.queue_statistics.get_by_id(
+            queue_id=1,
+            from_='2020-10-06 23:00:00',
+            until='2020-10-07 01:00:00',
+            interval='hour',
+            week_days='3',
+        )
+
+        assert_that(results, has_entries(total=equal_to(2)))
+
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-07T00:00:00+00:00',
+                        'until': '2020-10-07T01:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 2,
+                        'answered': 2,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0.0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-06T23:00:00+00:00',
+                        'until': '2020-10-07T01:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 2,
+                        'answered': 2,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0.0,
+                        'answered_rate': 100.0,
                         'quality_of_service': None,
                     }
                 )
