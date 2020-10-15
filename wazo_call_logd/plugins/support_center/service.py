@@ -85,6 +85,7 @@ class QueueStatisticsService(object):
                 interval_timeframe = {
                     'from': start,
                     'until': end,
+                    'queue_id': queue_id,
                 }
                 interval_stats = (
                     self._dao.get_interval_by_queue(
@@ -105,6 +106,7 @@ class QueueStatisticsService(object):
         period_timeframe = {
             'from': from_,
             'until': until,
+            'queue_id': queue_id,
         }
         period_stats = (
             self._dao.get_interval_by_queue(
