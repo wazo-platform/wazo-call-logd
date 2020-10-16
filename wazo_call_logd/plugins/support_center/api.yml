@@ -79,7 +79,11 @@ parameters:
     required: false
   interval:
     name: interval
-    description: Aggregation interval. An empty value means no interval, so an aggregation on all values.
+    description: |
+      Aggregation interval. An empty value means no interval, so an aggregation on all values.
+
+
+      **Note**: `day` and `month` values are **experimental**
     in: query
     type: string
     enum:
