@@ -896,3 +896,93 @@ class TestStatistics(BaseTest):
                 )
             ),
         )
+
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-05 23:00:00', 'total': 1, 'answered': 1})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-07 00:00:00', 'total': 2, 'answered': 2})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-07 15:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-07 23:00:00', 'total': 4, 'answered': 4})
+    # fmt: on
+    def test_get_queue_stat_with_day_interval_and_time_period(self):
+        results = self.call_logd.queue_statistics.get_by_id(
+            queue_id=1,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-08 00:00:00',
+            interval='day',
+            day_start_time='08:00',
+            day_end_time='17:00',
+        )
+
+        assert_that(results, has_entries(total=equal_to(3)))
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-06T00:00:00+00:00',
+                        'until': '2020-10-07T00:00:00+00:00',
+                        'tenant_uuid': None,
+                        'queue_id': 1,
+                        'queue_name': None,
+                        'received': 0,
+                        'answered': 0,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': None,
+                        'answered_rate': None,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-07T00:00:00+00:00',
+                        'until': '2020-10-08T00:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 3,
+                        'answered': 3,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-06T00:00:00+00:00',
+                        'until': '2020-10-08T00:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 3,
+                        'answered': 3,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )

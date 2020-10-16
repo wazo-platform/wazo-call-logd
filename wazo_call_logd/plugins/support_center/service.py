@@ -71,14 +71,15 @@ class QueueStatisticsService(object):
 
         if interval:
             for start, end in self._generate_interval(interval, from_, until):
-                if start_time and not self._datetime_in_time_interval(
-                    start, start_time, end_time
-                ):
-                    continue
-                if end_time and not self._datetime_in_time_interval(
-                    end, start_time, end_time
-                ):
-                    continue
+                if interval == 'hour':
+                    if start_time and not self._datetime_in_time_interval(
+                        start, start_time, end_time
+                    ):
+                        continue
+                    if end_time and not self._datetime_in_time_interval(
+                        end, start_time, end_time
+                    ):
+                        continue
                 if week_days and not self._datetime_in_week_days(start, week_days):
                     continue
 
