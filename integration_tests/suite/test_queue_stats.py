@@ -581,6 +581,7 @@ class TestStatistics(BaseTest):
                         'queue_name': 'queue',
                         'received': 3,
                         'answered': 3,
+                        'average_waiting_time': 9,
                         'quality_of_service': 66.67,
                     }
                 )
