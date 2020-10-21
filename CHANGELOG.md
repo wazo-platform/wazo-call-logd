@@ -1,5 +1,12 @@
 # Changelog
 
+## 20.14
+
+* New endpoint for queue statistics:
+
+  * `GET /queues/statistics`
+  * `GET /queues/<queue_id>/statistics`
+
 ## 20.08
 
 * Deprecate SSL configuration
