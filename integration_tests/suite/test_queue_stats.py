@@ -436,8 +436,76 @@ class TestStatistics(BaseTest):
             ),
         )
 
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 7:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-10 16:00:00', 'total': 3, 'answered': 3})
+    # fmt: on
+    def test_get_queue_no_params(self):
+        results = self.call_logd.queue_statistics.get_by_id(queue_id=1)
+        assert_that(results, has_entries(total=equal_to(1)))
+
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-06T07:00:00+00:00',
+                        'until': self._get_tomorrow(),
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 9,
+                        'answered': 9,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
+
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 7:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'total': 3, 'answered': 3})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-10 16:00:00', 'total': 3, 'answered': 3})
+    # fmt: on
     def test_get_queue_no_interval_returns_from_to_until(self):
-        pass
+        results = self.call_logd.queue_statistics.get_by_id(
+            queue_id=1,
+            from_='2020-10-06T00:00:00+00:00',
+            until='2020-10-07T00:00:00+00:00',
+        )
+        assert_that(results, has_entries(total=equal_to(1)))
+        assert_that(
+            results['items'],
+            has_item(
+                has_entries(
+                    {
+                        'from': '2020-10-06T00:00:00+00:00',
+                        'until': '2020-10-07T00:00:00+00:00',
+                        'tenant_uuid': MASTER_TENANT,
+                        'queue_id': 1,
+                        'queue_name': 'queue',
+                        'received': 6,
+                        'answered': 6,
+                        'abandoned': 0,
+                        'closed': 0,
+                        'not_answered': 0,
+                        'saturated': 0,
+                        'blocked': 0,
+                        'average_waiting_time': 0,
+                        'answered_rate': 100.0,
+                        'quality_of_service': None,
+                    }
+                )
+            ),
+        )
 
     # fmt: off
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 4:00:00', 'total': 1, 'answered': 1})
