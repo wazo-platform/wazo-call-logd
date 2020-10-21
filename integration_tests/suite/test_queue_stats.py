@@ -284,9 +284,10 @@ class TestStatistics(BaseTest):
 
     def _get_tomorrow(self):
         today = datetime.now(tz=timezone.utc)
-        return datetime(
-            today.year, today.month, today.day, tzinfo=timezone.utc
-        ) + relativedelta(days=1)
+        return (
+            datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
+            + relativedelta(days=1)
+        ).isoformat(timespec='seconds')
 
     def test_list_queue_statistics_when_no_stats(self):
         results = self.call_logd.queue_statistics.list()
@@ -311,7 +312,7 @@ class TestStatistics(BaseTest):
                     has_entries(
                         {
                             'from': '2020-10-05T13:00:00+00:00',
-                            'until': self._get_tomorrow().isoformat(timespec='seconds'),
+                            'until': self._get_tomorrow(),
                             'tenant_uuid': MASTER_TENANT,
                             'queue_id': 1,
                             'queue_name': 'queue',
@@ -330,7 +331,7 @@ class TestStatistics(BaseTest):
                     has_entries(
                         {
                             'from': '2020-10-06T13:00:00+00:00',
-                            'until': self._get_tomorrow().isoformat(timespec='seconds'),
+                            'until': self._get_tomorrow(),
                             'tenant_uuid': MASTER_TENANT,
                             'queue_id': 2,
                             'queue_name': 'queue',
