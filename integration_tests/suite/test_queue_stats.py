@@ -219,6 +219,37 @@ class TestInputParameters(BaseTest):
             queue_id=1,
             day_end_time='2020-10-06 10:00:00',
         )
+        self._assert_error(
+            400,
+            self.call_logd.queue_statistics.get_by_id,
+            queue_id=1,
+            day_start_time='25:00',
+        )
+        self._assert_error(
+            400,
+            self.call_logd.queue_statistics.get_by_id,
+            queue_id=1,
+            day_end_time='25:00',
+        )
+        self._assert_error(
+            400,
+            self.call_logd.queue_statistics.get_by_id,
+            queue_id=1,
+            day_start_time='23:60',
+        )
+        self._assert_error(
+            400,
+            self.call_logd.queue_statistics.get_by_id,
+            queue_id=1,
+            day_end_time='23:60',
+        )
+        self._assert_error(
+            400,
+            self.call_logd.queue_statistics.get_by_id,
+            queue_id=1,
+            day_start_time='23:00',
+            day_end_time='22:00',
+        )
 
         self._assert_error(
             400,
@@ -248,6 +279,13 @@ class TestInputParameters(BaseTest):
             queue_id=1,
             from_='2020-10-10T00:00:00',
             until='2020-10-09T23:59:59',
+        )
+        self._assert_error(
+            400,
+            self.call_logd.queue_statistics.get_by_id,
+            queue_id=1,
+            from_='2020-10-10T00:00:00+00:00',
+            until='2020-10-10T00:00:00+01:00',
         )
 
     # fmt: off
