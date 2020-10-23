@@ -80,8 +80,9 @@ class QueueStatisticsService(object):
                         end, start_time, end_time
                     ):
                         continue
-                if week_days and not self._datetime_in_week_days(start, week_days):
-                    continue
+                if interval in ('hour', 'day'):
+                    if week_days and not self._datetime_in_week_days(start, week_days):
+                        continue
 
                 interval_timeframe = {
                     'from': start,
