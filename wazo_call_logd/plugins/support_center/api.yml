@@ -1,4 +1,97 @@
+swagger: '2.0'
+info:
+  title: wazo-call-logd
+  description: Consult call logs from a REST API
+  version: 1.0.0
+schemes:
+- http
+basePath: /1.0
+produces:
+- application/json
+x-xivo-port: 9298
+x-xivo-name: call-logs
+securityDefinitions:
+  wazo_auth_token:
+    type: apiKey
+    name: X-Auth-Token
+    in: header
+security:
+- wazo_auth_token: []
+responses:
+  AnotherServiceUnavailable:
+    description: Another service is unavailable (e.g. wazo-auth, ...)
+    schema:
+      $ref: '#/definitions/Error'
+  NotFoundError:
+    description: The resource requested was not found on the server
+    schema:
+      $ref: '#/definitions/Error'
+  InvalidRequest:
+    description: Invalid request
+    schema:
+      $ref: '#/definitions/Error'
+
 paths:
+  /agents/statistics:
+    get:
+      summary: Statistics for all agents
+      description: '**Required ACL:** `call-logd.agents.statistics.read`
+
+
+      Statistics are aggregated by agents over the period specified by the `from` and `until`
+      query parameters.'
+      tags:
+        - agent_statistics
+      parameters:
+      - $ref: '#/parameters/tenantuuid'
+      - $ref: '#/parameters/from'
+      - $ref: '#/parameters/until'
+      - $ref: '#/parameters/day_start_time'
+      - $ref: '#/parameters/day_end_time'
+      - $ref: '#/parameters/week_days'
+      responses:
+        '200':
+          description: Get aggregated statistics for all agents.
+          schema:
+            $ref: '#/definitions/AgentsStatistics'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+
+  /agents/{agent_id}/statistics:
+    get:
+      summary: Statistics for a specific agent
+      description: '**Required ACL:** `call-logd.agents.statistics.{agent_id}.read`
+
+
+      Statistics for an agent are aggregated by the `interval` query parameter, or if not
+      specified or empty, as a unique result over the period. The period is specified by the
+      `from` and `until` query parameters. The last result returned by this route is always the
+      aggregation of all calls over the whole specified period.'
+      tags:
+        - agent_statistics
+      parameters:
+        - name: agent_id
+          description: ID of the agent.
+          required: true
+          type: integer
+          in: path
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/interval'
+        - $ref: '#/parameters/day_start_time'
+        - $ref: '#/parameters/day_end_time'
+        - $ref: '#/parameters/week_days'
+      responses:
+        '200':
+          description: Get an agent statistics by ID
+          schema:
+            $ref: '#/definitions/AgentStatistics'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+        '404':
+          $ref: '#/responses/NotFoundError'
+
   /queues/statistics:
     get:
       summary: Statistics for all queues
@@ -61,6 +154,12 @@ paths:
           $ref: '#/responses/NotFoundError'
 
 parameters:
+  tenantuuid:
+    name: Wazo-Tenant
+    type: string
+    in: header
+    description: "The tenant's UUID, defining the ownership of a given resource."
+    required: false
   from:
     name: from
     description: |
@@ -125,6 +224,35 @@ parameters:
     required: false
 
 definitions:
+  Error:
+    title: Error
+    description: Error message for the client
+    properties:
+      message:
+        description: Human readable explanation of the error
+        type: string
+      error_id:
+        description: Identifier of the type of error. It is more precise than the
+          HTTP status code.
+        type: string
+      details:
+        description: Additional information about the error. The keys are specific
+          to each error.
+        type: object
+      timestamp:
+        description: Time when the error occured
+        type: number
+        format: timestamp
+
+  AgentsStatistics:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/AgentStatistic'
+      total:
+        type: integer
   QueuesStatistics:
     type: object
     properties:
@@ -132,6 +260,15 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/QueueStatistic'
+      total:
+        type: integer
+  AgentStatistics:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/AgentStatistic'
       total:
         type: integer
   QueueStatistics:
@@ -143,6 +280,38 @@ definitions:
           $ref: '#/definitions/QueueStatistic'
       total:
         type: integer
+  AgentStatistic:
+    type: object
+    properties:
+      from:
+        type: string
+        description: Start of the statistic interval.
+      until:
+        type: string
+        description: End of the statistic interval.
+      tenant_uuid:
+        type: string
+        format: uuid
+        description: Tenant UUID of the corresponding queue.
+      agent_id:
+        type: integer
+        description: ID of the corresponding agent.
+      agent_number:
+        type: string
+        description: The number of this agent
+      conversation_time:
+        type: integer
+        description: The time spent in conversation in seconds
+      login_time:
+        type: integer
+        description: The time spent logged-in in seconds
+      pause_time:
+        type: integer
+        description: The time spent in pause in seconds
+      wrapup_time:
+        type: integer
+        description: The time spent in wrapup in seconds
+
   QueueStatistic:
     type: object
     properties:
