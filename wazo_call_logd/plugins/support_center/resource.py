@@ -1,9 +1,6 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import logging
-
-
 from flask import request
 from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import token, Tenant
@@ -14,8 +11,6 @@ from .schema import (
     QueueStatisticsRequestSchema,
     QueueStatisticsSchemaList,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class QueuesStatisticsAuthResource(AuthResource):

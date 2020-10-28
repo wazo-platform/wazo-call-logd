@@ -84,6 +84,14 @@ class QueueStatisticsListRequestSchema(Schema):
             if until <= from_:
                 raise ValidationError({'until': 'Field must be greater than from'})
 
+    @validates_schema
+    def validate_start_end_times(self, data, **kwargs):
+        if data.get('start_time') and data.get('end_time'):
+            if data['start_time'] >= data['end_time']:
+                raise ValidationError(
+                    {'day_start_time': 'Field must be lower than day_end_time'}
+                )
+
 
 class QueueStatisticsRequestSchema(QueueStatisticsListRequestSchema):
     interval = fields.String(validate=OneOf(['hour', 'day', 'month']))
