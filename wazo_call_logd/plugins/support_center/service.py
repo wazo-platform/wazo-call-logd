@@ -4,13 +4,14 @@
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 
-from .exceptions import QueueNotFoundException, RangeTooLargeException
+from .exceptions import (
+    AgentNotFoundException,
+    QueueNotFoundException,
+    RangeTooLargeException,
+)
 
 
-class QueueStatisticsService(object):
-    def __init__(self, dao):
-        self._dao = dao
-
+class _StatisticsService:
     def _generate_subinterval(self, from_, until, time_delta):
         current = from_
         next_datetime = current + time_delta
@@ -51,6 +52,124 @@ class QueueStatisticsService(object):
 
     def _datetime_in_time_interval(self, date_time, start_time, end_time):
         return start_time <= date_time.hour <= end_time
+
+
+class AgentStatisticsService(_StatisticsService):
+    def __init__(self, dao):
+        self._dao = dao
+
+    def get(
+        self,
+        tenant_uuids,
+        agent_id,
+        from_=None,
+        until=None,
+        interval=None,
+        start_time=None,
+        end_time=None,
+        week_days=None,
+        **kwargs
+    ):
+        agent_stats = list()
+
+        from_ = from_ or self._dao.find_oldest_time(agent_id)
+        until = until or self._get_tomorrow()
+
+        if interval:
+            for start, end in self._generate_interval(interval, from_, until):
+                if interval == 'hour':
+                    if start_time and not self._datetime_in_time_interval(
+                        start, start_time, end_time
+                    ):
+                        continue
+                    if end_time and not self._datetime_in_time_interval(
+                        end, start_time, end_time
+                    ):
+                        continue
+                if interval in ('hour', 'day'):
+                    if week_days and not self._datetime_in_week_days(start, week_days):
+                        continue
+
+                interval_timeframe = {
+                    'from': start,
+                    'until': end,
+                    'agent_id': agent_id,
+                }
+                interval_stats = (
+                    self._dao.get_interval_by_agent(
+                        tenant_uuids,
+                        agent_id=agent_id,
+                        from_=start,
+                        until=end,
+                        start_time=start_time,
+                        end_time=end_time,
+                        week_days=week_days,
+                        **kwargs
+                    )
+                    or {}
+                )
+                interval_stats.update(interval_timeframe)
+                agent_stats.append(interval_stats)
+
+        period_timeframe = {
+            'from': from_,
+            'until': until,
+            'agent_id': agent_id,
+        }
+        period_stats = (
+            self._dao.get_interval_by_agent(
+                tenant_uuids,
+                agent_id=agent_id,
+                from_=from_,
+                until=until,
+                start_time=start_time,
+                end_time=end_time,
+                week_days=week_days,
+                **kwargs
+            )
+            or {}
+        )
+        period_stats.update(period_timeframe)
+
+        agent_stats.append(period_stats)
+
+        if not agent_stats:
+            raise AgentNotFoundException(details={'agent_id': agent_id})
+
+        return {'total': len(agent_stats), 'items': agent_stats}
+
+    def list(self, tenant_uuids, from_=None, until=None, **kwargs):
+
+        agent_stats = self._dao.get_interval(
+            tenant_uuids, from_=from_, until=until, **kwargs
+        )
+        until = until or self._get_tomorrow()
+
+        agent_stats_items = []
+        for agent_stat in agent_stats:
+            agent_stats_item = {**agent_stat}
+
+            from_date = from_ or None
+            if agent_stat.get('agent_id') and not from_date:
+                from_date = self._dao.find_oldest_time(agent_stat['agent_id'])
+
+            agent_stats_item.update(
+                {
+                    'from': from_date,
+                    'until': until,
+                }
+            )
+            agent_stats_items.append(agent_stats_item)
+
+        return {
+            'items': agent_stats_items,
+            'total': len(agent_stats),
+        }
+
+
+class QueueStatisticsService(_StatisticsService):
+    def __init__(self, dao):
+        self._dao = dao
 
     def get(
         self,

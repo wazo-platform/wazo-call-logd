@@ -1,4 +1,61 @@
 paths:
+  /agents/statistics:
+    get:
+      summary: Statistics for all agents
+      description: '**Required ACL:** `call-logd.agents.statistics.read`
+
+      Statistics are aggregated by agents over the period specified by the `from` and `until`
+      query parameters.'
+      tags:
+        - agent_statistics
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/day_start_time'
+        - $ref: '#/parameters/day_end_time'
+        - $ref: '#/parameters/week_days'
+      responses:
+        '200':
+          description: Get an agent statistics by ID
+          schema:
+            $ref: '#/definitions/AgentsStatistics'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+
+  /agents/{agent_id}/statistics:
+    get:
+      summary: Statistics for a specific agent
+      description: '**Required ACL:** `call-logd.agents.statistics.{agent_id}.read`
+      Statistics for an agent are aggregated by the `interval` query parameter, or if not
+      specified or empty, as a unique result over the period. The period is specified by the
+      `from` and `until` query parameters. The last result returned by this route is always the
+      aggregation of all calls over the whole specified period.'
+      tags:
+        - agent_statistics
+      parameters:
+        - name: agent_id
+          description: ID of the agent.
+          required: true
+          type: integer
+          in: path
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/interval'
+        - $ref: '#/parameters/day_start_time'
+        - $ref: '#/parameters/day_end_time'
+        - $ref: '#/parameters/week_days'
+      responses:
+        '200':
+          description: Get an agent statistics by ID
+          schema:
+            $ref: '#/definitions/AgentStatistics'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+        '404':
+          $ref: '#/responses/NotFoundError'
+
   /queues/statistics:
     get:
       summary: Statistics for all queues
@@ -125,6 +182,55 @@ parameters:
     required: false
 
 definitions:
+  AgentStatistics:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/AgentStatistic'
+      total:
+        type: integer
+  AgentsStatistics:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/AgentStatistic'
+      total:
+        type: integer
+  AgentStatistic:
+    type: object
+    properties:
+      from:
+        type: string
+        description: Start of the statistic interval.
+      until:
+        type: string
+        description: End of the statistic interval.
+      tenant_uuid:
+        type: string
+        format: uuid
+        description: Tenant UUID of the corresponding queue.
+      agent_id:
+        type: integer
+        description: ID of the corresponding agent.
+      agent_number:
+        type: string
+        description: The number of this agent
+      conversation_time:
+        type: integer
+        description: The time spent in conversation in seconds
+      login_time:
+        type: integer
+        description: The time spent logged-in in seconds
+      pause_time:
+        type: integer
+        description: The time spent in pause in seconds
+      wrapup_time:
+        type: integer
+        description: The time spent in wrapup in seconds
   QueuesStatistics:
     type: object
     properties:
