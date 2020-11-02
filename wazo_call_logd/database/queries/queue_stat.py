@@ -71,6 +71,10 @@ class QueueStatDAO(BaseDAO):
             session.expunge_all()
         return results
 
+    def _extract_timezone_to_postgres_format(self, from_):
+        tz_offset = from_.strftime('%z') or '+0000'
+        return '{}:{}'.format(tz_offset[0:3], tz_offset[3:])
+
     # NOTE(fblackburn): This only work because tables used have same column name
     def _add_interval_query(
         self,
@@ -92,12 +96,20 @@ class QueueStatDAO(BaseDAO):
         if from_ and until:
             query = query.filter(table.time >= from_).filter(table.time < until)
 
+        tz_offset = '+00:00'
+        if from_:
+            tz_offset = self._extract_timezone_to_postgres_format(from_)
+
         if start_time and end_time:
-            hour = func.extract('HOUR', table.time)
+            hour = func.extract(
+                'HOUR', table.time.op('AT TIME ZONE INTERVAL')(tz_offset)
+            )
             query = query.filter(hour.between(start_time, end_time))
 
         if week_days:
-            day_of_week = func.extract('ISODOW', table.time)
+            day_of_week = func.extract(
+                'ISODOW', table.time.op('AT TIME ZONE INTERVAL')(tz_offset)
+            )
             query = query.filter(day_of_week.in_(week_days))
         elif not week_days and week_days is not None:
             query = query.filter(text('false'))
