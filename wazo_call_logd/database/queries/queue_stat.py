@@ -42,6 +42,17 @@ class QueueStatDAO(BaseDAO):
             )
             return query.scalar()
 
+    def find_stat_queues(self, tenant_uuids=None):
+        with self.new_session() as session:
+            query = session.query(
+                StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
+            )
+
+            if tenant_uuids:
+                query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
+
+            return query.all()
+
     def get_interval_by_queue(self, tenant_uuids, queue_id, **filters):
         with self.new_session() as session:
             query = self._queue_stat_query(

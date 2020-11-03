@@ -20,7 +20,7 @@ from wazo_call_logd_client.exceptions import CallLogdError
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import MASTER_TENANT
-from .helpers.database import stat_queue_periodic, stat_call_on_queue
+from .helpers.database import stat_queue, stat_queue_periodic, stat_call_on_queue
 from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
 )
@@ -432,6 +432,7 @@ class TestStatistics(BaseTest):
     @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-06 7:00:00', 'answered': 1})
     @stat_queue_periodic({'queue_id': 3, 'time': '2020-10-06 13:00:00', 'answered': 1})
     @stat_queue_periodic({'queue_id': 4, 'time': '2020-11-01 00:00:00', 'answered': 1})
+    @stat_queue({'queue_id': 5})
     # fmt: on
     def test_list_queue_statistics_multiple_queues_same_datetime(self):
         results = self.call_logd.queue_statistics.list(
@@ -448,6 +449,7 @@ class TestStatistics(BaseTest):
                                 'until': '2020-11-01T00:00:00+00:00',
                                 'queue_id': 1,
                                 'queue_name': 'queue',
+                                'answered': 1,
                             }
                         ),
                         has_entries(
@@ -468,8 +470,26 @@ class TestStatistics(BaseTest):
                                 'answered': 1,
                             }
                         ),
+                        has_entries(
+                            {
+                                'from': '2020-10-01T00:00:00+00:00',
+                                'until': '2020-11-01T00:00:00+00:00',
+                                'queue_id': 4,
+                                'queue_name': 'queue',
+                                'answered': 0,
+                            }
+                        ),
+                        has_entries(
+                            {
+                                'from': '2020-10-01T00:00:00+00:00',
+                                'until': '2020-11-01T00:00:00+00:00',
+                                'queue_id': 5,
+                                'queue_name': 'queue',
+                                'answered': 0,
+                            }
+                        ),
                     ),
-                    'total': equal_to(3),
+                    'total': equal_to(5),
                 }
             ),
         )
