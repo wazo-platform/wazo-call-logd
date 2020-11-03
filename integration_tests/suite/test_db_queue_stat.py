@@ -15,7 +15,7 @@ from hamcrest import (
     has_entries,
 )
 from .helpers.base import DBIntegrationTest
-from .helpers.database import stat_queue_periodic, stat_call_on_queue
+from .helpers.database import stat_queue, stat_queue_periodic, stat_call_on_queue
 from .helpers.constants import OTHER_TENANT, USERS_TENANT
 
 QUEUE_ID = 1
@@ -357,6 +357,34 @@ class TestQueueStat(DBIntegrationTest):
 
     def test_find_oldest_time_when_empty(self):
         result = self.dao.queue_stat.find_oldest_time(1)
+        assert_that(result, equal_to(None))
+
+    @stat_queue({'queue_id': 1, 'name': 'queue'})
+    def test_get_stat_queue(self):
+        result = self.dao.queue_stat.get_stat_queue(1)
+        assert_that(result, has_entries(queue_id=1, name='queue'))
+
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
+    @stat_queue({'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': OTHER_TENANT})
+    def test_get_stat_queue_filtered_by_tenant(self):
+        result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[USERS_TENANT])
+        assert_that(result, has_entries(queue_id=1))
+
+        result = self.dao.queue_stat.get_stat_queue(
+            1, tenant_uuids=[USERS_TENANT, OTHER_TENANT]
+        )
+        assert_that(result, has_entries(queue_id=1))
+
+        result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[OTHER_TENANT])
+        assert_that(result, equal_to(None))
+
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
+    def test_get_stat_queue_empty_tenant(self):
+        result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[])
+        assert_that(result, has_entries(queue_id=1))
+
+    def test_get_stat_queue_when_no_queue(self):
+        result = self.dao.queue_stat.get_stat_queue(1)
         assert_that(result, equal_to(None))
 
     def qos(self, answered, nb_calls):

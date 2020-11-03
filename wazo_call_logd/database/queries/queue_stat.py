@@ -30,6 +30,12 @@ class StatRow(Schema):
     timeout = fields.Integer()
 
 
+class StatQueueRow(Schema):
+    queue_id = fields.Integer()
+    name = fields.String()
+    tenant_uuid = fields.UUID()
+
+
 class QueueStatDAO(BaseDAO):
     def find_oldest_time(self, queue_id):
         with self.new_session() as session:
@@ -53,7 +59,7 @@ class QueueStatDAO(BaseDAO):
 
             return query.all()
 
-    def find_stat_queue(self, queue_id, tenant_uuids=None):
+    def get_stat_queue(self, queue_id, tenant_uuids=None):
         with self.new_session() as session:
             query = session.query(
                 StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
@@ -62,7 +68,12 @@ class QueueStatDAO(BaseDAO):
             if tenant_uuids:
                 query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
 
-            return query.first()
+            row = query.first()
+            result = None
+            if row:
+                result = StatQueueRow().dump(row)
+            session.expunge_all()
+            return result
 
     def get_interval_by_queue(self, tenant_uuids, queue_id, **filters):
         with self.new_session() as session:

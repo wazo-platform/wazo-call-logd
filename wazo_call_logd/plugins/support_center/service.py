@@ -65,7 +65,7 @@ class QueueStatisticsService(object):
         **kwargs
     ):
         queue_stats = list()
-        stat_queue = self._dao.find_stat_queue(queue_id, tenant_uuids)
+        stat_queue = self._dao.get_stat_queue(queue_id, tenant_uuids)
         if not stat_queue:
             raise QueueNotFoundException(details={'queue_id': queue_id})
 
@@ -91,8 +91,8 @@ class QueueStatisticsService(object):
                     'from': start,
                     'until': end,
                     'queue_id': queue_id,
-                    'queue_name': stat_queue.name,
-                    'tenant_uuid': stat_queue.tenant_uuid,
+                    'queue_name': stat_queue['name'],
+                    'tenant_uuid': stat_queue['tenant_uuid'],
                 }
                 interval_stats = (
                     self._dao.get_interval_by_queue(
@@ -114,8 +114,8 @@ class QueueStatisticsService(object):
             'from': from_,
             'until': until,
             'queue_id': queue_id,
-            'queue_name': stat_queue.name,
-            'tenant_uuid': stat_queue.tenant_uuid,
+            'queue_name': stat_queue['name'],
+            'tenant_uuid': stat_queue['tenant_uuid'],
         }
         period_stats = (
             self._dao.get_interval_by_queue(
