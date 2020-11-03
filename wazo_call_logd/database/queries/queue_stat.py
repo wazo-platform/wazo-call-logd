@@ -48,7 +48,7 @@ class QueueStatDAO(BaseDAO):
             )
             return query.scalar()
 
-    def find_stat_queues(self, tenant_uuids=None):
+    def get_stat_queues(self, tenant_uuids=None):
         with self.new_session() as session:
             query = session.query(
                 StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
@@ -57,7 +57,12 @@ class QueueStatDAO(BaseDAO):
             if tenant_uuids:
                 query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
 
-            return query.all()
+            rows = query.all()
+            results = []
+            for row in rows:
+                results.append(StatQueueRow().dump(row))
+            session.expunge_all()
+            return results
 
     def get_stat_queue(self, queue_id, tenant_uuids=None):
         with self.new_session() as session:

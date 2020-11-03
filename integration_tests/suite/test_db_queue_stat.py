@@ -387,5 +387,59 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_stat_queue(1)
         assert_that(result, equal_to(None))
 
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
+    @stat_queue({'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': OTHER_TENANT})
+    def test_get_stat_queues(self):
+        result = self.dao.queue_stat.get_stat_queues()
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(queue_id=1, name='queue', tenant_uuid=USERS_TENANT),
+                has_entries(queue_id=2, name='other-queue', tenant_uuid=OTHER_TENANT),
+            ),
+        )
+
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
+    @stat_queue({'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': OTHER_TENANT})
+    def test_get_stat_queues_filtered_by_tenant(self):
+        result = self.dao.queue_stat.get_stat_queues([USERS_TENANT])
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(queue_id=1),
+            ),
+        )
+
+        result = self.dao.queue_stat.get_stat_queues([USERS_TENANT, OTHER_TENANT])
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(queue_id=1),
+                has_entries(queue_id=2),
+            ),
+        )
+
+        result = self.dao.queue_stat.get_stat_queues([OTHER_TENANT])
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(queue_id=2),
+            ),
+        )
+
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
+    def test_get_stat_queues_empty_tenant(self):
+        result = self.dao.queue_stat.get_stat_queues([])
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(queue_id=1),
+            ),
+        )
+
+    def test_get_stat_queues_when_no_queue(self):
+        result = self.dao.queue_stat.get_stat_queues()
+        assert_that(result, empty())
+
     def qos(self, answered, nb_calls):
         return round(100.0 * nb_calls / answered, 2)

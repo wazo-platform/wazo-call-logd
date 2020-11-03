@@ -141,8 +141,8 @@ class QueueStatisticsService(object):
 
     def list(self, tenant_uuids, from_=None, until=None, **kwargs):
         stat_queues = {
-            stat_queue.queue_id: stat_queue
-            for stat_queue in self._dao.find_stat_queues(tenant_uuids)
+            stat_queue['queue_id']: stat_queue
+            for stat_queue in self._dao.get_stat_queues(tenant_uuids)
         }
         queue_stats = {
             queue_stat['queue_id']: queue_stat
@@ -169,8 +169,8 @@ class QueueStatisticsService(object):
                     'from': from_date,
                     'until': until,
                     'queue_id': queue_id,
-                    'queue_name': stat_queue.name,
-                    'tenant_uuid': stat_queue.tenant_uuid,
+                    'queue_name': stat_queue['name'],
+                    'tenant_uuid': stat_queue['tenant_uuid'],
                 }
             )
             queue_stats_items.append(queue_stats_item)
