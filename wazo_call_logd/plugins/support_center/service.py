@@ -134,9 +134,6 @@ class QueueStatisticsService(object):
 
         queue_stats.append(period_stats)
 
-        if not queue_stats:
-            raise QueueNotFoundException(details={'queue_id': queue_id})
-
         return {
             'items': queue_stats,
             'total': len(queue_stats),
