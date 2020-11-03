@@ -74,15 +74,14 @@ class QueueStatisticsListRequestSchema(Schema):
 
     @validates_schema
     def validate_dates(self, data, **kwargs):
-        if data.get('until') and data.get('from_'):
-            from_ = data['from_']
-            until = data['until']
-            if not from_.tzinfo:
-                from_ = from_.replace(tzinfo=timezone.utc)
-            if not until.tzinfo:
-                until = until.replace(tzinfo=timezone.utc)
-            if until <= from_:
-                raise ValidationError({'until': 'Field must be greater than from'})
+        from_ = data.get('from_', None)
+        until = data.get('until', None)
+        if from_ and not from_.tzinfo:
+            from_ = from_.replace(tzinfo=timezone.utc)
+        if until and not until.tzinfo:
+            until = until.replace(tzinfo=timezone.utc)
+        if from_ and until and until <= from_:
+            raise ValidationError({'until': 'Field must be greater than from'})
 
     @validates_schema
     def validate_start_end_times(self, data, **kwargs):

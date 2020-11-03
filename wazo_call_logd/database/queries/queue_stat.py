@@ -93,8 +93,11 @@ class QueueStatDAO(BaseDAO):
         elif not tenant_uuids and tenant_uuids is not None:
             query = query.filter(text('false'))
 
-        if from_ and until:
-            query = query.filter(table.time >= from_).filter(table.time < until)
+        if from_:
+            query = query.filter(table.time >= from_)
+
+        if until:
+            query = query.filter(table.time < until)
 
         tz_offset = '+00:00'
         if from_:
