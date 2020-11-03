@@ -65,7 +65,7 @@ parameters:
     name: from
     description: |
       Ignore calls before the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
-      If missing, the statistics will start at the oldest available call.
+      If missing, the statistics will start at the oldest available call and will default timezone to UTC
     in: query
     type: string
     required: false
@@ -95,21 +95,21 @@ parameters:
     required: false
   day_start_time:
     name: day_start_time
-    description: The time at which a day starts.
+    description: The time at which a day starts. It based on the `from` parameter timezone.
     in: query
     type: string
     default: '00:00'
     required: false
   day_end_time:
     name: day_end_time
-    description: The time at which a day ends.
+    description: The time at which a day ends. It based on the `from` parameter timezone.
     in: query
     type: string
     default: '23:59'
     required: false
   week_days:
     name: week_days
-    description: The days of the week that should be included. A week starts on Monday (1) and ends on Sunday (7).
+    description: The days of the week that should be included. A week starts on Monday (1) and ends on Sunday (7). It based on the `from` parameter timezone.
     in: query
     type: array
     items:

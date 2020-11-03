@@ -1,6 +1,12 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import (
+    datetime as dt,
+    timezone as tz,
+    timedelta as td,
+)
+
 from hamcrest import (
     assert_that,
     contains_inanyorder,
@@ -33,8 +39,8 @@ class TestQueueStat(DBIntegrationTest):
     def test_get_interval_group_by_queues(self):
         tenant_uuids = None
         interval = {
-            'from_': '2020-10-01 14:00:00',
-            'until': '2020-10-01 16:00:00',
+            'from_': dt(2020, 10, 1, 14, 0, 0, tzinfo=tz.utc),
+            'until': dt(2020, 10, 1, 16, 0, 0, tzinfo=tz.utc),
             'qos_threshold': 0,
         }
 
@@ -60,8 +66,8 @@ class TestQueueStat(DBIntegrationTest):
     def test_get_interval_include_limit(self):
         tenant_uuids = None
         interval = {
-            'from_': '2020-10-01 14:00:00',
-            'until': '2020-10-01 16:00:00',
+            'from_': dt(2020, 10, 1, 14, 0, 0, tzinfo=tz.utc),
+            'until': dt(2020, 10, 1, 16, 0, 0, tzinfo=tz.utc),
             'qos_threshold': 0,
         }
 
@@ -104,6 +110,20 @@ class TestQueueStat(DBIntegrationTest):
         res = 2 + 3
         assert_that(result[0], has_entries(answered=res, qos=self.qos(res, 2)))
 
+    @stat_queue_periodic({'time': '2020-10-01 03:00:00+0000', 'answered': 1})
+    @stat_queue_periodic({'time': '2020-10-01 04:00:00+0000', 'answered': 2})
+    @stat_queue_periodic({'time': '2020-10-01 05:00:00+0000', 'answered': 3})
+    @stat_queue_periodic({'time': '2020-10-01 06:00:00+0000', 'answered': 4})
+    def test_get_interval_with_start_end_time_follows_timezone(self):
+        tenant_uuids = None
+        kwargs = {
+            'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=5))),
+            'start_time': 9,
+            'end_time': 10,
+        }
+        result = self.dao.queue_stat.get_interval(tenant_uuids, **kwargs)
+        assert_that(result[0], has_entries(answered=2 + 3))
+
     @stat_call_on_queue({'time': '2020-10-01 13:00:00'})
     @stat_call_on_queue({'time': '2020-10-02 13:00:00'})
     @stat_call_on_queue({'time': '2020-10-03 13:00:00'})
@@ -118,6 +138,19 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_interval(tenant_uuids, **kwargs)
         res = 1 + 2
         assert_that(result[0], has_entries(answered=res, qos=self.qos(res, 2)))
+
+    @stat_queue_periodic({'time': '2020-10-01 13:00:00', 'answered': 1})  # Thursday
+    @stat_queue_periodic({'time': '2020-10-02 13:00:00', 'answered': 2})  # Friday
+    @stat_queue_periodic({'time': '2020-10-03 13:00:00', 'answered': 3})  # Saturday
+    @stat_queue_periodic({'time': '2020-10-04 13:00:00', 'answered': 4})  # Sunday
+    def test_get_interval_with_week_days_follows_timezone(self):
+        tenant_uuids = None
+        kwargs = {
+            'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=12))),
+            'week_days': [1, 2, 3, 4, 5],
+        }
+        result = self.dao.queue_stat.get_interval(tenant_uuids, **kwargs)
+        assert_that(result[0], has_entries(answered=1 + 4))
 
     @stat_call_on_queue({'time': '2020-10-01 13:00:00'})
     @stat_call_on_queue({'time': '2020-10-02 13:00:00'})
@@ -304,8 +337,8 @@ class TestQueueStat(DBIntegrationTest):
     def test_get_interval_by_queue(self):
         tenant_uuids = None
         interval = {
-            'from_': '2020-10-01 14:00:00',
-            'until': '2020-10-01 16:00:00',
+            'from_': dt(2020, 10, 1, 14, 0, 0, tzinfo=tz.utc),
+            'until': dt(2020, 10, 1, 16, 0, 0, tzinfo=tz.utc),
         }
 
         result = self.dao.queue_stat.get_interval_by_queue(tenant_uuids, 1, **interval)
