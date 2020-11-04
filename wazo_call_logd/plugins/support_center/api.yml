@@ -2,11 +2,13 @@ paths:
   /queues/statistics:
     get:
       summary: Statistics for all queues
-      description: '**Required ACL:** `call-logd.queues.statistics.read`
+      description: |
+        **Required ACL:** `call-logd.queues.statistics.read`
 
+        Statistics are aggregated by queues over the period specified by the `from` and `until`
+        query parameters.
 
-      Statistics are aggregated by queues over the period specified by the `from` and `until`
-      query parameters.'
+        **Notice**: Statistics are generated every 6 hours
       tags:
         - queue_statistics
       parameters:
@@ -27,13 +29,15 @@ paths:
   /queues/{queue_id}/statistics:
     get:
       summary: Statistics for a specific queue
-      description: '**Required ACL:** `call-logd.queues.statistics.{queue_id}.read`
+      description: |
+        **Required ACL:** `call-logd.queues.statistics.{queue_id}.read`
 
+        Statistics for a queue are aggregated by the `interval` query parameter, or if not
+        specified or empty, as a unique result over the period. The period is specified by the
+        `from` and `until` query parameters. The last result returned by this route is always the
+        aggregation of all calls over the whole specified period.
 
-      Statistics for a queue are aggregated by the `interval` query parameter, or if not
-      specified or empty, as a unique result over the period. The period is specified by the
-      `from` and `until` query parameters. The last result returned by this route is always the
-      aggregation of all calls over the whole specified period.'
+        **Notice**: Statistics are generated every 6 hours
       tags:
         - queue_statistics
       parameters:
