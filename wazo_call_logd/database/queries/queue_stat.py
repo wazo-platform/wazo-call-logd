@@ -61,7 +61,6 @@ class QueueStatDAO(BaseDAO):
             results = []
             for row in rows:
                 results.append(StatQueueRow().dump(row))
-            session.expunge_all()
             return results
 
     def get_stat_queue(self, queue_id, tenant_uuids=None):
@@ -77,7 +76,6 @@ class QueueStatDAO(BaseDAO):
             result = None
             if row:
                 result = StatQueueRow().dump(row)
-            session.expunge_all()
             return result
 
     def get_interval_by_queue(self, tenant_uuids, queue_id, **filters):
@@ -92,7 +90,6 @@ class QueueStatDAO(BaseDAO):
                 basic_stats = StatRow().dump(row)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 result = {**basic_stats, **extra_stats}
-            session.expunge_all()
         return result
 
     def get_interval(self, tenant_uuids, **filters):
@@ -106,7 +103,6 @@ class QueueStatDAO(BaseDAO):
                 basic_stats = StatRow().dump(row)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 results.append({**basic_stats, **extra_stats})
-            session.expunge_all()
         return results
 
     def _extract_timezone_to_postgres_format(self, from_):
