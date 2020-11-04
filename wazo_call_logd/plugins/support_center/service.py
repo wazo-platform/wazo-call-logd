@@ -156,7 +156,7 @@ class QueueStatisticsService(object):
         for queue_id, stat_queue in stat_queues.items():
             queue_stat = queue_stats.get(queue_id)
             if queue_stat:
-                queue_stats_item = {**queue_stat}
+                queue_stats_item = queue_stat.copy()
             else:
                 queue_stats_item = {}
 
