@@ -1118,9 +1118,7 @@ class TestStatistics(BaseTest):
             ),
         )
 
-    # fmt: off
     @stat_queue({'queue_id': 1, 'name': 'queue'})
-    # fmt: on
     def test_that_get_queue_stats_by_day_when_no_stats(self):
         results = self.call_logd.queue_statistics.get_by_id(
             queue_id=1,
