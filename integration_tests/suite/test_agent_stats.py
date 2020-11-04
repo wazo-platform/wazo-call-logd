@@ -298,6 +298,7 @@ class TestStatistics(IntegrationTest):
     @stat_agent({'id': 2, 'name': 'Agent/1010', 'agent_id': 100})
     @stat_agent({'id': 3, 'name': 'Agent/1002', 'agent_id': 1})
     @stat_agent({'id': 4, 'name': 'Agent/1003', 'agent_id': 2})
+    @stat_agent({'id': 5, 'name': 'Agent/1066', 'agent_id': 10})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 4:00:00', 'login_time': '01:00:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
     @stat_agent_periodic({'agent_id': 2, 'time': '2020-10-06 7:00:00', 'login_time': '01:00:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
     @stat_agent_periodic({'agent_id': 3, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
@@ -316,21 +317,38 @@ class TestStatistics(IntegrationTest):
                         until='2020-11-01T00:00:00+00:00',
                         agent_id=42,
                         agent_number='1001',
+                        login_time=timedelta(hours=1).seconds,
                     ),
                     has_entries(
                         **{'from': '2020-10-01T00:00:00+00:00'},
                         until='2020-11-01T00:00:00+00:00',
                         agent_id=100,
                         agent_number='1010',
+                        login_time=timedelta(hours=1).seconds,
                     ),
                     has_entries(
                         **{'from': '2020-10-01T00:00:00+00:00'},
                         until='2020-11-01T00:00:00+00:00',
                         agent_id=1,
                         agent_number='1002',
+                        login_time=timedelta(hours=1).seconds,
+                    ),
+                    has_entries(
+                        **{'from': '2020-10-01T00:00:00+00:00'},
+                        until='2020-11-01T00:00:00+00:00',
+                        agent_id=2,
+                        agent_number='1003',
+                        login_time=0,
+                    ),
+                    has_entries(
+                        **{'from': '2020-10-01T00:00:00+00:00'},
+                        until='2020-11-01T00:00:00+00:00',
+                        agent_id=10,
+                        agent_number='1066',
+                        login_time=0,
                     ),
                 ),
-                total=equal_to(3),
+                total=equal_to(5),
             ),
         )
 
@@ -378,6 +396,12 @@ class TestStatistics(IntegrationTest):
                     wrapup_time=wrapup_time,
                 )
             ),
+        )
+
+    def test_get_agent_non_existing(self):
+        assert_that(
+            calling(self.call_logd.agent_statistics.get_by_id).with_args(agent_id=1),
+            raises(CallLogdError).matching(has_properties(status_code=404)),
         )
 
     # fmt: off
@@ -645,11 +669,9 @@ class TestStatistics(IntegrationTest):
             results['items'],
             has_items(
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    agent_id=common_fields['agent_id'],
-                    agent_number=None,
-                    tenant_uuid=None,
                     login_time=0,
                 ),
                 has_entries(
@@ -667,6 +689,7 @@ class TestStatistics(IntegrationTest):
             ),
         )
 
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     def test_that_get_agent_stats_by_day_when_no_stats(self):
         results = self.call_logd.agent_statistics.get_by_id(
             agent_id=42,
@@ -675,19 +698,24 @@ class TestStatistics(IntegrationTest):
             interval='day',
         )
 
+        common_fields = {
+            'tenant_uuid': MASTER_TENANT,
+            'agent_id': 42,
+            'agent_number': '1001',
+        }
         assert_that(results, has_entries(total=equal_to(2)))
         assert_that(
             results['items'],
             has_items(
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    agent_id=42,
                 ),
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    agent_id=42,
                 ),
             ),
         )
@@ -764,11 +792,9 @@ class TestStatistics(IntegrationTest):
             results['items'],
             has_items(
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-01-01T00:00:00+00:00'},
                     until='2020-02-01T00:00:00+00:00',
-                    tenant_uuid=None,
-                    agent_id=42,
-                    agent_number=None,
                     login_time=0,
                 ),
                 has_entries(

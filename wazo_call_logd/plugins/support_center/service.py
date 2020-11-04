@@ -1,6 +1,8 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from copy import copy
+
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 
@@ -71,6 +73,9 @@ class AgentStatisticsService(_StatisticsService):
         **kwargs
     ):
         agent_stats = list()
+        stat_agent = self._dao.get_stat_agent(agent_id, tenant_uuids)
+        if not stat_agent:
+            raise AgentNotFoundException(details={'agent_id': agent_id})
 
         from_ = from_ or self._dao.find_oldest_time(agent_id)
         until = until or self._get_tomorrow()
@@ -94,6 +99,8 @@ class AgentStatisticsService(_StatisticsService):
                     'from': start,
                     'until': end,
                     'agent_id': agent_id,
+                    'agent_number': stat_agent['number'],
+                    'tenant_uuid': stat_agent['tenant_uuid'],
                 }
                 interval_stats = (
                     self._dao.get_interval_by_agent(
@@ -115,6 +122,8 @@ class AgentStatisticsService(_StatisticsService):
             'from': from_,
             'until': until,
             'agent_id': agent_id,
+            'agent_number': stat_agent['number'],
+            'tenant_uuid': stat_agent['tenant_uuid'],
         }
         period_stats = (
             self._dao.get_interval_by_agent(
@@ -133,37 +142,47 @@ class AgentStatisticsService(_StatisticsService):
 
         agent_stats.append(period_stats)
 
-        if not agent_stats:
-            raise AgentNotFoundException(details={'agent_id': agent_id})
-
         return {'total': len(agent_stats), 'items': agent_stats}
 
     def list(self, tenant_uuids, from_=None, until=None, **kwargs):
-
-        agent_stats = self._dao.get_interval(
-            tenant_uuids, from_=from_, until=until, **kwargs
-        )
+        stat_agents = {
+            stat_agent['agent_id']: stat_agent
+            for stat_agent in self._dao.get_stat_agents(tenant_uuids)
+        }
+        agent_stats = {
+            agent_stat['agent_id']: agent_stat
+            for agent_stat in self._dao.get_interval(
+                tenant_uuids, from_=from_, until=until, **kwargs
+            )
+        }
         until = until or self._get_tomorrow()
 
         agent_stats_items = []
-        for agent_stat in agent_stats:
-            agent_stats_item = {**agent_stat}
+        for agent_id, stat_agent in stat_agents.items():
+            agent_stat = agent_stats.get(agent_id)
+            if agent_stat:
+                agent_stats_item = copy(agent_stat)
+            else:
+                agent_stats_item = {}
 
-            from_date = from_ or None
-            if agent_stat.get('agent_id') and not from_date:
-                from_date = self._dao.find_oldest_time(agent_stat['agent_id'])
+            from_date = from_
+            if not from_date:
+                from_date = self._dao.find_oldest_time(agent_id)
 
             agent_stats_item.update(
                 {
                     'from': from_date,
                     'until': until,
+                    'agent_id': stat_agent['agent_id'],
+                    'agent_number': stat_agent['number'],
+                    'tenant_uuid': stat_agent['tenant_uuid'],
                 }
             )
             agent_stats_items.append(agent_stats_item)
 
         return {
             'items': agent_stats_items,
-            'total': len(agent_stats),
+            'total': len(agent_stats_items),
         }
 
 

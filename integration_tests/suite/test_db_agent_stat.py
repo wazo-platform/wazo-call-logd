@@ -15,6 +15,7 @@ from hamcrest import (
 )
 
 from .helpers.base import DBIntegrationTest
+from .helpers.constants import OTHER_TENANT, USERS_TENANT
 from .helpers.database import stat_agent, stat_call_on_queue, stat_agent_periodic
 
 
@@ -299,18 +300,98 @@ class TestAgentStat(DBIntegrationTest):
         result = self.dao.agent_stat.get_interval_by_agent(tenant_uuids, 1)
         assert_that(result, equal_to(None))
 
-    # fmt: off
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-01 14:00:00'})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-01 13:00:00'})
-    # fmt: on
     def test_find_oldest_time(self):
         result = self.dao.agent_stat.find_oldest_time(42)
         assert_that(result.isoformat(), equal_to('2020-10-01T13:00:00+00:00'))
 
-    # fmt: off
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
-    # fmt: on
     def test_find_oldest_time_when_empty(self):
         result = self.dao.queue_stat.find_oldest_time(42)
         assert_that(result, equal_to(None))
+
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    def test_get_stat_agent(self):
+        result = self.dao.agent_stat.get_stat_agent(42)
+        assert_that(result, has_entries(agent_id=42, number='1001'))
+
+    # fmt: off
+    @stat_agent({'id': 1, 'agent_id': 42, 'name': 'Agent/1001', 'tenant_uuid': USERS_TENANT})
+    @stat_agent({'id': 2, 'agent_id': 24, 'name': 'Agent/1005', 'tenant_uuid': OTHER_TENANT})
+    # fmt: on
+    def test_get_stat_agent_filtered_by_tenant(self):
+        result = self.dao.agent_stat.get_stat_agent(42, tenant_uuids=[USERS_TENANT])
+        assert_that(result, has_entries(agent_id=42))
+
+        result = self.dao.agent_stat.get_stat_agent(
+            42, tenant_uuids=[USERS_TENANT, OTHER_TENANT]
+        )
+        assert_that(result, has_entries(agent_id=42))
+
+        result = self.dao.agent_stat.get_stat_agent(42, tenant_uuids=[OTHER_TENANT])
+        assert_that(result, equal_to(None))
+
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    def test_get_stat_agent_no_filtering(self):
+        result = self.dao.agent_stat.get_stat_agent(42)
+        assert_that(result, has_entries(agent_id=42))
+
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    def test_get_stat_agent_when_searching_in_no_tenants(self):
+        result = self.dao.agent_stat.get_stat_agent(42, tenant_uuids=[])
+        assert_that(result, equal_to(None))
+
+    @stat_agent({'agent_id': 1, 'name': 'Agent/1001', 'tenant_uuid': USERS_TENANT})
+    @stat_agent({'agent_id': 2, 'name': 'Agent/1002', 'tenant_uuid': OTHER_TENANT})
+    def test_get_stat_agents(self):
+        result = self.dao.agent_stat.get_stat_agents()
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(agent_id=1, number='1001', tenant_uuid=USERS_TENANT),
+                has_entries(agent_id=2, number='1002', tenant_uuid=OTHER_TENANT),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 10, 'agent_id': 1, 'name': 'Agent/1001', 'tenant_uuid': USERS_TENANT})
+    @stat_agent({'id': 12, 'agent_id': 2, 'name': 'Agent/1002', 'tenant_uuid': OTHER_TENANT})
+    # fmt: on
+    def test_get_stat_agents_filtered_by_tenant(self):
+        result = self.dao.agent_stat.get_stat_agents([USERS_TENANT])
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(agent_id=1),
+            ),
+        )
+
+        result = self.dao.agent_stat.get_stat_agents([USERS_TENANT, OTHER_TENANT])
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(agent_id=1),
+                has_entries(agent_id=2),
+            ),
+        )
+
+        result = self.dao.agent_stat.get_stat_agents([OTHER_TENANT])
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(agent_id=2),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 11, 'agent_id': 1, 'name': 'Agent/1001', 'tenant_uuid': USERS_TENANT})
+    # fmt: on
+    def test_get_stat_agents_empty_tenant(self):
+        result = self.dao.agent_stat.get_stat_agents([])
+        assert_that(result, empty())
+
+    def test_get_stat_agents_when_no_agent(self):
+        result = self.dao.agent_stat.get_stat_agents()
+        assert_that(result, empty())

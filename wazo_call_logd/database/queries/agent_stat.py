@@ -29,6 +29,12 @@ class StatRow(Schema):
     wrapup_time = IntervalAsSeconds()
 
 
+class StatAgentRow(Schema):
+    agent_id = fields.Integer()
+    number = fields.String()
+    tenant_uuid = fields.UUID()
+
+
 class AgentStatDAO(BaseDAO):
     def find_oldest_time(self, agent_id):
         with self.new_session() as session:
@@ -41,6 +47,39 @@ class AgentStatDAO(BaseDAO):
             )
             return query.scalar()
 
+    def get_stat_agents(self, tenant_uuids=None):
+        with self.new_session() as session:
+            query = session.query(
+                StatAgent.agent_id, StatAgent.number, StatAgent.tenant_uuid
+            )
+
+            if tenant_uuids:
+                query = query.filter(StatAgent.tenant_uuid.in_(tenant_uuids))
+            elif not tenant_uuids and tenant_uuids is not None:
+                query = query.filter(text('false'))
+
+            rows = query.all()
+            results = []
+            schema = StatAgentRow()
+            for row in rows:
+                results.append(schema.dump(row))
+            return results
+
+    def get_stat_agent(self, agent_id, tenant_uuids=None):
+        with self.new_session() as session:
+            query = session.query(
+                StatAgent.agent_id, StatAgent.number, StatAgent.tenant_uuid
+            ).filter(StatAgent.agent_id == agent_id)
+
+            if tenant_uuids:
+                query = query.filter(StatAgent.tenant_uuid.in_(tenant_uuids))
+            elif not tenant_uuids and tenant_uuids is not None:
+                query = query.filter(text('false'))
+
+            row = query.first()
+            if row:
+                return StatAgentRow().dump(row)
+
     def get_interval(self, tenant_uuids, **filters):
         with self.new_session() as session:
             query = self._agent_stat_query(
@@ -52,7 +91,6 @@ class AgentStatDAO(BaseDAO):
                 basic_stats = StatRow().dump(row)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 results.append({**basic_stats, **extra_stats})
-            session.expunge_all()
         return results
 
     def get_interval_by_agent(self, tenant_uuids, agent_id, **filters):
@@ -67,7 +105,6 @@ class AgentStatDAO(BaseDAO):
                 basic_stats = StatRow().dump(row)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 result = {**basic_stats, **extra_stats}
-            session.expunge_all()
         return result
 
     def _extract_timezone_to_postgres_format(self, from_):
@@ -111,8 +148,11 @@ class AgentStatDAO(BaseDAO):
         elif not tenant_uuids and tenant_uuids is not None:
             query = query.filter(text('false'))
 
-        if from_ and until:
-            query = query.filter(table.time >= from_).filter(table.time < until)
+        if from_:
+            query = query.filter(table.time >= from_)
+
+        if until:
+            query = query.filter(table.time < until)
 
         tz_offset = '+00:00'
         if from_:
