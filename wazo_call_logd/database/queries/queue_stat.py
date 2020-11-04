@@ -30,6 +30,12 @@ class StatRow(Schema):
     timeout = fields.Integer()
 
 
+class StatQueueRow(Schema):
+    queue_id = fields.Integer()
+    name = fields.String()
+    tenant_uuid = fields.UUID()
+
+
 class QueueStatDAO(BaseDAO):
     def find_oldest_time(self, queue_id):
         with self.new_session() as session:
@@ -41,6 +47,38 @@ class QueueStatDAO(BaseDAO):
                 .limit(1)
             )
             return query.scalar()
+
+    def get_stat_queues(self, tenant_uuids=None):
+        with self.new_session() as session:
+            query = session.query(
+                StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
+            )
+
+            if tenant_uuids:
+                query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
+            elif not tenant_uuids and tenant_uuids is not None:
+                query = query.filter(text('false'))
+
+            rows = query.all()
+            results = []
+            for row in rows:
+                results.append(StatQueueRow().dump(row))
+            return results
+
+    def get_stat_queue(self, queue_id, tenant_uuids=None):
+        with self.new_session() as session:
+            query = session.query(
+                StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
+            ).filter(StatQueue.queue_id == queue_id)
+
+            if tenant_uuids:
+                query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
+            elif not tenant_uuids and tenant_uuids is not None:
+                query = query.filter(text('false'))
+
+            row = query.first()
+            if row:
+                return StatQueueRow().dump(row)
 
     def get_interval_by_queue(self, tenant_uuids, queue_id, **filters):
         with self.new_session() as session:
@@ -54,7 +92,6 @@ class QueueStatDAO(BaseDAO):
                 basic_stats = StatRow().dump(row)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 result = {**basic_stats, **extra_stats}
-            session.expunge_all()
         return result
 
     def get_interval(self, tenant_uuids, **filters):
@@ -68,7 +105,6 @@ class QueueStatDAO(BaseDAO):
                 basic_stats = StatRow().dump(row)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 results.append({**basic_stats, **extra_stats})
-            session.expunge_all()
         return results
 
     def _extract_timezone_to_postgres_format(self, from_):
@@ -93,8 +129,11 @@ class QueueStatDAO(BaseDAO):
         elif not tenant_uuids and tenant_uuids is not None:
             query = query.filter(text('false'))
 
-        if from_ and until:
-            query = query.filter(table.time >= from_).filter(table.time < until)
+        if from_:
+            query = query.filter(table.time >= from_)
+
+        if until:
+            query = query.filter(table.time < until)
 
         tz_offset = '+00:00'
         if from_:

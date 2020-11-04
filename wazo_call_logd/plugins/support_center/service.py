@@ -65,6 +65,9 @@ class QueueStatisticsService(object):
         **kwargs
     ):
         queue_stats = list()
+        stat_queue = self._dao.get_stat_queue(queue_id, tenant_uuids)
+        if not stat_queue:
+            raise QueueNotFoundException(details={'queue_id': queue_id})
 
         from_ = from_ or self._dao.find_oldest_time(queue_id)
         until = until or self._get_tomorrow()
@@ -88,6 +91,8 @@ class QueueStatisticsService(object):
                     'from': start,
                     'until': end,
                     'queue_id': queue_id,
+                    'queue_name': stat_queue['name'],
+                    'tenant_uuid': stat_queue['tenant_uuid'],
                 }
                 interval_stats = (
                     self._dao.get_interval_by_queue(
@@ -109,6 +114,8 @@ class QueueStatisticsService(object):
             'from': from_,
             'until': until,
             'queue_id': queue_id,
+            'queue_name': stat_queue['name'],
+            'tenant_uuid': stat_queue['tenant_uuid'],
         }
         period_stats = (
             self._dao.get_interval_by_queue(
@@ -127,38 +134,48 @@ class QueueStatisticsService(object):
 
         queue_stats.append(period_stats)
 
-        if not queue_stats:
-            raise QueueNotFoundException(details={'queue_id': queue_id})
-
         return {
             'items': queue_stats,
             'total': len(queue_stats),
         }
 
     def list(self, tenant_uuids, from_=None, until=None, **kwargs):
-
-        queue_stats = self._dao.get_interval(
-            tenant_uuids, from_=from_, until=until, **kwargs
-        )
+        stat_queues = {
+            stat_queue['queue_id']: stat_queue
+            for stat_queue in self._dao.get_stat_queues(tenant_uuids)
+        }
+        queue_stats = {
+            queue_stat['queue_id']: queue_stat
+            for queue_stat in self._dao.get_interval(
+                tenant_uuids, from_=from_, until=until, **kwargs
+            )
+        }
         until = until or self._get_tomorrow()
 
         queue_stats_items = []
-        for queue_stat in queue_stats:
-            queue_stats_item = {**queue_stat}
+        for queue_id, stat_queue in stat_queues.items():
+            queue_stat = queue_stats.get(queue_id)
+            if queue_stat:
+                queue_stats_item = queue_stat.copy()
+            else:
+                queue_stats_item = {}
 
-            from_date = from_ or None
-            if queue_stat.get('queue_id') and not from_date:
-                from_date = self._dao.find_oldest_time(queue_stat['queue_id'])
+            from_date = from_
+            if not from_date:
+                from_date = self._dao.find_oldest_time(queue_id)
 
             queue_stats_item.update(
                 {
                     'from': from_date,
                     'until': until,
+                    'queue_id': queue_id,
+                    'queue_name': stat_queue['name'],
+                    'tenant_uuid': stat_queue['tenant_uuid'],
                 }
             )
             queue_stats_items.append(queue_stats_item)
 
         return {
             'items': queue_stats_items,
-            'total': len(queue_stats),
+            'total': len(queue_stats_items),
         }
