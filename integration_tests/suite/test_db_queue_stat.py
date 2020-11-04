@@ -381,7 +381,7 @@ class TestQueueStat(DBIntegrationTest):
     @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
     def test_get_stat_queue_empty_tenant(self):
         result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[])
-        assert_that(result, has_entries(queue_id=1))
+        assert_that(result, equal_to(None))
 
     def test_get_stat_queue_when_no_queue(self):
         result = self.dao.queue_stat.get_stat_queue(1)
@@ -430,12 +430,7 @@ class TestQueueStat(DBIntegrationTest):
     @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
     def test_get_stat_queues_empty_tenant(self):
         result = self.dao.queue_stat.get_stat_queues([])
-        assert_that(
-            result,
-            contains_inanyorder(
-                has_entries(queue_id=1),
-            ),
-        )
+        assert_that(result, empty())
 
     def test_get_stat_queues_when_no_queue(self):
         result = self.dao.queue_stat.get_stat_queues()

@@ -56,6 +56,8 @@ class QueueStatDAO(BaseDAO):
 
             if tenant_uuids:
                 query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
+            elif not tenant_uuids and tenant_uuids is not None:
+                query = query.filter(text('false'))
 
             rows = query.all()
             results = []
@@ -71,12 +73,12 @@ class QueueStatDAO(BaseDAO):
 
             if tenant_uuids:
                 query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
+            elif not tenant_uuids and tenant_uuids is not None:
+                query = query.filter(text('false'))
 
             row = query.first()
-            result = None
             if row:
-                result = StatQueueRow().dump(row)
-            return result
+                return StatQueueRow().dump(row)
 
     def get_interval_by_queue(self, tenant_uuids, queue_id, **filters):
         with self.new_session() as session:
