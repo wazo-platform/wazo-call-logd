@@ -187,12 +187,8 @@ class AgentStatDAO(BaseDAO):
                 func.count(StatCallOnQueue.id),
                 func.coalesce(func.sum(StatCallOnQueue.talktime), 0),
             )
-            .filter(
-                StatAgent.agent_id == agent_id,
-            )
-            .filter(
-                StatCallOnQueue.status == 'answered',
-            )
+            .filter(StatAgent.agent_id == agent_id)
+            .filter(StatCallOnQueue.status == 'answered')
             .join(StatAgent)
         )
         query = self._add_interval_query(StatCallOnQueue, query, **filters)
