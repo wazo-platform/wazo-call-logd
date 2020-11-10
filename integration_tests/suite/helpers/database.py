@@ -9,7 +9,9 @@ from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
+from xivo_dao.alchemy.stat_agent import StatAgent
 from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
+from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
 from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.tests.test_dao import ItemInserter
@@ -71,6 +73,43 @@ def stat_queue(stat):
     return _decorate
 
 
+def stat_agent(agent):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.database.queries() as queries:
+                agent.setdefault('tenant_uuid', MASTER_TENANT)
+                stat_agent_id = queries.insert_stat_agent(**agent)
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_stat_agent(stat_agent_id)
+
+        return wrapped_function
+
+    return _decorate
+
+
+def stat_agent_periodic(stat):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.database.queries() as queries:
+                agent_id = stat.pop('agent_id', 1)
+                stat['stat_agent_id'] = agent_id
+                stat['id'] = queries.insert_stat_agent_periodic(**stat)
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_stat_agent_periodic(stat['id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
 def stat_queue_periodic(stat):
     def _decorate(func):
         @wraps(func)
@@ -107,6 +146,9 @@ def stat_call_on_queue(call):
                 call.setdefault('callid', '123')
                 call.setdefault('status', 'answered')
                 tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT)
+                agent_id = call.pop('agent_id', None)
+                if agent_id:
+                    call['stat_agent_id'] = agent_id
                 queue_id = call.pop('queue_id', 1)
                 call['stat_queue_id'] = queue_id
                 queue_args = {
@@ -300,6 +342,41 @@ class DatabaseQueries(object):
     def delete_cel(self, cel_id):
         query = text("DELETE FROM cel WHERE id = :id")
         self.connection.execute(query, id=cel_id)
+
+    def insert_stat_agent(self, **kwargs):
+        session = self.Session()
+        agent = StatAgent(**kwargs)
+        session.add(agent)
+        session.flush()
+        stat_agent_id = agent.id
+        session.commit()
+        return stat_agent_id
+
+    def delete_stat_agent(self, stat_agent_id):
+        session = self.Session()
+        query = session.query(StatCallOnQueue).filter(
+            StatCallOnQueue.stat_agent_id == stat_agent_id
+        )
+        if not query.count() > 0:
+            session.query(StatAgent).filter(StatAgent.id == stat_agent_id).delete()
+        session.commit()
+
+    def insert_stat_agent_periodic(self, **kwargs):
+        session = self.Session()
+        stat = StatAgentPeriodic(**kwargs)
+        session.add(stat)
+        session.flush()
+        # NOTE(fblackburn) Avoid BEGIN new session after commit
+        stat_id = stat.id
+        session.commit()
+        return stat_id
+
+    def delete_stat_agent_periodic(self, stat_id):
+        session = self.Session()
+        session.query(StatAgentPeriodic).filter(
+            StatAgentPeriodic.id == stat_id
+        ).delete()
+        session.commit()
 
     def insert_stat_queue_periodic(self, **kwargs):
         session = self.Session()

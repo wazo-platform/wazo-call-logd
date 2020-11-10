@@ -15,6 +15,24 @@ from xivo.mallow_helpers import Schema
 HOUR_REGEX = r"^([0,1][0-9]|2[0-3]):[0-5][0-9]$"
 
 
+class AgentStatisticsSchema(Schema):
+    from_ = fields.DateTime(attribute='from', data_key='from')
+    until = fields.DateTime()
+    tenant_uuid = fields.UUID(default=None)
+    agent_id = fields.Integer(default=None)
+    agent_number = fields.String(default=None)
+    answered = fields.Integer(default=0)
+    conversation_time = fields.Integer(default=0)
+    login_time = fields.Integer(default=0)
+    pause_time = fields.Integer(default=0)
+    wrapup_time = fields.Integer(default=0)
+
+
+class AgentStatisticsSchemaList(Schema):
+    items = fields.Nested(AgentStatisticsSchema, many=True)
+    total = fields.Integer()
+
+
 class QueueStatisticsSchema(Schema):
     from_ = fields.DateTime(attribute='from', data_key='from')
     until = fields.DateTime()
@@ -33,7 +51,7 @@ class QueueStatisticsSchema(Schema):
     quality_of_service = fields.Float(attribute='qos', default=None)
 
 
-class QueueStatisticsListRequestSchema(Schema):
+class _StatisticsListRequestSchema(Schema):
     from_ = fields.DateTime(data_key='from', missing=None)
     until = fields.DateTime(missing=None)
     qos_threshold = fields.Integer(validate=Range(min=0))
@@ -90,6 +108,18 @@ class QueueStatisticsListRequestSchema(Schema):
                 raise ValidationError(
                     {'day_start_time': 'Field must be lower than day_end_time'}
                 )
+
+
+class AgentStatisticsListRequestSchema(_StatisticsListRequestSchema):
+    pass
+
+
+class QueueStatisticsListRequestSchema(_StatisticsListRequestSchema):
+    pass
+
+
+class AgentStatisticsRequestSchema(AgentStatisticsListRequestSchema):
+    interval = fields.String(validate=OneOf(['hour', 'day', 'month']))
 
 
 class QueueStatisticsRequestSchema(QueueStatisticsListRequestSchema):

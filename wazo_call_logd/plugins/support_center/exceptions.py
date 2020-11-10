@@ -4,6 +4,16 @@
 from xivo.rest_api_helpers import APIException
 
 
+class AgentNotFoundException(APIException):
+    def __init__(self, details=None):
+        super().__init__(
+            status_code=404,
+            message='No agent found matching this ID',
+            error_id='agent-not-found-with-given-id',
+            details=details,
+        )
+
+
 class QueueNotFoundException(APIException):
     def __init__(self, details=None):
         super(QueueNotFoundException, self).__init__(

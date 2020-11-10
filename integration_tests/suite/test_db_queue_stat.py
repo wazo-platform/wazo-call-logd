@@ -252,22 +252,9 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_interval(tenant_uuids, qos_threshold=0)
         assert_that(result, empty())
 
-    @stat_call_on_queue(
-        {
-            'queue_id': 1,
-            'time': '2020-10-01 13:00:00',
-            'waittime': 0,
-            'status': 'answered',
-        }
-    )
-    @stat_call_on_queue(
-        {
-            'queue_id': 1,
-            'time': '2020-10-01 14:00:00',
-            'waittime': 10,
-            'status': 'abandoned',
-        }
-    )
+    # fmt: off
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'waittime': 0, 'status': 'answered'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 14:00:00', 'waittime': 10, 'status': 'abandoned'})
     @stat_queue_periodic(
         {
             'queue_id': 1,
@@ -300,6 +287,7 @@ class TestQueueStat(DBIntegrationTest):
             'timeout': 1,
         }
     )
+    # fmt: on
     def test_get_interval_all_fields(self):
         tenant_uuids = None
         result = self.dao.queue_stat.get_interval(tenant_uuids, qos_threshold=0)
@@ -308,8 +296,6 @@ class TestQueueStat(DBIntegrationTest):
             has_entries(
                 queue_id=1,
                 queue_name='queue',
-                **{'from': '2020-10-01T13:00:00+00:00'},
-                until='2020-10-01T14:00:00+00:00',
                 answered=2,
                 abandoned=2,
                 total=2,
