@@ -136,6 +136,9 @@ class TestInputParameters(IntegrationTest):
             {'week_days': '6,7,8'},
             {'week_days': 'test'},
             {'week_days': False},
+            # Timezone
+            {'timezone': 'invalid'},
+            {'timezone': 1234},
         ]
 
         for body in erronous_bodies:

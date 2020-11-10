@@ -76,6 +76,7 @@ paths:
       - $ref: '#/parameters/day_start_time'
       - $ref: '#/parameters/day_end_time'
       - $ref: '#/parameters/week_days'
+      - $ref: '#/parameters/timezone'
       responses:
         '200':
           description: Get aggregated statistics for all queues.
@@ -111,6 +112,7 @@ paths:
         - $ref: '#/parameters/day_start_time'
         - $ref: '#/parameters/day_end_time'
         - $ref: '#/parameters/week_days'
+        - $ref: '#/parameters/timezone'
       responses:
         '200':
           description: Get a queue statistics by ID
@@ -179,6 +181,13 @@ parameters:
       maximum: 7
     uniqueItems: true
     default: [1,2,3,4,5,6,7]
+    required: false
+  timezone:
+    name: timezone
+    description: "Name of the timezone to use for times. Example: America/New_York"
+    in: query
+    type: string
+    default: UTC
     required: false
 
 definitions:

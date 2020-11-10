@@ -9,6 +9,7 @@ from marshmallow import (
     ValidationError,
 )
 from datetime import timezone, time
+from pytz import all_timezones
 from marshmallow.validate import OneOf, ContainsOnly, Range, Regexp
 from xivo.mallow_helpers import Schema
 
@@ -62,6 +63,7 @@ class _StatisticsListRequestSchema(Schema):
         missing=[1, 2, 3, 4, 5, 6, 7],
         validate=ContainsOnly([1, 2, 3, 4, 5, 6, 7]),
     )
+    timezone = fields.String(validate=OneOf(all_timezones), missing='UTC')
 
     @pre_load
     def convert_week_days_to_list(self, data):
