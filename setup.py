@@ -18,8 +18,8 @@ setup(
     package_data={'wazo_call_logd.plugins': ['*/api.yml']},
     entry_points={
         'console_scripts': [
-            'wazo-call-logd=wazo_call_logd.bin.daemon:main',
-            'wazo-call-logs=wazo_call_logd.bin.main:main',
+            'wazo-call-logd=wazo_call_logd.main:main',
+            'wazo-call-logs=wazo_call_logd.main_sweep:main',
         ],
         'wazo_call_logd.plugins': [
             'api = wazo_call_logd.plugins.api.plugin:Plugin',

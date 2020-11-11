@@ -16,7 +16,8 @@ from wazo_call_logd.controller import Controller
 logger = logging.getLogger(__name__)
 
 
-def main(argv):
+def main():
+    argv = sys.argv[1:]
     config = load_config(argv)
 
     user = config.get('user')
@@ -45,4 +46,4 @@ def sigterm(controller, signum, frame):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
