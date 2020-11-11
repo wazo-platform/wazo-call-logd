@@ -22,7 +22,7 @@ from wazo_call_logd.writer import CallLogsWriter
 from .bus_publisher import BusPublisher
 from .database.queries import DAO
 from .database.helpers import new_db_session
-from .rest_api import api, CoreRestApi
+from .http_server import api, HTTPServer
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class Controller:
         self._publisher = BusPublisher(config)
         self.manager = CallLogsManager(cel_fetcher, generator, writer, self._publisher)
         self.bus_client = BusClient(config)
-        self.rest_api = CoreRestApi(config)
+        self.http_server = HTTPServer(config)
         self.status_aggregator = StatusAggregator()
         self.token_status = TokenStatus()
         dao = DAO(new_db_session(config['db_uri']))
@@ -83,7 +83,7 @@ class Controller:
 
         try:
             with self.token_renewer:
-                self.rest_api.run()
+                self.http_server.run()
         finally:
             logger.info('Stopping wazo-call-logd')
             self.bus_client.stop()
@@ -93,4 +93,4 @@ class Controller:
 
     def stop(self, reason):
         logger.warning('Stopping wazo-call-logd: %s', reason)
-        self.rest_api.stop()
+        self.http_server.stop()

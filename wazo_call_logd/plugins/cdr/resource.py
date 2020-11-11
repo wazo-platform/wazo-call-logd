@@ -10,7 +10,7 @@ from flask import jsonify, make_response, request
 from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import token, Tenant
 from wazo_call_logd.auth import get_token_user_uuid_from_request
-from wazo_call_logd.rest_api import AuthResource
+from wazo_call_logd.http import AuthResource
 
 from .exceptions import CDRNotFoundException
 from .schema import CDRSchema, CDRSchemaList, CDRListRequestSchema
