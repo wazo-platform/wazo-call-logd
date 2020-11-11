@@ -16,13 +16,16 @@ setup(
     license='GPLv3',
     packages=find_packages(),
     package_data={'wazo_call_logd.plugins': ['*/api.yml']},
-    scripts=['bin/wazo-call-logs', 'bin/wazo-call-logd'],
     entry_points={
+        'console_scripts': [
+            'wazo-call-logd=wazo_call_logd.bin.daemon:main',
+            'wazo-call-logs=wazo_call_logd.bin.main:main',
+        ],
         'wazo_call_logd.plugins': [
             'api = wazo_call_logd.plugins.api.plugin:Plugin',
             'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
             'support_center = wazo_call_logd.plugins.support_center.plugin:Plugin',
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
-        ]
+        ],
     },
 )
