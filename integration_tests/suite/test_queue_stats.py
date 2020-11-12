@@ -89,7 +89,7 @@ class TestNoAuth(BaseTest):
         )
 
 
-class TestInputParameters(BaseTest):
+class TestInputParameters(IntegrationTest):
 
     asset = 'base'
 
@@ -97,223 +97,94 @@ class TestInputParameters(BaseTest):
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'answered': 1})
     # fmt: on
     def test_that_getting_queue_stats_with_wrong_parameters_raises_error(self):
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, from_='test'
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, from_=False
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, from_=1234
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            from_='2020-10-05',
-        )
+        erronous_bodies = [
+            # from_
+            {'from_': 'test'},
+            {'from_': False},
+            {'from_': 1234},
+            {'from_': '2020-10-05'},
+            # until
+            {'until': 'test'},
+            {'until': False},
+            {'until': 1234},
+            {'until': '2020-10-05'},
+            # qos_threshold
+            {'qos_threshold': 'test'},
+            {'qos_threshold': False},
+            {'qos_threshold': 124.2},
+            {'qos_threshold': '2020-10-06 10:00:00'},
+            {'qos_threshold': -1},
+            # interval
+            {'interval': 'test'},
+            # day_start_time
+            {'day_start_time': 'test'},
+            {'day_start_time': False},
+            {'day_start_time': 124},
+            {'day_start_time': 124.5},
+            {'day_start_time': '2020-10-06 10:00:00'},
+            {'day_start_time': '25:00'},
+            {'day_start_time': '23:60'},
+            # day_end_time
+            {'day_end_time': 'test'},
+            {'day_end_time': False},
+            {'day_end_time': 124},
+            {'day_end_time': 124.5},
+            {'day_end_time': '2020-10-06 10:00:00'},
+            {'day_end_time': '25:00'},
+            {'day_end_time': '23:60'},
+            # Logic
+            {'day_end_time': '22:00', 'day_start_time': '23:00'},
+            {'from_': '2020-10-10T00:00:00', 'until': '2020-10-09T23:59:59'},
+            {'from_': '2020-10-10T00:00:00', 'until': '2020-10-10T00:00:00+01:00'},
+            # Too long
+            {'from_': '2020-10-01 00:00:00', 'until': '2020-11-01 00:00:01', 'interval': 'hour'},
+            # week_days
+            {'week_days': 42},
+            {'week_days': '6,7,8'},
+            {'week_days': 'test'},
+            {'week_days': False},
+        ]
 
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, until='test'
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, until=False
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, until=1234
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            until='2020-10-05',
-        )
-
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            qos_threshold='test',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            qos_threshold=False,
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            qos_threshold=124.2,
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            qos_threshold='2020-10-06 10:00:00',
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, qos_threshold=-1
-        )
-
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, interval='test'
-        )
-
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_start_time='test',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_start_time=False,
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_start_time=124,
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_start_time=124.5,
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_start_time='2020-10-06 10:00:00',
-        )
-
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_end_time='test',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_end_time=False,
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, day_end_time=124
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_end_time=124.5,
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_end_time='2020-10-06 10:00:00',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_start_time='25:00',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_end_time='25:00',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_start_time='23:60',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_end_time='23:60',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            day_start_time='23:00',
-            day_end_time='22:00',
-        )
-
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            from_='2020-10-01 00:00:00',
-            until='2020-11-01 00:00:01',
-            interval='hour',
-        )
-
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, week_days=42
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            week_days='6,7,8',
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.get_by_id, queue_id=1, week_days='test'
-        )
-
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            from_='2020-10-10T00:00:00',
-            until='2020-10-09T23:59:59',
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.get_by_id,
-            queue_id=1,
-            from_='2020-10-10T00:00:00+00:00',
-            until='2020-10-10T00:00:00+01:00',
-        )
+        for body in erronous_bodies:
+            assert_that(
+                calling(self.call_logd.queue_statistics.get_by_id).with_args(
+                    queue_id=1, **body
+                ),
+                raises(CallLogdError).matching(has_properties(status_code=400)),
+                body,
+            )
 
     # fmt: off
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'answered': 1})
     # fmt: on
     def test_that_listing_queues_with_wrong_parameters_raises_errors(self):
-        self._assert_error(400, self.call_logd.queue_statistics.list, from_='test')
-        self._assert_error(400, self.call_logd.queue_statistics.list, from_=False)
-        self._assert_error(400, self.call_logd.queue_statistics.list, from_=1234)
+        erronous_bodies = [
+            # from_
+            {'from_': 'test'},
+            {'from_': False},
+            {'from_': 1234},
+            {'from_': '2020-10-05'},
+            # until
+            {'until': 'test'},
+            {'until': False},
+            {'until': 1234},
+            {'until': '2020-10-05'},
+            # qos_threshold
+            {'qos_threshold': 'test'},
+            {'qos_threshold': False},
+            {'qos_threshold': 124.2},
+            {'qos_threshold': '2020-10-06 10:00:00'},
+            {'qos_threshold': -1},
+        ]
 
-        self._assert_error(400, self.call_logd.queue_statistics.list, until='test')
-        self._assert_error(400, self.call_logd.queue_statistics.list, until=False)
-        self._assert_error(400, self.call_logd.queue_statistics.list, until=1234)
-
-        self._assert_error(
-            400, self.call_logd.queue_statistics.list, qos_threshold='test'
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.list, qos_threshold=False
-        )
-        self._assert_error(
-            400, self.call_logd.queue_statistics.list, qos_threshold=124.2
-        )
-        self._assert_error(
-            400,
-            self.call_logd.queue_statistics.list,
-            qos_threshold='2020-10-06 10:00:00',
-        )
+        for body in erronous_bodies:
+            assert_that(
+                calling(self.call_logd.queue_statistics.list).with_args(
+                    **body
+                ),
+                raises(CallLogdError).matching(has_properties(status_code=400)),
+                body,
+            )
 
 
 class TestStatistics(BaseTest):
