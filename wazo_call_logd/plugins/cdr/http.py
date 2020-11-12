@@ -13,7 +13,7 @@ from wazo_call_logd.auth import get_token_user_uuid_from_request
 from wazo_call_logd.http import AuthResource
 
 from .exceptions import CDRNotFoundException
-from .schema import CDRSchema, CDRSchemaList, CDRListRequestSchema
+from .schemas import CDRSchema, CDRSchemaList, CDRListRequestSchema
 
 logger = logging.getLogger(__name__)
 CSV_HEADERS = [

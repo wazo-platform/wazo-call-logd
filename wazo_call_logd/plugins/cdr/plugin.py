@@ -3,11 +3,11 @@
 
 from wazo_auth_client import Client as AuthClient
 
-from .resource import CDRResource
-from .resource import CDRIdResource
-from .resource import CDRUserResource
-from .resource import CDRUserMeResource
-from .service import CDRService
+from .http import CDRResource
+from .http import CDRIdResource
+from .http import CDRUserResource
+from .http import CDRUserMeResource
+from .services import CDRService
 
 
 class Plugin:

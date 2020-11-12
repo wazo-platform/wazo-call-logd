@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-from .resources import StatusResource
+from .http import StatusResource
 
 
 class Plugin:
