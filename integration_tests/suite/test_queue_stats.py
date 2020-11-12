@@ -10,7 +10,6 @@ from hamcrest import (
     empty,
     equal_to,
     has_entries,
-    has_item,
     has_items,
     has_properties,
 )
@@ -127,7 +126,11 @@ class TestInputParameters(IntegrationTest):
             {'from_': '2020-10-10T00:00:00', 'until': '2020-10-09T23:59:59'},
             {'from_': '2020-10-10T00:00:00', 'until': '2020-10-10T00:00:00+01:00'},
             # Too long
-            {'from_': '2020-10-01 00:00:00', 'until': '2020-11-01 00:00:01', 'interval': 'hour'},
+            {
+                'from_': '2020-10-01 00:00:00',
+                'until': '2020-11-01 00:00:01',
+                'interval': 'hour',
+            },
             # week_days
             {'week_days': 42},
             {'week_days': '6,7,8'},
@@ -169,9 +172,7 @@ class TestInputParameters(IntegrationTest):
 
         for body in erronous_bodies:
             assert_that(
-                calling(self.call_logd.queue_statistics.list).with_args(
-                    **body
-                ),
+                calling(self.call_logd.queue_statistics.list).with_args(**body),
                 raises(CallLogdError).matching(has_properties(status_code=400)),
                 body,
             )
@@ -209,42 +210,38 @@ class TestStatistics(IntegrationTest):
             has_entries(
                 items=has_items(
                     has_entries(
-                        {
-                            'from': '2020-10-05T13:00:00+00:00',
-                            'until': self._get_tomorrow(),
-                            'tenant_uuid': MASTER_TENANT,
-                            'queue_id': 1,
-                            'queue_name': 'queue',
-                            'received': 1,
-                            'answered': 1,
-                            'abandoned': 0,
-                            'closed': 0,
-                            'not_answered': 0,
-                            'saturated': 0,
-                            'blocked': 0,
-                            'average_waiting_time': 0,
-                            'answered_rate': 100.0,
-                            'quality_of_service': None,
-                        }
+                        **{'from': '2020-10-05T13:00:00+00:00'},
+                        until=self._get_tomorrow(),
+                        tenant_uuid=MASTER_TENANT,
+                        queue_id=1,
+                        queue_name='queue',
+                        received=1,
+                        answered=1,
+                        abandoned=0,
+                        closed=0,
+                        not_answered=0,
+                        saturated=0,
+                        blocked=0,
+                        average_waiting_time=0,
+                        answered_rate=100.0,
+                        quality_of_service=None,
                     ),
                     has_entries(
-                        {
-                            'from': '2020-10-06T13:00:00+00:00',
-                            'until': self._get_tomorrow(),
-                            'tenant_uuid': MASTER_TENANT,
-                            'queue_id': 2,
-                            'queue_name': 'queue',
-                            'received': 2,
-                            'answered': 2,
-                            'abandoned': 0,
-                            'closed': 0,
-                            'not_answered': 0,
-                            'saturated': 0,
-                            'blocked': 0,
-                            'average_waiting_time': 0,
-                            'answered_rate': 100.0,
-                            'quality_of_service': None,
-                        }
+                        **{'from': '2020-10-06T13:00:00+00:00'},
+                        until=self._get_tomorrow(),
+                        tenant_uuid=MASTER_TENANT,
+                        queue_id=2,
+                        queue_name='queue',
+                        received=2,
+                        answered=2,
+                        abandoned=0,
+                        closed=0,
+                        not_answered=0,
+                        saturated=0,
+                        blocked=0,
+                        average_waiting_time=0,
+                        answered_rate=100.0,
+                        quality_of_service=None,
                     ),
                 ),
                 total=equal_to(2),
@@ -261,30 +258,26 @@ class TestStatistics(IntegrationTest):
         assert_that(
             results,
             has_entries(
-                {
-                    'items': has_items(
-                        has_entries(
-                            {
-                                'from': '2020-10-01T00:00:00+00:00',
-                                'until': '2020-11-01T00:00:00+00:00',
-                                'tenant_uuid': MASTER_TENANT,
-                                'queue_id': 1,
-                                'queue_name': 'queue',
-                                'received': 1,
-                                'answered': 1,
-                                'abandoned': 0,
-                                'closed': 0,
-                                'not_answered': 0,
-                                'saturated': 0,
-                                'blocked': 0,
-                                'average_waiting_time': 0,
-                                'answered_rate': 100.0,
-                                'quality_of_service': None,
-                            }
-                        )
-                    ),
-                    'total': equal_to(1),
-                }
+                items=has_items(
+                    has_entries(
+                        **{'from': '2020-10-01T00:00:00+00:00'},
+                        until='2020-11-01T00:00:00+00:00',
+                        tenant_uuid=MASTER_TENANT,
+                        queue_id=1,
+                        queue_name='queue',
+                        received=1,
+                        answered=1,
+                        abandoned=0,
+                        closed=0,
+                        not_answered=0,
+                        saturated=0,
+                        blocked=0,
+                        average_waiting_time=0,
+                        answered_rate=100.0,
+                        quality_of_service=None,
+                    )
+                ),
+                total=equal_to(1),
             ),
         )
 
@@ -302,65 +295,51 @@ class TestStatistics(IntegrationTest):
         assert_that(
             results,
             has_entries(
-                {
-                    'items': has_items(
-                        has_entries(
-                            {
-                                'from': '2020-10-01T00:00:00+00:00',
-                                'until': '2020-11-01T00:00:00+00:00',
-                                'queue_id': 1,
-                                'queue_name': 'queue',
-                                'answered': 1,
-                            }
-                        ),
-                        has_entries(
-                            {
-                                'from': '2020-10-01T00:00:00+00:00',
-                                'until': '2020-11-01T00:00:00+00:00',
-                                'queue_id': 2,
-                                'queue_name': 'queue',
-                                'answered': 1,
-                            }
-                        ),
-                        has_entries(
-                            {
-                                'from': '2020-10-01T00:00:00+00:00',
-                                'until': '2020-11-01T00:00:00+00:00',
-                                'queue_id': 3,
-                                'queue_name': 'queue',
-                                'answered': 1,
-                            }
-                        ),
-                        has_entries(
-                            {
-                                'from': '2020-10-01T00:00:00+00:00',
-                                'until': '2020-11-01T00:00:00+00:00',
-                                'queue_id': 4,
-                                'queue_name': 'queue',
-                                'answered': 0,
-                            }
-                        ),
-                        has_entries(
-                            {
-                                'from': '2020-10-01T00:00:00+00:00',
-                                'until': '2020-11-01T00:00:00+00:00',
-                                'queue_id': 5,
-                                'queue_name': 'queue',
-                                'answered': 0,
-                            }
-                        ),
+                items=has_items(
+                    has_entries(
+                        **{'from': '2020-10-01T00:00:00+00:00'},
+                        until='2020-11-01T00:00:00+00:00',
+                        queue_id=1,
+                        queue_name='queue',
+                        answered=1,
                     ),
-                    'total': equal_to(5),
-                }
+                    has_entries(
+                        **{'from': '2020-10-01T00:00:00+00:00'},
+                        until='2020-11-01T00:00:00+00:00',
+                        queue_id=2,
+                        queue_name='queue',
+                        answered=1,
+                    ),
+                    has_entries(
+                        **{'from': '2020-10-01T00:00:00+00:00'},
+                        until='2020-11-01T00:00:00+00:00',
+                        queue_id=3,
+                        queue_name='queue',
+                        answered=1,
+                    ),
+                    has_entries(
+                        **{'from': '2020-10-01T00:00:00+00:00'},
+                        until='2020-11-01T00:00:00+00:00',
+                        queue_id=4,
+                        queue_name='queue',
+                        answered=0,
+                    ),
+                    has_entries(
+                        **{'from': '2020-10-01T00:00:00+00:00'},
+                        until='2020-11-01T00:00:00+00:00',
+                        queue_id=5,
+                        queue_name='queue',
+                        answered=0,
+                    ),
+                ),
+                total=equal_to(5),
             ),
         )
 
     def test_get_queue_non_existing(self):
         assert_that(
             calling(self.call_logd.queue_statistics.get_by_id).with_args(queue_id=1),
-            raises(CallLogdError).matching(
-                has_properties(status_code=404)
-            ),
+            raises(CallLogdError).matching(has_properties(status_code=404)),
         )
 
     # fmt: off
@@ -374,25 +353,23 @@ class TestStatistics(IntegrationTest):
 
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-06T07:00:00+00:00',
-                        'until': self._get_tomorrow(),
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 9,
-                        'answered': 9,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
+                    **{'from': '2020-10-06T07:00:00+00:00'},
+                    until=self._get_tomorrow(),
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=9,
+                    answered=9,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
                 )
             ),
         )
@@ -411,25 +388,23 @@ class TestStatistics(IntegrationTest):
         assert_that(results, has_entries(total=equal_to(1)))
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-06T00:00:00+00:00',
-                        'until': '2020-10-07T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 6,
-                        'answered': 6,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-07T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=6,
+                    answered=6,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
                 )
             ),
         )
@@ -451,101 +426,75 @@ class TestStatistics(IntegrationTest):
 
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-06T04:00:00+00:00',
-                        'until': '2020-10-06T05:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 1,
-                        'answered': 1,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-06T04:00:00+00:00'},
+                    until='2020-10-06T05:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=1,
+                    answered=1,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T05:00:00+00:00',
-                        'until': '2020-10-06T06:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 36,
-                        'answered': 0,
-                        'abandoned': 2,
-                        'closed': 1,
-                        'not_answered': 5,
-                        'saturated': 6 + 7 + 8,
-                        'blocked': 3 + 4,
-                        'average_waiting_time': 0,
-                        'answered_rate': 0.0,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-06T05:00:00+00:00'},
+                    until='2020-10-06T06:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=36,
+                    answered=0,
+                    abandoned=2,
+                    closed=1,
+                    not_answered=5,
+                    saturated=6 + 7 + 8,
+                    blocked=3 + 4,
+                    average_waiting_time=0,
+                    answered_rate=0.0,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T13:00:00+00:00',
-                        'until': '2020-10-06T14:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 0,
-                        'answered': 0,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': None,
-                        'answered_rate': None,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-06T13:00:00+00:00'},
+                    until='2020-10-06T14:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=0,
+                    answered=0,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=None,
+                    answered_rate=None,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T00:00:00+00:00',
-                        'until': '2020-10-07T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 38,
-                        'answered': 2,
-                        'abandoned': 2,
-                        'closed': 1,
-                        'not_answered': 5,
-                        'saturated': 6 + 7 + 8,
-                        'blocked': 3 + 4,
-                        'average_waiting_time': 0,
-                        'answered_rate': 8.0,
-                        'quality_of_service': None,
-                    }
-                )
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-07T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=38,
+                    answered=2,
+                    abandoned=2,
+                    closed=1,
+                    not_answered=5,
+                    saturated=6 + 7 + 8,
+                    blocked=3 + 4,
+                    average_waiting_time=0,
+                    answered_rate=8.0,
+                    quality_of_service=None,
+                ),
             ),
         )
 
@@ -567,19 +516,17 @@ class TestStatistics(IntegrationTest):
         assert_that(results, has_entries(total=equal_to(2)))
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-06T13:00:00+00:00',
-                        'until': '2020-10-06T14:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 3,
-                        'answered': 3,
-                        'average_waiting_time': 9,
-                        'quality_of_service': 66.67,
-                    }
+                    **{'from': '2020-10-06T13:00:00+00:00'},
+                    until='2020-10-06T14:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=3,
+                    answered=3,
+                    average_waiting_time=9,
+                    quality_of_service=66.67,
                 )
             ),
         )
@@ -603,76 +550,58 @@ class TestStatistics(IntegrationTest):
 
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-06T08:00:00+00:00',
-                        'until': '2020-10-06T09:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 0,
-                        'answered': 0,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': None,
-                        'answered_rate': None,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-06T08:00:00+00:00'},
+                    until='2020-10-06T09:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=0,
+                    answered=0,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=None,
+                    answered_rate=None,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T13:00:00+00:00',
-                        'until': '2020-10-06T14:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 3,
-                        'answered': 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-06T13:00:00+00:00'},
+                    until='2020-10-06T14:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=3,
+                    answered=3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T16:00:00+00:00',
-                        'until': '2020-10-06T17:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 3,
-                        'answered': 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0.0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
+                    **{'from': '2020-10-06T16:00:00+00:00'},
+                    until='2020-10-06T17:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=3,
+                    answered=3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0.0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
             ),
         )
 
@@ -694,76 +623,58 @@ class TestStatistics(IntegrationTest):
         assert_that(results, has_entries(total=equal_to(3)))
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-07T00:00:00+00:00',
-                        'until': '2020-10-08T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 2,
-                        'answered': 2,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0.0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-07T00:00:00+00:00'},
+                    until='2020-10-08T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=2,
+                    answered=2,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0.0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-08T00:00:00+00:00',
-                        'until': '2020-10-09T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 3,
-                        'answered': 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0.0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-08T00:00:00+00:00'},
+                    until='2020-10-09T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=3,
+                    answered=3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0.0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T00:00:00+00:00',
-                        'until': '2020-10-10T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 5,
-                        'answered': 5,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0.0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-10T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=5,
+                    answered=5,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0.0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
             ),
         )
 
@@ -785,51 +696,41 @@ class TestStatistics(IntegrationTest):
 
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-06T23:00:00+00:00',
-                        'until': '2020-10-07T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 1,
-                        'answered': 1,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0.0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-06T23:00:00+00:00'},
+                    until='2020-10-07T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=1,
+                    answered=1,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0.0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T23:00:00+00:00',
-                        'until': '2020-10-07T01:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 1,
-                        'answered': 1,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0.0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
+                    **{'from': '2020-10-06T23:00:00+00:00'},
+                    until='2020-10-07T01:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=1,
+                    answered=1,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0.0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
             ),
         )
 
@@ -846,51 +747,41 @@ class TestStatistics(IntegrationTest):
 
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-07T00:00:00+00:00',
-                        'until': '2020-10-07T01:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 2,
-                        'answered': 2,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0.0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-07T00:00:00+00:00'},
+                    until='2020-10-07T01:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=2,
+                    answered=2,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0.0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T23:00:00+00:00',
-                        'until': '2020-10-07T01:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 2,
-                        'answered': 2,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0.0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
+                    **{'from': '2020-10-06T23:00:00+00:00'},
+                    until='2020-10-07T01:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=2,
+                    answered=2,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0.0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
             ),
         )
 
@@ -913,74 +804,58 @@ class TestStatistics(IntegrationTest):
         assert_that(results, has_entries(total=equal_to(3)))
         assert_that(
             results['items'],
-            has_item(
+            has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-06T00:00:00+00:00',
-                        'until': '2020-10-07T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 0,
-                        'answered': 0,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': None,
-                        'answered_rate': None,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-07T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=0,
+                    answered=0,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=None,
+                    answered_rate=None,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-07T00:00:00+00:00',
-                        'until': '2020-10-08T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 3,
-                        'answered': 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
-            ),
-        )
-        assert_that(
-            results['items'],
-            has_item(
+                    **{'from': '2020-10-07T00:00:00+00:00'},
+                    until='2020-10-08T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=3,
+                    answered=3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T00:00:00+00:00',
-                        'until': '2020-10-08T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 3,
-                        'answered': 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
-                )
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-08T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=3,
+                    answered=3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
             ),
         )
 
@@ -998,20 +873,16 @@ class TestStatistics(IntegrationTest):
             results['items'],
             has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-06T00:00:00+00:00',
-                        'until': '2020-10-07T00:00:00+00:00',
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                    }
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-07T00:00:00+00:00',
+                    queue_id=1,
+                    queue_name='queue',
                 ),
                 has_entries(
-                    {
-                        'from': '2020-10-06T00:00:00+00:00',
-                        'until': '2020-10-07T00:00:00+00:00',
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                    }
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-07T00:00:00+00:00',
+                    queue_id=1,
+                    queue_name='queue',
                 ),
             ),
         )
@@ -1040,42 +911,38 @@ class TestStatistics(IntegrationTest):
             results['items'],
             has_items(
                 has_entries(
-                    {
-                        'from': '2020-10-01T00:00:00+00:00',
-                        'until': '2020-11-01T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 2 + 3,
-                        'answered': 2 + 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
+                    **{'from': '2020-10-01T00:00:00+00:00'},
+                    until='2020-11-01T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=2 + 3,
+                    answered=2 + 3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
                 ),
                 has_entries(
-                    {
-                        'from': '2020-10-01T00:00:00+00:00',
-                        'until': '2020-11-01T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 2 + 3,
-                        'answered': 2 + 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
+                    **{'from': '2020-10-01T00:00:00+00:00'},
+                    until='2020-11-01T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=2 + 3,
+                    answered=2 + 3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
                 ),
             ),
         )
@@ -1102,80 +969,72 @@ class TestStatistics(IntegrationTest):
             results['items'],
             has_items(
                 has_entries(
-                    {
-                        'from': '2020-01-01T00:00:00+00:00',
-                        'until': '2020-02-01T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 0,
-                        'answered': 0,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': None,
-                        'answered_rate': None,
-                        'quality_of_service': None,
-                    }
+                    **{'from': '2020-01-01T00:00:00+00:00'},
+                    until='2020-02-01T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=0,
+                    answered=0,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=None,
+                    answered_rate=None,
+                    quality_of_service=None,
                 ),
                 has_entries(
-                    {
-                        'from': '2020-02-01T00:00:00+00:00',
-                        'until': '2020-03-01T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 2,
-                        'answered': 2,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
+                    **{'from': '2020-02-01T00:00:00+00:00'},
+                    until='2020-03-01T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=2,
+                    answered=2,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
                 ),
                 has_entries(
-                    {
-                        'from': '2020-03-01T00:00:00+00:00',
-                        'until': '2020-04-01T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 3,
-                        'answered': 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
+                    **{'from': '2020-03-01T00:00:00+00:00'},
+                    until='2020-04-01T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=3,
+                    answered=3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
                 ),
                 has_entries(
-                    {
-                        'from': '2020-01-01T00:00:00+00:00',
-                        'until': '2020-04-01T00:00:00+00:00',
-                        'tenant_uuid': MASTER_TENANT,
-                        'queue_id': 1,
-                        'queue_name': 'queue',
-                        'received': 2 + 3,
-                        'answered': 2 + 3,
-                        'abandoned': 0,
-                        'closed': 0,
-                        'not_answered': 0,
-                        'saturated': 0,
-                        'blocked': 0,
-                        'average_waiting_time': 0,
-                        'answered_rate': 100.0,
-                        'quality_of_service': None,
-                    }
+                    **{'from': '2020-01-01T00:00:00+00:00'},
+                    until='2020-04-01T00:00:00+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=2 + 3,
+                    answered=2 + 3,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
                 ),
             ),
         )
