@@ -59,4 +59,4 @@ class BusPublisher:
             bus_connection, exchange=bus_exchange, auto_declare=True
         )
         bus_marshaler = xivo_bus.Marshaler(uuid)
-        return xivo_bus.Publisher(bus_producer, bus_marshaler)
+        return xivo_bus.LongLivedPublisher(bus_producer, bus_marshaler)
