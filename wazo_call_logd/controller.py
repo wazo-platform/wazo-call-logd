@@ -20,6 +20,8 @@ from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
 from .bus_publisher import BusPublisher
+from .database.queries import DAO
+from .database.helpers import new_db_session
 from .rest_api import api, CoreRestApi
 
 logger = logging.getLogger(__name__)
@@ -52,12 +54,14 @@ class Controller:
         self.rest_api = CoreRestApi(config)
         self.status_aggregator = StatusAggregator()
         self.token_status = TokenStatus()
+        dao = DAO(new_db_session(config['db_uri']))
         plugin_helpers.load(
             namespace='wazo_call_logd.plugins',
             names=config['enabled_plugins'],
             dependencies={
                 'api': api,
                 'config': config,
+                'dao': dao,
                 'token_renewer': self.token_renewer,
                 'status_aggregator': self.status_aggregator,
             },

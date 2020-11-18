@@ -1,9 +1,6 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from wazo_call_logd.database.helpers import new_db_session
-from wazo_call_logd.database.queries import DAO
-
 from .resource import (
     AgentsStatisticsResource,
     AgentStatisticsResource,
@@ -17,9 +14,8 @@ from .service import AgentStatisticsService, QueueStatisticsService
 class Plugin(object):
     def load(self, dependencies):
         api = dependencies['api']
-        config = dependencies['config']
+        dao = dependencies['dao']
 
-        dao = DAO(new_db_session(config['db_uri']))
         queue_service = QueueStatisticsService(dao.queue_stat)
         agent_service = AgentStatisticsService(dao.agent_stat)
 
