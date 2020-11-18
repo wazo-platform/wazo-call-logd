@@ -3,9 +3,6 @@
 
 from wazo_auth_client import Client as AuthClient
 
-from wazo_call_logd.database.helpers import new_db_session
-from wazo_call_logd.database.queries import DAO
-
 from .resource import CDRResource
 from .resource import CDRIdResource
 from .resource import CDRUserResource
@@ -17,10 +14,10 @@ class Plugin:
     def load(self, dependencies):
         api = dependencies['api']
         config = dependencies['config']
+        dao = dependencies['dao']
 
         auth_client = AuthClient(**config['auth'])
-        dao = DAO(new_db_session(config['db_uri'])).call_log
-        service = CDRService(dao)
+        service = CDRService(dao.call_log)
 
         api.add_resource(CDRResource, '/cdr', resource_class_args=[service])
         api.add_resource(
