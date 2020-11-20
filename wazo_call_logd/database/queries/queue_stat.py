@@ -54,11 +54,7 @@ class QueueStatDAO(BaseDAO):
             query = session.query(
                 StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
             ).filter(StatQueue.deleted.is_(False))
-
-            if tenant_uuids:
-                query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
-            elif not tenant_uuids and tenant_uuids is not None:
-                query = query.filter(text('false'))
+            query = self._add_tenant_filter(query, tenant_uuids)
 
             rows = query.all()
             results = []
@@ -73,11 +69,7 @@ class QueueStatDAO(BaseDAO):
                 .filter(StatQueue.queue_id == queue_id)
                 .filter(StatQueue.deleted.is_(False))
             )
-
-            if tenant_uuids:
-                query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
-            elif not tenant_uuids and tenant_uuids is not None:
-                query = query.filter(text('false'))
+            query = self._add_tenant_filter(query, tenant_uuids)
 
             row = query.first()
             if row:
@@ -114,6 +106,13 @@ class QueueStatDAO(BaseDAO):
         tz_offset = from_.strftime('%z') or '+0000'
         return '{}:{}'.format(tz_offset[0:3], tz_offset[3:])
 
+    def _add_tenant_filter(self, query, tenant_uuids):
+        if tenant_uuids:
+            query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
+        elif not tenant_uuids and tenant_uuids is not None:
+            query = query.filter(text('false'))
+        return query
+
     # NOTE(fblackburn): This only work because tables used have same column name
     def _add_interval_query(
         self,
@@ -127,11 +126,7 @@ class QueueStatDAO(BaseDAO):
         until=None,
         **ignored,
     ):
-        if tenant_uuids:
-            query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
-        elif not tenant_uuids and tenant_uuids is not None:
-            query = query.filter(text('false'))
-
+        query = self._add_tenant_filter(query, tenant_uuids)
         if from_:
             query = query.filter(table.time >= from_)
 
