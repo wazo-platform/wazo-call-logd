@@ -43,6 +43,7 @@ class QueueStatDAO(BaseDAO):
                 session.query(StatQueuePeriodic.time)
                 .join(StatQueue)
                 .filter(StatQueue.queue_id == queue_id)
+                .filter(StatQueue.deleted.is_(False))
                 .order_by(StatQueuePeriodic.time.asc())
                 .limit(1)
             )
@@ -52,7 +53,7 @@ class QueueStatDAO(BaseDAO):
         with self.new_session() as session:
             query = session.query(
                 StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
-            )
+            ).filter(StatQueue.deleted.is_(False))
 
             if tenant_uuids:
                 query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
@@ -67,9 +68,11 @@ class QueueStatDAO(BaseDAO):
 
     def get_stat_queue(self, queue_id, tenant_uuids=None):
         with self.new_session() as session:
-            query = session.query(
-                StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
-            ).filter(StatQueue.queue_id == queue_id)
+            query = (
+                session.query(StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid)
+                .filter(StatQueue.queue_id == queue_id)
+                .filter(StatQueue.deleted.is_(False))
+            )
 
             if tenant_uuids:
                 query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
@@ -174,6 +177,7 @@ class QueueStatDAO(BaseDAO):
                 func.sum(StatQueuePeriodic.timeout).label('timeout'),
             )
             .select_from(StatQueue)
+            .filter(StatQueue.deleted.is_(False))
             .join(StatQueuePeriodic)
             .group_by(StatQueuePeriodic.stat_queue_id)
         )
