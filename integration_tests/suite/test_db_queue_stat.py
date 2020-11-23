@@ -335,6 +335,13 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_interval_by_queue(tenant_uuids, 1)
         assert_that(result, equal_to(None))
 
+    @stat_queue({'id': 1, 'deleted': True})
+    @stat_queue_periodic({'queue_id': 1})
+    def test_get_interval_by_queue_when_deleted(self):
+        tenant_uuids = None
+        result = self.dao.queue_stat.get_interval_by_queue(tenant_uuids, 1)
+        assert_that(result, equal_to(None))
+
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 14:00:00', 'answered': 2})
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1})
     def test_find_oldest_time(self):
@@ -342,6 +349,12 @@ class TestQueueStat(DBIntegrationTest):
         assert_that(result.isoformat(), equal_to('2020-10-01T13:00:00+00:00'))
 
     def test_find_oldest_time_when_empty(self):
+        result = self.dao.queue_stat.find_oldest_time(1)
+        assert_that(result, equal_to(None))
+
+    @stat_queue({'id': 1, 'deleted': True})
+    @stat_queue_periodic({'queue_id': 1})
+    def test_find_oldest_time_when_deleted(self):
         result = self.dao.queue_stat.find_oldest_time(1)
         assert_that(result, equal_to(None))
 
@@ -373,6 +386,11 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_stat_queue(1)
         assert_that(result, equal_to(None))
 
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'deleted': True})
+    def test_get_stat_queue_when_deleted(self):
+        result = self.dao.queue_stat.get_stat_queue(1)
+        assert_that(result, equal_to(None))
+
     @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
     @stat_queue({'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': OTHER_TENANT})
     def test_get_stat_queues(self):
@@ -389,12 +407,7 @@ class TestQueueStat(DBIntegrationTest):
     @stat_queue({'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': OTHER_TENANT})
     def test_get_stat_queues_filtered_by_tenant(self):
         result = self.dao.queue_stat.get_stat_queues([USERS_TENANT])
-        assert_that(
-            result,
-            contains_inanyorder(
-                has_entries(queue_id=1),
-            ),
-        )
+        assert_that(result, contains_inanyorder(has_entries(queue_id=1)))
 
         result = self.dao.queue_stat.get_stat_queues([USERS_TENANT, OTHER_TENANT])
         assert_that(
@@ -406,12 +419,7 @@ class TestQueueStat(DBIntegrationTest):
         )
 
         result = self.dao.queue_stat.get_stat_queues([OTHER_TENANT])
-        assert_that(
-            result,
-            contains_inanyorder(
-                has_entries(queue_id=2),
-            ),
-        )
+        assert_that(result, contains_inanyorder(has_entries(queue_id=2)))
 
     @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
     def test_get_stat_queues_empty_tenant(self):
@@ -421,6 +429,12 @@ class TestQueueStat(DBIntegrationTest):
     def test_get_stat_queues_when_no_queue(self):
         result = self.dao.queue_stat.get_stat_queues()
         assert_that(result, empty())
+
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'deleted': True})
+    @stat_queue({'queue_id': 2, 'name': 'queue', 'deleted': False})
+    def test_get_stat_queues_when_deleted(self):
+        result = self.dao.queue_stat.get_stat_queues()
+        assert_that(result, contains_inanyorder(has_entries(queue_id=2)))
 
     def qos(self, answered, nb_calls):
         return round(100.0 * nb_calls / answered, 2)

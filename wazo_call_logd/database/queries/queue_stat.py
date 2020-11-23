@@ -43,6 +43,7 @@ class QueueStatDAO(BaseDAO):
                 session.query(StatQueuePeriodic.time)
                 .join(StatQueue)
                 .filter(StatQueue.queue_id == queue_id)
+                .filter(StatQueue.deleted.is_(False))
                 .order_by(StatQueuePeriodic.time.asc())
                 .limit(1)
             )
@@ -52,12 +53,8 @@ class QueueStatDAO(BaseDAO):
         with self.new_session() as session:
             query = session.query(
                 StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
-            )
-
-            if tenant_uuids:
-                query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
-            elif not tenant_uuids and tenant_uuids is not None:
-                query = query.filter(text('false'))
+            ).filter(StatQueue.deleted.is_(False))
+            query = self._add_tenant_filter(query, tenant_uuids)
 
             rows = query.all()
             results = []
@@ -67,14 +64,12 @@ class QueueStatDAO(BaseDAO):
 
     def get_stat_queue(self, queue_id, tenant_uuids=None):
         with self.new_session() as session:
-            query = session.query(
-                StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid
-            ).filter(StatQueue.queue_id == queue_id)
-
-            if tenant_uuids:
-                query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
-            elif not tenant_uuids and tenant_uuids is not None:
-                query = query.filter(text('false'))
+            query = (
+                session.query(StatQueue.queue_id, StatQueue.name, StatQueue.tenant_uuid)
+                .filter(StatQueue.queue_id == queue_id)
+                .filter(StatQueue.deleted.is_(False))
+            )
+            query = self._add_tenant_filter(query, tenant_uuids)
 
             row = query.first()
             if row:
@@ -111,6 +106,13 @@ class QueueStatDAO(BaseDAO):
         tz_offset = from_.strftime('%z') or '+0000'
         return '{}:{}'.format(tz_offset[0:3], tz_offset[3:])
 
+    def _add_tenant_filter(self, query, tenant_uuids):
+        if tenant_uuids:
+            query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
+        elif not tenant_uuids and tenant_uuids is not None:
+            query = query.filter(text('false'))
+        return query
+
     # NOTE(fblackburn): This only work because tables used have same column name
     def _add_interval_query(
         self,
@@ -124,11 +126,7 @@ class QueueStatDAO(BaseDAO):
         until=None,
         **ignored,
     ):
-        if tenant_uuids:
-            query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
-        elif not tenant_uuids and tenant_uuids is not None:
-            query = query.filter(text('false'))
-
+        query = self._add_tenant_filter(query, tenant_uuids)
         if from_:
             query = query.filter(table.time >= from_)
 
@@ -174,6 +172,7 @@ class QueueStatDAO(BaseDAO):
                 func.sum(StatQueuePeriodic.timeout).label('timeout'),
             )
             .select_from(StatQueue)
+            .filter(StatQueue.deleted.is_(False))
             .join(StatQueuePeriodic)
             .group_by(StatQueuePeriodic.stat_queue_id)
         )

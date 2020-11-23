@@ -47,26 +47,21 @@ def call_logs(call_logs):
     return _decorate
 
 
-def stat_queue(stat):
+def stat_queue(queue):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             with self.database.queries() as queries:
-                tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
-                queue_id = stat.pop('queue_id', 1)
-                name = stat.pop('name', 'queue')
-                queue_args = {
-                    'id': queue_id,
-                    'queue_id': queue_id,
-                    'name': name,
-                    'tenant_uuid': tenant_uuid,
-                }
-                queries.insert_stat_queue(**queue_args)
+                queue.setdefault('tenant_uuid', MASTER_TENANT)
+                queue.setdefault('name', 'queue')
+                queue.setdefault('queue_id', 1)
+                queue.setdefault('id', queue['queue_id'])
+                queries.insert_stat_queue(**queue)
             try:
                 return func(self, *args, **kwargs)
             finally:
                 with self.database.queries() as queries:
-                    queries.delete_stat_queue(queue_id)
+                    queries.delete_stat_queue(queue['id'])
 
         return wrapped_function
 
@@ -115,6 +110,7 @@ def stat_queue_periodic(stat):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             with self.database.queries() as queries:
+                stat.setdefault('time', '2020-10-01 14:00:00')
                 tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
                 queue_id = stat.pop('queue_id', 1)
                 stat['stat_queue_id'] = queue_id
