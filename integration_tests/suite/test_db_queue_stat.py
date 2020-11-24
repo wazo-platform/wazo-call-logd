@@ -120,6 +120,22 @@ class TestQueueStat(DBIntegrationTest):
             'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=5))),
             'start_time': 9,
             'end_time': 10,
+            'timezone': 'Asia/Karachi',
+        }
+        result = self.dao.queue_stat.get_interval(tenant_uuids, **kwargs)
+        assert_that(result[0], has_entries(answered=2 + 3))
+
+    @stat_queue_periodic({'time': '2020-11-01 00:00:00-0400', 'answered': 1})
+    @stat_queue_periodic({'time': '2020-11-01 01:00:00-0400', 'answered': 2})
+    @stat_queue_periodic({'time': '2020-11-01 01:00:00-0500', 'answered': 3})
+    @stat_queue_periodic({'time': '2020-11-01 04:00:00-0500', 'answered': 4})
+    def test_get_interval_with_start_end_time_follows_timezone_on_dst_threshold(self):
+        tenant_uuids = None
+        kwargs = {
+            'from_': dt(2020, 11, 1, 0, 0, 0, tzinfo=tz(td(hours=-4))),
+            'start_time': 1,
+            'end_time': 3,
+            'timezone': 'America/Montreal',
         }
         result = self.dao.queue_stat.get_interval(tenant_uuids, **kwargs)
         assert_that(result[0], has_entries(answered=2 + 3))
@@ -148,6 +164,7 @@ class TestQueueStat(DBIntegrationTest):
         kwargs = {
             'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=12))),
             'week_days': [1, 2, 3, 4, 5],
+            'timezone': 'Pacific/Auckland',
         }
         result = self.dao.queue_stat.get_interval(tenant_uuids, **kwargs)
         assert_that(result[0], has_entries(answered=1 + 4))
