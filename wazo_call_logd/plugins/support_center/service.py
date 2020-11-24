@@ -1,9 +1,10 @@
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from copy import copy
+import pytz
 
-from datetime import datetime, timezone
+from copy import copy
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from .exceptions import (
@@ -14,17 +15,23 @@ from .exceptions import (
 
 
 class _StatisticsService:
-    def _generate_subinterval(self, from_, until, time_delta):
+    def _generate_subinterval(self, from_, until, time_delta, timezone):
+        from_ = from_.replace(tzinfo=None)
+        until = until.replace(tzinfo=None)
         current = from_
         next_datetime = current + time_delta
         while current < until:
-            yield current, next_datetime
-            current = next_datetime
+            current_in_tz = timezone.normalize(timezone.localize(current))
+            next_in_tz = timezone.normalize(timezone.localize(next_datetime))
+            yield current_in_tz, next_in_tz
+            current = next_in_tz.replace(
+                tzinfo=None
+            )  # This is essential for DST change
             next_datetime = current + time_delta
             if next_datetime > until:
                 next_datetime = until
 
-    def _generate_interval(self, interval, from_, until):
+    def _generate_interval(self, interval, from_, until, timezone):
         time_deltas = {
             'hour': relativedelta(hours=1),
             'day': relativedelta(days=1),
@@ -34,20 +41,22 @@ class _StatisticsService:
         time_delta = time_deltas.get(interval, 'hour')
 
         if time_delta == time_deltas['hour']:
-            if from_ + relativedelta(months=1) < until:
+            if timezone.normalize(from_ + relativedelta(months=1)) < until:
                 raise RangeTooLargeException(
                     details='Maximum of 1 month for interval by hour'
                 )
         if interval:
-            yield from self._generate_subinterval(from_, until, time_delta)
+            yield from self._generate_subinterval(from_, until, time_delta, timezone)
         else:
             yield from_, until
 
-    def _get_tomorrow(self):
-        today = datetime.now(tz=timezone.utc)
-        return datetime(
-            today.year, today.month, today.day, tzinfo=timezone.utc
-        ) + relativedelta(days=1)
+    def _get_tomorrow(self, timezone):
+        today = timezone.normalize(timezone.localize(datetime.now()))
+        return timezone.normalize(
+            timezone.localize(
+                datetime(today.year, today.month, today.day) + relativedelta(days=1)
+            )
+        )
 
     def _datetime_in_week_days(self, date_time, week_days):
         return date_time.isoweekday() in week_days
@@ -194,6 +203,7 @@ class QueueStatisticsService(_StatisticsService):
         self,
         tenant_uuids,
         queue_id,
+        timezone,
         from_=None,
         until=None,
         interval=None,
@@ -207,11 +217,12 @@ class QueueStatisticsService(_StatisticsService):
         if not stat_queue:
             raise QueueNotFoundException(details={'queue_id': queue_id})
 
+        timezone = pytz.timezone(timezone)
         from_ = from_ or self._dao.find_oldest_time(queue_id)
-        until = until or self._get_tomorrow()
+        until = until or self._get_tomorrow(timezone)
 
         if interval:
-            for start, end in self._generate_interval(interval, from_, until):
+            for start, end in self._generate_interval(interval, from_, until, timezone):
                 if interval == 'hour':
                     if start_time and not self._datetime_in_time_interval(
                         start, start_time, end_time
@@ -241,6 +252,7 @@ class QueueStatisticsService(_StatisticsService):
                         start_time=start_time,
                         end_time=end_time,
                         week_days=week_days,
+                        timezone=timezone,
                         **kwargs
                     )
                     or {}
@@ -264,6 +276,7 @@ class QueueStatisticsService(_StatisticsService):
                 start_time=start_time,
                 end_time=end_time,
                 week_days=week_days,
+                timezone=timezone,
                 **kwargs
             )
             or {}
@@ -277,7 +290,8 @@ class QueueStatisticsService(_StatisticsService):
             'total': len(queue_stats),
         }
 
-    def list(self, tenant_uuids, from_=None, until=None, **kwargs):
+    def list(self, tenant_uuids, timezone, from_=None, until=None, **kwargs):
+        timezone = pytz.timezone(timezone)
         stat_queues = {
             stat_queue['queue_id']: stat_queue
             for stat_queue in self._dao.get_stat_queues(tenant_uuids)
@@ -285,10 +299,10 @@ class QueueStatisticsService(_StatisticsService):
         queue_stats = {
             queue_stat['queue_id']: queue_stat
             for queue_stat in self._dao.get_interval(
-                tenant_uuids, from_=from_, until=until, **kwargs
+                tenant_uuids, timezone=timezone, from_=from_, until=until, **kwargs
             )
         }
-        until = until or self._get_tomorrow()
+        until = until or self._get_tomorrow(timezone)
 
         queue_stats_items = []
         for queue_id, stat_queue in stat_queues.items():
