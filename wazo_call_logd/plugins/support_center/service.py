@@ -73,6 +73,7 @@ class AgentStatisticsService(_StatisticsService):
         self,
         tenant_uuids,
         agent_id,
+        timezone,
         from_=None,
         until=None,
         interval=None,
@@ -86,11 +87,12 @@ class AgentStatisticsService(_StatisticsService):
         if not stat_agent:
             raise AgentNotFoundException(details={'agent_id': agent_id})
 
+        timezone = pytz.timezone(timezone)
         from_ = from_ or self._dao.find_oldest_time(agent_id)
-        until = until or self._get_tomorrow()
+        until = until or self._get_tomorrow(timezone)
 
         if interval:
-            for start, end in self._generate_interval(interval, from_, until):
+            for start, end in self._generate_interval(interval, from_, until, timezone):
                 if interval == 'hour':
                     if start_time and not self._datetime_in_time_interval(
                         start, start_time, end_time
@@ -120,6 +122,7 @@ class AgentStatisticsService(_StatisticsService):
                         start_time=start_time,
                         end_time=end_time,
                         week_days=week_days,
+                        timezone=timezone,
                         **kwargs
                     )
                     or {}
@@ -143,6 +146,7 @@ class AgentStatisticsService(_StatisticsService):
                 start_time=start_time,
                 end_time=end_time,
                 week_days=week_days,
+                timezone=timezone,
                 **kwargs
             )
             or {}
@@ -153,7 +157,8 @@ class AgentStatisticsService(_StatisticsService):
 
         return {'total': len(agent_stats), 'items': agent_stats}
 
-    def list(self, tenant_uuids, from_=None, until=None, **kwargs):
+    def list(self, tenant_uuids, timezone, from_=None, until=None, **kwargs):
+        timezone = pytz.timezone(timezone)
         stat_agents = {
             stat_agent['agent_id']: stat_agent
             for stat_agent in self._dao.get_stat_agents(tenant_uuids)
@@ -161,10 +166,10 @@ class AgentStatisticsService(_StatisticsService):
         agent_stats = {
             agent_stat['agent_id']: agent_stat
             for agent_stat in self._dao.get_interval(
-                tenant_uuids, from_=from_, until=until, **kwargs
+                tenant_uuids, timezone=timezone, from_=from_, until=until, **kwargs
             )
         }
-        until = until or self._get_tomorrow()
+        until = until or self._get_tomorrow(timezone)
 
         agent_stats_items = []
         for agent_id, stat_agent in stat_agents.items():

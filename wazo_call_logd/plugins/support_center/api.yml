@@ -15,6 +15,12 @@ paths:
         - $ref: '#/parameters/day_start_time'
         - $ref: '#/parameters/day_end_time'
         - $ref: '#/parameters/week_days'
+        - name: timezone
+          description: "**Experimental** Name of the timezone to use for times. Example: America/New_York"
+          in: query
+          type: string
+          default: UTC
+          required: false
       responses:
         '200':
           description: Get an agent statistics by ID
@@ -46,6 +52,12 @@ paths:
         - $ref: '#/parameters/day_start_time'
         - $ref: '#/parameters/day_end_time'
         - $ref: '#/parameters/week_days'
+        - name: timezone
+          description: "**Experimental** Name of the timezone to use for times. Example: America/New_York"
+          in: query
+          type: string
+          default: UTC
+          required: false
       responses:
         '200':
           description: Get an agent statistics by ID
