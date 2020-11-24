@@ -1215,3 +1215,103 @@ class TestStatistics(IntegrationTest):
                 ),
             ),
         )
+
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-31T17:00:00-04:00', 'total': 1, 'answered': 1})  # not counted
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-31T18:00:00-04:00', 'total': 2, 'answered': 2})  # not counted
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T00:00:00-04:00', 'total': 3, 'answered': 3})  # counted
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T01:00:00-04:00', 'total': 4, 'answered': 4})  # counted
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T01:00:00-05:00', 'total': 5, 'answered': 5})  # counted
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T02:00:00-05:00', 'total': 6, 'answered': 6})  # counted
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T03:00:00-05:00', 'total': 7, 'answered': 7})  # counted
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T04:00:00-05:00', 'total': 8, 'answered': 8})  # not counted
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-02T02:00:00-05:00', 'total': 9, 'answered': 9})  # not counted
+    # fmt: on
+    def test_hour_interval_multiple_hours_with_all_filters_and_timezone_dst_change(
+        self,
+    ):
+        results = self.call_logd.queue_statistics.get_by_id(
+            queue_id=1,
+            from_='2020-10-31T00:00:00-04:00',  # DST change happens on 2020-11-01 02:00
+            until='2020-11-02T03:00:00-05:00',
+            interval='hour',
+            day_start_time='00:00',
+            day_end_time='03:00',
+            week_days='2,3,4,5,7',
+            timezone='America/Montreal',
+        )
+
+        assert_that(results, has_entries(total=equal_to(4)))
+        assert_that(
+            results['items'],
+            has_items(
+                has_entries(
+                    **{'from': '2020-11-01T00:00:00-04:00'},
+                    until='2020-11-01T01:00:00-05:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=7,
+                    answered=7,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
+                has_entries(
+                    **{'from': '2020-11-01T01:00:00-05:00'},
+                    until='2020-11-01T02:00:00-05:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=5,
+                    answered=5,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
+                has_entries(
+                    **{'from': '2020-11-01T02:00:00-05:00'},
+                    until='2020-11-01T03:00:00-05:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=6,
+                    answered=6,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
+                has_entries(
+                    **{'from': '2020-10-31T00:00:00-04:00'},
+                    until='2020-11-02T03:00:00-05:00',
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=25,
+                    answered=25,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=0,
+                    answered_rate=100.0,
+                    quality_of_service=None,
+                ),
+            ),
+        )

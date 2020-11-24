@@ -118,8 +118,8 @@ class TestQueueStat(DBIntegrationTest):
         tenant_uuids = None
         kwargs = {
             'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=5))),
-            'start_time': 9,
-            'end_time': 10,
+            'start_time': 9,  # = 4 UTC
+            'end_time': 10,  # = 5 UTC
             'timezone': 'Asia/Karachi',
         }
         result = self.dao.queue_stat.get_interval(tenant_uuids, **kwargs)

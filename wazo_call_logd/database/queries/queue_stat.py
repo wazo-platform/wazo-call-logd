@@ -135,11 +135,11 @@ class QueueStatDAO(BaseDAO):
         else:
             timezone_name = 'UTC'
 
-        if start_time and end_time:
+        if start_time is not None and end_time is not None:
             hour = func.extract('HOUR', table.time.op('AT TIME ZONE')(timezone_name))
             query = query.filter(hour.between(start_time, end_time))
 
-        if week_days:
+        if week_days is not None:
             day_of_week = func.extract(
                 'ISODOW', table.time.op('AT TIME ZONE')(timezone_name)
             )
