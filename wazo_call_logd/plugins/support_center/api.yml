@@ -170,21 +170,21 @@ parameters:
     required: false
   day_start_time:
     name: day_start_time
-    description: The time at which a day starts. It based on the `from` parameter timezone.
+    description: The time at which a day starts, inclusively. Minutes are ignored.
     in: query
     type: string
     default: '00:00'
     required: false
   day_end_time:
     name: day_end_time
-    description: The time at which a day ends. It based on the `from` parameter timezone.
+    description: The time at which a day ends, inclusively. Minutes are ignored.
     in: query
     type: string
-    default: '23:59'
+    default: '23:00'
     required: false
   week_days:
     name: week_days
-    description: The days of the week that should be included. A week starts on Monday (1) and ends on Sunday (7). It based on the `from` parameter timezone.
+    description: The days of the week that should be included. A week starts on Monday (1) and ends on Sunday (7).
     in: query
     type: array
     items:
