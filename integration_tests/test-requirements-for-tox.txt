@@ -11,6 +11,7 @@ psycopg2-binary  # from sqlalchemy
 pyhamcrest==1.9.0  # Versions 1.10.x are broken
 pytest
 python-dateutil==2.7.3  # from marshmallow, to accept more date formats
+pytz==2019.1
 requests
 sqlalchemy
 stevedore  # from wazo-call-logd-client

@@ -183,6 +183,9 @@ class AgentStatisticsService(_StatisticsService):
             from_date = from_
             if not from_date:
                 from_date = self._dao.find_oldest_time(agent_id)
+                if from_date is not None:
+                    from_date = from_date.astimezone(pytz.utc)
+                    from_date = timezone.normalize(from_date)
 
             agent_stats_item.update(
                 {
@@ -322,6 +325,9 @@ class QueueStatisticsService(_StatisticsService):
             from_date = from_
             if not from_date:
                 from_date = self._dao.find_oldest_time(queue_id)
+                if from_date is not None:
+                    from_date = from_date.astimezone(pytz.utc)
+                    from_date = timezone.normalize(from_date)
 
             queue_stats_item.update(
                 {
