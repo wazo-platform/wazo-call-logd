@@ -139,16 +139,20 @@ parameters:
   from:
     name: from
     description: |
-      Ignore calls before the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
-      If missing, the statistics will start at the oldest available call and will default timezone to UTC
+      Ignore calls before the given date. Format is
+      <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>. Timezone will be
+      converted according to the `timezone` parameter. If missing, the statistics
+      will start at the oldest available call with timezone UTC. 
     in: query
     type: string
     required: false
   until:
     name: until
     description: |
-      Ignore calls starting at or after the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
-      If the value is missing, the statistics will include the current day.
+      Ignore calls starting at or after the given date. Format is
+      <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>. Timezone will be converted
+      according to the `timezone` parameter. If missing, the statistics will include the current
+      day.
     in: query
     type: string
     required: false
@@ -196,7 +200,10 @@ parameters:
     required: false
   timezone:
     name: timezone
-    description: "Name of the timezone to use for times. Example: America/New_York"
+    description: |
+      Name of the timezone to use for dates and times. Example: America/New_York. Valid timezones
+      are defined by the <a href="https://en.wikipedia.org/wiki/Tz_database">Time Zone Database</a>
+      version installed on the server.
     in: query
     type: string
     default: UTC
