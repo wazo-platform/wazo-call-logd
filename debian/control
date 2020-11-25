@@ -20,6 +20,7 @@ Depends: ${python3:Depends},
          python3-marshmallow,
          python3-requests,
          python3-sqlalchemy,
+         python3-tz,
          python3-werkzeug,
          wazo-auth-client-python3,
          wazo-confd-client-python3,
@@ -34,4 +35,3 @@ Description: Wazo call logs generation
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.
  .
-

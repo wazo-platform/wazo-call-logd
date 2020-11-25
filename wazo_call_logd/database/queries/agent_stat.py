@@ -158,13 +158,13 @@ class AgentStatDAO(BaseDAO):
         if from_:
             tz_offset = self._extract_timezone_to_postgres_format(from_)
 
-        if start_time and end_time:
+        if start_time is not None and end_time is not None:
             hour = func.extract(
                 'HOUR', table.time.op('AT TIME ZONE INTERVAL')(tz_offset)
             )
             query = query.filter(hour.between(start_time, end_time))
 
-        if week_days:
+        if week_days is not None:
             day_of_week = func.extract(
                 'ISODOW', table.time.op('AT TIME ZONE INTERVAL')(tz_offset)
             )

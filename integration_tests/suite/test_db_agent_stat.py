@@ -160,8 +160,8 @@ class TestAgentStat(DBIntegrationTest):
     def test_get_interval_with_start_end_time_follows_timezone(self):
         tenant_uuids = None
         kwargs = {
-            'start_time': 9,
-            'end_time': 10,
+            'start_time': 9,  # = 4 UTC
+            'end_time': 10,  # = 5 UTC
             'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=5))),
         }
         result = self.dao.agent_stat.get_interval(tenant_uuids, **kwargs)

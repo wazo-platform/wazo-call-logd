@@ -102,10 +102,6 @@ class QueueStatDAO(BaseDAO):
                 results.append({**basic_stats, **extra_stats})
         return results
 
-    def _extract_timezone_to_postgres_format(self, from_):
-        tz_offset = from_.strftime('%z') or '+0000'
-        return '{}:{}'.format(tz_offset[0:3], tz_offset[3:])
-
     def _add_tenant_filter(self, query, tenant_uuids):
         if tenant_uuids:
             query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
@@ -124,6 +120,7 @@ class QueueStatDAO(BaseDAO):
         end_time=None,
         from_=None,
         until=None,
+        timezone=None,
         **ignored,
     ):
         query = self._add_tenant_filter(query, tenant_uuids)
@@ -133,19 +130,18 @@ class QueueStatDAO(BaseDAO):
         if until:
             query = query.filter(table.time < until)
 
-        tz_offset = '+00:00'
-        if from_:
-            tz_offset = self._extract_timezone_to_postgres_format(from_)
+        if timezone:
+            timezone_name = str(timezone)
+        else:
+            timezone_name = 'UTC'
 
-        if start_time and end_time:
-            hour = func.extract(
-                'HOUR', table.time.op('AT TIME ZONE INTERVAL')(tz_offset)
-            )
+        if start_time is not None and end_time is not None:
+            hour = func.extract('HOUR', table.time.op('AT TIME ZONE')(timezone_name))
             query = query.filter(hour.between(start_time, end_time))
 
-        if week_days:
+        if week_days is not None:
             day_of_week = func.extract(
-                'ISODOW', table.time.op('AT TIME ZONE INTERVAL')(tz_offset)
+                'ISODOW', table.time.op('AT TIME ZONE')(timezone_name)
             )
             query = query.filter(day_of_week.in_(week_days))
         elif not week_days and week_days is not None:

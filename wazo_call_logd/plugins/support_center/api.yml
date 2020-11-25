@@ -15,6 +15,12 @@ paths:
         - $ref: '#/parameters/day_start_time'
         - $ref: '#/parameters/day_end_time'
         - $ref: '#/parameters/week_days'
+        - name: timezone
+          description: "**Experimental** Name of the timezone to use for times. Example: America/New_York"
+          in: query
+          type: string
+          default: UTC
+          required: false
       responses:
         '200':
           description: Get an agent statistics by ID
@@ -46,6 +52,12 @@ paths:
         - $ref: '#/parameters/day_start_time'
         - $ref: '#/parameters/day_end_time'
         - $ref: '#/parameters/week_days'
+        - name: timezone
+          description: "**Experimental** Name of the timezone to use for times. Example: America/New_York"
+          in: query
+          type: string
+          default: UTC
+          required: false
       responses:
         '200':
           description: Get an agent statistics by ID
@@ -76,6 +88,7 @@ paths:
       - $ref: '#/parameters/day_start_time'
       - $ref: '#/parameters/day_end_time'
       - $ref: '#/parameters/week_days'
+      - $ref: '#/parameters/timezone'
       responses:
         '200':
           description: Get aggregated statistics for all queues.
@@ -111,6 +124,7 @@ paths:
         - $ref: '#/parameters/day_start_time'
         - $ref: '#/parameters/day_end_time'
         - $ref: '#/parameters/week_days'
+        - $ref: '#/parameters/timezone'
       responses:
         '200':
           description: Get a queue statistics by ID
@@ -125,16 +139,20 @@ parameters:
   from:
     name: from
     description: |
-      Ignore calls before the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
-      If missing, the statistics will start at the oldest available call and will default timezone to UTC
+      Ignore calls before the given date. Format is
+      <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>. Timezone will be
+      converted according to the `timezone` parameter. If missing, the statistics
+      will start at the oldest available call with timezone UTC. 
     in: query
     type: string
     required: false
   until:
     name: until
     description: |
-      Ignore calls starting at or after the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
-      If the value is missing, the statistics will include the current day.
+      Ignore calls starting at or after the given date. Format is
+      <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>. Timezone will be converted
+      according to the `timezone` parameter. If missing, the statistics will include the current
+      day.
     in: query
     type: string
     required: false
@@ -156,21 +174,21 @@ parameters:
     required: false
   day_start_time:
     name: day_start_time
-    description: The time at which a day starts. It based on the `from` parameter timezone.
+    description: The time at which a day starts, inclusively. Minutes are ignored.
     in: query
     type: string
     default: '00:00'
     required: false
   day_end_time:
     name: day_end_time
-    description: The time at which a day ends. It based on the `from` parameter timezone.
+    description: The time at which a day ends, inclusively. Minutes are ignored.
     in: query
     type: string
-    default: '23:59'
+    default: '23:00'
     required: false
   week_days:
     name: week_days
-    description: The days of the week that should be included. A week starts on Monday (1) and ends on Sunday (7). It based on the `from` parameter timezone.
+    description: The days of the week that should be included. A week starts on Monday (1) and ends on Sunday (7).
     in: query
     type: array
     items:
@@ -179,6 +197,16 @@ parameters:
       maximum: 7
     uniqueItems: true
     default: [1,2,3,4,5,6,7]
+    required: false
+  timezone:
+    name: timezone
+    description: |
+      Name of the timezone to use for dates and times. Example: America/New_York. Valid timezones
+      are defined by the <a href="https://en.wikipedia.org/wiki/Tz_database">Time Zone Database</a>
+      version installed on the server.
+    in: query
+    type: string
+    default: UTC
     required: false
 
 definitions:
