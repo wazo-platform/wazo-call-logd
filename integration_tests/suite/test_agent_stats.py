@@ -239,10 +239,10 @@ class TestStatistics(IntegrationTest):
                         tenant_uuid=MASTER_TENANT,
                         agent_id=42,
                         agent_number='1001',
-                        conversation_time=timedelta(seconds=11 + 12).seconds,
-                        login_time=timedelta(minutes=55).seconds,
-                        pause_time=timedelta(minutes=15).seconds,
-                        wrapup_time=timedelta(minutes=2).seconds,
+                        conversation_time=timedelta(seconds=11 + 12).total_seconds(),
+                        login_time=timedelta(minutes=55).total_seconds(),
+                        pause_time=timedelta(minutes=15).total_seconds(),
+                        wrapup_time=timedelta(minutes=2).total_seconds(),
                     ),
                     has_entries(
                         **{'from': '2020-10-06T13:00:00+00:00'},
@@ -250,10 +250,10 @@ class TestStatistics(IntegrationTest):
                         tenant_uuid=MASTER_TENANT,
                         agent_id=10,
                         agent_number='1002',
-                        conversation_time=timedelta(seconds=14).seconds,
-                        login_time=timedelta(hours=1).seconds,
-                        pause_time=timedelta(minutes=8).seconds,
-                        wrapup_time=timedelta(minutes=10).seconds,
+                        conversation_time=timedelta(seconds=14).total_seconds(),
+                        login_time=timedelta(hours=1).total_seconds(),
+                        pause_time=timedelta(minutes=8).total_seconds(),
+                        wrapup_time=timedelta(minutes=10).total_seconds(),
                     ),
                 ),
                 total=equal_to(2),
@@ -265,7 +265,7 @@ class TestStatistics(IntegrationTest):
     @stat_call_on_queue({'agent_id': 1, 'time': '2020-10-06 13:05:00', 'talktime': 11, 'status': 'answered'})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:08:00', 'wrapup_time': '00:10:00'})
     # fmt: on
-    def test_list_queue_statistics_period_no_interval(self):
+    def test_list_agent_statistics_period_no_interval(self):
         results = self.call_logd.agent_statistics.list(
             from_='2020-10-01 00:00:00', until='2020-11-01 00:00:00'
         )
@@ -283,10 +283,10 @@ class TestStatistics(IntegrationTest):
                         **{'from': '2020-10-01T00:00:00+00:00'},
                         until='2020-11-01T00:00:00+00:00',
                         answered=1,
-                        conversation_time=timedelta(seconds=11).seconds,
-                        login_time=timedelta(hours=1).seconds,
-                        pause_time=timedelta(minutes=8).seconds,
-                        wrapup_time=timedelta(minutes=10).seconds,
+                        conversation_time=timedelta(seconds=11).total_seconds(),
+                        login_time=timedelta(hours=1).total_seconds(),
+                        pause_time=timedelta(minutes=8).total_seconds(),
+                        wrapup_time=timedelta(minutes=10).total_seconds(),
                     )
                 ),
                 total=equal_to(1),
@@ -317,21 +317,21 @@ class TestStatistics(IntegrationTest):
                         until='2020-11-01T00:00:00+00:00',
                         agent_id=42,
                         agent_number='1001',
-                        login_time=timedelta(hours=1).seconds,
+                        login_time=timedelta(hours=1).total_seconds(),
                     ),
                     has_entries(
                         **{'from': '2020-10-01T00:00:00+00:00'},
                         until='2020-11-01T00:00:00+00:00',
                         agent_id=100,
                         agent_number='1010',
-                        login_time=timedelta(hours=1).seconds,
+                        login_time=timedelta(hours=1).total_seconds(),
                     ),
                     has_entries(
                         **{'from': '2020-10-01T00:00:00+00:00'},
                         until='2020-11-01T00:00:00+00:00',
                         agent_id=1,
                         agent_number='1002',
-                        login_time=timedelta(hours=1).seconds,
+                        login_time=timedelta(hours=1).total_seconds(),
                     ),
                     has_entries(
                         **{'from': '2020-10-01T00:00:00+00:00'},
@@ -376,10 +376,10 @@ class TestStatistics(IntegrationTest):
 
         conversation_time = timedelta(
             seconds=915 + 547 + 128 + 654 + 543 + 321 + 60 + 60 + 60
-        ).seconds
-        login_time = timedelta(hours=1, minutes=45 + 53).seconds
-        pause_time = timedelta(minutes=25, seconds=15).seconds
-        wrapup_time = timedelta(minutes=17).seconds
+        ).total_seconds()
+        login_time = timedelta(hours=1, minutes=45 + 53).total_seconds()
+        pause_time = timedelta(minutes=25, seconds=15).total_seconds()
+        wrapup_time = timedelta(minutes=17).total_seconds()
         assert_that(
             results['items'],
             has_items(
@@ -428,9 +428,58 @@ class TestStatistics(IntegrationTest):
                     agent_number='1001',
                     answered=0,
                     conversation_time=0,
-                    login_time=timedelta(hours=2).seconds,
+                    login_time=timedelta(hours=2).total_seconds(),
                     pause_time=0,
                     wrapup_time=0,
+                )
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 00:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 01:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 02:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 03:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 04:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 05:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 06:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 07:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 08:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 09:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 10:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 11:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 12:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 14:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 15:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 16:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 17:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 18:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 19:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 20:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 21:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 22:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 23:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 00:00:00', 'login_time': '01:00:00'})
+    # fmt: on
+    def test_get_agent_over_24_hours(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06T00:00:00+00:00',
+            until='2020-10-07T23:59:59+00:00',
+        )
+        assert_that(results, has_entries(total=equal_to(1)))
+        assert_that(
+            results['items'],
+            has_items(
+                has_entries(
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-07T23:59:59+00:00',
+                    tenant_uuid=MASTER_TENANT,
+                    agent_id=42,
+                    agent_number='1001',
+                    login_time=timedelta(hours=25).total_seconds(),
                 )
             ),
         )
@@ -463,25 +512,25 @@ class TestStatistics(IntegrationTest):
                     **common_fields,
                     **{'from': '2020-10-06T04:00:00+00:00'},
                     until='2020-10-06T05:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-06T05:00:00+00:00'},
                     until='2020-10-06T06:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-06T23:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    login_time=timedelta(hours=1 + 1 + 1).seconds,
+                    login_time=timedelta(hours=1 + 1 + 1).total_seconds(),
                 ),
             ),
         )
@@ -522,13 +571,13 @@ class TestStatistics(IntegrationTest):
                     **common_fields,
                     **{'from': '2020-10-06T13:00:00+00:00'},
                     until='2020-10-06T14:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-06T16:00:00+00:00'},
                     until='2020-10-06T17:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
             ),
         )
@@ -562,19 +611,19 @@ class TestStatistics(IntegrationTest):
                     **common_fields,
                     **{'from': '2020-10-07T00:00:00+00:00'},
                     until='2020-10-08T00:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-08T00:00:00+00:00'},
                     until='2020-10-09T00:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-10T00:00:00+00:00',
-                    login_time=timedelta(hours=1 + 1).seconds,
+                    login_time=timedelta(hours=1 + 1).total_seconds(),
                 ),
             ),
         )
@@ -603,13 +652,13 @@ class TestStatistics(IntegrationTest):
                     **common_fields,
                     **{'from': '2020-10-06T23:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-06T23:00:00+00:00'},
                     until='2020-10-07T01:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 )
             ),
         )
@@ -631,13 +680,13 @@ class TestStatistics(IntegrationTest):
                     **common_fields,
                     **{'from': '2020-10-07T00:00:00+00:00'},
                     until='2020-10-07T01:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds,
+                    login_time=timedelta(hours=1).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-06T23:00:00+00:00'},
                     until='2020-10-07T01:00:00+00:00',
-                    login_time=timedelta(hours=1).seconds
+                    login_time=timedelta(hours=1).total_seconds()
                 )
             ),
         )
@@ -678,13 +727,13 @@ class TestStatistics(IntegrationTest):
                     **common_fields,
                     **{'from': '2020-10-07T00:00:00+00:00'},
                     until='2020-10-08T00:00:00+00:00',
-                    login_time=timedelta(minutes=53).seconds,
+                    login_time=timedelta(minutes=53).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-08T00:00:00+00:00',
-                    login_time=timedelta(minutes=53).seconds,
+                    login_time=timedelta(minutes=53).total_seconds(),
                 ),
             ),
         )
@@ -753,13 +802,13 @@ class TestStatistics(IntegrationTest):
                     **common_fields,
                     **{'from': '2020-10-01T00:00:00+00:00'},
                     until='2020-11-01T00:00:00+00:00',
-                    login_time=timedelta(minutes=51 + 52).seconds,
+                    login_time=timedelta(minutes=51 + 52).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-10-01T00:00:00+00:00'},
                     until='2020-11-01T00:00:00+00:00',
-                    login_time=timedelta(minutes=51 + 52).seconds,
+                    login_time=timedelta(minutes=51 + 52).total_seconds(),
                 ),
             ),
         )
@@ -801,19 +850,19 @@ class TestStatistics(IntegrationTest):
                     **common_fields,
                     **{'from': '2020-02-01T00:00:00+00:00'},
                     until='2020-03-01T00:00:00+00:00',
-                    login_time=timedelta(minutes=56).seconds,
+                    login_time=timedelta(minutes=56).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-03-01T00:00:00+00:00'},
                     until='2020-04-01T00:00:00+00:00',
-                    login_time=timedelta(minutes=57).seconds,
+                    login_time=timedelta(minutes=57).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
                     **{'from': '2020-01-01T00:00:00+00:00'},
                     until='2020-04-01T00:00:00+00:00',
-                    login_time=timedelta(minutes=56 + 57).seconds,
+                    login_time=timedelta(minutes=56 + 57).total_seconds(),
                 ),
             ),
         )
