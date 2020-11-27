@@ -13,7 +13,7 @@ from .base import BaseDAO
 
 class IntervalAsSeconds(fields.Field):
     def _serialize(self, value, attr, obj, **kwargs):
-        return value.seconds
+        return value.total_seconds()
 
 
 class StatRow(Schema):
