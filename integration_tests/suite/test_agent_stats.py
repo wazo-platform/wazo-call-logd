@@ -265,7 +265,7 @@ class TestStatistics(IntegrationTest):
     @stat_call_on_queue({'agent_id': 1, 'time': '2020-10-06 13:05:00', 'talktime': 11, 'status': 'answered'})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:08:00', 'wrapup_time': '00:10:00'})
     # fmt: on
-    def test_list_queue_statistics_period_no_interval(self):
+    def test_list_agent_statistics_period_no_interval(self):
         results = self.call_logd.agent_statistics.list(
             from_='2020-10-01 00:00:00', until='2020-11-01 00:00:00'
         )
