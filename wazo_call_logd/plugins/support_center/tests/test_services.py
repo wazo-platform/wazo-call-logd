@@ -12,7 +12,7 @@ from unittest import TestCase
 
 from dateutil.relativedelta import relativedelta
 
-from wazo_call_logd.plugins.support_center.service import QueueStatisticsService
+from wazo_call_logd.plugins.support_center.services import QueueStatisticsService
 
 MTL_TZ = pytz.timezone('America/Montreal')
 

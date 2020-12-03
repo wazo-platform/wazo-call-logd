@@ -8,24 +8,21 @@ from datetime import timedelta
 from cheroot import wsgi
 from flask import Flask
 from flask_restful import Api
-from flask_restful import Resource
 from flask_cors import CORS
 from werkzeug.contrib.fixers import ProxyFix
-from xivo.auth_verifier import AuthVerifier
 from xivo import http_helpers
-from xivo import mallow_helpers
-from xivo import rest_api_helpers
 from xivo.http_helpers import ReverseProxied
+
+from .http import auth_verifier
 
 VERSION = 1.0
 
 logger = logging.getLogger(__name__)
 app = Flask('wazo_call_logd')
 api = Api(app, prefix='/{}'.format(VERSION))
-auth_verifier = AuthVerifier()
 
 
-class CoreRestApi:
+class HTTPServer:
     def __init__(self, global_config):
         self.config = global_config['rest_api']
         http_helpers.add_logger(app, logger)
@@ -73,16 +70,3 @@ class CoreRestApi:
     def stop(self):
         if self.server:
             self.server.stop()
-
-
-class ErrorCatchingResource(Resource):
-    method_decorators = [
-        mallow_helpers.handle_validation_exception,
-        rest_api_helpers.handle_api_exception,
-    ] + Resource.method_decorators
-
-
-class AuthResource(ErrorCatchingResource):
-    method_decorators = [
-        auth_verifier.verify_token
-    ] + ErrorCatchingResource.method_decorators

@@ -10,7 +10,7 @@ from xivo_bus.resources.call_logs.events import (
     CallLogCreatedEvent,
     CallLogUserCreatedEvent,
 )
-from wazo_call_logd.plugins.cdr.schema import CDRSchema
+from wazo_call_logd.plugins.cdr.schemas import CDRSchema
 
 logger = logging.getLogger(__name__)
 

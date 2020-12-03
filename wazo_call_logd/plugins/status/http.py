@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_call_logd.auth import required_acl
-from wazo_call_logd.rest_api import AuthResource
+from wazo_call_logd.http import AuthResource
 
 
 class StatusResource(AuthResource):

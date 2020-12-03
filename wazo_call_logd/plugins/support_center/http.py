@@ -4,9 +4,9 @@
 from flask import request
 from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import token, Tenant
-from wazo_call_logd.rest_api import AuthResource
+from wazo_call_logd.http import AuthResource
 
-from .schema import (
+from .schemas import (
     AgentStatisticsListRequestSchema,
     AgentStatisticsRequestSchema,
     AgentStatisticsSchemaList,
