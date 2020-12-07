@@ -163,6 +163,7 @@ class TestAgentStat(DBIntegrationTest):
             'start_time': 9,  # = 4 UTC
             'end_time': 10,  # = 5 UTC
             'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=5))),
+            'timezone': 'Asia/Karachi',
         }
         result = self.dao.agent_stat.get_interval(tenant_uuids, **kwargs)
         assert_that(
@@ -222,6 +223,7 @@ class TestAgentStat(DBIntegrationTest):
         kwargs = {
             'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=12))),
             'week_days': [1, 2, 3, 4, 5],
+            'timezone': 'Pacific/Auckland',
         }
         result = self.dao.agent_stat.get_interval(tenant_uuids, **kwargs)
         assert_that(

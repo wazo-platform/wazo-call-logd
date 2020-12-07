@@ -15,12 +15,7 @@ paths:
         - $ref: '#/parameters/day_start_time'
         - $ref: '#/parameters/day_end_time'
         - $ref: '#/parameters/week_days'
-        - name: timezone
-          description: "**Experimental** Name of the timezone to use for times. Example: America/New_York"
-          in: query
-          type: string
-          default: UTC
-          required: false
+        - $ref: '#/parameters/timezone'
       responses:
         '200':
           description: Get an agent statistics by ID
@@ -52,12 +47,7 @@ paths:
         - $ref: '#/parameters/day_start_time'
         - $ref: '#/parameters/day_end_time'
         - $ref: '#/parameters/week_days'
-        - name: timezone
-          description: "**Experimental** Name of the timezone to use for times. Example: America/New_York"
-          in: query
-          type: string
-          default: UTC
-          required: false
+        - $ref: '#/parameters/timezone'
       responses:
         '200':
           description: Get an agent statistics by ID
@@ -142,7 +132,7 @@ parameters:
       Ignore calls before the given date. Format is
       <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>. Timezone will be
       converted according to the `timezone` parameter. If missing, the statistics
-      will start at the oldest available call with timezone UTC. 
+      will start at the oldest available call with timezone UTC.
     in: query
     type: string
     required: false
