@@ -135,6 +135,9 @@ class TestInputParameters(IntegrationTest):
                 'from_': '2020-10-10T00:00:00+00:00',
                 'until': '2020-10-10T00:00:00+01:00',
             },
+            # Timezone
+            {'timezone': 'invalid'},
+            {'timezone': 1234},
         ]
         for body in erronous_bodies:
             assert_that(
@@ -188,6 +191,9 @@ class TestInputParameters(IntegrationTest):
                 'from_': '2020-10-10T00:00:00+00:00',
                 'until': '2020-10-10T00:00:00+01:00',
             },
+            # Timezone
+            {'timezone': 'invalid'},
+            {'timezone': 1234},
         ]
         for body in erronous_bodies:
             assert_that(
