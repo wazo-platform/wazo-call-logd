@@ -1,5 +1,12 @@
 # Changelog
 
+## 20.17
+
+* `GET /agents/statistics`, `GET /agents/<agent_id>/statistics` accepts new query string
+  argument:
+
+  * `timezone`
+
 ## 20.16
 
 * `GET /queues/statistics`, `GET /queues/<queue_id>/statistics` accepts new query string
