@@ -18,10 +18,21 @@ from xivo.mallow_helpers import Schema
 HOUR_REGEX = r"^([0,1][0-9]|2[0-3]):[0-5][0-9]$"
 
 
-class AgentStatisticsSchema(Schema):
-    from_ = fields.DateTime(attribute='from', data_key='from')
-    until = fields.DateTime()
+class _StatisticsPeriodSchema(Schema):
+    from_ = fields.String(attribute='from', data_key='from')
+    until = fields.String()
     tenant_uuid = fields.UUID(default=None)
+
+    @pre_dump
+    def convert_from_and_until_to_isoformat(self, data, **kwargs):
+        if data.get('from'):
+            data['from'] = data['from'].isoformat()
+        if data.get('until'):
+            data['until'] = data['until'].isoformat()
+        return data
+
+
+class AgentStatisticsSchema(_StatisticsPeriodSchema):
     agent_id = fields.Integer(default=None)
     agent_number = fields.String(default=None)
     answered = fields.Integer(default=0)
@@ -36,10 +47,7 @@ class AgentStatisticsSchemaList(Schema):
     total = fields.Integer()
 
 
-class QueueStatisticsSchema(Schema):
-    from_ = fields.String(attribute='from', data_key='from')
-    until = fields.String()
-    tenant_uuid = fields.UUID(default=None)
+class QueueStatisticsSchema(_StatisticsPeriodSchema):
     queue_id = fields.Integer(default=None)
     queue_name = fields.String(default=None)
     received = fields.Integer(attribute='total', default=0)
@@ -52,14 +60,6 @@ class QueueStatisticsSchema(Schema):
     average_waiting_time = fields.Integer(default=None)
     answered_rate = fields.Float(default=None)
     quality_of_service = fields.Float(attribute='qos', default=None)
-
-    @pre_dump
-    def convert_from_and_until_to_isoformat(self, data, **kwargs):
-        if data.get('from'):
-            data['from'] = data['from'].isoformat()
-        if data.get('until'):
-            data['until'] = data['until'].isoformat()
-        return data
 
 
 class _StatisticsListRequestSchema(Schema):
