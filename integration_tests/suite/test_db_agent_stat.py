@@ -163,6 +163,7 @@ class TestAgentStat(DBIntegrationTest):
             'start_time': 9,  # = 4 UTC
             'end_time': 10,  # = 5 UTC
             'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=5))),
+            'timezone': 'Asia/Karachi',
         }
         result = self.dao.agent_stat.get_interval(tenant_uuids, **kwargs)
         assert_that(
@@ -174,6 +175,37 @@ class TestAgentStat(DBIntegrationTest):
                     answered=1,
                     conversation_time=td(seconds=12).seconds,
                     login_time=td(minutes=30).seconds,
+                ),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_call_on_queue({'agent_id': 1, 'time': '2020-11-01 06:05:00+0000', 'talktime': 11, 'status': 'answered'})
+    @stat_call_on_queue({'agent_id': 1, 'time': '2020-11-01 08:01:00+0000', 'talktime': 12, 'status': 'answered'})
+    @stat_call_on_queue({'agent_id': 1, 'time': '2020-11-01 10:00:00+0000', 'talktime': 900, 'status': 'answered'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-11-01 06:00:00+0000', 'login_time': '01:00:00', 'pause_time': '00:15:00', 'wrapup_time': '00:05:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-11-01 08:00:00+0000', 'login_time': '00:30:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:42'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-11-01 10:00:00+0000', 'login_time': '01:00:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
+    # fmt: on
+    def test_get_interval_with_start_end_time_follows_timezone_on_dst_threshold(self):
+        tenant_uuids = None
+        kwargs = {
+            'start_time': 1,  # = 5 UTC
+            'end_time': 3,  # = 8 UTC
+            'from_': dt(2020, 11, 1, 0, 0, 0, tzinfo=tz(td(hours=-4))),
+            'timezone': 'America/Montreal',
+        }
+        result = self.dao.agent_stat.get_interval(tenant_uuids, **kwargs)
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_entries(
+                    agent_id=42,
+                    agent_number='1001',
+                    answered=2,
+                    conversation_time=td(seconds=12 + 11).seconds,
+                    login_time=td(hours=1, minutes=30).seconds,
                 ),
             ),
         )
@@ -222,6 +254,7 @@ class TestAgentStat(DBIntegrationTest):
         kwargs = {
             'from_': dt(2020, 9, 1, 0, 0, 0, tzinfo=tz(td(hours=12))),
             'week_days': [1, 2, 3, 4, 5],
+            'timezone': 'Pacific/Auckland',
         }
         result = self.dao.agent_stat.get_interval(tenant_uuids, **kwargs)
         assert_that(

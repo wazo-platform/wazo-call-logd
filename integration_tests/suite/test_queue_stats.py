@@ -173,6 +173,34 @@ class TestInputParameters(IntegrationTest):
             {'qos_threshold': 124.2},
             {'qos_threshold': '2020-10-06 10:00:00'},
             {'qos_threshold': -1},
+            # day_start_time
+            {'day_start_time': 'test'},
+            {'day_start_time': False},
+            {'day_start_time': 124},
+            {'day_start_time': 124.5},
+            {'day_start_time': '2020-10-06 10:00:00'},
+            {'day_start_time': '25:00'},
+            {'day_start_time': '23:60'},
+            # day_end_time
+            {'day_end_time': 'test'},
+            {'day_end_time': False},
+            {'day_end_time': 124},
+            {'day_end_time': 124.5},
+            {'day_end_time': '2020-10-06 10:00:00'},
+            {'day_end_time': '25:00'},
+            {'day_end_time': '23:60'},
+            # Logic
+            {'day_end_time': '22:00', 'day_start_time': '23:00'},
+            {'from_': '2020-10-10T00:00:00', 'until': '2020-10-09T23:59:59'},
+            {'from_': '2020-10-10T00:00:00', 'until': '2020-10-10T00:00:00+01:00'},
+            # week_days
+            {'week_days': 42},
+            {'week_days': '6,7,8'},
+            {'week_days': 'test'},
+            {'week_days': False},
+            # Timezone
+            {'timezone': 'invalid'},
+            {'timezone': 1234},
         ]
 
         for body in erronous_bodies:
