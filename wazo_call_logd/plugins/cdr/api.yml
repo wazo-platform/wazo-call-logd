@@ -38,12 +38,7 @@ paths:
       tags:
         - cdr
       parameters:
-        -
-          name: cdr_id
-          description: ID of the CDR
-          required: true
-          type: integer
-          in: path
+        - $ref: '#/parameters/cdr_id'
       responses:
         '200':
           description: Get a CDR by ID
@@ -54,6 +49,56 @@ paths:
       produces:
         - application/json
         - text/csv; charset=utf-8
+  /cdr/{cdr_id}/recordings/{recording_uuid}:
+    get:
+      summary: Get recording metadata
+      description: '**Required ACL:** `call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.read`'
+      tags:
+        - cdr
+      parameters:
+        - $ref: '#/parameters/cdr_id'
+        - $ref: '#/parameters/recording_uuid'
+      responses:
+        '200':
+          description: Get recording metadata
+          schema:
+            $ref: '#/definitions/recording'
+        '404':
+          $ref: '#/responses/NotFoundError'
+      produces:
+        - application/json
+  /cdr/{cdr_id}/recordings/{recording_uuid}/media:
+    get:
+      summary: Get a recording media
+      description: '**Required ACL:** `call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read`'
+      tags:
+        - cdr
+      parameters:
+        - $ref: '#/parameters/cdr_id'
+        - $ref: '#/parameters/recording_uuid'
+        - $ref: '#/parameters/force_download'
+      responses:
+        '200':
+          description: Get a recording media
+          schema:
+            $ref: '#/definitions/recording'
+        '404':
+          $ref: '#/responses/NotFoundError'
+      produces:
+      - audio/wav
+    delete:
+      summary: Delete a recording media
+      description: '**Required ACL:** `call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete`'
+      tags:
+        - cdr
+      parameters:
+        - $ref: '#/parameters/cdr_id'
+        - $ref: '#/parameters/recording_uuid'
+      responses:
+        '204':
+          description: The recording was deleted successfully
+        '404':
+          $ref: '#/responses/NotFoundError'
   /users/{user_uuid}/cdr:
     get:
       summary: List CDR of the given user
@@ -214,6 +259,23 @@ parameters:
     in: query
     type: integer
     required: false
+  cdr_id:
+    name: cdr_id
+    description: ID of the CDR
+    required: true
+    type: integer
+    in: path
+  recording_uuid:
+    name: recording_uuid
+    description: UUID of the recording
+    required: true
+    type: integer
+    in: path
+  force_download:
+    name: download
+    in: query
+    description: Set to 1 to force download by browser
+    type: string
 definitions:
   CDRList:
     type: object
@@ -304,3 +366,20 @@ definitions:
         type: array
         items:
           type: string
+      recordings:
+        type: array
+        items:
+          $ref: '#/definitions/recording'
+  recording:
+    type: object
+    properties:
+      uuid:
+        type: string
+      start_time:
+        type: string
+        format: date-time
+      end_time:
+        type: string
+        format: date-time
+      deleted:
+        type: boolean
