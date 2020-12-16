@@ -74,12 +74,15 @@ def stat_agent(agent):
         def wrapped_function(self, *args, **kwargs):
             with self.database.queries() as queries:
                 agent.setdefault('tenant_uuid', MASTER_TENANT)
-                stat_agent_id = queries.insert_stat_agent(**agent)
+                agent.setdefault('name', 'agent')
+                agent.setdefault('agent_id', 1)
+                agent.setdefault('id', agent['agent_id'])
+                queries.insert_stat_agent(**agent)
             try:
                 return func(self, *args, **kwargs)
             finally:
                 with self.database.queries() as queries:
-                    queries.delete_stat_agent(stat_agent_id)
+                    queries.delete_stat_agent(agent['id'])
 
         return wrapped_function
 
@@ -91,6 +94,7 @@ def stat_agent_periodic(stat):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             with self.database.queries() as queries:
+                stat.setdefault('time', '2020-10-01 14:00:00')
                 agent_id = stat.pop('agent_id', 1)
                 stat['stat_agent_id'] = agent_id
                 stat['id'] = queries.insert_stat_agent_periodic(**stat)
