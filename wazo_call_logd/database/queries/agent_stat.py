@@ -42,6 +42,7 @@ class AgentStatDAO(BaseDAO):
                 session.query(StatAgentPeriodic.time)
                 .join(StatAgent)
                 .filter(StatAgent.agent_id == agent_id)
+                .filter(StatAgent.deleted.is_(False))
                 .order_by(StatAgentPeriodic.time.asc())
                 .limit(1)
             )
@@ -51,7 +52,7 @@ class AgentStatDAO(BaseDAO):
         with self.new_session() as session:
             query = session.query(
                 StatAgent.agent_id, StatAgent.number, StatAgent.tenant_uuid
-            )
+            ).filter(StatAgent.deleted.is_(False))
 
             if tenant_uuids:
                 query = query.filter(StatAgent.tenant_uuid.in_(tenant_uuids))
@@ -67,9 +68,11 @@ class AgentStatDAO(BaseDAO):
 
     def get_stat_agent(self, agent_id, tenant_uuids=None):
         with self.new_session() as session:
-            query = session.query(
-                StatAgent.agent_id, StatAgent.number, StatAgent.tenant_uuid
-            ).filter(StatAgent.agent_id == agent_id)
+            query = (
+                session.query(StatAgent.agent_id, StatAgent.number, StatAgent.tenant_uuid)
+                .filter(StatAgent.agent_id == agent_id)
+                .filter(StatAgent.deleted.is_(False))
+            )
 
             if tenant_uuids:
                 query = query.filter(StatAgent.tenant_uuid.in_(tenant_uuids))
@@ -124,6 +127,7 @@ class AgentStatDAO(BaseDAO):
                 func.sum(StatAgentPeriodic.wrapup_time).label('wrapup_time'),
             )
             .select_from(StatAgent)
+            .filter(StatAgent.deleted.is_(False))
             .join(StatAgentPeriodic)
             .group_by(StatAgentPeriodic.stat_agent_id)
         )

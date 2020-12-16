@@ -333,6 +333,13 @@ class TestAgentStat(DBIntegrationTest):
         result = self.dao.agent_stat.get_interval_by_agent(tenant_uuids, 1)
         assert_that(result, equal_to(None))
 
+    @stat_agent({'id': 1, 'deleted': True})
+    @stat_agent_periodic({'agent_id': 1})
+    def test_get_interval_by_queue_when_deleted(self):
+        tenant_uuids = None
+        result = self.dao.agent_stat.get_interval_by_agent(tenant_uuids, 1)
+        assert_that(result, equal_to(None))
+
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-01 14:00:00'})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-01 13:00:00'})
@@ -343,6 +350,12 @@ class TestAgentStat(DBIntegrationTest):
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     def test_find_oldest_time_when_empty(self):
         result = self.dao.queue_stat.find_oldest_time(42)
+        assert_that(result, equal_to(None))
+
+    @stat_agent({'id': 1, 'deleted': True})
+    @stat_agent_periodic({'agent_id': 1})
+    def test_find_oldest_time_when_deleted(self):
+        result = self.dao.agent_stat.find_oldest_time(1)
         assert_that(result, equal_to(None))
 
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
@@ -374,6 +387,11 @@ class TestAgentStat(DBIntegrationTest):
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     def test_get_stat_agent_when_searching_in_no_tenants(self):
         result = self.dao.agent_stat.get_stat_agent(42, tenant_uuids=[])
+        assert_that(result, equal_to(None))
+
+    @stat_agent({'agent_id': 1, 'name': 'agent', 'deleted': True})
+    def test_get_stat_agent_when_deleted(self):
+        result = self.dao.agent_stat.get_stat_agent(1)
         assert_that(result, equal_to(None))
 
     @stat_agent({'agent_id': 1, 'name': 'Agent/1001', 'tenant_uuid': USERS_TENANT})
@@ -428,3 +446,9 @@ class TestAgentStat(DBIntegrationTest):
     def test_get_stat_agents_when_no_agent(self):
         result = self.dao.agent_stat.get_stat_agents()
         assert_that(result, empty())
+
+    @stat_agent({'agent_id': 1, 'name': 'agent', 'deleted': True})
+    @stat_agent({'agent_id': 2, 'name': 'agent', 'deleted': False})
+    def test_get_stat_agents_when_deleted(self):
+        result = self.dao.agent_stat.get_stat_agents()
+        assert_that(result, contains_inanyorder(has_entries(agent_id=2)))
