@@ -53,11 +53,7 @@ class AgentStatDAO(BaseDAO):
             query = session.query(
                 StatAgent.agent_id, StatAgent.number, StatAgent.tenant_uuid
             ).filter(StatAgent.deleted.is_(False))
-
-            if tenant_uuids:
-                query = query.filter(StatAgent.tenant_uuid.in_(tenant_uuids))
-            elif not tenant_uuids and tenant_uuids is not None:
-                query = query.filter(text('false'))
+            query = self._add_tenant_filter(query, tenant_uuids)
 
             rows = query.all()
             results = []
@@ -69,15 +65,13 @@ class AgentStatDAO(BaseDAO):
     def get_stat_agent(self, agent_id, tenant_uuids=None):
         with self.new_session() as session:
             query = (
-                session.query(StatAgent.agent_id, StatAgent.number, StatAgent.tenant_uuid)
+                session.query(
+                    StatAgent.agent_id, StatAgent.number, StatAgent.tenant_uuid
+                )
                 .filter(StatAgent.agent_id == agent_id)
                 .filter(StatAgent.deleted.is_(False))
             )
-
-            if tenant_uuids:
-                query = query.filter(StatAgent.tenant_uuid.in_(tenant_uuids))
-            elif not tenant_uuids and tenant_uuids is not None:
-                query = query.filter(text('false'))
+            query = self._add_tenant_filter(query, tenant_uuids)
 
             row = query.first()
             if row:
@@ -134,6 +128,13 @@ class AgentStatDAO(BaseDAO):
         query = self._add_interval_query(StatAgentPeriodic, query, **filters)
         return query
 
+    def _add_tenant_filter(self, query, tenant_uuids):
+        if tenant_uuids:
+            query = query.filter(StatAgent.tenant_uuid.in_(tenant_uuids))
+        elif not tenant_uuids and tenant_uuids is not None:
+            query = query.filter(text('false'))
+        return query
+
     # NOTE(fblackburn): This only work because tables used have same column name
     def _add_interval_query(
         self,
@@ -148,10 +149,7 @@ class AgentStatDAO(BaseDAO):
         timezone=None,
         **ignored,
     ):
-        if tenant_uuids:
-            query = query.filter(StatAgent.tenant_uuid.in_(tenant_uuids))
-        elif not tenant_uuids and tenant_uuids is not None:
-            query = query.filter(text('false'))
+        query = self._add_tenant_filter(query, tenant_uuids)
 
         if from_:
             query = query.filter(table.time >= from_)
