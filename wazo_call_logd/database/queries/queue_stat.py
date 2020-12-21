@@ -102,6 +102,31 @@ class QueueStatDAO(BaseDAO):
                 results.append({**basic_stats, **extra_stats})
         return results
 
+    def get_qos_interval_by_queue(
+        self, tenant_uuids, queue_id, qos_min=None, qos_max=None, **filters
+    ):
+        with self.new_session() as session:
+            answered_query = self._qos_interval_query(
+                session,
+                queue_id,
+                'answered',
+                qos_min=qos_min,
+                qos_max=qos_max,
+                **filters,
+            )
+            abandoned_query = self._qos_interval_query(
+                session,
+                queue_id,
+                'abandoned',
+                qos_min=qos_min,
+                qos_max=qos_max,
+                **filters,
+            )
+            return {
+                'answered': answered_query.scalar() or 0,
+                'abandoned': abandoned_query.scalar() or 0,
+            }
+
     def _add_tenant_filter(self, query, tenant_uuids):
         if tenant_uuids:
             query = query.filter(StatQueue.tenant_uuid.in_(tenant_uuids))
@@ -234,6 +259,21 @@ class QueueStatDAO(BaseDAO):
         )
         query = self._add_interval_query(StatCallOnQueue, query, **filters)
         return query.scalar() or 0
+
+    def _qos_interval_query(
+        self, session, queue_id, status, qos_min=None, qos_max=None, **filters
+    ):
+        query = (
+            session.query(func.count(StatCallOnQueue.status))
+            .filter(StatQueue.queue_id == queue_id)
+            .filter(StatCallOnQueue.status == status)
+            .join(StatQueue)
+        )
+        if qos_min is not None:
+            query = query.filter(StatCallOnQueue.waittime >= qos_min)
+        if qos_max is not None:
+            query = query.filter(StatCallOnQueue.waittime < qos_max)
+        return self._add_interval_query(StatCallOnQueue, query, **filters)
 
     def _get_total_wait_time(self, session, queue_id, **filters):
         query = (

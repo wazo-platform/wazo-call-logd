@@ -62,6 +62,19 @@ class QueueStatisticsSchema(_StatisticsPeriodSchema):
     quality_of_service = fields.Float(attribute='qos', default=None)
 
 
+class _QoSSchema(Schema):
+    min_ = fields.Integer(default=None, attribute='min', data_key='min')
+    max_ = fields.Integer(default=None, attribute='max', data_key='max')
+    answered = fields.Integer(default=0)
+    abandoned = fields.Integer(default=0)
+
+
+class QueueStatisticsQoSSchema(_StatisticsPeriodSchema):
+    queue_id = fields.Integer(default=None)
+    queue_name = fields.String(default=None)
+    quality_of_service = fields.List(fields.Nested(_QoSSchema))
+
+
 class _StatisticsListRequestSchema(Schema):
     from_ = fields.DateTime(data_key='from', missing=None)
     until = fields.DateTime(missing=None)
@@ -84,7 +97,9 @@ class _StatisticsListRequestSchema(Schema):
 
     @pre_load
     def convert_week_days_to_list(self, data):
-        result = data.to_dict()
+        result = data.copy()
+        if not isinstance(data, dict):
+            result = data.to_dict()
         if data.get('week_days'):
             result['week_days'] = list(set(data['week_days'].split(',')))
         return result
@@ -147,6 +162,32 @@ class QueueStatisticsRequestSchema(QueueStatisticsListRequestSchema):
     interval = fields.String(validate=OneOf(['hour', 'day', 'month']))
 
 
+class QueueStatisticsQoSRequestSchema(_StatisticsListRequestSchema):
+    interval = fields.String(validate=OneOf(['hour', 'day', 'month']))
+    qos_thresholds = fields.List(fields.Integer(validate=Range(min=0)), missing=[])
+
+    @pre_load
+    def convert_qos_thresholds_to_list(self, data):
+        result = data.copy()
+        if not isinstance(result, dict):
+            result = result.to_dict()
+        if data.get('qos_thresholds'):
+            result['qos_thresholds'] = list(set(data['qos_thresholds'].split(',')))
+        return result
+
+    @post_load
+    def sort_qos_thresholds(self, data):
+        result = data.copy()
+        if data.get('qos_thresholds'):
+            result['qos_thresholds'] = sorted(data['qos_thresholds'])
+        return result
+
+
 class QueueStatisticsSchemaList(Schema):
     items = fields.Nested(QueueStatisticsSchema, many=True)
+    total = fields.Integer()
+
+
+class QueueStatisticsQoSSchemaList(Schema):
+    items = fields.Nested(QueueStatisticsQoSSchema, many=True)
     total = fields.Integer()

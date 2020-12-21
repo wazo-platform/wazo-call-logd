@@ -6,6 +6,7 @@ from .http import (
     AgentStatisticsResource,
     QueuesStatisticsResource,
     QueueStatisticsResource,
+    QueueStatisticsQoSResource,
 )
 
 from .services import AgentStatisticsService, QueueStatisticsService
@@ -37,5 +38,10 @@ class Plugin(object):
         api.add_resource(
             QueueStatisticsResource,
             '/queues/<int:queue_id>/statistics',
+            resource_class_args=[queue_service],
+        )
+        api.add_resource(
+            QueueStatisticsQoSResource,
+            '/queues/<int:queue_id>/statistics/qos',
             resource_class_args=[queue_service],
         )

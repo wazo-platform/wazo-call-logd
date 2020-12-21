@@ -64,6 +64,17 @@ class _StatisticsService:
     def _datetime_in_time_interval(self, date_time, start_time, end_time):
         return start_time <= date_time.hour <= end_time
 
+    def _generate_qos_interval(self, qos_thresholds):
+        qos_iter = iter(qos_thresholds)
+        prev = next(qos_iter, None)
+        yield 0, prev
+        if prev is None:
+            return
+        for current in qos_iter:
+            yield prev, current
+            prev = current
+        yield prev, None
+
 
 class AgentStatisticsService(_StatisticsService):
     def __init__(self, dao):
@@ -298,6 +309,110 @@ class QueueStatisticsService(_StatisticsService):
         return {
             'items': queue_stats,
             'total': len(queue_stats),
+        }
+
+    def get_qos(
+        self,
+        tenant_uuids,
+        queue_id,
+        timezone,
+        from_=None,
+        until=None,
+        interval=None,
+        start_time=None,
+        end_time=None,
+        week_days=None,
+        qos_thresholds=None,
+        **kwargs
+    ):
+        qos_stats = list()
+        stat_queue = self._dao.get_stat_queue(queue_id, tenant_uuids)
+        if not stat_queue:
+            raise QueueNotFoundException(details={'queue_id': queue_id})
+
+        timezone = pytz.timezone(timezone)
+        from_ = from_ or timezone.normalize(self._dao.find_oldest_time(queue_id))
+        until = until or self._get_tomorrow(timezone)
+
+        if interval:
+            for start, end in self._generate_interval(interval, from_, until, timezone):
+                if interval == 'hour':
+                    if start_time is not None and end_time is not None:
+                        if not self._datetime_in_time_interval(
+                            start, start_time, end_time
+                        ):
+                            continue
+                        if not self._datetime_in_time_interval(
+                            end, start_time, end_time
+                        ):
+                            continue
+                if interval in ('hour', 'day'):
+                    if week_days and not self._datetime_in_week_days(start, week_days):
+                        continue
+
+                interval_timeframe = {
+                    'from': start,
+                    'until': end,
+                    'queue_id': queue_id,
+                    'queue_name': stat_queue['name'],
+                    'tenant_uuid': stat_queue['tenant_uuid'],
+                    'quality_of_service': [],
+                }
+                for qos_min, qos_max in self._generate_qos_interval(qos_thresholds):
+                    interval_stats = {
+                        'min': qos_min,
+                        'max': qos_max,
+                        **self._dao.get_qos_interval_by_queue(
+                            tenant_uuids,
+                            queue_id=queue_id,
+                            from_=start,
+                            until=end,
+                            start_time=start_time,
+                            end_time=end_time,
+                            week_days=week_days,
+                            timezone=timezone,
+                            qos_min=qos_min,
+                            qos_max=qos_max,
+                            **kwargs
+                        ),
+                    }
+                    interval_timeframe['quality_of_service'].append(interval_stats)
+                qos_stats.append(interval_timeframe)
+
+        period_timeframe = {
+            'from': from_,
+            'until': until,
+            'queue_id': queue_id,
+            'queue_name': stat_queue['name'],
+            'tenant_uuid': stat_queue['tenant_uuid'],
+            'quality_of_service': [],
+        }
+
+        for qos_min, qos_max in self._generate_qos_interval(qos_thresholds):
+            period_stats = {
+                'min': qos_min,
+                'max': qos_max,
+                **self._dao.get_qos_interval_by_queue(
+                    tenant_uuids,
+                    queue_id=queue_id,
+                    from_=from_,
+                    until=until,
+                    start_time=start_time,
+                    end_time=end_time,
+                    week_days=week_days,
+                    timezone=timezone,
+                    qos_min=qos_min,
+                    qos_max=qos_max,
+                    **kwargs
+                ),
+            }
+            period_timeframe['quality_of_service'].append(period_stats)
+
+        qos_stats.append(period_timeframe)
+
+        return {
+            'items': qos_stats,
+            'total': len(qos_stats),
         }
 
     def list(self, tenant_uuids, timezone, from_=None, until=None, **kwargs):
