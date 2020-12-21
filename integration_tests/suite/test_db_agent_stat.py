@@ -335,7 +335,7 @@ class TestAgentStat(DBIntegrationTest):
 
     @stat_agent({'id': 1, 'deleted': True})
     @stat_agent_periodic({'agent_id': 1})
-    def test_get_interval_by_queue_when_deleted(self):
+    def test_get_interval_by_agent_when_deleted(self):
         tenant_uuids = None
         result = self.dao.agent_stat.get_interval_by_agent(tenant_uuids, 1)
         assert_that(result, equal_to(None))
