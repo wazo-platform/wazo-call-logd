@@ -78,7 +78,6 @@ class QueueStatisticsQoSSchema(_StatisticsPeriodSchema):
 class _StatisticsListRequestSchema(Schema):
     from_ = fields.DateTime(data_key='from', missing=None)
     until = fields.DateTime(missing=None)
-    qos_threshold = fields.Integer(validate=Range(min=0))
     day_start_time = fields.String(attribute='start_time', validate=Regexp(HOUR_REGEX))
     day_end_time = fields.String(attribute='end_time', validate=Regexp(HOUR_REGEX))
     week_days = fields.List(
@@ -147,11 +146,11 @@ class _StatisticsListRequestSchema(Schema):
 
 
 class AgentStatisticsListRequestSchema(_StatisticsListRequestSchema):
-    pass
+    qos_threshold = fields.Integer(validate=Range(min=0))
 
 
 class QueueStatisticsListRequestSchema(_StatisticsListRequestSchema):
-    pass
+    qos_threshold = fields.Integer(validate=Range(min=0))
 
 
 class AgentStatisticsRequestSchema(AgentStatisticsListRequestSchema):
