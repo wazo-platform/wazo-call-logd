@@ -112,6 +112,7 @@ class QueueStatDAO(BaseDAO):
                 'answered',
                 qos_min=qos_min,
                 qos_max=qos_max,
+                tenant_uuids=tenant_uuids,
                 **filters,
             )
             abandoned_query = self._qos_interval_query(
@@ -120,6 +121,7 @@ class QueueStatDAO(BaseDAO):
                 'abandoned',
                 qos_min=qos_min,
                 qos_max=qos_max,
+                tenant_uuids=tenant_uuids,
                 **filters,
             )
             return {

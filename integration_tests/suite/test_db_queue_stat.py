@@ -462,5 +462,44 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_qos_interval_by_queue([], 1)
         assert_that(result, empty())
 
+    # fmt: off
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:01:00', 'waittime': 1, 'status': 'answered', 'tenant_uuid': OTHER_TENANT})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:02:00', 'waittime': 2, 'status': 'abandoned', 'tenant_uuid': USERS_TENANT})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:03:00', 'waittime': 3, 'status': 'answered', 'tenant_uuid': USERS_TENANT})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': OTHER_TENANT})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 1, 'abandoned': 1, 'tenant_uuid': USERS_TENANT})
+    # fmt: on
+    def test_get_qos_interval_filtered_by_empty_tenant(self):
+        tenant_uuids = []
+        result = self.dao.queue_stat.get_qos_interval_by_queue(tenant_uuids, 1, qos_min=0, qos_max=5)
+        assert_that(
+            result,
+            has_entries(answered=0),
+            has_entries(abandoned=0),
+        )
+
+    # fmt: off
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:01:00', 'waittime': 1, 'status': 'answered', 'tenant_uuid': OTHER_TENANT})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:02:00', 'waittime': 2, 'status': 'abandoned', 'tenant_uuid': USERS_TENANT})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:03:00', 'waittime': 3, 'status': 'answered', 'tenant_uuid': USERS_TENANT})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': OTHER_TENANT})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 1, 'abandoned': 1, 'tenant_uuid': USERS_TENANT})
+    # fmt: on
+    def test_get_qos_interval_filtered_by_tenant(self):
+        result = self.dao.queue_stat.get_qos_interval_by_queue(
+            [OTHER_TENANT], 1, qos_min=0, qos_max=5,
+        )
+        assert_that(result, has_entries(answered=1, abandoned=0))
+
+        result = self.dao.queue_stat.get_qos_interval_by_queue(
+            [USERS_TENANT, OTHER_TENANT], 1, qos_min=0, qos_max=5,
+        )
+        assert_that(result, has_entries(answered=1, abandoned=0))
+
+        result = self.dao.queue_stat.get_qos_interval_by_queue(
+            [USERS_TENANT], 1, qos_min=0, qos_max=5,
+        )
+        assert_that(result, has_entries(answered=0, abandoned=0))
+
     def qos(self, answered, nb_calls):
         return round(100.0 * nb_calls / answered, 2)
