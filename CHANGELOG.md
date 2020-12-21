@@ -1,5 +1,11 @@
 # Changelog
 
+## 21.01
+
+* New endpoint for queue QoS period statistics:
+
+  * `GET /queues/<queue_id>/statistics/qos`
+
 ## 20.17
 
 * `GET /agents/statistics`, `GET /agents/<agent_id>/statistics` accepts new query string
