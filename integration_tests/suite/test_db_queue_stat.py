@@ -453,5 +453,14 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_stat_queues()
         assert_that(result, contains_inanyorder(has_entries(queue_id=2)))
 
+    def test_get_qos_interval_when_no_queue(self):
+        tenant_uuids = None
+        result = self.dao.queue_stat.get_qos_interval_by_queue(tenant_uuids, 1)
+        assert_that(result, empty())
+
+    def test_get_qos_interval_empty_tenant(self):
+        result = self.dao.queue_stat.get_qos_interval_by_queue([], 1)
+        assert_that(result, empty())
+
     def qos(self, answered, nb_calls):
         return round(100.0 * nb_calls / answered, 2)
