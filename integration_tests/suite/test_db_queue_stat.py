@@ -471,7 +471,9 @@ class TestQueueStat(DBIntegrationTest):
     # fmt: on
     def test_get_qos_interval_filtered_by_empty_tenant(self):
         tenant_uuids = []
-        result = self.dao.queue_stat.get_qos_interval_by_queue(tenant_uuids, 1, qos_min=0, qos_max=5)
+        result = self.dao.queue_stat.get_qos_interval_by_queue(
+            tenant_uuids, 1, qos_min=0, qos_max=5
+        )
         assert_that(
             result,
             has_entries(answered=0),
@@ -487,19 +489,74 @@ class TestQueueStat(DBIntegrationTest):
     # fmt: on
     def test_get_qos_interval_filtered_by_tenant(self):
         result = self.dao.queue_stat.get_qos_interval_by_queue(
-            [OTHER_TENANT], 1, qos_min=0, qos_max=5,
+            [OTHER_TENANT],
+            1,
+            qos_min=0,
+            qos_max=5,
         )
         assert_that(result, has_entries(answered=1, abandoned=0))
 
         result = self.dao.queue_stat.get_qos_interval_by_queue(
-            [USERS_TENANT, OTHER_TENANT], 1, qos_min=0, qos_max=5,
+            [USERS_TENANT, OTHER_TENANT],
+            1,
+            qos_min=0,
+            qos_max=5,
         )
         assert_that(result, has_entries(answered=1, abandoned=0))
 
         result = self.dao.queue_stat.get_qos_interval_by_queue(
-            [USERS_TENANT], 1, qos_min=0, qos_max=5,
+            [USERS_TENANT],
+            1,
+            qos_min=0,
+            qos_max=5,
         )
         assert_that(result, has_entries(answered=0, abandoned=0))
+
+    # fmt: off
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T01:02:00-04:00', 'waittime': 1, 'status': 'abandoned'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T01:03:00-04:00', 'waittime': 2, 'status': 'answered'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T01:03:00-04:00', 'waittime': 15, 'status': 'answered'})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T01:00:00-04:00', 'answered': 2, 'abandoned': 1})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T01:02:00-05:00', 'waittime': 3, 'status': 'abandoned'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T01:03:00-05:00', 'waittime': 4, 'status': 'answered'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T01:03:00-05:00', 'waittime': 15, 'status': 'answered'})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T01:00:00-05:00', 'answered': 2, 'abandoned': 1})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T02:02:00-05:00', 'waittime': 5, 'status': 'abandoned'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T02:03:00-05:00', 'waittime': 6, 'status': 'answered'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T02:03:00-05:00', 'waittime': 15, 'status': 'answered'})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T02:00:00-05:00', 'answered': 2, 'abandoned': 1})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T03:02:00-05:00', 'waittime': 7, 'status': 'abandoned'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T03:03:00-05:00', 'waittime': 8, 'status': 'answered'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T03:03:00-05:00', 'waittime': 15, 'status': 'answered'})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T03:00:00-05:00', 'answered': 2, 'abandoned': 1})
+    # The following is not counted at all
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T04:02:00-05:00', 'waittime': 1, 'status': 'abandoned'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T04:03:00-05:00', 'waittime': 2, 'status': 'answered'})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-11-01T04:03:00-05:00', 'waittime': 15, 'status': 'answered'})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-11-01T04:00:00-05:00', 'answered': 2, 'abandoned': 1})
+    # fmt: on
+    def test_get_qos_intervals_on_dst_change_adds_number_of_calls(self):
+        tenant_uuids = None
+        kwargs = {
+            'from_': dt(2020, 11, 1, 0, 0, 0, tzinfo=tz(td(hours=-4))),
+            'until': dt(2020, 11, 1, 4, 0, 0, tzinfo=tz(td(hours=-5))),
+            'qos_min': 0,
+            'qos_max': 5,
+            'start_time': 0,
+            'end_time': 3,
+            'timezone': 'America/Montreal',
+        }
+        result = self.dao.queue_stat.get_qos_interval_by_queue(
+            tenant_uuids, 1, **kwargs
+        )
+        assert_that(result, has_entries(answered=2, abandoned=2))
+
+        kwargs['qos_min'] = 5
+        kwargs['qos_max'] = 20
+        result = self.dao.queue_stat.get_qos_interval_by_queue(
+            tenant_uuids, 1, **kwargs
+        )
+        assert_that(result, has_entries(answered=6, abandoned=2))
 
     def qos(self, answered, nb_calls):
         return round(100.0 * nb_calls / answered, 2)
