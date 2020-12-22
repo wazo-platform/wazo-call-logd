@@ -124,10 +124,11 @@ class QueueStatDAO(BaseDAO):
                 tenant_uuids=tenant_uuids,
                 **filters,
             )
-            return {
+            result = {
                 'answered': answered_query.scalar() or 0,
                 'abandoned': abandoned_query.scalar() or 0,
             }
+        return result
 
     def _add_tenant_filter(self, query, tenant_uuids):
         if tenant_uuids:

@@ -456,11 +456,17 @@ class TestQueueStat(DBIntegrationTest):
     def test_get_qos_interval_when_no_queue(self):
         tenant_uuids = None
         result = self.dao.queue_stat.get_qos_interval_by_queue(tenant_uuids, 1)
-        assert_that(result, empty())
+        assert_that(
+            result,
+            has_entries(answered=0, abandoned=0),
+        )
 
     def test_get_qos_interval_empty_tenant(self):
         result = self.dao.queue_stat.get_qos_interval_by_queue([], 1)
-        assert_that(result, empty())
+        assert_that(
+            result,
+            has_entries(answered=0, abandoned=0),
+        )
 
     # fmt: off
     @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:01:00', 'waittime': 1, 'status': 'answered', 'tenant_uuid': OTHER_TENANT})
