@@ -6,7 +6,7 @@ import logging
 import sqlalchemy as sa
 
 from contextlib import contextmanager
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.alchemy.stat_agent import StatAgent
@@ -207,7 +207,7 @@ class DbHelper(object):
 class DatabaseQueries(object):
     def __init__(self, connection):
         self.connection = connection
-        self.Session = sessionmaker(bind=connection)
+        self.Session = scoped_session(sessionmaker(bind=connection))
 
     @contextmanager
     def inserter(self):
