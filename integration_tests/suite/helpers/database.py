@@ -181,7 +181,6 @@ class DbHelper(object):
     def __init__(self, uri, db):
         self.uri = uri
         self.db = db
-        self._connection = None
         uri = "{}/{}".format(self.uri, self.db)
         self._engine = sa.create_engine(uri, pool_pre_ping=True)
 
@@ -194,10 +193,7 @@ class DbHelper(object):
             return False
 
     def connect(self):
-        if self._connection and not self._connection.closed:
-            return self._connection
-        self._connection = self._engine.connect()
-        return self._connection
+        return self._engine.connect()
 
     def execute(self, query, **kwargs):
         with self.connect() as connection:
