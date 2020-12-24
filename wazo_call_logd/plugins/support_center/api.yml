@@ -130,7 +130,7 @@ paths:
       description: |
         **Required ACL:** `call-logd.queues.statistics.{queue_id}.qos.read`
 
-        QoS thresholds implicitely include a starting 0 and ending to infinite (None).
+        QoS thresholds implicitly include a starting 0 and ending to infinite (null).
 
         Statistics for a queue are aggregated by the `interval` query parameter, or if not
         specified or empty, as a unique result over the period. The period is specified by the
