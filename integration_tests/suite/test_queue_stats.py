@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
 # Copyright 2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
 
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from hamcrest import (
     assert_that,
     calling,
@@ -84,9 +81,7 @@ class TestInputParameters(IntegrationTest):
 
     asset = 'base'
 
-    # fmt: off
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'answered': 1})
-    # fmt: on
     def test_that_getting_queue_stats_with_wrong_parameters_raises_error(self):
         erronous_bodies = [
             # from_
@@ -155,6 +150,76 @@ class TestInputParameters(IntegrationTest):
     # fmt: off
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'answered': 1})
     # fmt: on
+    def test_that_getting_queue_qos_stats_with_wrong_parameters_raises_error(self):
+        erronous_bodies = [
+            # from_
+            {'from_': 'test'},
+            {'from_': False},
+            {'from_': 1234},
+            {'from_': '2020-10-05'},
+            # until
+            {'until': 'test'},
+            {'until': False},
+            {'until': 1234},
+            {'until': '2020-10-05'},
+            # qos_thresholds
+            {'qos_thresholds': 'test'},
+            {'qos_thresholds': False},
+            {'qos_thresholds': 124.2},
+            {'qos_thresholds': '2020-10-06 10:00:00'},
+            {'qos_thresholds': -1},
+            {'qos_thresholds': '-1'},
+            {'qos_thresholds': '3,-1'},
+            # interval
+            {'interval': 'test'},
+            # day_start_time
+            {'day_start_time': 'test'},
+            {'day_start_time': False},
+            {'day_start_time': 124},
+            {'day_start_time': 124.5},
+            {'day_start_time': '2020-10-06 10:00:00'},
+            {'day_start_time': '25:00'},
+            {'day_start_time': '23:60'},
+            # day_end_time
+            {'day_end_time': 'test'},
+            {'day_end_time': False},
+            {'day_end_time': 124},
+            {'day_end_time': 124.5},
+            {'day_end_time': '2020-10-06 10:00:00'},
+            {'day_end_time': '25:00'},
+            {'day_end_time': '23:60'},
+            # Logic
+            {'day_end_time': '22:00', 'day_start_time': '23:00'},
+            {'from_': '2020-10-10T00:00:00', 'until': '2020-10-09T23:59:59'},
+            {'from_': '2020-10-10T00:00:00', 'until': '2020-10-10T00:00:00+01:00'},
+            # Too long
+            {
+                'from_': '2020-10-01 00:00:00',
+                'until': '2020-11-01 00:00:01',
+                'interval': 'hour',
+            },
+            # week_days
+            {'week_days': 42},
+            {'week_days': '6,7,8'},
+            {'week_days': 'test'},
+            {'week_days': False},
+            # Timezone
+            {'timezone': 'invalid'},
+            {'timezone': 1234},
+        ]
+
+        for body in erronous_bodies:
+            assert_that(
+                calling(self.call_logd.queue_statistics.get_qos_by_id).with_args(
+                    queue_id=1, **body
+                ),
+                raises(CallLogdError).matching(has_properties(status_code=400)),
+                body,
+            )
+
+    # fmt: off
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'answered': 1})
+    # fmt: on
     def test_that_listing_queues_with_wrong_parameters_raises_errors(self):
         erronous_bodies = [
             # from_
@@ -214,15 +279,6 @@ class TestInputParameters(IntegrationTest):
 class TestStatistics(IntegrationTest):
 
     asset = 'base'
-
-    def _get_tomorrow(self, timezone=None):
-        timezone = timezone or pytz.utc
-        today = timezone.normalize(timezone.localize(datetime.now()))
-        return timezone.normalize(
-            timezone.localize(
-                datetime(today.year, today.month, today.day) + relativedelta(days=1)
-            )
-        ).isoformat(timespec='seconds')
 
     def test_list_queue_statistics_when_no_stats(self):
         results = self.call_logd.queue_statistics.list()
@@ -1240,60 +1296,43 @@ class TestStatistics(IntegrationTest):
             timezone='America/Montreal',
         )
 
+        common_fields = {
+            'tenant_uuid': MASTER_TENANT,
+            'queue_id': 1,
+            'queue_name': 'queue',
+            'abandoned': 0,
+            'closed': 0,
+            'not_answered': 0,
+            'saturated': 0,
+            'blocked': 0,
+            'average_waiting_time': 0,
+            'answered_rate': 100.0,
+            'quality_of_service': None,
+        }
         assert_that(results, has_entries(total=equal_to(3)))
         assert_that(
             results['items'],
             has_items(
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-11-01T00:00:00-04:00'},
                     until='2020-11-02T00:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
-                    queue_id=1,
-                    queue_name='queue',
                     received=7,
                     answered=7,
-                    abandoned=0,
-                    closed=0,
-                    not_answered=0,
-                    saturated=0,
-                    blocked=0,
-                    average_waiting_time=0,
-                    answered_rate=100.0,
-                    quality_of_service=None,
                 ),
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-11-02T00:00:00-05:00'},
                     until='2020-11-03T00:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
-                    queue_id=1,
-                    queue_name='queue',
                     received=13,
                     answered=13,
-                    abandoned=0,
-                    closed=0,
-                    not_answered=0,
-                    saturated=0,
-                    blocked=0,
-                    average_waiting_time=0,
-                    answered_rate=100.0,
-                    quality_of_service=None,
                 ),
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-10-31T00:00:00-04:00'},
                     until='2020-11-03T00:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
-                    queue_id=1,
-                    queue_name='queue',
                     received=20,
                     answered=20,
-                    abandoned=0,
-                    closed=0,
-                    not_answered=0,
-                    saturated=0,
-                    blocked=0,
-                    average_waiting_time=0,
-                    answered_rate=100.0,
-                    quality_of_service=None,
                 ),
             ),
         )
@@ -1323,77 +1362,51 @@ class TestStatistics(IntegrationTest):
             timezone='America/Montreal',
         )
 
+        common_fields = {
+            'tenant_uuid': MASTER_TENANT,
+            'queue_id': 1,
+            'queue_name': 'queue',
+            'abandoned': 0,
+            'closed': 0,
+            'not_answered': 0,
+            'saturated': 0,
+            'blocked': 0,
+            'average_waiting_time': 0,
+            'answered_rate': 100.0,
+            'quality_of_service': None,
+        }
+
         assert_that(results, has_entries(total=equal_to(4)))
         assert_that(
             results['items'],
             has_items(
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-11-01T00:00:00-04:00'},
                     until='2020-11-01T01:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
-                    queue_id=1,
-                    queue_name='queue',
                     received=7,
                     answered=7,
-                    abandoned=0,
-                    closed=0,
-                    not_answered=0,
-                    saturated=0,
-                    blocked=0,
-                    average_waiting_time=0,
-                    answered_rate=100.0,
-                    quality_of_service=None,
                 ),
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-11-01T01:00:00-05:00'},
                     until='2020-11-01T02:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
-                    queue_id=1,
-                    queue_name='queue',
                     received=5,
                     answered=5,
-                    abandoned=0,
-                    closed=0,
-                    not_answered=0,
-                    saturated=0,
-                    blocked=0,
-                    average_waiting_time=0,
-                    answered_rate=100.0,
-                    quality_of_service=None,
                 ),
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-11-01T02:00:00-05:00'},
                     until='2020-11-01T03:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
-                    queue_id=1,
-                    queue_name='queue',
                     received=6,
                     answered=6,
-                    abandoned=0,
-                    closed=0,
-                    not_answered=0,
-                    saturated=0,
-                    blocked=0,
-                    average_waiting_time=0,
-                    answered_rate=100.0,
-                    quality_of_service=None,
                 ),
                 has_entries(
+                    **common_fields,
                     **{'from': '2020-10-31T00:00:00-04:00'},
                     until='2020-11-02T03:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
-                    queue_id=1,
-                    queue_name='queue',
                     received=25,
                     answered=25,
-                    abandoned=0,
-                    closed=0,
-                    not_answered=0,
-                    saturated=0,
-                    blocked=0,
-                    average_waiting_time=0,
-                    answered_rate=100.0,
-                    quality_of_service=None,
                 ),
             ),
         )

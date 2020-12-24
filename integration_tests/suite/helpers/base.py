@@ -3,9 +3,12 @@
 
 import logging
 import os
+import pytz
 import random
 import tempfile
 
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from contextlib import contextmanager, wraps
 from requests.packages import urllib3
 from hamcrest import assert_that
@@ -106,7 +109,7 @@ def cdr(
     }
 
 
-class WrongClient(object):
+class WrongClient:
     def __init__(self, name):
         self.name = name
 
@@ -241,6 +244,15 @@ class IntegrationTest(AssetLaunchingTestCase):
                 'parent_uuid': MASTER_TENANT,
             },
         )
+
+    def _get_tomorrow(self, timezone=None):
+        timezone = timezone or pytz.utc
+        today = timezone.normalize(timezone.localize(datetime.now()))
+        return timezone.normalize(
+            timezone.localize(
+                datetime(today.year, today.month, today.day) + relativedelta(days=1)
+            )
+        ).isoformat(timespec='seconds')
 
 
 class DBIntegrationTest(AssetLaunchingTestCase):

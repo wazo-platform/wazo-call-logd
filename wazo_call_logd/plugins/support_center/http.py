@@ -12,7 +12,9 @@ from .schemas import (
     AgentStatisticsSchemaList,
     QueueStatisticsListRequestSchema,
     QueueStatisticsRequestSchema,
+    QueueStatisticsQoSRequestSchema,
     QueueStatisticsSchemaList,
+    QueueStatisticsQoSSchemaList,
 )
 
 
@@ -71,3 +73,14 @@ class QueueStatisticsResource(QueuesStatisticsAuthResource):
         tenant_uuids = self.visible_tenants(True)
         queue_stats = self.queue_statistics_service.get(tenant_uuids, queue_id, **args)
         return QueueStatisticsSchemaList().dump(queue_stats)
+
+
+class QueueStatisticsQoSResource(QueuesStatisticsAuthResource):
+    @required_acl('call-logd.queues.{queue_id}.statistics.qos.read')
+    def get(self, queue_id):
+        args = QueueStatisticsQoSRequestSchema().load(request.args)
+        tenant_uuids = self.visible_tenants(True)
+        queue_stats = self.queue_statistics_service.get_qos(
+            tenant_uuids, queue_id, **args
+        )
+        return QueueStatisticsQoSSchemaList().dump(queue_stats)

@@ -124,6 +124,46 @@ paths:
           $ref: '#/responses/InvalidRequest'
         '404':
           $ref: '#/responses/NotFoundError'
+  /queues/{queue_id}/statistics/qos:
+    get:
+      summary: QoS statistics for a specific queue
+      description: |
+        **Required ACL:** `call-logd.queues.statistics.{queue_id}.qos.read`
+
+        QoS thresholds implicitly include a starting 0 and ending to infinite (null).
+
+        Statistics for a queue are aggregated by the `interval` query parameter, or if not
+        specified or empty, as a unique result over the period. The period is specified by the
+        `from` and `until` query parameters. The last result returned by this route is always the
+        aggregation of all calls over the whole specified period.
+
+        **Notice**: Statistics are generated every 6 hours
+      tags:
+        - queue_statistics
+      parameters:
+        - name: queue_id
+          description: ID of the queue.
+          required: true
+          type: integer
+          in: path
+        - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/interval'
+        - $ref: '#/parameters/qos_thresholds'
+        - $ref: '#/parameters/day_start_time'
+        - $ref: '#/parameters/day_end_time'
+        - $ref: '#/parameters/week_days'
+        - $ref: '#/parameters/timezone'
+      responses:
+        '200':
+          description: Get a queue QoS statistics by ID
+          schema:
+            $ref: '#/definitions/QueueQoSStatistics'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+        '404':
+          $ref: '#/responses/NotFoundError'
 
 parameters:
   from:
@@ -162,19 +202,27 @@ parameters:
     in: query
     type: integer
     required: false
+  qos_thresholds:
+    name: qos_thresholds
+    description: The steps of quality of service times used for the interval generation.
+    in: query
+    type: array
+    items:
+      type: integer
+      minimum: 1
+    uniqueItems: true
+    required: false
   day_start_time:
     name: day_start_time
     description: The time at which a day starts, inclusively. Minutes are ignored.
     in: query
     type: string
-    default: '00:00'
     required: false
   day_end_time:
     name: day_end_time
     description: The time at which a day ends, inclusively. Minutes are ignored.
     in: query
     type: string
-    default: '23:00'
     required: false
   week_days:
     name: week_days
@@ -318,3 +366,48 @@ definitions:
         type: number
         format: float
         description: Percentage based on the number of calls answered in less than the defined quality of service threshold over the number of answered calls.
+  QueueQoSStatistics:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/QueueQoSStatistic'
+      total:
+        type: integer
+  QueueQoSStatistic:
+    type: object
+    properties:
+      from:
+        type: string
+        description: Start of the statistic interval.
+      until:
+        type: string
+        description: End of the statistic interval.
+      tenant_uuid:
+        type: string
+        format: uuid
+        description: Tenant UUID of the corresponding queue.
+      queue_id:
+        type: integer
+        description: ID of the corresponding queue.
+      queue_name:
+        type: string
+        description: Name of the corresponding queue.
+      quality_of_service:
+        type: array
+        items:
+          type: object
+          properties:
+            min:
+              type: integer
+              description: Minimum of the QoS interval
+            max:
+              type: integer
+              description: Maximum of the QoS interval
+            answered:
+              type: integer
+              description: Number of calls answered by an agent.
+            abandoned:
+              type: integer
+              description: Number of calls that were abandoned while they were waiting for an answer.

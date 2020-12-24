@@ -6,7 +6,7 @@ import logging
 import sqlalchemy as sa
 
 from contextlib import contextmanager
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.alchemy.stat_agent import StatAgent
@@ -171,7 +171,7 @@ def stat_call_on_queue(call):
     return _decorate
 
 
-class DbHelper(object):
+class DbHelper:
     @classmethod
     def build(cls, user, password, host, port, db):
         tpl = "postgresql://{user}:{password}@{host}:{port}"
@@ -181,6 +181,8 @@ class DbHelper(object):
     def __init__(self, uri, db):
         self.uri = uri
         self.db = db
+        uri = "{}/{}".format(self.uri, self.db)
+        self._engine = sa.create_engine(uri, pool_pre_ping=True)
 
     def is_up(self):
         try:
@@ -191,8 +193,7 @@ class DbHelper(object):
             return False
 
     def connect(self):
-        uri = "{}/{}".format(self.uri, self.db)
-        return sa.create_engine(uri, pool_pre_ping=True).connect()
+        return self._engine.connect()
 
     def execute(self, query, **kwargs):
         with self.connect() as connection:
@@ -204,10 +205,10 @@ class DbHelper(object):
             yield DatabaseQueries(connection)
 
 
-class DatabaseQueries(object):
+class DatabaseQueries:
     def __init__(self, connection):
         self.connection = connection
-        self.Session = sessionmaker(bind=connection)
+        self.Session = scoped_session(sessionmaker(bind=connection))
 
     @contextmanager
     def inserter(self):

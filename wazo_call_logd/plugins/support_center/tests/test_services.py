@@ -197,3 +197,35 @@ class TestSupportCenterService(TestCase):
                 ),
             ),
         )
+
+    def test_qos_interval_empty(self):
+        intervals = list(self.service._generate_qos_interval([]))
+        assert_that(
+            intervals,
+            contains(
+                (0, None),
+            ),
+        )
+
+    def test_qos_interval_one(self):
+        intervals = list(self.service._generate_qos_interval([1]))
+        assert_that(
+            intervals,
+            contains(
+                (0, 1),
+                (1, None),
+            ),
+        )
+
+    def test_qos_interval_multiple(self):
+        intervals = list(self.service._generate_qos_interval([1, 2, 3, 4]))
+        assert_that(
+            intervals,
+            contains(
+                (0, 1),
+                (1, 2),
+                (2, 3),
+                (3, 4),
+                (4, None),
+            ),
+        )
