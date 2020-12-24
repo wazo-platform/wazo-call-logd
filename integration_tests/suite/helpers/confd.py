@@ -4,7 +4,7 @@
 import requests
 
 
-class ConfdClient(object):
+class ConfdClient:
     def __init__(self, host, port):
         self._host = host
         self._port = port
@@ -72,7 +72,7 @@ class ConfdClient(object):
         requests.post(url)
 
 
-class MockUser(object):
+class MockUser:
     def __init__(self, uuid, tenant_uuid, line_ids=None, mobile=None, userfield=None):
         self._uuid = uuid
         self._tenant_uuid = tenant_uuid
@@ -93,7 +93,7 @@ class MockUser(object):
         }
 
 
-class MockLine(object):
+class MockLine:
     def __init__(
         self,
         id,
@@ -130,7 +130,7 @@ class MockLine(object):
         }
 
 
-class MockSwitchboard(object):
+class MockSwitchboard:
     def __init__(self, uuid, name=None):
         self._uuid = uuid
         self._name = name
@@ -142,7 +142,7 @@ class MockSwitchboard(object):
         return {'uuid': self._uuid, 'name': self._name}
 
 
-class MockContext(object):
+class MockContext:
     def __init__(self, id, name, tenant_uuid):
         self._id = id
         self._name = name

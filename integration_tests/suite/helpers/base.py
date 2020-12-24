@@ -109,7 +109,7 @@ def cdr(
     }
 
 
-class WrongClient(object):
+class WrongClient:
     def __init__(self, name):
         self.name = name
 

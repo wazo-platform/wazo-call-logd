@@ -171,7 +171,7 @@ def stat_call_on_queue(call):
     return _decorate
 
 
-class DbHelper(object):
+class DbHelper:
     @classmethod
     def build(cls, user, password, host, port, db):
         tpl = "postgresql://{user}:{password}@{host}:{port}"
@@ -205,7 +205,7 @@ class DbHelper(object):
             yield DatabaseQueries(connection)
 
 
-class DatabaseQueries(object):
+class DatabaseQueries:
     def __init__(self, connection):
         self.connection = connection
         self.Session = scoped_session(sessionmaker(bind=connection))

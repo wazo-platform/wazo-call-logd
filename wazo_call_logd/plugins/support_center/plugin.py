@@ -12,7 +12,7 @@ from .http import (
 from .services import AgentStatisticsService, QueueStatisticsService
 
 
-class Plugin(object):
+class Plugin:
     def load(self, dependencies):
         api = dependencies['api']
         dao = dependencies['dao']
