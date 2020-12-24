@@ -61,7 +61,7 @@ class _StatisticsService:
     def _datetime_in_week_days(self, date_time, week_days):
         return date_time.isoweekday() in week_days
 
-    def _datetime_in_time_interval(self, date_time, start_time, end_time):
+    def _datetime_in_interval(self, date_time, start_time, end_time):
         return start_time <= date_time.hour <= end_time
 
     def _generate_qos_interval(self, qos_thresholds):
@@ -106,13 +106,9 @@ class AgentStatisticsService(_StatisticsService):
             for start, end in self._generate_interval(interval, from_, until, timezone):
                 if interval == 'hour':
                     if start_time is not None and end_time is not None:
-                        if not self._datetime_in_time_interval(
-                            start, start_time, end_time
-                        ):
+                        if not self._datetime_in_interval(start, start_time, end_time):
                             continue
-                        if not self._datetime_in_time_interval(
-                            end, start_time, end_time
-                        ):
+                        if not self._datetime_in_interval(end, start_time, end_time):
                             continue
                 if interval in ('hour', 'day'):
                     if week_days and not self._datetime_in_week_days(start, week_days):
@@ -125,20 +121,18 @@ class AgentStatisticsService(_StatisticsService):
                     'agent_number': stat_agent['number'],
                     'tenant_uuid': stat_agent['tenant_uuid'],
                 }
-                interval_stats = (
-                    self._dao.get_interval_by_agent(
-                        tenant_uuids,
-                        agent_id=agent_id,
-                        from_=start,
-                        until=end,
-                        start_time=start_time,
-                        end_time=end_time,
-                        week_days=week_days,
-                        timezone=timezone,
-                        **kwargs
-                    )
-                    or {}
+                interval_stats = self._dao.get_interval_by_agent(
+                    tenant_uuids,
+                    agent_id=agent_id,
+                    from_=start,
+                    until=end,
+                    start_time=start_time,
+                    end_time=end_time,
+                    week_days=week_days,
+                    timezone=timezone,
+                    **kwargs
                 )
+                interval_stats = interval_stats or {}
                 interval_stats.update(interval_timeframe)
                 agent_stats.append(interval_stats)
 
@@ -149,20 +143,18 @@ class AgentStatisticsService(_StatisticsService):
             'agent_number': stat_agent['number'],
             'tenant_uuid': stat_agent['tenant_uuid'],
         }
-        period_stats = (
-            self._dao.get_interval_by_agent(
-                tenant_uuids,
-                agent_id=agent_id,
-                from_=from_,
-                until=until,
-                start_time=start_time,
-                end_time=end_time,
-                week_days=week_days,
-                timezone=timezone,
-                **kwargs
-            )
-            or {}
+        period_stats = self._dao.get_interval_by_agent(
+            tenant_uuids,
+            agent_id=agent_id,
+            from_=from_,
+            until=until,
+            start_time=start_time,
+            end_time=end_time,
+            week_days=week_days,
+            timezone=timezone,
+            **kwargs
         )
+        period_stats = period_stats or {}
         period_stats.update(period_timeframe)
 
         agent_stats.append(period_stats)
@@ -245,13 +237,9 @@ class QueueStatisticsService(_StatisticsService):
             for start, end in self._generate_interval(interval, from_, until, timezone):
                 if interval == 'hour':
                     if start_time is not None and end_time is not None:
-                        if not self._datetime_in_time_interval(
-                            start, start_time, end_time
-                        ):
+                        if not self._datetime_in_interval(start, start_time, end_time):
                             continue
-                        if not self._datetime_in_time_interval(
-                            end, start_time, end_time
-                        ):
+                        if not self._datetime_in_interval(end, start_time, end_time):
                             continue
                 if interval in ('hour', 'day'):
                     if week_days and not self._datetime_in_week_days(start, week_days):
@@ -338,13 +326,9 @@ class QueueStatisticsService(_StatisticsService):
             for start, end in self._generate_interval(interval, from_, until, timezone):
                 if interval == 'hour':
                     if start_time is not None and end_time is not None:
-                        if not self._datetime_in_time_interval(
-                            start, start_time, end_time
-                        ):
+                        if not self._datetime_in_interval(start, start_time, end_time):
                             continue
-                        if not self._datetime_in_time_interval(
-                            end, start_time, end_time
-                        ):
+                        if not self._datetime_in_interval(end, start_time, end_time):
                             continue
                 if interval in ('hour', 'day'):
                     if week_days and not self._datetime_in_week_days(start, week_days):
