@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import sqlalchemy as sa
@@ -50,7 +50,9 @@ class CallLogDAO(BaseDAO):
                 else:
                     order_field = getattr(CallLogSchema, params['order'])
             if params.get('direction') == 'desc':
-                order_field = order_field.desc()
+                order_field = order_field.desc().nullslast()
+            if params.get('direction') == 'asc':
+                order_field = order_field.asc().nullsfirst()
             if order_field is not None:
                 query = query.order_by(order_field)
 

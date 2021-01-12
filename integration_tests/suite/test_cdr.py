@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -639,6 +639,46 @@ class TestListCDR(IntegrationTest):
                     has_entries(duration=1),
                     has_entries(duration=2),
                 ),
+            ),
+        )
+
+    @call_logs(
+        [
+            {
+                'date': '2017-04-10',
+                'date_answer': None,
+                'date_end': '2017-04-10',
+            },
+            {
+                'date': '2017-04-12',
+                'date_answer': '2017-04-12',
+                'date_end': '2017-04-12 00:00:02',
+            },
+            {
+                'date': '2017-04-11',
+                'date_answer': '2017-04-11',
+                'date_end': '2017-04-11 00:00:01',
+            },
+        ]
+    )
+    def test_list_cdr_sort_nulls_last(self):
+        duration_desc = self.call_logd.cdr.list(order='duration', direction='desc')
+        duration_asc = self.call_logd.cdr.list(order='duration', direction='asc')
+
+        assert_that(
+            duration_asc['items'],
+            contains(
+                has_entries(duration=None),
+                has_entries(duration=1),
+                has_entries(duration=2),
+            ),
+        )
+        assert_that(
+            duration_desc['items'],
+            contains(
+                has_entries(duration=2),
+                has_entries(duration=1),
+                has_entries(duration=None),
             ),
         )
 
