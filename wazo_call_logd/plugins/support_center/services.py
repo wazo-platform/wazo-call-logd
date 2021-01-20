@@ -99,10 +99,13 @@ class AgentStatisticsService(_StatisticsService):
             raise AgentNotFoundException(details={'agent_id': agent_id})
 
         timezone = pytz.timezone(timezone)
-        from_ = from_ or timezone.normalize(self._dao.find_oldest_time(agent_id))
+        if not from_:
+            oldest_time = self._dao.find_oldest_time(agent_id)
+            if oldest_time:
+                from_ = timezone.normalize(oldest_time)
         until = until or self._get_tomorrow(timezone)
 
-        if interval:
+        if interval and from_ and until:
             for start, end in self._generate_interval(interval, from_, until, timezone):
                 if interval == 'hour':
                     if start_time is not None and end_time is not None:
