@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -9,7 +9,7 @@ from hamcrest import (
 )
 from .helpers.base import IntegrationTest
 from .helpers.constants import MASTER_TENANT
-from .helpers.database import stat_queue_periodic, stat_call_on_queue
+from .helpers.database import stat_call_on_queue, stat_queue, stat_queue_periodic
 
 
 class TestQueueStatisticsQOS(IntegrationTest):
@@ -455,6 +455,30 @@ class TestQueueStatisticsQOS(IntegrationTest):
                     until=self._get_tomorrow(),
                     quality_of_service=has_items(
                         has_entries(min=0, max=None, answered=2, abandoned=1),
+                    ),
+                ),
+            ),
+        )
+
+    @stat_queue({'queue_id': 1})
+    def test_period_thresholds_no_stats(self):
+        results = self.call_logd.queue_statistics.get_qos_by_id(queue_id=1)
+        common_fields = {
+            'tenant_uuid': MASTER_TENANT,
+            'queue_id': 1,
+            'queue_name': 'queue',
+        }
+
+        assert_that(results, has_entries(total=equal_to(1)))
+        assert_that(
+            results['items'],
+            has_items(
+                has_entries(
+                    **common_fields,
+                    **{'from': None},
+                    until=self._get_tomorrow(),
+                    quality_of_service=has_items(
+                        has_entries(min=0, max=None, answered=0, abandoned=0),
                     ),
                 ),
             ),

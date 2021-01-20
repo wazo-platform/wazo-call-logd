@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
@@ -481,6 +481,32 @@ class TestStatistics(IntegrationTest):
         assert_that(
             calling(self.call_logd.queue_statistics.get_by_id).with_args(queue_id=1),
             raises(CallLogdError).matching(has_properties(status_code=404)),
+        )
+
+    @stat_queue({'queue_id': 1})
+    def test_get_queue_no_stats(self):
+        results = self.call_logd.queue_statistics.get_by_id(queue_id=1)
+        assert_that(
+            results['items'],
+            has_items(
+                has_entries(
+                    **{'from': None},
+                    until=self._get_tomorrow(),
+                    tenant_uuid=MASTER_TENANT,
+                    queue_id=1,
+                    queue_name='queue',
+                    received=0,
+                    answered=0,
+                    abandoned=0,
+                    closed=0,
+                    not_answered=0,
+                    saturated=0,
+                    blocked=0,
+                    average_waiting_time=None,
+                    answered_rate=None,
+                    quality_of_service=None,
+                )
+            ),
         )
 
     # fmt: off

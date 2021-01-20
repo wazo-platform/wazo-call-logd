@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
@@ -455,6 +455,27 @@ class TestStatistics(IntegrationTest):
         assert_that(
             calling(self.call_logd.agent_statistics.get_by_id).with_args(agent_id=1),
             raises(CallLogdError).matching(has_properties(status_code=404)),
+        )
+
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    def test_get_agent_when_no_stats(self):
+        results = self.call_logd.agent_statistics.get_by_id(agent_id=42)
+        assert_that(
+            results['items'],
+            has_items(
+                has_entries(
+                    **{'from': None},
+                    until=self._get_tomorrow(),
+                    tenant_uuid=MASTER_TENANT,
+                    agent_id=42,
+                    agent_number='1001',
+                    answered=0,
+                    conversation_time=0,
+                    login_time=0,
+                    pause_time=0,
+                    wrapup_time=0,
+                )
+            ),
         )
 
     # fmt: off
