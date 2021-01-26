@@ -12,6 +12,7 @@ Section: python
 Depends: ${python3:Depends},
          ${misc:Depends},
          adduser,
+         python3-alembic,
          python3-cheroot,
          python3-dateutil,
          python3-flask,
@@ -25,8 +26,9 @@ Depends: ${python3:Depends},
          wazo-auth-client-python3,
          wazo-confd-client-python3,
          xivo-bus-python3,
-         xivo-libdao-python3 (>= 15.06~20150319.161854.821d733-1),
+         xivo-dbms,
          xivo-lib-python-python3,
+         xivo-libdao-python3,
          python3-kombu
 Conflicts: xivo-call-logs
 Replaces: xivo-call-logs
