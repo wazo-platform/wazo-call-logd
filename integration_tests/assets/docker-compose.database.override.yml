@@ -2,6 +2,6 @@ version: '3'
 services:
   sync:
     depends_on:
-      - postgres
+      - cel-postgres
     environment:
-      TARGETS: "postgres:5432"
+      TARGETS: "cel-postgres:5432"

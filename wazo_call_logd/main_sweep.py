@@ -1,4 +1,4 @@
-# Copyright 2012-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2012-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -33,7 +33,7 @@ DEFAULT_CONFIG = {
     'pidfile': PIDFILENAME,
     'config_file': '/etc/wazo-call-logd/config.yml',
     'extra_config_files': '/etc/wazo-call-logd/conf.d',
-    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
+    'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'auth': {
         'host': 'localhost',
         'port': 9497,
@@ -76,11 +76,11 @@ def _generate_call_logs():
     file_config = {
         key: value
         for key, value in read_config_file_hierarchy(DEFAULT_CONFIG).items()
-        if key in ('confd', 'bus', 'auth', 'db_uri')
+        if key in ('confd', 'bus', 'auth', 'cel_db_uri')
     }
     key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
     config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
-    init_db_from_config(config)
+    init_db_from_config({'db_uri': config['cel_db_uri']})
 
     auth_client = AuthClient(**config['auth'])
     confd_client = ConfdClient(**config['confd'])

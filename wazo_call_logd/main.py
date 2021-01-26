@@ -32,7 +32,7 @@ def main():
     if config["db_upgrade_on_startup"]:
         database.upgrade(config["db_uri"])
 
-    xivo_dao.init_db_from_config(config)
+    xivo_dao.init_db_from_config({'db_uri': config['cel_db_uri']})
     set_xivo_uuid(config, logger)
 
     controller = Controller(config)

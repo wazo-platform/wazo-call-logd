@@ -29,7 +29,7 @@ services:
     ports:
       - "9486"
 
-  postgres:
+  cel-postgres:
     image: wazoplatform/wazo-confd-db-test
     ports:
       - "5432"

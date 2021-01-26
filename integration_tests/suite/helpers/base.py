@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -167,7 +167,7 @@ class IntegrationTest(AssetLaunchingTestCase):
                 'asterisk',
                 'proformatique',
                 'localhost',
-                cls.service_port(5432, 'postgres'),
+                cls.service_port(5432, 'cel-postgres'),
                 'asterisk',
             )
         except (NoSuchService, NoSuchPort) as e:
@@ -259,7 +259,7 @@ class DBIntegrationTest(AssetLaunchingTestCase):
 
     asset = 'database'
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
-    service = 'postgres'
+    service = 'cel-postgres'
 
     @classmethod
     def setUpClass(cls):
@@ -269,7 +269,7 @@ class DBIntegrationTest(AssetLaunchingTestCase):
                 'asterisk',
                 'proformatique',
                 'localhost',
-                cls.service_port(5432, 'postgres'),
+                cls.service_port(5432, 'cel-postgres'),
                 'asterisk',
             )
         except (NoSuchService, NoSuchPort) as e:
@@ -277,8 +277,8 @@ class DBIntegrationTest(AssetLaunchingTestCase):
             cls.database = WrongClient(name='database')
 
     def setUp(self):
-        db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
-        Session = new_db_session(db_uri)
+        cel_db_uri = DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
+        Session = new_db_session(cel_db_uri)
         self.dao = DAO(Session)
 
 
