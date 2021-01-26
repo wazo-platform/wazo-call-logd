@@ -1,0 +1,17 @@
+FROM wazoplatform/wazo-base-db
+LABEL maintainer="Wazo Maintainers <dev@wazo.community>"
+
+COPY . /usr/src/wazo-call-logd
+WORKDIR /usr/src/wazo-call-logd
+ENV ALEMBIC_DB_URI postgresql://wazo-call-logd:Secr7t@localhost/wazo-call-logd
+
+RUN true \
+    && python3 setup.py install \
+    && pg_start \
+    && su postgres -c "psql -c \"CREATE ROLE \\"'"'"wazo-call-logd\\"'"'" LOGIN PASSWORD 'Secr7t';\"" \
+    && su postgres -c "psql -c 'CREATE DATABASE \"wazo-call-logd\" WITH OWNER \"wazo-call-logd\";'" \
+    && su postgres -c "psql \"wazo-call-logd\" -c 'CREATE EXTENSION \"uuid-ossp\";'" \
+    && (cd /usr/src/wazo-call-logd && python3 -m alembic.config -c wazo_call_logd/database/alembic.ini upgrade head) \
+    && pg_stop \
+    && true
+USER postgres
