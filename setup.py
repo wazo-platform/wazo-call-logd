@@ -20,6 +20,7 @@ setup(
         'console_scripts': [
             'wazo-call-logd=wazo_call_logd.main:main',
             'wazo-call-logd-init-db=wazo_call_logd.init_db:main',
+            'wazo-call-logd-upgrade-db=wazo_call_logd.main:upgrade_db',
             'wazo-call-logs=wazo_call_logd.main_sweep:main',
         ],
         'wazo_call_logd.plugins': [

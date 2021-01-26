@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -15,6 +15,7 @@ _DEFAULT_CONFIG = {
     'extra_config_files': '/etc/wazo-call-logd/conf.d',
     'debug': False,
     'user': 'wazo-call-logd',
+    'db_upgrade_on_startup': False,
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'bus': {
         'username': 'guest',
@@ -67,6 +68,12 @@ def load(argv):
 def _parse_cli_args(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--db-upgrade-on-startup",
+        action="store_true",
+        default=False,
+        help="Upgrade database on startup if needed",
+    )
+    parser.add_argument(
         '-c',
         '--config-file',
         action='store',
@@ -91,6 +98,8 @@ def _parse_cli_args(argv):
     parsed_args = parser.parse_args(argv)
 
     result = {}
+    if parsed_args.db_upgrade_on_startup:
+        result['db_upgrade_on_startup'] = parsed_args.db_upgrade_on_startup
     if parsed_args.config_file:
         result['config_file'] = parsed_args.config_file
     if parsed_args.debug:
