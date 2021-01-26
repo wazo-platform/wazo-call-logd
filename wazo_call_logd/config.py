@@ -16,6 +16,7 @@ _DEFAULT_CONFIG = {
     'debug': False,
     'user': 'wazo-call-logd',
     'db_upgrade_on_startup': False,
+    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'bus': {
         'username': 'guest',

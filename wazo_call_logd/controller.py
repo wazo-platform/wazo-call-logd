@@ -54,7 +54,9 @@ class Controller:
         self.http_server = HTTPServer(config)
         self.status_aggregator = StatusAggregator()
         self.token_status = TokenStatus()
-        dao = DAO(new_db_session(config['cel_db_uri']))
+        DBSession = new_db_session(config['db_uri'])
+        CELDBSession = new_db_session(config['cel_db_uri'])
+        dao = DAO(DBSession, CELDBSession)
         plugin_helpers.load(
             namespace='wazo_call_logd.plugins',
             names=config['enabled_plugins'],

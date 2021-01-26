@@ -3,5 +3,6 @@ services:
   sync:
     depends_on:
       - cel-postgres
+      - postgres
     environment:
-      TARGETS: "cel-postgres:5432"
+      TARGETS: "cel-postgres:5432 postgres:5432"

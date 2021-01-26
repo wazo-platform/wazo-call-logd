@@ -34,6 +34,11 @@ services:
     ports:
       - "5432"
 
+  postgres:
+    image: wazoplatform/wazo-call-logd-db
+    ports:
+      - "5432"
+
   rabbitmq:
     image: rabbitmq
     ports:

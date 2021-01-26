@@ -8,4 +8,4 @@ services:
       - confd
       - postgres
     environment:
-      TARGETS: "cel-postgres:5432 call-logd:9298 confd:9486 auth:9497"
+      TARGETS: "cel-postgres:5432 postgres:5432 call-logd:9298 confd:9486 auth:9497"

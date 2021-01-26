@@ -278,8 +278,10 @@ class DBIntegrationTest(AssetLaunchingTestCase):
 
     def setUp(self):
         cel_db_uri = DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
-        Session = new_db_session(cel_db_uri)
-        self.dao = DAO(Session)
+        CELSession = new_db_session(cel_db_uri)
+        db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
+        Session = new_db_session(db_uri)
+        self.dao = DAO(Session, CELSession)
 
 
 class RawCelIntegrationTest(IntegrationTest):

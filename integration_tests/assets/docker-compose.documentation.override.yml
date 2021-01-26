@@ -3,6 +3,6 @@ services:
   sync:
     depends_on:
       - call-logd
-      - cel-postgres
+      - postgres
     environment:
-      TARGETS: "call-logd:9298 cel-postgres:5432"
+      TARGETS: "call-logd:9298 postgres:5432"
