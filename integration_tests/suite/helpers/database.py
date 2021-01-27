@@ -1,6 +1,10 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import (
+    datetime as dt,
+    timedelta as td,
+)
 from functools import wraps
 import logging
 import sqlalchemy as sa
@@ -10,11 +14,13 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.alchemy.stat_agent import StatAgent
-from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
-from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
+from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_queue import StatQueue
+from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 from xivo_dao.tests.test_dao import ItemInserter
+
+from wazo_call_logd.database.models import Recording
 
 from .constants import MASTER_TENANT
 
@@ -41,6 +47,26 @@ def call_logs(call_logs):
                 with self.cel_database.queries() as queries:
                     for call_log in call_logs:
                         queries.delete_call_log(call_log['id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
+def recording(**recording):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            recording.setdefault('start_time', dt.utcnow() - td(hours=1))
+            recording.setdefault('end_time', dt.utcnow())
+            recording.setdefault('call_log_id', 42)
+            with self.database.queries() as queries:
+                recording['uuid'] = queries.insert_recording(**recording)
+            try:
+                return func(self, recording, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_recording(recording['uuid'])
 
         return wrapped_function
 
@@ -223,6 +249,20 @@ class DatabaseQueries:
     def delete_call_log(self, call_log_id):
         session = self.Session()
         session.query(CallLog).filter(CallLog.id == call_log_id).delete()
+        session.commit()
+
+    def insert_recording(self, **kwargs):
+        session = self.Session()
+        recording = Recording(**kwargs)
+        session.add(recording)
+        session.flush()
+        recording_uuid = recording.uuid
+        session.commit()
+        return recording_uuid
+
+    def delete_recording(self, recording_uuid):
+        session = self.Session()
+        session.query(Recording).filter(Recording.uuid == recording_uuid).delete()
         session.commit()
 
     def clear_call_logs(self):

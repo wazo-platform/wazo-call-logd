@@ -282,7 +282,7 @@ class DBIntegrationTest(AssetLaunchingTestCase):
 
     asset = 'database'
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
-    service = 'cel-postgres'
+    service = 'postgres'
 
     @classmethod
     def setUpClass(cls):
@@ -326,6 +326,8 @@ class DBIntegrationTest(AssetLaunchingTestCase):
         db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
         Session = new_db_session(db_uri)
         self.dao = DAO(Session, CELSession)
+        self.session = Session()
+        self.cel_session = CELSession()
 
 
 class RawCelIntegrationTest(IntegrationTest):
