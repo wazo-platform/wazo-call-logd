@@ -136,36 +136,66 @@ class IntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def reset_clients(cls):
-        try:
-            cls.call_logd = CallLogdClient(
-                'localhost',
-                cls.service_port(9298, 'call-logd'),
-                prefix=None,
-                https=False,
-                token=MASTER_TOKEN,
-            )
-        except (NoSuchService, NoSuchPort) as e:
-            logger.debug(e)
-            cls.call_logd = WrongClient(name='call-logd')
-
-        try:
-            cls.auth = AuthClient('localhost', cls.service_port(9497, 'auth'))
+        cls.call_logd = cls.make_call_logd()
+        cls.database = cls.make_database()
+        cls.cel_database = cls.make_cel_database()
+        cls.auth = cls.make_auth()
+        if not isinstance(cls.auth, WrongClient):
             cls.configure_wazo_auth_for_multitenants()
-        except (NoSuchService, NoSuchPort) as e:
-            logger.debug(e)
-            cls.auth = WrongClient(name='auth')
 
+    @classmethod
+    def make_call_logd(cls):
         try:
-            cls.database = DbHelper.build(
-                'asterisk',
-                'proformatique',
-                'localhost',
-                cls.service_port(5432, 'cel-postgres'),
-                'asterisk',
-            )
-        except (NoSuchService, NoSuchPort) as e:
-            logger.debug(e)
-            cls.database = WrongClient(name='database')
+            port = cls.service_port(9298, 'call-logd')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='call-logd')
+
+        return CallLogdClient(
+            'localhost',
+            port,
+            prefix=None,
+            https=False,
+            token=MASTER_TOKEN,
+        )
+
+    @classmethod
+    def make_auth(cls):
+        try:
+            port = cls.service_port(9497, 'auth')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='auth')
+
+        return AuthClient('localhost', port)
+
+    @classmethod
+    def make_database(cls):
+        try:
+            port = cls.service_port(5432, 'postgres')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='database')
+
+        return DbHelper.build(
+            'wazo-call-logd',
+            'Secr7t',
+            'localhost',
+            port,
+            'wazo-call-logd',
+        )
+
+    @classmethod
+    def make_cel_database(cls):
+        try:
+            port = cls.service_port(5432, 'cel-postgres')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='cel_database')
+
+        return DbHelper.build(
+            'asterisk',
+            'proformatique',
+            'localhost',
+            port,
+            'asterisk',
+        )
 
     @classmethod
     def make_bus(cls):
@@ -257,17 +287,38 @@ class DBIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.database = cls.make_database()
+        cls.cel_database = cls.make_cel_database()
+
+    @classmethod
+    def make_database(cls):
         try:
-            cls.cel_database = DbHelper.build(
-                'asterisk',
-                'proformatique',
-                'localhost',
-                cls.service_port(5432, 'cel-postgres'),
-                'asterisk',
-            )
-        except (NoSuchService, NoSuchPort) as e:
-            logger.debug(e)
-            cls.cel_database = WrongClient(name='cel_database')
+            port = cls.service_port(5432, 'postgres')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='database')
+
+        return DbHelper.build(
+            'wazo-call-logd',
+            'Secr7t',
+            'localhost',
+            port,
+            'wazo-call-logd',
+        )
+
+    @classmethod
+    def make_cel_database(cls):
+        try:
+            port = cls.service_port(5432, 'cel-postgres')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='cel_database')
+
+        return DbHelper.build(
+            'asterisk',
+            'proformatique',
+            'localhost',
+            port,
+            'asterisk',
+        )
 
     def setUp(self):
         cel_db_uri = CEL_DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
