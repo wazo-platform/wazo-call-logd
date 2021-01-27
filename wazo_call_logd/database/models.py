@@ -1,0 +1,30 @@
+# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Integer,
+    Text,
+    text,
+)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy_utils import UUIDType, generic_repr
+
+Base = declarative_base()
+
+
+@generic_repr
+class Recording(Base):
+
+    __tablename__ = 'call_logd_recording'
+
+    uuid = Column(
+        UUIDType(),
+        server_default=text('uuid_generate_v4()'),
+        primary_key=True,
+    )
+    start_time = Column(DateTime(timezone=True), nullable=False)
+    end_time = Column(DateTime(timezone=True), nullable=False)
+    path = Column(Text)
+    call_log_id = Column(Integer(), nullable=False)
