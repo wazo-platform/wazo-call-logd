@@ -5,7 +5,6 @@ import logging
 import os
 import pytz
 import random
-import tempfile
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -128,15 +127,8 @@ class IntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def setUpClass(cls):
         super(IntegrationTest, cls).setUpClass()
-        try:
-            cls.reset_clients()
-            cls.wait_strategy.wait(cls)
-        except Exception:
-            with tempfile.NamedTemporaryFile(delete=False) as logfile:
-                logfile.write(cls.log_containers())
-                logger.debug('Container logs dumped to %s', logfile.name)
-            cls.tearDownClass()
-            raise
+        cls.reset_clients()
+        cls.wait_strategy.wait(cls)
 
     def setUp(self):
         super().setUp()
