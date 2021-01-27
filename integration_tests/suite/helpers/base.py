@@ -50,7 +50,8 @@ from .database import DbHelper
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
 
-DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}')
+CEL_DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}')
+DB_URI = os.getenv('DB_URI', 'postgresql://wazo-call-logd:Secr7t@localhost:{port}')
 
 
 # this decorator takes the output of a psql and changes it into a list of dict
@@ -277,7 +278,7 @@ class DBIntegrationTest(AssetLaunchingTestCase):
             cls.cel_database = WrongClient(name='cel_database')
 
     def setUp(self):
-        cel_db_uri = DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
+        cel_db_uri = CEL_DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
         CELSession = new_db_session(cel_db_uri)
         db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
         Session = new_db_session(db_uri)
