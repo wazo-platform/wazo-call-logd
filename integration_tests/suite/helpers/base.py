@@ -265,7 +265,7 @@ class DBIntegrationTest(AssetLaunchingTestCase):
     def setUpClass(cls):
         super().setUpClass()
         try:
-            cls.database = DbHelper.build(
+            cls.cel_database = DbHelper.build(
                 'asterisk',
                 'proformatique',
                 'localhost',
@@ -274,7 +274,7 @@ class DBIntegrationTest(AssetLaunchingTestCase):
             )
         except (NoSuchService, NoSuchPort) as e:
             logger.debug(e)
-            cls.database = WrongClient(name='database')
+            cls.cel_database = WrongClient(name='cel_database')
 
     def setUp(self):
         cel_db_uri = DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
@@ -296,24 +296,24 @@ class RawCelIntegrationTest(IntegrationTest):
 
     @contextmanager
     def cels(self, cels):
-        with self.database.queries() as queries:
+        with self.cel_database.queries() as queries:
             for cel in cels:
                 cel['id'] = queries.insert_cel(**cel)
 
         yield
 
-        with self.database.queries() as queries:
+        with self.cel_database.queries() as queries:
             for cel in cels:
                 queries.delete_cel(cel['id'])
 
     @contextmanager
     def no_call_logs(self):
-        with self.database.queries() as queries:
+        with self.cel_database.queries() as queries:
             queries.clear_call_logs()
 
         yield
 
-        with self.database.queries() as queries:
+        with self.cel_database.queries() as queries:
             queries.clear_call_logs()
 
     def _assert_last_call_log_matches(self, linkedid, expected):
@@ -321,7 +321,7 @@ class RawCelIntegrationTest(IntegrationTest):
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_generated():
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, expected)
 

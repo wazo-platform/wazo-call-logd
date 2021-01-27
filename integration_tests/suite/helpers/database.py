@@ -25,7 +25,7 @@ def call_logs(call_logs):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 for call_log in call_logs:
                     participants = call_log.pop('participants', [])
                     call_log.setdefault('tenant_uuid', MASTER_TENANT)
@@ -38,7 +38,7 @@ def call_logs(call_logs):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     for call_log in call_logs:
                         queries.delete_call_log(call_log['id'])
 
@@ -51,7 +51,7 @@ def stat_queue(queue):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 queue.setdefault('tenant_uuid', MASTER_TENANT)
                 queue.setdefault('name', 'queue')
                 queue.setdefault('queue_id', 1)
@@ -60,7 +60,7 @@ def stat_queue(queue):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_queue(queue['id'])
 
         return wrapped_function
@@ -72,7 +72,7 @@ def stat_agent(agent):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 agent.setdefault('tenant_uuid', MASTER_TENANT)
                 agent.setdefault('name', 'agent')
                 agent.setdefault('agent_id', 1)
@@ -81,7 +81,7 @@ def stat_agent(agent):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_agent(agent['id'])
 
         return wrapped_function
@@ -93,7 +93,7 @@ def stat_agent_periodic(stat):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 stat.setdefault('time', '2020-10-01 14:00:00')
                 agent_id = stat.pop('agent_id', 1)
                 stat['stat_agent_id'] = agent_id
@@ -101,7 +101,7 @@ def stat_agent_periodic(stat):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_agent_periodic(stat['id'])
 
         return wrapped_function
@@ -113,7 +113,7 @@ def stat_queue_periodic(stat):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 stat.setdefault('time', '2020-10-01 14:00:00')
                 tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
                 queue_id = stat.pop('queue_id', 1)
@@ -129,7 +129,7 @@ def stat_queue_periodic(stat):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_queue_periodic(stat['id'])
                     queries.delete_stat_queue(stat['stat_queue_id'])
 
@@ -142,7 +142,7 @@ def stat_call_on_queue(call):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 call.setdefault('callid', '123')
                 call.setdefault('status', 'answered')
                 tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT)
@@ -162,7 +162,7 @@ def stat_call_on_queue(call):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_call_on_queue(call['id'])
                     queries.delete_stat_queue(call['stat_queue_id'])
 

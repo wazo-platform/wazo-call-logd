@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime
@@ -71,7 +71,7 @@ LINKEDID_END | 2015-06-18 14:17:37.545342 | Elès 45  | 1045    | s     | user  
         with self.no_call_logs():
             self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
 
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 call_logs = queries.find_all_call_log()
                 assert_that(
                     call_logs,
@@ -137,7 +137,7 @@ LINKEDID_END | 2013-01-01 10:00:11 | Bob Marley    |    1002 | s     | user    |
             self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
             self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
 
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 call_logs = queries.find_all_call_log()
                 assert_that(
                     call_logs,
@@ -185,7 +185,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
         with self.no_call_logs():
             self.docker_exec(['wazo-call-logs', '--cel-count', '1'])
 
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 call_logs = queries.find_all_call_log()
                 assert_that(
                     call_logs,
@@ -237,7 +237,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
         with self.no_call_logs():
             self.docker_exec(['wazo-call-logs', '--cel-count', '20'])
 
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 call_logs = queries.find_all_call_log()
                 assert_that(
                     call_logs,

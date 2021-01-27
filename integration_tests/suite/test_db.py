@@ -14,17 +14,17 @@ from .helpers.base import IntegrationTest
 class TestDatabase(IntegrationTest):
     asset = 'base'
 
-    def restart_postgres(cls):
+    def restart_cel_postgres(cls):
         cls.restart_service('cel-postgres', signal='SIGINT')  # fast shutdown
         cls.reset_clients()
         until.true(
-            cls.database.is_up, timeout=5, message='Postgres did not come back up'
+            cls.cel_database.is_up, timeout=5, message='CEL Postgres did not come back up'
         )
 
-    def test_query_after_database_restart(self):
+    def test_query_after_cel_database_restart(self):
         result1 = self.call_logd.cdr.list()
 
-        self.restart_postgres()
+        self.restart_cel_postgres()
 
         result2 = self.call_logd.cdr.list()
 
