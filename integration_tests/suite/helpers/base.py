@@ -362,6 +362,16 @@ class RawCelIntegrationTest(IntegrationTest):
         with self.cel_database.queries() as queries:
             queries.clear_call_logs()
 
+    @contextmanager
+    def no_recordings(self):
+        with self.database.queries() as queries:
+            queries.clear_recordings()
+
+        yield
+
+        with self.database.queries() as queries:
+            queries.clear_recordings()
+
     def _assert_last_call_log_matches(self, linkedid, expected):
         with self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)

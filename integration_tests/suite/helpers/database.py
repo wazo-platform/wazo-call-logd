@@ -270,6 +270,11 @@ class DatabaseQueries:
         session.query(CallLog).delete()
         session.commit()
 
+    def clear_recordings(self):
+        session = self.Session()
+        session.query(Recording).delete()
+        session.commit()
+
     def insert_call_log_participant(self, **kwargs):
         with self.inserter() as inserter:
             return inserter.add_call_log_participant(**kwargs)
@@ -285,6 +290,12 @@ class DatabaseQueries:
         call_log = session.query(CallLog).order_by(CallLog.date).first()
         session.commit()
         return call_log
+
+    def find_all_recordings(self, call_log_id):
+        session = self.Session()
+        recording = session.query(Recording).filter(Recording.call_log_id == call_log_id).all()
+        session.commit()
+        return recording
 
     def get_call_log_user_uuids(self, call_log_id):
         session = self.Session()

@@ -1,9 +1,16 @@
-# Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
 
-from hamcrest import assert_that, contains, equal_to, has_entries, none, same_instance
+from hamcrest import (
+    assert_that,
+    contains,
+    equal_to,
+    has_entries,
+    none,
+    same_instance,
+)
 from mock import Mock, sentinel
 
 from xivo_dao.resources.cel.event_type import CELEventType
@@ -13,6 +20,9 @@ from ..cel_interpretor import (
     CallerCELInterpretor,
     DispatchCELInterpretor,
     find_participant,
+    extract_mixmonitor_extra,
+    is_valid_mixmonitor_start_extra,
+    is_valid_mixmonitor_stop_extra,
 )
 from ..raw_call_log import RawCallLog
 
@@ -74,6 +84,62 @@ class TestFindParticipant(TestCase):
                 tags=['user_userfield', 'toto'],
             ),
         )
+
+
+class TestExtractMixmonitorExtra():
+    def test_valid_extra(self):
+        extra = '{"key": "value", "key2": "value2"}'
+        result = extract_mixmonitor_extra(extra)
+        assert_that(result, has_entries(key='value', key2='value2'))
+
+    def test_invalid_json(self):
+        extra = '{"key": "value"'
+        result = extract_mixmonitor_extra(extra)
+        assert_that(result, none())
+
+    def test_missing_extra(self):
+        extra = None
+        result = extract_mixmonitor_extra(extra)
+        assert_that(result, none())
+
+
+class TestIsValidMixmonitorStartExtra:
+    def test_valid_extra(self):
+        extra = {'filename': '/tmp/foo.wav', 'mixmonitor_id': '0x01'}
+        is_valid = is_valid_mixmonitor_start_extra(extra)
+        assert_that(is_valid)
+
+    def test_missing_extra(self):
+        extra = None
+        is_valid = is_valid_mixmonitor_start_extra(extra)
+        assert_that(not is_valid)
+
+    def test_missing_filename(self):
+        extra = {'mixmonitor_id': '0x01'}
+        is_valid = is_valid_mixmonitor_start_extra(extra)
+        assert_that(not is_valid)
+
+    def test_missing_mixmonitor_id(self):
+        extra = {'filename': '/tmp/foo.wav'}
+        is_valid = is_valid_mixmonitor_start_extra(extra)
+        assert_that(not is_valid)
+
+
+class TestIsValidMixmonitorStopExtra:
+    def test_valid_extra(self):
+        extra = {'mixmonitor_id': '0x01'}
+        is_valid = is_valid_mixmonitor_stop_extra(extra)
+        assert_that(is_valid)
+
+    def test_missing_extra(self):
+        extra = None
+        is_valid = is_valid_mixmonitor_stop_extra(extra)
+        assert_that(not is_valid)
+
+    def test_missing_mixmonitor_id(self):
+        extra = {'filename': '/tmp/foo.wav'}
+        is_valid = is_valid_mixmonitor_stop_extra(extra)
+        assert_that(not is_valid)
 
 
 class TestCELDispatcher(TestCase):

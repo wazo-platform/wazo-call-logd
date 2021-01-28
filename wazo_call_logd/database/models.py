@@ -28,3 +28,8 @@ class Recording(Base):
     end_time = Column(DateTime(timezone=True), nullable=False)
     path = Column(Text)
     call_log_id = Column(Integer(), nullable=False)
+
+    def __init__(self, mixmonitor_id=None, *args, **kwargs):
+        # NOTE(fblackburn): Used to track recording on generation
+        self.mixmonitor_id = mixmonitor_id
+        super().__init__(*args, **kwargs)
