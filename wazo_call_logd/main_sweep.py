@@ -22,6 +22,8 @@ from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
 from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
 from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
+from wazo_call_logd.database.queries import DAO
+from wazo_call_logd.database.helpers import new_db_session
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
@@ -33,6 +35,7 @@ DEFAULT_CONFIG = {
     'pidfile': PIDFILENAME,
     'config_file': '/etc/wazo-call-logd/config.yml',
     'extra_config_files': '/etc/wazo-call-logd/conf.d',
+    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'auth': {
         'host': 'localhost',
@@ -81,6 +84,9 @@ def _generate_call_logs():
     key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
     config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
     init_db_from_config({'db_uri': config['cel_db_uri']})
+    DBSession = new_db_session(config['db_uri'])
+    CELDBSession = new_db_session(config['cel_db_uri'])
+    dao = DAO(DBSession, CELDBSession)
 
     auth_client = AuthClient(**config['auth'])
     confd_client = ConfdClient(**config['confd'])
@@ -100,7 +106,7 @@ def _generate_call_logs():
     token_renewer.subscribe_to_next_token_details_change(
         generator.set_default_tenant_uuid
     )
-    writer = CallLogsWriter()
+    writer = CallLogsWriter(dao)
     publisher = BusPublisher(config)
     manager = CallLogsManager(cel_fetcher, generator, writer, publisher)
 
