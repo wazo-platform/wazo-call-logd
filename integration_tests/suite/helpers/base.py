@@ -346,11 +346,12 @@ class RawCelIntegrationTest(IntegrationTest):
             for cel in cels:
                 cel['id'] = queries.insert_cel(**cel)
 
-        yield
-
-        with self.cel_database.queries() as queries:
-            for cel in cels:
-                queries.delete_cel(cel['id'])
+        try:
+            yield
+        finally:
+            with self.cel_database.queries() as queries:
+                for cel in cels:
+                    queries.delete_cel(cel['id'])
 
     @contextmanager
     def no_call_logs(self):
