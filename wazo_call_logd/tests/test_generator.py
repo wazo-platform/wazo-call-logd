@@ -1,4 +1,4 @@
-# Copyright 2013-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -55,9 +55,9 @@ class TestCallLogsGenerator(TestCase):
     def test_call_logs_from_cel_one_call(self, raw_call_log_constructor):
         linkedid = '9328742934'
         cels = self._generate_cel_for_call([linkedid])
-        call = (
-            raw_call_log_constructor.return_value
-        ) = self.interpretor.interpret_cels.return_value
+        call = Mock(recordings=[])
+        self.interpretor.interpret_cels.return_value = call
+        raw_call_log_constructor.return_value = call
         expected_call = call.to_call_log.return_value
 
         result = self.generator.call_logs_from_cel(cels)
@@ -70,12 +70,10 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        (
-            call_1,
-            call_2,
-        ) = (
-            self.interpretor.interpret_cels.side_effect
-        ) = raw_call_log_constructor.side_effect = [Mock(), Mock()]
+        call_1 = Mock(recordings=[])
+        call_2 = Mock(recordings=[])
+        self.interpretor.interpret_cels.side_effect = [call_1, call_2]
+        raw_call_log_constructor.side_effect = [call_1, call_2]
         expected_call_1 = call_1.to_call_log.return_value
         expected_call_2 = call_2.to_call_log.return_value
 
@@ -92,12 +90,10 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        (
-            call_1,
-            call_2,
-        ) = (
-            self.interpretor.interpret_cels.side_effect
-        ) = raw_call_log_constructor.side_effect = [Mock(), Mock()]
+        call_1 = Mock(recordings=[])
+        call_2 = Mock(recordings=[])
+        self.interpretor.interpret_cels.side_effect = [call_1, call_2]
+        raw_call_log_constructor.side_effect = [call_1, call_2]
         expected_call_1 = call_1.to_call_log.return_value
         call_2.to_call_log.side_effect = InvalidCallLogException()
 
@@ -117,14 +113,14 @@ class TestCallLogsGenerator(TestCase):
         assert_that(result, contains_inanyorder(1, 2))
 
     def test_given_interpretors_can_interpret_then_use_first_interpretor(self):
-        interpretor_true_1, interpretor_true_2, interpretor_false = (
-            Mock(),
-            Mock(),
-            Mock(),
-        )
+        interpretor_true_1 = Mock()
+        interpretor_true_2 = Mock()
+        interpretor_false = Mock()
         interpretor_true_1.can_interpret.return_value = True
         interpretor_true_2.can_interpret.return_value = True
         interpretor_false.can_interpret.return_value = False
+        interpretor_true_1.interpret_cels.return_value = Mock(recordings=[])
+        interpretor_true_2.interpret_cels.return_value = Mock(recordings=[])
         generator = CallLogsGenerator(
             self.confd_client,
             [
