@@ -2,24 +2,19 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
-    EXCLUDE,
-    fields,
     post_load,
-    Schema,
     pre_dump,
     pre_load,
     post_dump,
 )
-from marshmallow.validate import OneOf, Range, Regexp
+from xivo.mallow import fields
+from xivo.mallow.validate import OneOf, Range, Regexp
+from xivo.mallow_helpers import Schema
 
 NUMBER_REGEX = r'^_?[0-9]+_?$'
 
 
 class RecordingSchema(Schema):
-    class Meta:
-        ordered = True
-        unknown = EXCLUDE
-
     uuid = fields.UUID()
     start_time = fields.DateTime()
     end_time = fields.DateTime()
@@ -27,10 +22,6 @@ class RecordingSchema(Schema):
 
 
 class CDRSchema(Schema):
-    class Meta:
-        ordered = True
-        unknown = EXCLUDE
-
     id = fields.Integer()
     tenant_uuid = fields.UUID()
     start = fields.DateTime(attribute='date')

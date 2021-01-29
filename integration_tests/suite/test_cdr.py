@@ -15,6 +15,7 @@ from hamcrest import (
     empty,
     has_entry,
     has_entries,
+    has_items,
     has_key,
     has_length,
     has_properties,
@@ -612,15 +613,25 @@ class TestListCDR(IntegrationTest):
         assert_that(
             calling(self.call_logd.cdr.list).with_args(order='end'),
             raises(CallLogdError).matching(
-                has_properties(status_code=400, details=has_key('order'))
+                has_properties(
+                    status_code=400,
+                    details=has_entries(
+                        order=has_items(has_entries(constraint_id='enum'))
+                    ),
+                ),
             ),
         )
 
         assert_that(
             calling(self.call_logd.cdr.list).with_args(order='tags'),
             raises(CallLogdError).matching(
-                has_properties(status_code=400, details=has_key('order'))
-            ),
+                has_properties(
+                    status_code=400,
+                    details=has_entries(
+                        order=has_items(has_entries(constraint_id='enum'))
+                    ),
+                ),
+            )
         )
 
         assert_that(
@@ -628,7 +639,12 @@ class TestListCDR(IntegrationTest):
                 call_direction='not_valid_choice'
             ),
             raises(CallLogdError).matching(
-                has_properties(status_code=400, details=has_key('call_direction'))
+                has_properties(
+                    status_code=400,
+                    details=has_entries(
+                        call_direction=has_items(has_entries(constraint_id='enum'))
+                    ),
+                ),
             ),
         )
 
