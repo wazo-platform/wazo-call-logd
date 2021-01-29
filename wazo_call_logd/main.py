@@ -40,7 +40,3 @@ def main():
 def upgrade_db():
     conf = load_config(sys.argv[1:])
     database.upgrade(conf["db_uri"])
-
-
-if __name__ == '__main__':
-    main()
