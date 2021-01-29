@@ -51,6 +51,9 @@ def call_logs(call_logs):
                 with self.cel_database.queries() as queries:
                     for call_log in call_logs:
                         queries.delete_call_log(call_log['id'])
+                with self.database.queries() as queries:
+                    for call_log in call_logs:
+                        queries.delete_recording_by_call_log_id(call_log['id'])
 
         return wrapped_function
 
@@ -267,6 +270,11 @@ class DatabaseQueries:
     def delete_recording(self, recording_uuid):
         session = self.Session()
         session.query(Recording).filter(Recording.uuid == recording_uuid).delete()
+        session.commit()
+
+    def delete_recording_by_call_log_id(self, call_log_id):
+        session = self.Session()
+        session.query(Recording).filter(Recording.call_log_id == call_log_id).delete()
         session.commit()
 
     def clear_call_logs(self):
