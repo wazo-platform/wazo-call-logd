@@ -8,7 +8,7 @@ from xivo.config_helper import parse_config_file
 from xivo.config_helper import read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
-_DEFAULT_CONFIG = {
+DEFAULT_CONFIG = {
     'logfile': '/var/log/wazo-call-logd.log',
     'log_level': 'info',
     'config_file': '/etc/wazo-call-logd/config.yml',
@@ -56,13 +56,13 @@ _DEFAULT_CONFIG = {
 
 def load(argv):
     cli_config = _parse_cli_args(argv)
-    file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
+    file_config = read_config_file_hierarchy(ChainMap(cli_config, DEFAULT_CONFIG))
     reinterpreted_config = _get_reinterpreted_raw_values(
-        ChainMap(cli_config, file_config, _DEFAULT_CONFIG)
+        ChainMap(cli_config, file_config, DEFAULT_CONFIG)
     )
-    service_key = _load_key_file(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
+    service_key = _load_key_file(ChainMap(cli_config, file_config, DEFAULT_CONFIG))
     return ChainMap(
-        reinterpreted_config, cli_config, service_key, file_config, _DEFAULT_CONFIG
+        reinterpreted_config, cli_config, service_key, file_config, DEFAULT_CONFIG
     )
 
 
