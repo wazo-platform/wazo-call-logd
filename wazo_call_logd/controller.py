@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+import signal
 
+from functools import partial
 from threading import Thread
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
@@ -76,6 +78,7 @@ class Controller:
         )
         self.status_aggregator.add_provider(self.bus_client.provide_status)
         self.status_aggregator.add_provider(self.token_status.provide_status)
+        signal.signal(signal.SIGTERM, partial(_sigterm_handler, self))
         bus_publisher_thread = Thread(target=self._publisher.run)
         bus_publisher_thread.start()
         bus_consumer_thread = Thread(
@@ -96,3 +99,7 @@ class Controller:
     def stop(self, reason):
         logger.warning('Stopping wazo-call-logd: %s', reason)
         self.http_server.stop()
+
+
+def _sigterm_handler(controller, signum, frame):
+    controller.stop(reason='SIGTERM')

@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-import signal
 import sys
-from functools import partial
 
 import xivo_dao
 from xivo.config_helper import set_xivo_uuid
@@ -36,15 +34,7 @@ def main():
     set_xivo_uuid(config, logger)
 
     controller = Controller(config)
-    signal.signal(signal.SIGTERM, partial(sigterm, controller))
     controller.run()
-
-
-def sigterm(controller, signum, frame):
-    del signum
-    del frame
-
-    controller.stop(reason='SIGTERM')
 
 
 def upgrade_db():
