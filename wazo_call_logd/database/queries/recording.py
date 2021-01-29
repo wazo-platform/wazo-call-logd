@@ -21,3 +21,21 @@ class RecordingDAO(BaseDAO):
             query = session.query(Recording).filter(Recording.call_log_id.in_(call_log_ids))
             query.delete(synchronize_session='fetch')
             session.flush()
+
+    def find_all_by_call_log_ids(self, call_log_ids):
+        if not call_log_ids:
+            return
+        with self.new_session() as session:
+            query = session.query(Recording).filter(Recording.call_log_id.in_(call_log_ids))
+            recordings = query.all()
+            for recording in recordings:
+                session.expunge(recording)
+            return recordings
+
+    def find_all_by_call_log_id(self, call_log_id):
+        with self.new_session() as session:
+            query = session.query(Recording).filter(Recording.call_log_id == call_log_id)
+            recordings = query.all()
+            for recording in recordings:
+                session.expunge(recording)
+            return recordings
