@@ -79,7 +79,7 @@ def _generate_call_logs():
     file_config = {
         key: value
         for key, value in read_config_file_hierarchy(DEFAULT_CONFIG).items()
-        if key in ('confd', 'bus', 'auth', 'cel_db_uri')
+        if key in ('confd', 'bus', 'auth', 'db_uri', 'cel_db_uri')
     }
     key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
     config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
