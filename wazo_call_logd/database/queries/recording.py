@@ -6,7 +6,6 @@ from ..models import Recording
 
 
 class RecordingDAO(BaseDAO):
-
     def create_all(self, recordings):
         with self.new_session() as session:
             for recording in recordings:
@@ -18,7 +17,8 @@ class RecordingDAO(BaseDAO):
         if not call_log_ids:
             return
         with self.new_session() as session:
-            query = session.query(Recording).filter(Recording.call_log_id.in_(call_log_ids))
+            filter_ = Recording.call_log_id.in_(call_log_ids)
+            query = session.query(Recording).filter(filter_)
             query.delete(synchronize_session='fetch')
             session.flush()
 
@@ -26,7 +26,8 @@ class RecordingDAO(BaseDAO):
         if not call_log_ids:
             return
         with self.new_session() as session:
-            query = session.query(Recording).filter(Recording.call_log_id.in_(call_log_ids))
+            filter_ = Recording.call_log_id.in_(call_log_ids)
+            query = session.query(Recording).filter(filter_)
             recordings = query.all()
             for recording in recordings:
                 session.expunge(recording)
@@ -34,7 +35,8 @@ class RecordingDAO(BaseDAO):
 
     def find_all_by_call_log_id(self, call_log_id):
         with self.new_session() as session:
-            query = session.query(Recording).filter(Recording.call_log_id == call_log_id)
+            filter_ = Recording.call_log_id == call_log_id
+            query = session.query(Recording).filter(filter_)
             recordings = query.all()
             for recording in recordings:
                 session.expunge(recording)

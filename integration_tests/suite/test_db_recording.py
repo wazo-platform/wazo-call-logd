@@ -4,7 +4,7 @@
 from datetime import (
     datetime as dt,
     timedelta as td,
-    timezone as tz
+    timezone as tz,
 )
 from hamcrest import (
     assert_that,
@@ -25,13 +25,13 @@ class TestRecording(DBIntegrationTest):
         recording_min = Recording(
             start_time=start_time,
             end_time=end_time,
-            call_log_id=1234
+            call_log_id=1234,
         )
         recording_full = Recording(
             start_time=start_time,
             end_time=end_time,
             path='/tmp/foo.wav',
-            call_log_id=5678
+            call_log_id=5678,
         )
 
         self.dao.recording.create_all([recording_min, recording_full])
@@ -51,8 +51,8 @@ class TestRecording(DBIntegrationTest):
                     end_time=end_time,
                     path='/tmp/foo.wav',
                     call_log_id=5678,
-                )
-            )
+                ),
+            ),
         )
         self.session.query(Recording).delete()
         self.session.commit()
@@ -81,7 +81,7 @@ class TestRecording(DBIntegrationTest):
             contains_inanyorder(
                 has_properties(uuid=rec1['uuid']),
                 has_properties(uuid=rec3['uuid']),
-            )
+            ),
         )
 
     @recording(call_log_id=1)
@@ -95,5 +95,5 @@ class TestRecording(DBIntegrationTest):
             result,
             contains_inanyorder(
                 has_properties(uuid=rec2['uuid']),
-            )
+            ),
         )

@@ -203,8 +203,8 @@ class TestGetCDRId(IntegrationTest):
                         start_time='2017-03-23T00:01:27+00:00',
                         end_time='2017-03-23T00:02:26+00:00',
                         deleted=True,
-                    )
-                )
+                    ),
+                ),
             ),
         )
 
@@ -445,7 +445,7 @@ class TestListCDR(IntegrationTest):
                                 end_time='2017-03-23T00:02:26+00:00',
                                 deleted=False,
                             )
-                        )
+                        ),
                     ),
                     has_entries(
                         id=34,

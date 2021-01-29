@@ -297,9 +297,10 @@ class DatabaseQueries:
 
     def find_all_recordings(self, call_log_id):
         session = self.Session()
-        recording = session.query(Recording).filter(Recording.call_log_id == call_log_id).all()
+        query = session.query(Recording).filter(Recording.call_log_id == call_log_id)
+        recordings = query.all()
         session.commit()
-        return recording
+        return recordings
 
     def get_call_log_user_uuids(self, call_log_id):
         session = self.Session()

@@ -21,7 +21,7 @@ def upgrade():
             'uuid',
             UUID(as_uuid=True),
             server_default=sa.text('uuid_generate_v4()'),
-            primary_key=True
+            primary_key=True,
         ),
         sa.Column('start_time', sa.DateTime(timezone=True), nullable=False),
         sa.Column('end_time', sa.DateTime(timezone=True), nullable=False),

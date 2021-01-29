@@ -5,7 +5,6 @@ from xivo_dao.resources.call_log import dao as call_log_dao
 
 
 class CallLogsWriter:
-
     def __init__(self, dao):
         self._dao = dao
 

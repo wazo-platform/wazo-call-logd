@@ -86,7 +86,7 @@ class TestFindParticipant(TestCase):
         )
 
 
-class TestExtractMixmonitorExtra():
+class TestExtractMixmonitorExtra:
     def test_valid_extra(self):
         extra = '{"key": "value", "key2": "value2"}'
         result = extract_mixmonitor_extra(extra)

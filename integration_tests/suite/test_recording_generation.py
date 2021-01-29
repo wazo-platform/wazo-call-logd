@@ -47,7 +47,7 @@ LINKEDID_END     | 2021-01-01 00:00:00.16 | SIP/aaaaaa-00000001 | 1000000000.01 
                 start_time=dt.fromisoformat('2021-01-01 00:00:00.040000+00:00'),
                 end_time=dt.fromisoformat('2021-01-01 00:00:00.090000+00:00'),
                 path='/tmp/foobar.wav',
-            )
+            ),
         )
 
     @raw_cels(
@@ -153,6 +153,7 @@ LINKEDID_END     | 2021-01-01 00:00:00.18 | SIP/aaaaaa-00000001 | 1000000000.01 
 
     def _get_last_call_log_generated(self):
         with self.cel_database.queries() as queries:
+
             def call_log_generated():
                 return queries.find_last_call_log() is not None
 
