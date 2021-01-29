@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -43,6 +43,7 @@ CSV_HEADERS = [
     'source_user_uuid',
     'source_line_id',
     'tags',
+    # recording_{x}_{key},  # Added dynamically
 ]
 
 
@@ -62,15 +63,26 @@ def _output_csv(data, code, http_headers=None):
     if _is_error(data):
         response = jsonify(data)
     elif _is_cdr_list(data) or _is_single_cdr(data):
-        csv_text = StringIO()
-        writer = csv.DictWriter(csv_text, CSV_HEADERS)
-
-        writer.writeheader()
+        csv_headers = CSV_HEADERS.copy()
+        csv_body = []
         items = data['items'] if _is_cdr_list(data) else [data]
         for cdr in items:
             if 'tags' in cdr:
                 cdr['tags'] = ';'.join(cdr['tags'])
-            writer.writerow(cdr)
+
+            for x, recording in enumerate(cdr.pop('recordings')):
+                for key in recording.keys():
+                    csv_key = f'recording_{x+1}_{key}'
+                    csv_headers.append(csv_key)
+                    cdr[csv_key] = recording[key]
+
+            csv_body.append(cdr)
+
+        csv_text = StringIO()
+        writer = csv.DictWriter(csv_text, csv_headers)
+        writer.writeheader()
+        for csv_line in csv_body:
+            writer.writerow(csv_line)
 
         response = make_response(csv_text.getvalue())
     else:

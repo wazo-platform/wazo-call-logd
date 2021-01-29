@@ -236,6 +236,18 @@ class TestGetCDRId(IntegrationTest):
                         'role': 'source',
                     }
                 ],
+                'recordings': [
+                    {
+                        'start_time': '2017-03-23 00:01:01',
+                        'end_time': '2017-03-23 00:01:26',
+                        'path': '/tmp/foobar.wav',
+                    },
+                    {
+                        'start_time': '2017-03-23 00:01:27',
+                        'end_time': '2017-03-23 00:02:26',
+                        'path': None,
+                    },
+                ],
             }
         ]
     )
@@ -267,6 +279,14 @@ class TestGetCDRId(IntegrationTest):
                 source_internal_context='internal',
                 source_user_uuid=USER_1_UUID,
                 tags=any_of('rh;Poudlard', 'Poudlard;rh'),
+                recording_1_uuid=uuid_(),
+                recording_1_start_time='2017-03-23T00:01:01+00:00',
+                recording_1_end_time='2017-03-23T00:01:26+00:00',
+                recording_1_deleted='False',
+                recording_2_uuid=uuid_(),
+                recording_2_start_time='2017-03-23T00:01:27+00:00',
+                recording_2_end_time='2017-03-23T00:02:26+00:00',
+                recording_2_deleted='True',
             ),
         )
 
@@ -468,6 +488,13 @@ class TestListCDR(IntegrationTest):
                         'role': 'source',
                     }
                 ],
+                'recordings': [
+                    {
+                        'start_time': '2017-03-23 00:01:01',
+                        'end_time': '2017-03-23 00:01:26',
+                        'path': '/tmp/foobar.wav',
+                    },
+                ],
             },
             {
                 'id': 34,
@@ -479,6 +506,7 @@ class TestListCDR(IntegrationTest):
                 'direction': 'outbound',
                 'source_exten': '7867',
                 'source_name': '.rùos',
+                'recordings': [],
             },
         ]
     )
@@ -504,6 +532,10 @@ class TestListCDR(IntegrationTest):
                     source_name='soùr.',
                     source_user_uuid=USER_1_UUID,
                     tags=any_of('rh;Poudlard', 'Poudlard;rh'),
+                    recording_1_uuid=uuid_(),
+                    recording_1_start_time='2017-03-23T00:01:01+00:00',
+                    recording_1_end_time='2017-03-23T00:01:26+00:00',
+                    recording_1_deleted='False',
                 ),
                 has_entries(
                     id='34',
