@@ -33,3 +33,7 @@ class Recording(Base):
         # NOTE(fblackburn): Used to track recording on generation
         self.mixmonitor_id = mixmonitor_id
         super().__init__(*args, **kwargs)
+
+    @property
+    def deleted(self):
+        return self.path is None

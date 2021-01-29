@@ -31,16 +31,20 @@ def call_logs(call_logs):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.cel_database.queries() as queries:
-                for call_log in call_logs:
-                    participants = call_log.pop('participants', [])
-                    call_log.setdefault('tenant_uuid', MASTER_TENANT)
+            for call_log in call_logs:
+                recordings = call_log.pop('recordings', [])
+                participants = call_log.pop('participants', [])
+                call_log.setdefault('tenant_uuid', MASTER_TENANT)
+                with self.cel_database.queries() as queries:
                     call_log['id'] = queries.insert_call_log(**call_log)
                     call_log['participants'] = participants
                     for participant in participants:
-                        queries.insert_call_log_participant(
-                            call_log_id=call_log['id'], **participant
-                        )
+                        participant['call_log_id'] = call_log['id']
+                        queries.insert_call_log_participant(**participant)
+                with self.database.queries() as queries:
+                    for recording in recordings:
+                        recording['call_log_id'] = call_log['id']
+                        queries.insert_recording(**recording)
             try:
                 return func(self, *args, **kwargs)
             finally:

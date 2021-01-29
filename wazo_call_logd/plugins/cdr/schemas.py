@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
@@ -13,6 +13,17 @@ from marshmallow import (
 from marshmallow.validate import OneOf, Range, Regexp
 
 NUMBER_REGEX = r'^_?[0-9]+_?$'
+
+
+class RecordingSchema(Schema):
+    class Meta:
+        ordered = True
+        unknown = EXCLUDE
+
+    uuid = fields.UUID()
+    start_time = fields.DateTime()
+    end_time = fields.DateTime()
+    deleted = fields.Boolean()
 
 
 class CDRSchema(Schema):
@@ -48,6 +59,7 @@ class CDRSchema(Schema):
     source_name = fields.String()
     source_user_uuid = fields.UUID()
     tags = fields.List(fields.String(), attribute='marshmallow_tags')
+    recordings = fields.Nested('RecordingSchema', many=True, default=[])
 
     @pre_dump
     def _compute_fields(self, data):
