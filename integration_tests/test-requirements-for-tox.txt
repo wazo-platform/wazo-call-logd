@@ -1,17 +1,20 @@
 https://github.com/wazo-platform/wazo-lib-rest-client/archive/master.zip
 https://github.com/wazo-platform/wazo-call-logd-client/archive/master.zip
-https://github.com/wazo-platform/xivo-dao/archive/master.zip
 https://github.com/wazo-platform/xivo-test-helpers/archive/master.zip
-https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 docker-compose
 kombu
 marshmallow==3.0.0b14
 openapi-spec-validator
-psycopg2-binary  # from sqlalchemy
 pyhamcrest==1.9.0  # Versions 1.10.x are broken
 pytest
 python-dateutil==2.7.3  # from marshmallow, to accept more date formats
 pytz==2019.1
 requests
-sqlalchemy
 stevedore  # from wazo-call-logd-client
+
+# for database tests
+psycopg2-binary  # from sqlalchemy
+sqlalchemy
+sqlalchemy_utils
+https://github.com/wazo-platform/xivo-dao/archive/master.zip
+https://github.com/wazo-platform/xivo-lib-python/archive/master.zip

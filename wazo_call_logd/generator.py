@@ -1,4 +1,4 @@
-# Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -29,7 +29,8 @@ class CallLogsGenerator:
         call_logs_to_delete = self.list_call_log_ids(cels)
         new_call_logs = self.call_logs_from_cel(cels)
         return CallLogsCreation(
-            new_call_logs=new_call_logs, call_logs_to_delete=call_logs_to_delete
+            new_call_logs=new_call_logs,
+            call_logs_to_delete=call_logs_to_delete,
         )
 
     def call_logs_from_cel(self, cels):
@@ -44,6 +45,7 @@ class CallLogsGenerator:
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
 
             self._ensure_tenant_uuid_is_set(call_log)
+            self._remove_incomplete_recordings(call_log)
 
             try:
                 result.append(call_log.to_call_log())
@@ -86,3 +88,12 @@ class CallLogsGenerator:
                 self._service_tenant_uuid,
             )
             call_log.set_tenant_uuid(self._service_tenant_uuid)
+
+    def _remove_incomplete_recordings(self, call_log):
+        new_recordings = []
+        for recording in call_log.recordings:
+            if recording.start_time is None or recording.end_time is None:
+                logger.debug('Incomplete recording information')
+                continue
+            new_recordings.append(recording)
+        call_log.recordings = new_recordings

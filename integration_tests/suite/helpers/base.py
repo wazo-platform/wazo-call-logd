@@ -1,11 +1,10 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import os
 import pytz
 import random
-import tempfile
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -50,7 +49,8 @@ from .database import DbHelper
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
 
-DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}')
+CEL_DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}')
+DB_URI = os.getenv('DB_URI', 'postgresql://wazo-call-logd:Secr7t@localhost:{port}')
 
 
 # this decorator takes the output of a psql and changes it into a list of dict
@@ -127,15 +127,8 @@ class IntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def setUpClass(cls):
         super(IntegrationTest, cls).setUpClass()
-        try:
-            cls.reset_clients()
-            cls.wait_strategy.wait(cls)
-        except Exception:
-            with tempfile.NamedTemporaryFile(delete=False) as logfile:
-                logfile.write(cls.log_containers())
-                logger.debug('Container logs dumped to %s', logfile.name)
-            cls.tearDownClass()
-            raise
+        cls.reset_clients()
+        cls.wait_strategy.wait(cls)
 
     def setUp(self):
         super().setUp()
@@ -143,36 +136,66 @@ class IntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def reset_clients(cls):
-        try:
-            cls.call_logd = CallLogdClient(
-                'localhost',
-                cls.service_port(9298, 'call-logd'),
-                prefix=None,
-                https=False,
-                token=MASTER_TOKEN,
-            )
-        except (NoSuchService, NoSuchPort) as e:
-            logger.debug(e)
-            cls.call_logd = WrongClient(name='call-logd')
-
-        try:
-            cls.auth = AuthClient('localhost', cls.service_port(9497, 'auth'))
+        cls.call_logd = cls.make_call_logd()
+        cls.database = cls.make_database()
+        cls.cel_database = cls.make_cel_database()
+        cls.auth = cls.make_auth()
+        if not isinstance(cls.auth, WrongClient):
             cls.configure_wazo_auth_for_multitenants()
-        except (NoSuchService, NoSuchPort) as e:
-            logger.debug(e)
-            cls.auth = WrongClient(name='auth')
 
+    @classmethod
+    def make_call_logd(cls):
         try:
-            cls.database = DbHelper.build(
-                'asterisk',
-                'proformatique',
-                'localhost',
-                cls.service_port(5432, 'postgres'),
-                'asterisk',
-            )
-        except (NoSuchService, NoSuchPort) as e:
-            logger.debug(e)
-            cls.database = WrongClient(name='database')
+            port = cls.service_port(9298, 'call-logd')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='call-logd')
+
+        return CallLogdClient(
+            'localhost',
+            port,
+            prefix=None,
+            https=False,
+            token=MASTER_TOKEN,
+        )
+
+    @classmethod
+    def make_auth(cls):
+        try:
+            port = cls.service_port(9497, 'auth')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='auth')
+
+        return AuthClient('localhost', port)
+
+    @classmethod
+    def make_database(cls):
+        try:
+            port = cls.service_port(5432, 'postgres')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='database')
+
+        return DbHelper.build(
+            'wazo-call-logd',
+            'Secr7t',
+            'localhost',
+            port,
+            'wazo-call-logd',
+        )
+
+    @classmethod
+    def make_cel_database(cls):
+        try:
+            port = cls.service_port(5432, 'cel-postgres')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='cel_database')
+
+        return DbHelper.build(
+            'asterisk',
+            'proformatique',
+            'localhost',
+            port,
+            'asterisk',
+        )
 
     @classmethod
     def make_bus(cls):
@@ -264,22 +287,47 @@ class DBIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.database = cls.make_database()
+        cls.cel_database = cls.make_cel_database()
+
+    @classmethod
+    def make_database(cls):
         try:
-            cls.database = DbHelper.build(
-                'asterisk',
-                'proformatique',
-                'localhost',
-                cls.service_port(5432, 'postgres'),
-                'asterisk',
-            )
-        except (NoSuchService, NoSuchPort) as e:
-            logger.debug(e)
-            cls.database = WrongClient(name='database')
+            port = cls.service_port(5432, 'postgres')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='database')
+
+        return DbHelper.build(
+            'wazo-call-logd',
+            'Secr7t',
+            'localhost',
+            port,
+            'wazo-call-logd',
+        )
+
+    @classmethod
+    def make_cel_database(cls):
+        try:
+            port = cls.service_port(5432, 'cel-postgres')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='cel_database')
+
+        return DbHelper.build(
+            'asterisk',
+            'proformatique',
+            'localhost',
+            port,
+            'asterisk',
+        )
 
     def setUp(self):
+        cel_db_uri = CEL_DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
+        CELSession = new_db_session(cel_db_uri)
         db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
         Session = new_db_session(db_uri)
-        self.dao = DAO(Session)
+        self.dao = DAO(Session, CELSession)
+        self.session = Session()
+        self.cel_session = CELSession()
 
 
 class RawCelIntegrationTest(IntegrationTest):
@@ -294,32 +342,43 @@ class RawCelIntegrationTest(IntegrationTest):
 
     @contextmanager
     def cels(self, cels):
-        with self.database.queries() as queries:
+        with self.cel_database.queries() as queries:
             for cel in cels:
                 cel['id'] = queries.insert_cel(**cel)
 
-        yield
-
-        with self.database.queries() as queries:
-            for cel in cels:
-                queries.delete_cel(cel['id'])
+        try:
+            yield
+        finally:
+            with self.cel_database.queries() as queries:
+                for cel in cels:
+                    queries.delete_cel(cel['id'])
 
     @contextmanager
     def no_call_logs(self):
-        with self.database.queries() as queries:
+        with self.cel_database.queries() as queries:
             queries.clear_call_logs()
 
         yield
 
-        with self.database.queries() as queries:
+        with self.cel_database.queries() as queries:
             queries.clear_call_logs()
+
+    @contextmanager
+    def no_recordings(self):
+        with self.database.queries() as queries:
+            queries.clear_recordings()
+
+        yield
+
+        with self.database.queries() as queries:
+            queries.clear_recordings()
 
     def _assert_last_call_log_matches(self, linkedid, expected):
         with self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_generated():
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, expected)
 

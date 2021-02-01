@@ -11,6 +11,7 @@ debug: false
 
 # Database connection informations.
 db_uri: postgresql://asterisk:proformatique@localhost/asterisk
+cel_db_uri: postgresql://asterisk:proformatique@localhost/asterisk
 
 # Event bus (AMQP) connection informations
 bus:

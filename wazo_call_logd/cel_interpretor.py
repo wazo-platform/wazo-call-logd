@@ -1,6 +1,7 @@
-# Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import json
 import re
 import logging
 
@@ -9,6 +10,9 @@ from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo.asterisk.protocol_interface import InvalidChannelError
 from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
+
+from .database.models import Recording
+
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +80,46 @@ def find_participant(confd, channame):
     }
 
 
+def extract_mixmonitor_extra(extra):
+    if not extra:
+        logger.debug('missing mixmonitor extra')
+        return
+
+    try:
+        extra = json.loads(extra)
+    except json.decoder.JSONDecodeError:
+        logger.debug('invalid mixmonitor extra: "%s"', extra)
+        return
+
+    return extra
+
+
+def is_valid_mixmonitor_start_extra(extra):
+    if not extra:
+        return False
+
+    if not extra.get('mixmonitor_id', None):
+        logger.debug('"mixmonitor_id" not found or invalid in mixmonitor event')
+        return False
+
+    if not extra.get('filename', None):
+        logger.debug('"filename" not found or invalid in mixmonitor event')
+        return False
+
+    return True
+
+
+def is_valid_mixmonitor_stop_extra(extra):
+    if not extra:
+        return False
+
+    if not extra.get('mixmonitor_id', None):
+        logger.debug('"mixmonitor_id" not found or invalid in mixmonitor event')
+        return False
+
+    return True
+
+
 class DispatchCELInterpretor:
     def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
         self.caller_cel_interpretor = caller_cel_interpretor
@@ -131,6 +175,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.answer: self.interpret_answer,
             CELEventType.bridge_start: self.interpret_bridge_start_or_enter,
             CELEventType.bridge_enter: self.interpret_bridge_start_or_enter,
+            CELEventType.mixmonitor_start: self.interpret_mixmonitor_start,
+            CELEventType.mixmonitor_stop: self.interpret_mixmonitor_stop,
             CELEventType.xivo_from_s: self.interpret_xivo_from_s,
             CELEventType.xivo_incall: self.interpret_xivo_incall,
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
@@ -167,6 +213,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_chan_end(self, cel, call):
         call.date_end = cel.eventtime
+        for recording in call.recordings:
+            if not recording.end_time:
+                recording.end_time = cel.eventtime
         return call
 
     def interpret_app_start(self, cel, call):
@@ -194,6 +243,29 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         call.date_answer = cel.eventtime
 
+        return call
+
+    def interpret_mixmonitor_start(self, cel, call):
+        extra = extract_mixmonitor_extra(cel.extra)
+        if not is_valid_mixmonitor_start_extra(extra):
+            return call
+
+        recording = Recording(
+            start_time=cel.eventtime,
+            path=extra['filename'],
+            mixmonitor_id=extra['mixmonitor_id'],
+        )
+        call.recordings.append(recording)
+        return call
+
+    def interpret_mixmonitor_stop(self, cel, call):
+        extra = extract_mixmonitor_extra(cel.extra)
+        if not is_valid_mixmonitor_stop_extra(extra):
+            return call
+
+        for recording in call.recordings:
+            if recording.mixmonitor_id == extra['mixmonitor_id']:
+                recording.end_time = cel.eventtime
         return call
 
     def interpret_xivo_from_s(self, cel, call):
@@ -227,8 +299,11 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
     def __init__(self, confd):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
+            CELEventType.chan_end: self.interpret_chan_end,
             CELEventType.bridge_enter: self.interpret_bridge_enter,
             CELEventType.bridge_start: self.interpret_bridge_enter,
+            CELEventType.mixmonitor_start: self.interpret_mixmonitor_start,
+            CELEventType.mixmonitor_stop: self.interpret_mixmonitor_stop,
         }
         self._confd = confd
 
@@ -267,12 +342,41 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         return call
 
+    def interpret_chan_end(self, cel, call):
+        for recording in call.recordings:
+            if not recording.end_time:
+                recording.end_time = cel.eventtime
+        return call
+
     def interpret_bridge_enter(self, cel, call):
         if call.interpret_callee_bridge_enter:
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
             call.interpret_callee_bridge_enter = False
+        return call
+
+    def interpret_mixmonitor_start(self, cel, call):
+        extra = extract_mixmonitor_extra(cel.extra)
+        if not is_valid_mixmonitor_start_extra(extra):
+            return call
+
+        recording = Recording(
+            start_time=cel.eventtime,
+            path=extra['filename'],
+            mixmonitor_id=extra['mixmonitor_id'],
+        )
+        call.recordings.append(recording)
+        return call
+
+    def interpret_mixmonitor_stop(self, cel, call):
+        extra = extract_mixmonitor_extra(cel.extra)
+        if not is_valid_mixmonitor_stop_extra(extra):
+            return call
+
+        for recording in call.recordings:
+            if recording.mixmonitor_id == extra['mixmonitor_id']:
+                recording.end_time = cel.eventtime
         return call
 
 

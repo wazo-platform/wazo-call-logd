@@ -1,6 +1,7 @@
 rest_api:
   listen: 0.0.0.0
-db_uri: postgresql://asterisk:proformatique@postgres/asterisk
+db_uri: postgresql://wazo-call-logd:Secr7t@postgres/wazo-call-logd
+cel_db_uri: postgresql://asterisk:proformatique@cel-postgres/asterisk
 auth:
   host: auth
   key_file: /etc/wazo-call-logd/key.yml

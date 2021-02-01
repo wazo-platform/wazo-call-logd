@@ -22,6 +22,7 @@ from hamcrest import (
 from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.auth import MockUserToken
 from xivo_test_helpers.hamcrest.raises import raises
+from xivo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.base import cdr, IntegrationTest
 from .helpers.constants import (
@@ -145,6 +146,18 @@ class TestGetCDRId(IntegrationTest):
                     },
                     {'user_uuid': USER_2_UUID, 'line_id': '22', 'role': 'destination'},
                 ],
+                'recordings': [
+                    {
+                        'start_time': '2017-03-23 00:01:01',
+                        'end_time': '2017-03-23 00:01:26',
+                        'path': '/tmp/foobar.wav',
+                    },
+                    {
+                        'start_time': '2017-03-23 00:01:27',
+                        'end_time': '2017-03-23 00:02:26',
+                        'path': None,
+                    },
+                ],
             }
         ]
     )
@@ -178,6 +191,20 @@ class TestGetCDRId(IntegrationTest):
                 source_user_uuid=USER_1_UUID,
                 source_line_id=11,
                 tags=contains_inanyorder('rh', 'Poudlard'),
+                recordings=contains_inanyorder(
+                    has_entries(
+                        uuid=uuid_(),
+                        start_time='2017-03-23T00:01:01+00:00',
+                        end_time='2017-03-23T00:01:26+00:00',
+                        deleted=False,
+                    ),
+                    has_entries(
+                        uuid=uuid_(),
+                        start_time='2017-03-23T00:01:27+00:00',
+                        end_time='2017-03-23T00:02:26+00:00',
+                        deleted=True,
+                    ),
+                ),
             ),
         )
 
@@ -208,6 +235,18 @@ class TestGetCDRId(IntegrationTest):
                         'tags': ['rh', 'Poudlard'],
                         'role': 'source',
                     }
+                ],
+                'recordings': [
+                    {
+                        'start_time': '2017-03-23 00:01:01',
+                        'end_time': '2017-03-23 00:01:26',
+                        'path': '/tmp/foobar.wav',
+                    },
+                    {
+                        'start_time': '2017-03-23 00:01:27',
+                        'end_time': '2017-03-23 00:02:26',
+                        'path': None,
+                    },
                 ],
             }
         ]
@@ -240,6 +279,14 @@ class TestGetCDRId(IntegrationTest):
                 source_internal_context='internal',
                 source_user_uuid=USER_1_UUID,
                 tags=any_of('rh;Poudlard', 'Poudlard;rh'),
+                recording_1_uuid=uuid_(),
+                recording_1_start_time='2017-03-23T00:01:01+00:00',
+                recording_1_end_time='2017-03-23T00:01:26+00:00',
+                recording_1_deleted='False',
+                recording_2_uuid=uuid_(),
+                recording_2_start_time='2017-03-23T00:01:27+00:00',
+                recording_2_end_time='2017-03-23T00:02:26+00:00',
+                recording_2_deleted='True',
             ),
         )
 
@@ -348,6 +395,13 @@ class TestListCDR(IntegrationTest):
                         'role': 'source',
                     }
                 ],
+                'recordings': [
+                    {
+                        'start_time': '2017-03-23 00:01:01',
+                        'end_time': '2017-03-23 00:02:26',
+                        'path': '/tmp/foobar.wav',
+                    },
+                ],
             },
             {
                 'id': 34,
@@ -384,6 +438,14 @@ class TestListCDR(IntegrationTest):
                         source_name='soùr.',
                         source_user_uuid=USER_1_UUID,
                         tags=contains_inanyorder('rh', 'Poudlard'),
+                        recordings=contains_inanyorder(
+                            has_entries(
+                                uuid=uuid_(),
+                                start_time='2017-03-23T00:01:01+00:00',
+                                end_time='2017-03-23T00:02:26+00:00',
+                                deleted=False,
+                            )
+                        ),
                     ),
                     has_entries(
                         id=34,
@@ -398,6 +460,7 @@ class TestListCDR(IntegrationTest):
                         source_extension='7867',
                         source_name='.rùos',
                         tags=[],
+                        recordings=[],
                     ),
                 ),
                 filtered=2,
@@ -425,6 +488,13 @@ class TestListCDR(IntegrationTest):
                         'role': 'source',
                     }
                 ],
+                'recordings': [
+                    {
+                        'start_time': '2017-03-23 00:01:01',
+                        'end_time': '2017-03-23 00:01:26',
+                        'path': '/tmp/foobar.wav',
+                    },
+                ],
             },
             {
                 'id': 34,
@@ -436,6 +506,7 @@ class TestListCDR(IntegrationTest):
                 'direction': 'outbound',
                 'source_exten': '7867',
                 'source_name': '.rùos',
+                'recordings': [],
             },
         ]
     )
@@ -461,6 +532,10 @@ class TestListCDR(IntegrationTest):
                     source_name='soùr.',
                     source_user_uuid=USER_1_UUID,
                     tags=any_of('rh;Poudlard', 'Poudlard;rh'),
+                    recording_1_uuid=uuid_(),
+                    recording_1_start_time='2017-03-23T00:01:01+00:00',
+                    recording_1_end_time='2017-03-23T00:01:26+00:00',
+                    recording_1_deleted='False',
                 ),
                 has_entries(
                     id='34',

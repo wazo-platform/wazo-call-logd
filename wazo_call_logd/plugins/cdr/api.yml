@@ -304,3 +304,20 @@ definitions:
         type: array
         items:
           type: string
+      recordings:
+        type: array
+        items:
+          $ref: '#/definitions/Recording'
+  Recording:
+    type: object
+    properties:
+      uuid:
+        type: string
+      start_time:
+        type: string
+        format: date-time
+      end_time:
+        type: string
+        format: date-time
+      deleted:
+        type: boolean

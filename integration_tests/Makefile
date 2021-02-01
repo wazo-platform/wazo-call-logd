@@ -1,7 +1,7 @@
 MANAGE_DB_DIR ?= ../../xivo-manage-db/
-POSTGRES_DOCKER=$(MANAGE_DB_DIR)/contribs/docker/wazo-confd-db-test/Dockerfile
+CEL_POSTGRES_DOCKER=$(MANAGE_DB_DIR)/contribs/docker/wazo-confd-db-test/Dockerfile
 
-test-setup: call-logd egg-info
+test-setup: egg-info call-logd db
 
 egg-info:
 	cd .. && python setup.py egg_info
@@ -14,6 +14,9 @@ call-logd:
 	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..
 
 update-db:
-	docker build --no-cache -t wazoplatform/wazo-confd-db-test -f $(POSTGRES_DOCKER) $(MANAGE_DB_DIR)
+	docker build --no-cache -t wazoplatform/wazo-confd-db-test -f $(CEL_POSTGRES_DOCKER) $(MANAGE_DB_DIR)
 
-.PHONY: test-setup test call-logd update-db
+db:
+	docker build -f ../contribs/docker/Dockerfile-db -t wazoplatform/wazo-call-logd-db ..
+
+.PHONY: test-setup test call-logd update-db db

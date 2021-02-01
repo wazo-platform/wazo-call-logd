@@ -1,0 +1,41 @@
+Template: wazo-call-logd/db-host
+Type: string
+Default: localhost
+Description: PostgreSQL host
+ Where is PostgreSQL hosted?
+ .
+
+Template: wazo-call-logd/db-admin-username
+Type: string
+Default: postgres
+Description: DB admin username
+ What is the username to access the PostgreSQL database as admin?
+ .
+
+Template: wazo-call-logd/db-admin-password
+Type: password
+Default:
+Description: DB admin password
+ What is the password to access the PostgreSQL database as admin?
+ .
+
+Template: wazo-call-logd/db-app-name
+Type: string
+Default: wazo-call-logd
+Description: Application DB name
+ What is the name of the PostgreSQL database to be created?
+ .
+
+Template: wazo-call-logd/db-app-username
+Type: string
+Default: wazo-call-logd
+Description: DB app username
+ What is the username to be created for the app?
+ .
+
+Template: wazo-call-logd/db-app-password
+Type: password
+Default: wazo-call-logd
+Description: DB app password
+ What is the password to be created for the app?
+ .

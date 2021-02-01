@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -42,7 +42,10 @@ class Controller:
                 ),
             ],
         )
-        writer = CallLogsWriter()
+        DBSession = new_db_session(config['db_uri'])
+        CELDBSession = new_db_session(config['cel_db_uri'])
+        dao = DAO(DBSession, CELDBSession)
+        writer = CallLogsWriter(dao)
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)
         self.token_renewer.subscribe_to_next_token_details_change(
@@ -54,7 +57,6 @@ class Controller:
         self.http_server = HTTPServer(config)
         self.status_aggregator = StatusAggregator()
         self.token_status = TokenStatus()
-        dao = DAO(new_db_session(config['db_uri']))
         plugin_helpers.load(
             namespace='wazo_call_logd.plugins',
             names=config['enabled_plugins'],

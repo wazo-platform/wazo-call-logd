@@ -1,5 +1,11 @@
 # Changelog
 
+## 21.02
+
+* `GET /cdr` has new attribute:
+
+  * `recordings`
+
 ## 21.01
 
 * New endpoint for queue QoS period statistics:

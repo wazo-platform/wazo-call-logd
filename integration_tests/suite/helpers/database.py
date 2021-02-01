@@ -1,6 +1,10 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import (
+    datetime as dt,
+    timedelta as td,
+)
 from functools import wraps
 import logging
 import sqlalchemy as sa
@@ -10,11 +14,13 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.alchemy.stat_agent import StatAgent
-from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
-from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
+from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_queue import StatQueue
+from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 from xivo_dao.tests.test_dao import ItemInserter
+
+from wazo_call_logd.database.models import Recording
 
 from .constants import MASTER_TENANT
 
@@ -25,22 +31,49 @@ def call_logs(call_logs):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
-                for call_log in call_logs:
-                    participants = call_log.pop('participants', [])
-                    call_log.setdefault('tenant_uuid', MASTER_TENANT)
+            for call_log in call_logs:
+                recordings = call_log.pop('recordings', [])
+                participants = call_log.pop('participants', [])
+                call_log.setdefault('tenant_uuid', MASTER_TENANT)
+                with self.cel_database.queries() as queries:
                     call_log['id'] = queries.insert_call_log(**call_log)
                     call_log['participants'] = participants
                     for participant in participants:
-                        queries.insert_call_log_participant(
-                            call_log_id=call_log['id'], **participant
-                        )
+                        participant['call_log_id'] = call_log['id']
+                        queries.insert_call_log_participant(**participant)
+                with self.database.queries() as queries:
+                    for recording in recordings:
+                        recording['call_log_id'] = call_log['id']
+                        queries.insert_recording(**recording)
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     for call_log in call_logs:
                         queries.delete_call_log(call_log['id'])
+                with self.database.queries() as queries:
+                    for call_log in call_logs:
+                        queries.delete_recording_by_call_log_id(call_log['id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
+def recording(**recording):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            recording.setdefault('start_time', dt.utcnow() - td(hours=1))
+            recording.setdefault('end_time', dt.utcnow())
+            recording.setdefault('call_log_id', 42)
+            with self.database.queries() as queries:
+                recording['uuid'] = queries.insert_recording(**recording)
+            try:
+                return func(self, recording, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_recording(recording['uuid'])
 
         return wrapped_function
 
@@ -51,7 +84,7 @@ def stat_queue(queue):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 queue.setdefault('tenant_uuid', MASTER_TENANT)
                 queue.setdefault('name', 'queue')
                 queue.setdefault('queue_id', 1)
@@ -60,7 +93,7 @@ def stat_queue(queue):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_queue(queue['id'])
 
         return wrapped_function
@@ -72,7 +105,7 @@ def stat_agent(agent):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 agent.setdefault('tenant_uuid', MASTER_TENANT)
                 agent.setdefault('name', 'agent')
                 agent.setdefault('agent_id', 1)
@@ -81,7 +114,7 @@ def stat_agent(agent):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_agent(agent['id'])
 
         return wrapped_function
@@ -93,7 +126,7 @@ def stat_agent_periodic(stat):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 stat.setdefault('time', '2020-10-01 14:00:00')
                 agent_id = stat.pop('agent_id', 1)
                 stat['stat_agent_id'] = agent_id
@@ -101,7 +134,7 @@ def stat_agent_periodic(stat):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_agent_periodic(stat['id'])
 
         return wrapped_function
@@ -113,7 +146,7 @@ def stat_queue_periodic(stat):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 stat.setdefault('time', '2020-10-01 14:00:00')
                 tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
                 queue_id = stat.pop('queue_id', 1)
@@ -129,7 +162,7 @@ def stat_queue_periodic(stat):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_queue_periodic(stat['id'])
                     queries.delete_stat_queue(stat['stat_queue_id'])
 
@@ -142,7 +175,7 @@ def stat_call_on_queue(call):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.database.queries() as queries:
+            with self.cel_database.queries() as queries:
                 call.setdefault('callid', '123')
                 call.setdefault('status', 'answered')
                 tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT)
@@ -162,7 +195,7 @@ def stat_call_on_queue(call):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.database.queries() as queries:
+                with self.cel_database.queries() as queries:
                     queries.delete_stat_call_on_queue(call['id'])
                     queries.delete_stat_queue(call['stat_queue_id'])
 
@@ -225,9 +258,33 @@ class DatabaseQueries:
         session.query(CallLog).filter(CallLog.id == call_log_id).delete()
         session.commit()
 
+    def insert_recording(self, **kwargs):
+        session = self.Session()
+        recording = Recording(**kwargs)
+        session.add(recording)
+        session.flush()
+        recording_uuid = recording.uuid
+        session.commit()
+        return recording_uuid
+
+    def delete_recording(self, recording_uuid):
+        session = self.Session()
+        session.query(Recording).filter(Recording.uuid == recording_uuid).delete()
+        session.commit()
+
+    def delete_recording_by_call_log_id(self, call_log_id):
+        session = self.Session()
+        session.query(Recording).filter(Recording.call_log_id == call_log_id).delete()
+        session.commit()
+
     def clear_call_logs(self):
         session = self.Session()
         session.query(CallLog).delete()
+        session.commit()
+
+    def clear_recordings(self):
+        session = self.Session()
+        session.query(Recording).delete()
         session.commit()
 
     def insert_call_log_participant(self, **kwargs):
@@ -245,6 +302,13 @@ class DatabaseQueries:
         call_log = session.query(CallLog).order_by(CallLog.date).first()
         session.commit()
         return call_log
+
+    def find_all_recordings(self, call_log_id):
+        session = self.Session()
+        query = session.query(Recording).filter(Recording.call_log_id == call_log_id)
+        recordings = query.all()
+        session.commit()
+        return recordings
 
     def get_call_log_user_uuids(self, call_log_id):
         session = self.Session()
