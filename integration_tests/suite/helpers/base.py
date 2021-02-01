@@ -28,6 +28,8 @@ from .wait_strategy import CallLogdEverythingUpWaitStrategy
 from .bus import CallLogBusClient
 from .confd import ConfdClient
 from .constants import (
+    ALICE,
+    BOB,
     MASTER_TENANT,
     MASTER_TOKEN,
     MASTER_USER_UUID,
@@ -77,6 +79,8 @@ def cdr(
     id_=None, caller=None, callee=None, start_time=None, ring_seconds=5, talk_time=30
 ):
     id_ = id_ or random.randint(1, 999999)
+    caller = caller or ALICE
+    callee = callee or BOB
     start_time = start_time or NOW
     answer_time = start_time + ring_seconds * SECONDS
     end_time = answer_time + talk_time * SECONDS
@@ -339,6 +343,10 @@ class RawCelIntegrationTest(IntegrationTest):
         self.bus = self.make_bus()
         self.confd = self.make_confd()
         self.confd.reset()
+
+        db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
+        Session = new_db_session(db_uri)
+        self.session = Session()
 
     @contextmanager
     def cels(self, cels):

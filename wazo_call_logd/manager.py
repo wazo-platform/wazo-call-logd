@@ -1,4 +1,4 @@
-# Copyright 2013-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class CallLogsManager:
-    def __init__(self, cel_fetcher, generator, writer, publisher):
+    def __init__(self, dao, cel_fetcher, generator, writer, publisher):
+        self.dao = dao
         self.cel_fetcher = cel_fetcher
         self.generator = generator
         self.writer = writer
@@ -20,6 +21,7 @@ class CallLogsManager:
     def delete_all(self):
         with session_scope():
             call_log_dao.delete()
+        self.dao.recording.delete_all()
 
     def delete_from_days(self, days):
         older = datetime.now() - timedelta(days=days)

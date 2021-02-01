@@ -108,7 +108,7 @@ def _generate_call_logs():
     )
     writer = CallLogsWriter(dao)
     publisher = BusPublisher(config)
-    manager = CallLogsManager(cel_fetcher, generator, writer, publisher)
+    manager = CallLogsManager(dao, cel_fetcher, generator, writer, publisher)
 
     options = vars(options)
     with token_renewer:

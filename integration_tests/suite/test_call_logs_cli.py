@@ -7,10 +7,13 @@ from hamcrest import (
     assert_that,
     contains_inanyorder,
     contains_string,
+    empty,
     has_properties,
 )
-from .helpers.base import raw_cels, RawCelIntegrationTest
-from .helpers.database import call_logs
+from wazo_call_logd.database.models import Recording
+
+from .helpers.base import cdr, raw_cels, RawCelIntegrationTest
+from .helpers.database import call_logs, recording
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
@@ -265,3 +268,10 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
             output.decode('utf-8'),
             contains_string('An other instance of ourself is probably running'),
         )
+
+    @call_logs([cdr(id_=1)])
+    @recording(call_log_id=1)
+    def test_delete_all(self, _):
+        self.docker_exec(['wazo-call-logs', 'delete', '--all'])
+        result = self.session.query(Recording).all()
+        assert_that(result, empty())

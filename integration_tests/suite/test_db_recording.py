@@ -9,6 +9,7 @@ from datetime import (
 from hamcrest import (
     assert_that,
     contains_inanyorder,
+    empty,
     has_properties,
 )
 
@@ -56,6 +57,14 @@ class TestRecording(DBIntegrationTest):
         )
         self.session.query(Recording).delete()
         self.session.commit()
+
+    @recording(call_log_id=1)
+    @recording(call_log_id=2)
+    def test_delete_all(self, rec1, rec2):
+        self.dao.recording.delete_all()
+
+        result = self.session.query(Recording).all()
+        assert_that(result, empty())
 
     @recording(call_log_id=1)
     @recording(call_log_id=2)
