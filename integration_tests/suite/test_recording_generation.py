@@ -25,12 +25,12 @@ eventtype        | eventtime              | channame            | uniqueid      
 CHAN_START       | 2021-01-01 00:00:00.01 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 APP_START        | 2021-01-01 00:00:00.02 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 CHAN_START       | 2021-01-01 00:00:00.03 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
-MIXMONITOR_START | 2021-01-01 00:00:00.04 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar.wav","mode":"w","mixmonitor_id":"0x000000000001"}
+MIXMONITOR_START | 2021-01-01 00:00:00.04 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar.wav","mixmonitor_id":"0x000000000001"}
 ANSWER           | 2021-01-01 00:00:00.05 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
 ANSWER           | 2021-01-01 00:00:00.06 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 BRIDGE_ENTER     | 2021-01-01 00:00:00.07 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 BRIDGE_ENTER     | 2021-01-01 00:00:00.08 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
-MIXMONITOR_STOP  | 2021-01-01 00:00:00.09 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar.wav","mode":"w","mixmonitor_id":"0x000000000001"}
+MIXMONITOR_STOP  | 2021-01-01 00:00:00.09 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar.wav","mixmonitor_id":"0x000000000001"}
 BRIDGE_EXIT      | 2021-01-01 00:00:00.10 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
 HANGUP           | 2021-01-01 00:00:00.11 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
 CHAN_END         | 2021-01-01 00:00:00.12 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
@@ -80,10 +80,10 @@ LINKEDID_END     | 2021-01-01 00:00:00.16 | SIP/aaaaaa-00000001 | 1000000000.01 
 eventtype        | eventtime              | channame            | uniqueid      | linkedid     | extra
 -----------------+------------------------+---------------------+---------------+--------------+---------------------------------------------------------------
 CHAN_START       | 2021-01-01 00:00:00.01 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
-MIXMONITOR_START | 2021-01-01 00:00:00.02 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 | {"filename":"/tmp/foobar1.wav","mode":"w","mixmonitor_id":"0x000000000001"}
+MIXMONITOR_START | 2021-01-01 00:00:00.02 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 | {"filename":"/tmp/foobar1.wav","mixmonitor_id":"0x000000000001"}
 APP_START        | 2021-01-01 00:00:00.03 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 CHAN_START       | 2021-01-01 00:00:00.04 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
-MIXMONITOR_START | 2021-01-01 00:00:00.05 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar2.wav","mode":"w","mixmonitor_id":"0x000000000002"}
+MIXMONITOR_START | 2021-01-01 00:00:00.05 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar2.wav","mixmonitor_id":"0x000000000002"}
 ANSWER           | 2021-01-01 00:00:00.06 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
 ANSWER           | 2021-01-01 00:00:00.07 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 BRIDGE_ENTER     | 2021-01-01 00:00:00.08 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
@@ -117,16 +117,16 @@ LINKEDID_END     | 2021-01-01 00:00:00.16 | SIP/aaaaaa-00000001 | 1000000000.01 
 eventtype        | eventtime              | channame            | uniqueid      | linkedid     | extra
 -----------------+------------------------+---------------------+---------------+--------------+---------------------------------------------------------------
 CHAN_START       | 2021-01-01 00:00:00.01 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
-MIXMONITOR_START | 2021-01-01 00:00:00.02 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 | {"filename":"/tmp/foobar1.wav","mode":"w","mixmonitor_id":"0x000000000001"}
+MIXMONITOR_START | 2021-01-01 00:00:00.02 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 | {"filename":"/tmp/foobar1.wav","mixmonitor_id":"0x000000000001"}
 APP_START        | 2021-01-01 00:00:00.03 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 CHAN_START       | 2021-01-01 00:00:00.04 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
-MIXMONITOR_START | 2021-01-01 00:00:00.05 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar2.wav","mode":"w","mixmonitor_id":"0x000000000002"}
+MIXMONITOR_START | 2021-01-01 00:00:00.05 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar2.wav","mixmonitor_id":"0x000000000002"}
 ANSWER           | 2021-01-01 00:00:00.06 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
 ANSWER           | 2021-01-01 00:00:00.07 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 BRIDGE_ENTER     | 2021-01-01 00:00:00.08 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 BRIDGE_ENTER     | 2021-01-01 00:00:00.09 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
-MIXMONITOR_STOP  | 2021-01-01 00:00:00.10 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 | {"filename":"/tmp/foobar1.wav","mode":"w","mixmonitor_id":"0x000000000001"}
-MIXMONITOR_STOP  | 2021-01-01 00:00:00.11 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar2.wav","mode":"w","mixmonitor_id":"0x000000000002"}
+MIXMONITOR_STOP  | 2021-01-01 00:00:00.10 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 | {"filename":"/tmp/foobar1.wav","mixmonitor_id":"0x000000000001"}
+MIXMONITOR_STOP  | 2021-01-01 00:00:00.11 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar2.wav","mixmonitor_id":"0x000000000002"}
 BRIDGE_EXIT      | 2021-01-01 00:00:00.12 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
 HANGUP           | 2021-01-01 00:00:00.13 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
 CHAN_END         | 2021-01-01 00:00:00.14 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
