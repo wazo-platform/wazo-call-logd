@@ -115,6 +115,8 @@ def _parse_cli_args(argv):
 
 def _load_key_file(config):
     key_file = parse_config_file(config['auth']['key_file'])
+    if not key_file:
+        return {}
     return {
         'auth': {
             'username': key_file['service_id'],
