@@ -1,7 +1,6 @@
 # Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import datetime
 from datetime import (
     datetime as dt,
     timedelta as td,
@@ -87,13 +86,13 @@ LINKEDID_END | 2015-06-18 14:17:37.545342 | Elès 45  | 1045    | s     | user  
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=datetime.fromisoformat(
+                            date=dt.fromisoformat(
                                 '2015-06-18 14:17:32.195429+00:00'
                             ),
-                            date_answer=datetime.fromisoformat(
+                            date_answer=dt.fromisoformat(
                                 '2015-06-18 14:17:34.080717+00:00'
                             ),
-                            date_end=datetime.fromisoformat(
+                            date_end=dt.fromisoformat(
                                 '2015-06-18 14:17:37.544217+00:00'
                             ),
                         )
@@ -153,20 +152,20 @@ LINKEDID_END | 2013-01-01 10:00:11 | Bob Marley    |    1002 | s     | user    |
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=datetime.fromisoformat('2013-01-01 09:00:00+00:00'),
-                            date_answer=datetime.fromisoformat(
+                            date=dt.fromisoformat('2013-01-01 09:00:00+00:00'),
+                            date_answer=dt.fromisoformat(
                                 '2013-01-01 09:00:05+00:00'
                             ),
-                            date_end=datetime.fromisoformat(
+                            date_end=dt.fromisoformat(
                                 '2013-01-01 09:00:10+00:00'
                             ),
                         ),
                         has_properties(
-                            date=datetime.fromisoformat('2013-01-01 10:00:00+00:00'),
-                            date_answer=datetime.fromisoformat(
+                            date=dt.fromisoformat('2013-01-01 10:00:00+00:00'),
+                            date_answer=dt.fromisoformat(
                                 '2013-01-01 10:00:05+00:00'
                             ),
-                            date_end=datetime.fromisoformat(
+                            date_end=dt.fromisoformat(
                                 '2013-01-01 10:00:10+00:00'
                             ),
                         ),
@@ -201,11 +200,11 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=datetime.fromisoformat('2013-01-01 08:00:00+00:00'),
-                            date_answer=datetime.fromisoformat(
+                            date=dt.fromisoformat('2013-01-01 08:00:00+00:00'),
+                            date_answer=dt.fromisoformat(
                                 '2013-01-01 08:00:05+00:00'
                             ),
-                            date_end=datetime.fromisoformat(
+                            date_end=dt.fromisoformat(
                                 '2013-01-01 08:00:10+00:00'
                             ),
                         ),
@@ -253,11 +252,11 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=datetime.fromisoformat('2013-01-01 08:00:00+00:00'),
-                            date_answer=datetime.fromisoformat(
+                            date=dt.fromisoformat('2013-01-01 08:00:00+00:00'),
+                            date_answer=dt.fromisoformat(
                                 '2013-01-01 08:00:05+00:00'
                             ),
-                            date_end=datetime.fromisoformat(
+                            date_end=dt.fromisoformat(
                                 '2013-01-01 08:00:10+00:00'
                             ),
                             source_name='Bob Marley',
