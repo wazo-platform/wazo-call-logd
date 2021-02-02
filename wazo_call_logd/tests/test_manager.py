@@ -1,4 +1,4 @@
-# Copyright 2015-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -14,12 +14,17 @@ from wazo_call_logd.bus_publisher import BusPublisher
 
 class TestCallLogsManager(TestCase):
     def setUp(self):
+        self.dao = Mock()
         self.cel_fetcher = Mock(CELFetcher)
         self.generator = Mock(CallLogsGenerator)
         self.writer = Mock(CallLogsWriter)
         self.publisher = Mock(BusPublisher)
         self.manager = CallLogsManager(
-            self.cel_fetcher, self.generator, self.writer, self.publisher
+            self.dao,
+            self.cel_fetcher,
+            self.generator,
+            self.writer,
+            self.publisher,
         )
 
     def tearDown(self):

@@ -1,16 +1,25 @@
 # Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import datetime
+from datetime import (
+    datetime as dt,
+    timedelta as td,
+)
 
 from hamcrest import (
     assert_that,
+    contains,
     contains_inanyorder,
     contains_string,
+    empty,
     has_properties,
 )
-from .helpers.base import raw_cels, RawCelIntegrationTest
-from .helpers.database import call_logs
+from xivo_dao.alchemy.call_log import CallLog
+from wazo_call_logd.database.models import Recording
+
+from .helpers.base import cdr, raw_cels, RawCelIntegrationTest
+from .helpers.constants import NOW
+from .helpers.database import call_logs, recording
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
@@ -77,13 +86,11 @@ LINKEDID_END | 2015-06-18 14:17:37.545342 | Elès 45  | 1045    | s     | user  
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=datetime.fromisoformat(
-                                '2015-06-18 14:17:32.195429+00:00'
-                            ),
-                            date_answer=datetime.fromisoformat(
+                            date=dt.fromisoformat('2015-06-18 14:17:32.195429+00:00'),
+                            date_answer=dt.fromisoformat(
                                 '2015-06-18 14:17:34.080717+00:00'
                             ),
-                            date_end=datetime.fromisoformat(
+                            date_end=dt.fromisoformat(
                                 '2015-06-18 14:17:37.544217+00:00'
                             ),
                         )
@@ -143,22 +150,14 @@ LINKEDID_END | 2013-01-01 10:00:11 | Bob Marley    |    1002 | s     | user    |
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=datetime.fromisoformat('2013-01-01 09:00:00+00:00'),
-                            date_answer=datetime.fromisoformat(
-                                '2013-01-01 09:00:05+00:00'
-                            ),
-                            date_end=datetime.fromisoformat(
-                                '2013-01-01 09:00:10+00:00'
-                            ),
+                            date=dt.fromisoformat('2013-01-01 09:00:00+00:00'),
+                            date_answer=dt.fromisoformat('2013-01-01 09:00:05+00:00'),
+                            date_end=dt.fromisoformat('2013-01-01 09:00:10+00:00'),
                         ),
                         has_properties(
-                            date=datetime.fromisoformat('2013-01-01 10:00:00+00:00'),
-                            date_answer=datetime.fromisoformat(
-                                '2013-01-01 10:00:05+00:00'
-                            ),
-                            date_end=datetime.fromisoformat(
-                                '2013-01-01 10:00:10+00:00'
-                            ),
+                            date=dt.fromisoformat('2013-01-01 10:00:00+00:00'),
+                            date_answer=dt.fromisoformat('2013-01-01 10:00:05+00:00'),
+                            date_end=dt.fromisoformat('2013-01-01 10:00:10+00:00'),
                         ),
                     ),
                 )
@@ -191,13 +190,9 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=datetime.fromisoformat('2013-01-01 08:00:00+00:00'),
-                            date_answer=datetime.fromisoformat(
-                                '2013-01-01 08:00:05+00:00'
-                            ),
-                            date_end=datetime.fromisoformat(
-                                '2013-01-01 08:00:10+00:00'
-                            ),
+                            date=dt.fromisoformat('2013-01-01 08:00:00+00:00'),
+                            date_answer=dt.fromisoformat('2013-01-01 08:00:05+00:00'),
+                            date_end=dt.fromisoformat('2013-01-01 08:00:10+00:00'),
                         ),
                     ),
                 )
@@ -243,13 +238,9 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=datetime.fromisoformat('2013-01-01 08:00:00+00:00'),
-                            date_answer=datetime.fromisoformat(
-                                '2013-01-01 08:00:05+00:00'
-                            ),
-                            date_end=datetime.fromisoformat(
-                                '2013-01-01 08:00:10+00:00'
-                            ),
+                            date=dt.fromisoformat('2013-01-01 08:00:00+00:00'),
+                            date_answer=dt.fromisoformat('2013-01-01 08:00:05+00:00'),
+                            date_end=dt.fromisoformat('2013-01-01 08:00:10+00:00'),
                             source_name='Bob Marley',
                             source_exten='1002',
                             destination_exten='1001',
@@ -265,3 +256,23 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
             output.decode('utf-8'),
             contains_string('An other instance of ourself is probably running'),
         )
+
+    @call_logs([cdr(id_=1)])
+    @recording(call_log_id=1)
+    def test_delete_all(self, _):
+        self.docker_exec(['wazo-call-logs', 'delete', '--all'])
+        result = self.session.query(Recording).all()
+        assert_that(result, empty())
+
+    @call_logs([cdr(id_=1, start_time=NOW)])
+    @recording(call_log_id=1)
+    @call_logs([cdr(id_=2, start_time=NOW - td(days=2))])
+    @recording(call_log_id=2)
+    def test_delete_older(self, *_):
+        print(self.docker_exec(['wazo-call-logs', 'delete', '--days', '1']))
+
+        result = self.cel_session.query(CallLog).all()
+        assert_that(result, contains(has_properties(id=2)))
+
+        result = self.session.query(Recording).all()
+        assert_that(result, contains(has_properties(call_log_id=2)))

@@ -17,6 +17,7 @@ from xivo.xivo_logging import silence_loggers
 from xivo_dao import init_db_from_config
 
 from wazo_call_logd.bus_publisher import BusPublisher
+from wazo_call_logd.config import DEFAULT_CONFIG
 from wazo_call_logd.cel_fetcher import CELFetcher
 from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
@@ -30,31 +31,6 @@ from wazo_call_logd.writer import CallLogsWriter
 
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/run/wazo-call-logs.pid'
-
-DEFAULT_CONFIG = {
-    'pidfile': PIDFILENAME,
-    'config_file': '/etc/wazo-call-logd/config.yml',
-    'extra_config_files': '/etc/wazo-call-logd/conf.d',
-    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
-    'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
-    'auth': {
-        'host': 'localhost',
-        'port': 9497,
-        'prefix': None,
-        'https': False,
-        'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-key.yml',
-    },
-    'bus': {
-        'username': 'guest',
-        'password': 'guest',
-        'host': 'localhost',
-        'port': '5672',
-        'exchange_name': 'xivo',
-        'exchange_type': 'topic',
-        'exchange_durable': True,
-    },
-    'confd': {'host': 'localhost', 'port': 9486, 'prefix': None, 'https': False},
-}
 
 
 def main():
@@ -108,7 +84,7 @@ def _generate_call_logs():
     )
     writer = CallLogsWriter(dao)
     publisher = BusPublisher(config)
-    manager = CallLogsManager(cel_fetcher, generator, writer, publisher)
+    manager = CallLogsManager(dao, cel_fetcher, generator, writer, publisher)
 
     options = vars(options)
     with token_renewer:
