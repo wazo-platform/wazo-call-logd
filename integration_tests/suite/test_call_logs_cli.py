@@ -86,9 +86,7 @@ LINKEDID_END | 2015-06-18 14:17:37.545342 | Elès 45  | 1045    | s     | user  
                     call_logs,
                     contains_inanyorder(
                         has_properties(
-                            date=dt.fromisoformat(
-                                '2015-06-18 14:17:32.195429+00:00'
-                            ),
+                            date=dt.fromisoformat('2015-06-18 14:17:32.195429+00:00'),
                             date_answer=dt.fromisoformat(
                                 '2015-06-18 14:17:34.080717+00:00'
                             ),
@@ -153,21 +151,13 @@ LINKEDID_END | 2013-01-01 10:00:11 | Bob Marley    |    1002 | s     | user    |
                     contains_inanyorder(
                         has_properties(
                             date=dt.fromisoformat('2013-01-01 09:00:00+00:00'),
-                            date_answer=dt.fromisoformat(
-                                '2013-01-01 09:00:05+00:00'
-                            ),
-                            date_end=dt.fromisoformat(
-                                '2013-01-01 09:00:10+00:00'
-                            ),
+                            date_answer=dt.fromisoformat('2013-01-01 09:00:05+00:00'),
+                            date_end=dt.fromisoformat('2013-01-01 09:00:10+00:00'),
                         ),
                         has_properties(
                             date=dt.fromisoformat('2013-01-01 10:00:00+00:00'),
-                            date_answer=dt.fromisoformat(
-                                '2013-01-01 10:00:05+00:00'
-                            ),
-                            date_end=dt.fromisoformat(
-                                '2013-01-01 10:00:10+00:00'
-                            ),
+                            date_answer=dt.fromisoformat('2013-01-01 10:00:05+00:00'),
+                            date_end=dt.fromisoformat('2013-01-01 10:00:10+00:00'),
                         ),
                     ),
                 )
@@ -201,12 +191,8 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
                     contains_inanyorder(
                         has_properties(
                             date=dt.fromisoformat('2013-01-01 08:00:00+00:00'),
-                            date_answer=dt.fromisoformat(
-                                '2013-01-01 08:00:05+00:00'
-                            ),
-                            date_end=dt.fromisoformat(
-                                '2013-01-01 08:00:10+00:00'
-                            ),
+                            date_answer=dt.fromisoformat('2013-01-01 08:00:05+00:00'),
+                            date_end=dt.fromisoformat('2013-01-01 08:00:10+00:00'),
                         ),
                     ),
                 )
@@ -253,12 +239,8 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
                     contains_inanyorder(
                         has_properties(
                             date=dt.fromisoformat('2013-01-01 08:00:00+00:00'),
-                            date_answer=dt.fromisoformat(
-                                '2013-01-01 08:00:05+00:00'
-                            ),
-                            date_end=dt.fromisoformat(
-                                '2013-01-01 08:00:10+00:00'
-                            ),
+                            date_answer=dt.fromisoformat('2013-01-01 08:00:05+00:00'),
+                            date_end=dt.fromisoformat('2013-01-01 08:00:10+00:00'),
                             source_name='Bob Marley',
                             source_exten='1002',
                             destination_exten='1001',

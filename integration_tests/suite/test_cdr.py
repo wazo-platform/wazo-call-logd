@@ -631,7 +631,7 @@ class TestListCDR(IntegrationTest):
                         order=has_items(has_entries(constraint_id='enum'))
                     ),
                 ),
-            )
+            ),
         )
 
         assert_that(
