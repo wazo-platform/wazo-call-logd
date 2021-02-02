@@ -2,17 +2,24 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime
+from datetime import (
+    datetime as dt,
+    timedelta as td,
+)
 
 from hamcrest import (
     assert_that,
+    contains,
     contains_inanyorder,
     contains_string,
     empty,
     has_properties,
 )
+from xivo_dao.alchemy.call_log import CallLog
 from wazo_call_logd.database.models import Recording
 
 from .helpers.base import cdr, raw_cels, RawCelIntegrationTest
+from .helpers.constants import NOW
 from .helpers.database import call_logs, recording
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
@@ -275,3 +282,16 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
         self.docker_exec(['wazo-call-logs', 'delete', '--all'])
         result = self.session.query(Recording).all()
         assert_that(result, empty())
+
+    @call_logs([cdr(id_=1, start_time=NOW)])
+    @recording(call_log_id=1)
+    @call_logs([cdr(id_=2, start_time=NOW - td(days=2))])
+    @recording(call_log_id=2)
+    def test_delete_older(self, *_):
+        print(self.docker_exec(['wazo-call-logs', 'delete', '--days', '1']))
+
+        result = self.cel_session.query(CallLog).all()
+        assert_that(result, contains(has_properties(id=2)))
+
+        result = self.session.query(Recording).all()
+        assert_that(result, contains(has_properties(call_log_id=2)))

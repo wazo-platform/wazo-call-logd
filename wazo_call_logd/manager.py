@@ -26,7 +26,8 @@ class CallLogsManager:
     def delete_from_days(self, days):
         older = datetime.now() - timedelta(days=days)
         with session_scope():
-            call_log_dao.delete(older=older)
+            call_log_ids = call_log_dao.delete(older=older)
+        self.dao.recording.delete_all_by_call_log_ids(call_log_ids)
 
     def generate_from_days(self, days):
         older_cel = datetime.now() - timedelta(days=days)

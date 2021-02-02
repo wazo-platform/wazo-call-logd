@@ -347,6 +347,9 @@ class RawCelIntegrationTest(IntegrationTest):
         db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
         Session = new_db_session(db_uri)
         self.session = Session()
+        cel_db_uri = CEL_DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
+        CELSession = new_db_session(cel_db_uri)
+        self.cel_session = CELSession()
 
     @contextmanager
     def cels(self, cels):
