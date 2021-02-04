@@ -30,3 +30,14 @@ class CDRService:
         recordings = self._dao.recording.find_all_by_call_log_id(call_log.id)
         call_log.recordings = recordings
         return call_log
+
+
+class RecordingService:
+    def __init__(self, dao):
+        self._dao = dao
+
+    def find_by(self, **kwargs):
+        return self._dao.recording.find_by(**kwargs)
+
+    def find_cdr(self, cdr_id, tenant_uuids):
+        return self._dao.call_log.get_by_id(cdr_id, tenant_uuids)

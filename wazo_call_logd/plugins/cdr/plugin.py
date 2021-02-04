@@ -3,11 +3,14 @@
 
 from wazo_auth_client import Client as AuthClient
 
-from .http import CDRResource
-from .http import CDRIdResource
-from .http import CDRUserResource
-from .http import CDRUserMeResource
-from .services import CDRService
+from .http import (
+    CDRResource,
+    CDRIdResource,
+    CDRUserResource,
+    CDRUserMeResource,
+    RecordingMediaResource,
+)
+from .services import CDRService, RecordingService
 
 
 class Plugin:
@@ -17,19 +20,31 @@ class Plugin:
         dao = dependencies['dao']
 
         auth_client = AuthClient(**config['auth'])
-        service = CDRService(dao)
+        cdr_service = CDRService(dao)
+        recording_service = RecordingService(dao)
 
-        api.add_resource(CDRResource, '/cdr', resource_class_args=[service])
         api.add_resource(
-            CDRIdResource, '/cdr/<int:cdr_id>', resource_class_args=[service]
+            CDRResource,
+            '/cdr',
+            resource_class_args=[cdr_service],
+        )
+        api.add_resource(
+            CDRIdResource,
+            '/cdr/<int:cdr_id>',
+            resource_class_args=[cdr_service],
+        )
+        api.add_resource(
+            RecordingMediaResource,
+            '/cdr/<int:cdr_id>/recordings/<uuid:recording_uuid>/media',
+            resource_class_args=[recording_service],
         )
         api.add_resource(
             CDRUserResource,
             '/users/<uuid:user_uuid>/cdr',
-            resource_class_args=[service],
+            resource_class_args=[cdr_service],
         )
         api.add_resource(
             CDRUserMeResource,
             '/users/me/cdr',
-            resource_class_args=[auth_client, service],
+            resource_class_args=[auth_client, cdr_service],
         )

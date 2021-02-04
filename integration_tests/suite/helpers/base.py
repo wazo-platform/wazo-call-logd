@@ -47,6 +47,7 @@ from .constants import (
     WAZO_UUID,
 )
 from .database import DbHelper
+from .filesystem import FileSystemClient
 
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
@@ -143,6 +144,7 @@ class IntegrationTest(AssetLaunchingTestCase):
         cls.call_logd = cls.make_call_logd()
         cls.database = cls.make_database()
         cls.cel_database = cls.make_cel_database()
+        cls.filesystem = cls.make_filesystem()
         cls.auth = cls.make_auth()
         if not isinstance(cls.auth, WrongClient):
             cls.configure_wazo_auth_for_multitenants()
@@ -210,6 +212,10 @@ class IntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def make_confd(cls):
         return ConfdClient('localhost', cls.service_port(9486, 'confd'))
+
+    @classmethod
+    def make_filesystem(cls):
+        return FileSystemClient(execute=cls.docker_exec)
 
     @contextmanager
     def auth_stopped(self):

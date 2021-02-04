@@ -1,6 +1,8 @@
 # Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import uuid
+
 from datetime import (
     datetime as dt,
     timedelta as td,
@@ -11,6 +13,7 @@ from hamcrest import (
     contains_inanyorder,
     empty,
     has_properties,
+    none,
 )
 
 from wazo_call_logd.database.models import Recording
@@ -106,3 +109,21 @@ class TestRecording(DBIntegrationTest):
                 has_properties(uuid=rec2['uuid']),
             ),
         )
+
+    @recording(call_log_id=1)
+    @recording(call_log_id=2)
+    def test_find_by(self, rec1, rec2):
+        result = self.dao.recording.find_by(uuid=rec2['uuid'])
+        assert_that(result, has_properties(uuid=rec2['uuid']))
+
+        result = self.dao.recording.find_by(call_log_id=rec2['call_log_id'])
+        assert_that(result, has_properties(uuid=rec2['uuid']))
+
+        result = self.dao.recording.find_by(uuid=uuid.uuid4())
+        assert_that(result, none())
+
+        result = self.dao.recording.find_by(call_log_id=666)
+        assert_that(result, none())
+
+        result = self.dao.recording.find_by(uuid=rec1['uuid'], call_log_id=rec2['call_log_id'])
+        assert_that(result, none())

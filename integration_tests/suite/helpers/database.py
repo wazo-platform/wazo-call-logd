@@ -43,6 +43,8 @@ def call_logs(call_logs):
                         queries.insert_call_log_participant(**participant)
                 with self.database.queries() as queries:
                     for recording in recordings:
+                        recording.setdefault('start_time', dt.utcnow() - td(hours=1))
+                        recording.setdefault('end_time', dt.utcnow())
                         recording['call_log_id'] = call_log['id']
                         queries.insert_recording(**recording)
             try:
