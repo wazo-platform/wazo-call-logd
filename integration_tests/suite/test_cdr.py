@@ -584,29 +584,18 @@ class TestListCDR(IntegrationTest):
         )
 
     def test_given_unsupported_params_when_list_cdr_then_400(self):
-        assert_that(
-            calling(self.call_logd.cdr.list).with_args(order='end'),
-            raises(CallLogdError).matching(
-                has_properties(
-                    status_code=400,
-                    details=has_entries(
-                        order=has_items(has_entries(constraint_id='enum'))
+        for unsupported in ('end', 'tags', 'recordings'):
+            assert_that(
+                calling(self.call_logd.cdr.list).with_args(order=unsupported),
+                raises(CallLogdError).matching(
+                    has_properties(
+                        status_code=400,
+                        details=has_entries(
+                            order=has_items(has_entries(constraint_id='enum'))
+                        ),
                     ),
                 ),
-            ),
-        )
-
-        assert_that(
-            calling(self.call_logd.cdr.list).with_args(order='tags'),
-            raises(CallLogdError).matching(
-                has_properties(
-                    status_code=400,
-                    details=has_entries(
-                        order=has_items(has_entries(constraint_id='enum'))
-                    ),
-                ),
-            ),
-        )
+            )
 
         assert_that(
             calling(self.call_logd.cdr.list).with_args(
