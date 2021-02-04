@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -9,19 +9,15 @@ from hamcrest import (
 )
 
 from .helpers.base import cdr, DBIntegrationTest
-from .helpers.database import call_logs
+from .helpers.database import call_log
 from .helpers.constants import ALICE, BOB, CHARLES, NOW, MINUTES
 
 
 class TestCallLog(DBIntegrationTest):
-    @call_logs(
-        [
-            cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW),
-            cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES),
-            cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES),
-            cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES),
-        ]
-    )
+    @call_log(**cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW))
+    @call_log(**cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES))
+    @call_log(**cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES))
+    @call_log(**cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES))
     def test_that_the_most_recent_call_log_is_returned_for_each_contact(self):
         params = {'distinct': 'peer_exten'}
 
@@ -34,14 +30,10 @@ class TestCallLog(DBIntegrationTest):
             ),
         )
 
-    @call_logs(
-        [
-            cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW),
-            cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES),
-            cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES),
-            cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES),
-        ]
-    )
+    @call_log(**cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW))
+    @call_log(**cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES))
+    @call_log(**cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES))
+    @call_log(**cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES))
     def test_count_distinct(self):
         params = {'distinct': 'peer_exten'}
 

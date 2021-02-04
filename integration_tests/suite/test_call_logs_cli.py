@@ -19,7 +19,7 @@ from wazo_call_logd.database.models import Recording
 
 from .helpers.base import cdr, raw_cels, RawCelIntegrationTest
 from .helpers.constants import NOW
-from .helpers.database import call_logs, recording
+from .helpers.database import call_log, recording
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
@@ -197,18 +197,14 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
                     ),
                 )
 
-    @call_logs(
-        [
-            {
-                'id': 42,
-                'date': '2013-01-01 08:00:00',
-                'date_answer': '2013-01-01 08:00:05',
-                'date_end': None,
-                'source_name': 'Bob Marley.',
-                'source_exten': '1002',
-                'destination_exten': '6666',
-            }
-        ]
+    @call_log(
+        **{'id': 42},
+        date='2013-01-01 08:00:00',
+        date_answer='2013-01-01 08:00:05',
+        date_end=None,
+        source_name='Bob Marley.',
+        source_exten='1002',
+        destination_exten='6666',
     )
     @raw_cels(
         '''\
@@ -257,16 +253,16 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
             contains_string('An other instance of ourself is probably running'),
         )
 
-    @call_logs([cdr(id_=1)])
+    @call_log(**cdr(id_=1))
     @recording(call_log_id=1)
     def test_delete_all(self, _):
         self.docker_exec(['wazo-call-logs', 'delete', '--all'])
         result = self.session.query(Recording).all()
         assert_that(result, empty())
 
-    @call_logs([cdr(id_=1, start_time=NOW)])
+    @call_log(**cdr(id_=1, start_time=NOW))
     @recording(call_log_id=1)
-    @call_logs([cdr(id_=2, start_time=NOW - td(days=2))])
+    @call_log(**cdr(id_=2, start_time=NOW - td(days=2)))
     @recording(call_log_id=2)
     def test_delete_older(self, *_):
         print(self.docker_exec(['wazo-call-logs', 'delete', '--days', '1']))

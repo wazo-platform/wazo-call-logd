@@ -15,21 +15,17 @@ from .helpers.constants import (
     MASTER_TENANT as MAIN_TENANT,
     OTHER_TENANT as SUB_TENANT,
 )
-from .helpers.database import call_logs
+from .helpers.database import call_log
 
 
 class TestRecording(IntegrationTest):
 
     asset = 'base'
 
-    @call_logs(
-        [
-            {
-                'id': 1,
-                'date': '2021-01-01T01:00:00+01:00',
-                'recordings': [{'path': '/tmp/foobar.wav'}, {'path': 'tmp/foobar2.wav'}],
-            }
-        ]
+    @call_log(
+        **{'id': 1},
+        date='2021-01-01T01:00:00+01:00',
+        recordings=[{'path': '/tmp/foobar.wav'}, {'path': 'tmp/foobar2.wav'}],
     )
     def test_get_media(self):
         cdr_id = 1
@@ -45,7 +41,7 @@ class TestRecording(IntegrationTest):
             equal_to(f'attachment; filename="filename={expected_filename}"'),
         )
 
-    @call_logs([{'id': 1, 'recordings': [{'path': '/tmp/foobar.wav'}]}])
+    @call_log(**{'id': 1}, recordings=[{'path': '/tmp/foobar.wav'}])
     def test_get_media_with_invalid_cdr(self):
         rec_uuid = self.call_logd.cdr.get_by_id(1)['recordings'][0]['uuid']
         assert_that(
@@ -55,12 +51,8 @@ class TestRecording(IntegrationTest):
             ),
         )
 
-    @call_logs(
-        [
-            {'id': 1, 'recordings': [{'path': '/tmp/foobar.wav'}]},
-            {'id': 2, 'recordings': []},
-        ]
-    )
+    @call_log(**{'id': 1}, recordings=[{'path': '/tmp/foobar.wav'}])
+    @call_log(**{'id': 2}, recordings=[])
     def test_get_media_with_wrong_cdr(self):
         rec_uuid = self.call_logd.cdr.get_by_id(1)['recordings'][0]['uuid']
         assert_that(
@@ -70,7 +62,7 @@ class TestRecording(IntegrationTest):
             ),
         )
 
-    @call_logs([{'id': 1, 'recordings': [{'path': None}]}])
+    @call_log(**{'id': 1}, recordings=[{'path': None}])
     def test_get_media_with_recording_deleted(self):
         rec_uuid = self.call_logd.cdr.get_by_id(1)['recordings'][0]['uuid']
         assert_that(
@@ -80,7 +72,7 @@ class TestRecording(IntegrationTest):
             ),
         )
 
-    @call_logs([{'id': 1, 'recordings': [{'path': '/tmp/denied.wav'}]}])
+    @call_log(**{'id': 1}, recordings=[{'path': '/tmp/denied.wav'}])
     def test_get_media_when_file_has_wrong_permission(self):
         self.filesystem.create_file('/tmp/denied.wav', mode='000')
         rec_uuid = self.call_logd.cdr.get_by_id(1)['recordings'][0]['uuid']
@@ -91,7 +83,7 @@ class TestRecording(IntegrationTest):
             ),
         )
 
-    @call_logs([{'id': 1, 'recordings': [{'path': '/tmp/deleted.wav'}]}])
+    @call_log(**{'id': 1}, recordings=[{'path': '/tmp/deleted.wav'}])
     def test_get_media_when_file_deleted_on_filesystem(self):
         rec_uuid = self.call_logd.cdr.get_by_id(1)['recordings'][0]['uuid']
         assert_that(
@@ -101,19 +93,15 @@ class TestRecording(IntegrationTest):
             ),
         )
 
-    @call_logs(
-        [
-            {
-                'id': 10,
-                'tenant_uuid': MAIN_TENANT,
-                'recordings': [{'path': '/tmp/10-recording.wav'}],
-            },
-            {
-                'id': 11,
-                'tenant_uuid': SUB_TENANT,
-                'recordings': [{'path': '/tmp/11-recording.wav'}],
-            },
-        ]
+    @call_log(
+        **{'id': 10},
+        tenant_uuid=MAIN_TENANT,
+        recordings=[{'path': '/tmp/10-recording.wav'}],
+    )
+    @call_log(
+        **{'id': 11},
+        tenant_uuid=SUB_TENANT,
+        recordings=[{'path': '/tmp/11-recording.wav'}],
     )
     def test_get_media_mutli_tenant(self):
         self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
