@@ -20,7 +20,7 @@ class RecordingNotFoundException(APIException):
             status_code=404,
             message='No recording found',
             error_id='recording-not-found',
-            details={'recording_uuid': str(recording_uuid)}
+            details={'recording_uuid': str(recording_uuid)},
         )
 
 
@@ -30,7 +30,8 @@ class RecordingMediaNotFoundException(APIException):
             status_code=400,
             message='No recording media found',
             error_id='recording-media-not-found',
-            details={'recording_uuid': str(recording_uuid)})
+            details={'recording_uuid': str(recording_uuid)},
+        )
 
 
 class RecordingMediaFSNotFoundException(APIException):
@@ -42,7 +43,7 @@ class RecordingMediaFSNotFoundException(APIException):
             details={
                 'recording_uuid': str(recording_uuid),
                 'recording_path': recording_path,
-            }
+            },
         )
 
 
@@ -55,5 +56,5 @@ class RecordingMediaFSPermissionException(APIException):
             details={
                 'recording_uuid': str(recording_uuid),
                 'recording_path': recording_path,
-            }
+            },
         )

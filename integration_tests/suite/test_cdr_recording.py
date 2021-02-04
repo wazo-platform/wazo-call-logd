@@ -79,7 +79,9 @@ class TestRecording(IntegrationTest):
         assert_that(
             calling(self.call_logd.cdr.get_recording_media).with_args(1, rec_uuid),
             raises(CallLogdError).matching(
-                has_properties(status_code=500, error_id='recording-media-permission-denied')
+                has_properties(
+                    status_code=500, error_id='recording-media-permission-denied'
+                )
             ),
         )
 
@@ -89,7 +91,9 @@ class TestRecording(IntegrationTest):
         assert_that(
             calling(self.call_logd.cdr.get_recording_media).with_args(1, rec_uuid),
             raises(CallLogdError).matching(
-                has_properties(status_code=500, error_id='recording-media-filesystem-not-found')
+                has_properties(
+                    status_code=500, error_id='recording-media-filesystem-not-found'
+                )
             ),
         )
 

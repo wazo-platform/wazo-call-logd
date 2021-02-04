@@ -101,7 +101,6 @@ def _output_csv(data, code, http_headers=None):
 
 
 class _AuthResource(AuthResource):
-
     def visible_tenants(self, recurse=True):
         tenant_uuid = Tenant.autodetect().uuid
         if recurse:

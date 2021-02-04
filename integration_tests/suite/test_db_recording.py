@@ -125,5 +125,7 @@ class TestRecording(DBIntegrationTest):
         result = self.dao.recording.find_by(call_log_id=666)
         assert_that(result, none())
 
-        result = self.dao.recording.find_by(uuid=rec1['uuid'], call_log_id=rec2['call_log_id'])
+        result = self.dao.recording.find_by(
+            uuid=rec1['uuid'], call_log_id=rec2['call_log_id']
+        )
         assert_that(result, none())
