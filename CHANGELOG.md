@@ -6,6 +6,10 @@
 
   * `recordings`
 
+* New endpoint to download recordings:
+
+  * `GET /cdr/<cdr_id>/recordings/<recording_uuid>/media`
+
 ## 21.01
 
 * New endpoint for queue QoS period statistics:
