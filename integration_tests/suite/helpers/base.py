@@ -131,7 +131,7 @@ class IntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(IntegrationTest, cls).setUpClass()
+        super().setUpClass()
         cls.reset_clients()
         cls.wait_strategy.wait(cls)
 
