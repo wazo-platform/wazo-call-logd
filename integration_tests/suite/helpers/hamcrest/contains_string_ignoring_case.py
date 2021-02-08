@@ -1,4 +1,4 @@
-# Copyright 2011-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2011-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: BSD-3-Clause
 
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
@@ -16,7 +16,7 @@ __license__ = "SPDX-License-Identifier: BSD-3-Clause"
 
 class StringContains(SubstringMatcher):
     def __init__(self, substring):
-        super(StringContains, self).__init__(substring)
+        super().__init__(substring)
 
     def _matches(self, item):
         if not hasmethod(item, 'lower'):

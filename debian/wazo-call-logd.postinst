@@ -9,34 +9,31 @@ USER=$DAEMONNAME
 GROUP=$USER
 LOG_FILENAME="/var/log/${DAEMONNAME}.log"
 
-
 case "$1" in
-	configure)
-		previous_version="$2"
-
-		# add/update user
-		if ! getent passwd $USER > /dev/null ; then
-			echo "Adding system user $USER" 1>&2
-			adduser --quiet --system --group --no-create-home \
-					--home /var/lib/wazo-call-logd \
-					$USER
-		fi
-
-		#setup permissions for log file
-		if [ ! -e "$LOG_FILENAME" ]; then
-			touch "$LOG_FILENAME"
-		fi
-		chown $USER:$GROUP "$LOG_FILENAME"
-
-		if [[ -z "${previous_version}" ]]; then
-			ln -nsf /etc/nginx/locations/https-available/${DAEMONNAME} \
-				/etc/nginx/locations/https-enabled/${DAEMONNAME}
-        elif dpkg --compare-versions "${previous_version}" lt '20.08'; then
-            if getent group www-data | grep -q $USER; then
-                deluser --quiet $USER www-data
-            fi
+    configure)
+        previous_version="$2"
+  
+        # add/update user
+        if ! getent passwd $USER > /dev/null ; then
+            echo "Adding system user $USER" 1>&2
+            adduser --quiet --system --group --no-create-home \
+                --home /var/lib/wazo-call-logd \
+                $USER
         fi
-
+        # Allow to manage recording files
+        adduser --quiet $USER www-data
+  
+        #setup permissions for log file
+        if [ ! -e "$LOG_FILENAME" ]; then
+            touch "$LOG_FILENAME"
+        fi
+        chown $USER:$GROUP "$LOG_FILENAME"
+  
+        if [[ -z "${previous_version}" ]]; then
+            ln -nsf /etc/nginx/locations/https-available/${DAEMONNAME} \
+              /etc/nginx/locations/https-enabled/${DAEMONNAME}
+        fi
+  
         db_get wazo-call-logd/db-host
         db_host="$RET"
         db_get wazo-call-logd/db-admin-username
@@ -66,15 +63,14 @@ EOF
         fi
 
         wazo-call-logd-upgrade-db
-	;;
+    ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
 
-	abort-upgrade|abort-remove|abort-deconfigure)
-	;;
-
-	*)
-		echo "postinst called with unknown argument \`$1'" >&2
-		exit 1
-	;;
+    ;;
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

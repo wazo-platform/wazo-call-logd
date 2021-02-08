@@ -46,3 +46,18 @@ class RecordingDAO(BaseDAO):
             for recording in recordings:
                 session.expunge(recording)
             return recordings
+
+    def find_by(self, **kwargs):
+        with self.new_session() as session:
+            query = session.query(Recording)
+            if 'call_log_id' in kwargs:
+                query = query.filter(Recording.call_log_id == kwargs['call_log_id'])
+
+            if 'uuid' in kwargs:
+                query = query.filter(Recording.uuid == kwargs['uuid'])
+
+            recording = query.first()
+            if not recording:
+                return
+            session.expunge(recording)
+            return recording

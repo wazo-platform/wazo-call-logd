@@ -1,18 +1,25 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import timezone as tz
 import logging
 import csv
 
 from io import StringIO
 
-from flask import jsonify, make_response, request
+from flask import jsonify, make_response, request, send_file
 from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import token, Tenant
 from wazo_call_logd.auth import get_token_user_uuid_from_request
 from wazo_call_logd.http import AuthResource
 
-from .exceptions import CDRNotFoundException
+from .exceptions import (
+    CDRNotFoundException,
+    RecordingNotFoundException,
+    RecordingMediaNotFoundException,
+    RecordingMediaFSPermissionException,
+    RecordingMediaFSNotFoundException,
+)
 from .schemas import CDRSchema, CDRSchemaList, CDRListRequestSchema
 
 logger = logging.getLogger(__name__)
@@ -93,19 +100,21 @@ def _output_csv(data, code, http_headers=None):
     return response
 
 
-class CDRAuthResource(AuthResource):
-    representations = {'text/csv; charset=utf-8': _output_csv}
-
-    def __init__(self, cdr_service):
-        super().__init__()
-        self.cdr_service = cdr_service
-
+class _AuthResource(AuthResource):
     def visible_tenants(self, recurse=True):
         tenant_uuid = Tenant.autodetect().uuid
         if recurse:
             return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
         else:
             return [tenant_uuid]
+
+
+class CDRAuthResource(_AuthResource):
+    representations = {'text/csv; charset=utf-8': _output_csv}
+
+    def __init__(self, cdr_service):
+        super().__init__()
+        self.cdr_service = cdr_service
 
 
 class CDRResource(CDRAuthResource):
@@ -150,3 +159,47 @@ class CDRUserMeResource(CDRAuthResource):
         args['tenant_uuids'] = [token.tenant_uuid]
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs)
+
+
+class RecordingMediaResource(_AuthResource):
+
+    filename_tpl = 'filename={date}-{cdr_id}-{recording_uuid}.wav'
+
+    def __init__(self, service):
+        super().__init__()
+        self.service = service
+
+    @required_acl('call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read')
+    def get(self, cdr_id, recording_uuid):
+        tenant_uuids = self.visible_tenants(True)
+        cdr = self.service.find_cdr(cdr_id, tenant_uuids)
+        if not cdr:
+            raise CDRNotFoundException(details={'cdr_id': cdr_id})
+
+        recording = self.service.find_by(uuid=recording_uuid, call_log_id=cdr_id)
+        if not recording:
+            raise RecordingNotFoundException(recording_uuid)
+
+        if not recording.path:
+            raise RecordingMediaNotFoundException(recording_uuid)
+
+        date_utc = (cdr.date - cdr.date.utcoffset()).replace(tzinfo=tz.utc)
+        date_str = date_utc.strftime('%Y-%m-%dT%H:%M:%SUTC')
+        filename = self.filename_tpl.format(
+            date=date_str,
+            cdr_id=cdr.id,
+            recording_uuid=recording_uuid,
+        )
+        try:
+            return send_file(
+                recording.path,
+                mimetype='audio/wav',
+                as_attachment=True,
+                attachment_filename=filename,
+            )
+        except PermissionError:
+            logger.error('Permission denied: "%s"', recording.path)
+            raise RecordingMediaFSPermissionException(recording_uuid, recording.path)
+        except FileNotFoundError:
+            logger.error('Recording file not found: "%s"', recording.path)
+            raise RecordingMediaFSNotFoundException(recording_uuid, recording.path)

@@ -24,4 +24,4 @@ RUN true \
 EXPOSE 9298
 
 ENV PATH="/opt/venv/bin:$PATH"
-CMD ["wazo-call-logd", "-d", "-u", "root"]
+CMD ["wazo-call-logd", "-d"]

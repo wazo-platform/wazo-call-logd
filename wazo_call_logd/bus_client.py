@@ -1,4 +1,4 @@
-# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -32,11 +32,11 @@ class _CELConsumer(ConsumerMixin):
         message.ack()
 
     def on_connection_error(self, exc, interval):
-        super(_CELConsumer, self).on_connection_error(exc, interval)
+        super().on_connection_error(exc, interval)
         self._is_running = False
 
     def on_connection_revived(self):
-        super(_CELConsumer, self).on_connection_revived()
+        super().on_connection_revived()
         self._is_running = True
 
     def run(self, connection, call_logs_manager):
@@ -44,7 +44,7 @@ class _CELConsumer(ConsumerMixin):
         self._call_logs_manager = call_logs_manager
 
         try:
-            super(_CELConsumer, self).run()
+            super().run()
         except Exception:
             logger.exception('An error occured while processing bus events')
 
