@@ -52,7 +52,10 @@ paths:
   /cdr/{cdr_id}/recordings/{recording_uuid}/media:
     get:
       summary: Get a recording media
-      description: '**Required ACL:** `call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read`'
+      description: |
+        **Required ACL:** `call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read`
+
+        This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
       tags:
         - cdr
       parameters:
