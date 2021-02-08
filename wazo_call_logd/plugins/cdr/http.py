@@ -7,10 +7,14 @@ import csv
 
 from io import StringIO
 
-from flask import jsonify, make_response, request, send_file
+from flask import jsonify, make_response, request, send_file, g
+from xivo import tenant_helpers
 from xivo.auth_verifier import required_acl
-from xivo.tenant_flask_helpers import token, Tenant
-from wazo_call_logd.auth import get_token_user_uuid_from_request
+from xivo.tenant_flask_helpers import token, Tenant, auth_client
+from wazo_call_logd.auth import (
+    extract_token_id_from_query_or_header,
+    get_token_user_uuid_from_request,
+)
 from wazo_call_logd.http import AuthResource
 
 from .exceptions import (
@@ -100,21 +104,19 @@ def _output_csv(data, code, http_headers=None):
     return response
 
 
-class _AuthResource(AuthResource):
+class CDRAuthResource(AuthResource):
+    representations = {'text/csv; charset=utf-8': _output_csv}
+
+    def __init__(self, cdr_service):
+        super().__init__()
+        self.cdr_service = cdr_service
+
     def visible_tenants(self, recurse=True):
         tenant_uuid = Tenant.autodetect().uuid
         if recurse:
             return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
         else:
             return [tenant_uuid]
-
-
-class CDRAuthResource(_AuthResource):
-    representations = {'text/csv; charset=utf-8': _output_csv}
-
-    def __init__(self, cdr_service):
-        super().__init__()
-        self.cdr_service = cdr_service
 
 
 class CDRResource(CDRAuthResource):
@@ -161,7 +163,7 @@ class CDRUserMeResource(CDRAuthResource):
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs)
 
 
-class RecordingMediaResource(_AuthResource):
+class RecordingMediaResource(AuthResource):
 
     filename_tpl = 'filename={date}-{cdr_id}-{recording_uuid}.wav'
 
@@ -169,7 +171,25 @@ class RecordingMediaResource(_AuthResource):
         super().__init__()
         self.service = service
 
-    @required_acl('call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read')
+    def _set_up_token_helper_to_verify_tenant(self):
+        token_uuid = extract_token_id_from_query_or_header()
+        if not token_uuid:
+            raise tenant_helpers.InvalidToken()
+        g.token = tenant_helpers.Tokens(auth_client).get(token_uuid)
+        auth_client.set_token(g.token.uuid)
+
+    def visible_tenants(self, recurse=True):
+        self._set_up_token_helper_to_verify_tenant()
+        tenant_uuid = Tenant.autodetect(include_query=True).uuid
+        if recurse:
+            return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
+        else:
+            return [tenant_uuid]
+
+    @required_acl(
+        'call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read',
+        extract_token_id=extract_token_id_from_query_or_header,
+    )
     def get(self, cdr_id, recording_uuid):
         tenant_uuids = self.visible_tenants(True)
         cdr = self.service.find_cdr(cdr_id, tenant_uuids)
