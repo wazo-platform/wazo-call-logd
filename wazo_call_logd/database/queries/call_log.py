@@ -131,6 +131,9 @@ class CallLogDAO(BaseDAO):
         if params.get('call_direction'):
             query = query.filter(CallLogSchema.direction == params['call_direction'])
 
+        if params.get('id'):
+            query = query.filter(CallLogSchema.id == params['id'])
+
         if params.get('search'):
             filters = (
                 sql.cast(column, sa.String).ilike('%%%s%%' % params['search'])

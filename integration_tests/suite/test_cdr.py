@@ -750,6 +750,31 @@ class TestListCDR(IntegrationTest):
             ),
         )
 
+    @call_log(
+        date='2017-03-23',
+        recordings=[
+            {
+                'start_time': '2017-03-23 00:01:01',
+                'end_time': '2017-03-23 00:01:26',
+                'path': '/tmp/one.wav',
+            }
+        ],
+    )
+    @call_log(
+        date='2017-03-23',
+        recordings=[
+            {
+                'start_time': '2017-03-23 00:02:01',
+                'end_time': '2017-03-23 00:02:26',
+                'path': '/tmp/two.wav',
+            }
+        ],
+    )
+    def test_search_by_filename(self):
+        expected = self.call_logd.cdr.list()['items'][0]
+        result = self.call_logd.cdr.list(search=expected['recordings'][0]['filename'])
+        assert_that(result, has_entries(items=contains(expected)))
+
     @call_logs(number=1100)
     def test_list_default_limit(self):
         result = self.call_logd.cdr.list()
