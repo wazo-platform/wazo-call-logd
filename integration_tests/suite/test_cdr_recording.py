@@ -32,12 +32,11 @@ class TestRecording(IntegrationTest):
     )
     def test_get_media(self):
         cdr_id = 1
-        cdr_start = '2021-01-01T00:00:00UTC'
         self.filesystem.create_file('/tmp/foobar.wav', content='my-recording-content')
         self.filesystem.create_file('/tmp/foobar2.wav', content='hidden')
-        recording_uuid = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][0]['uuid']
-        response = self.call_logd.cdr.get_recording_media(cdr_id, recording_uuid)
-        expected_filename = f'{cdr_start}-{cdr_id}-{recording_uuid}.wav'
+        recording = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][0]
+        response = self.call_logd.cdr.get_recording_media(cdr_id, recording['uuid'])
+        expected_filename = recording['filename']
         assert_that(response.text, equal_to('my-recording-content'))
         assert_that(
             response.headers['Content-Disposition'],

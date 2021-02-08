@@ -160,6 +160,8 @@ class TestGetCDRId(IntegrationTest):
     )
     def test_given_id_when_get_cdr_by_id_then_get_cdr_by_id(self):
         result = self.call_logd.cdr.get_by_id(12)
+        recording_uuid_1 = result['recordings'][0]['uuid']
+        recording_uuid_2 = result['recordings'][1]['uuid']
         assert_that(
             result,
             has_entries(
@@ -194,12 +196,14 @@ class TestGetCDRId(IntegrationTest):
                         start_time='2017-03-23T00:01:01+00:00',
                         end_time='2017-03-23T00:01:26+00:00',
                         deleted=False,
+                        filename=f'2017-03-23T00:01:01UTC-12-{recording_uuid_1}.wav',
                     ),
                     has_entries(
                         uuid=uuid_(),
                         start_time='2017-03-23T00:01:27+00:00',
                         end_time='2017-03-23T00:02:26+00:00',
                         deleted=True,
+                        filename=f'2017-03-23T00:01:27UTC-12-{recording_uuid_2}.wav',
                     ),
                 ),
             ),
@@ -247,6 +251,8 @@ class TestGetCDRId(IntegrationTest):
     def test_given_id_when_get_cdr_by_id_csv_then_get_cdr_by_id_csv(self):
         result_raw = self.call_logd.cdr.get_by_id_csv(12)
         result = list(csv.DictReader(StringIO(result_raw)))[0]
+        recording_uuid_1 = result['recording_1_uuid']
+        recording_uuid_2 = result['recording_2_uuid']
         assert_that(
             result,
             has_entries(
@@ -276,10 +282,12 @@ class TestGetCDRId(IntegrationTest):
                 recording_1_start_time='2017-03-23T00:01:01+00:00',
                 recording_1_end_time='2017-03-23T00:01:26+00:00',
                 recording_1_deleted='False',
+                recording_1_filename=f'2017-03-23T00:01:01UTC-12-{recording_uuid_1}.wav',
                 recording_2_uuid=uuid_(),
                 recording_2_start_time='2017-03-23T00:01:27+00:00',
                 recording_2_end_time='2017-03-23T00:02:26+00:00',
                 recording_2_deleted='True',
+                recording_2_filename=f'2017-03-23T00:01:27UTC-12-{recording_uuid_2}.wav',
             ),
         )
 

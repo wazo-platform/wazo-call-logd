@@ -19,6 +19,7 @@ class RecordingSchema(Schema):
     start_time = fields.DateTime()
     end_time = fields.DateTime()
     deleted = fields.Boolean()
+    filename = fields.String()
 
 
 class CDRSchema(Schema):
