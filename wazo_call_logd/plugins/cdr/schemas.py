@@ -112,9 +112,6 @@ class CDRListRequestSchema(Schema):
 
 
 class CDRSchemaList(Schema):
-    class Meta:
-        ordered = True
-
     items = fields.Nested(CDRSchema, many=True)
     total = fields.Integer()
     filtered = fields.Integer()
