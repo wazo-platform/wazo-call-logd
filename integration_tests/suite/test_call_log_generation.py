@@ -982,3 +982,85 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_line_identity='pjsip/dev_44',
             ),
         )
+
+    @raw_cels(
+        '''\
+  eventtype   |           eventtime           |                               channame                                |   uniqueid    |   linkedid
+--------------+-------------------------------+-----------------------------------------------------------------------+---------------+---------------
+ CHAN_START   | 2021-02-08 18:41:01.659557+00 | PJSIP/d6jtulhp-00000005                                               | 1612809661.11 | 1612809661.11
+ ANSWER       | 2021-02-08 18:41:01.815568+00 | PJSIP/d6jtulhp-00000005                                               | 1612809661.11 | 1612809661.11
+ CHAN_START   | 2021-02-08 18:41:02.941447+00 | Local/64f7ec70-71b7-4430-8446-74d8dc563d33@usersharedlines-00000003;1 | 1612809662.12 | 1612809661.11
+ CHAN_START   | 2021-02-08 18:41:02.941561+00 | Local/64f7ec70-71b7-4430-8446-74d8dc563d33@usersharedlines-00000003;2 | 1612809662.13 | 1612809661.11
+ CHAN_START   | 2021-02-08 18:41:02.942066+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;1 | 1612809662.14 | 1612809661.11
+ CHAN_START   | 2021-02-08 18:41:02.942112+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;2 | 1612809662.15 | 1612809661.11
+ CHAN_START   | 2021-02-08 18:41:02.961053+00 | PJSIP/uzyebgp2-00000006                                               | 1612809662.16 | 1612809661.11
+ CHAN_START   | 2021-02-08 18:41:02.973626+00 | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+ ANSWER       | 2021-02-08 18:41:07.285784+00 | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+ ANSWER       | 2021-02-08 18:41:07.28644+00  | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;2 | 1612809662.15 | 1612809661.11
+ BRIDGE_ENTER | 2021-02-08 18:41:07.287287+00 | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+ BRIDGE_ENTER | 2021-02-08 18:41:07.287658+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;2 | 1612809662.15 | 1612809661.11
+ ANSWER       | 2021-02-08 18:41:07.288317+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;1 | 1612809662.14 | 1612809661.11
+ CHAN_END     | 2021-02-08 18:41:07.289082+00 | Local/64f7ec70-71b7-4430-8446-74d8dc563d33@usersharedlines-00000003;1 | 1612809662.12 | 1612809661.11
+ HANGUP       | 2021-02-08 18:41:07.289082+00 | Local/64f7ec70-71b7-4430-8446-74d8dc563d33@usersharedlines-00000003;1 | 1612809662.12 | 1612809661.11
+ HANGUP       | 2021-02-08 18:41:07.291606+00 | Local/64f7ec70-71b7-4430-8446-74d8dc563d33@usersharedlines-00000003;2 | 1612809662.13 | 1612809661.11
+ CHAN_END     | 2021-02-08 18:41:07.291606+00 | Local/64f7ec70-71b7-4430-8446-74d8dc563d33@usersharedlines-00000003;2 | 1612809662.13 | 1612809661.11
+ CHAN_END     | 2021-02-08 18:41:07.292405+00 | PJSIP/uzyebgp2-00000006                                               | 1612809662.16 | 1612809661.11
+ HANGUP       | 2021-02-08 18:41:07.292405+00 | PJSIP/uzyebgp2-00000006                                               | 1612809662.16 | 1612809661.11
+ BRIDGE_ENTER | 2021-02-08 18:41:07.314984+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;1 | 1612809662.14 | 1612809661.11
+ BRIDGE_ENTER | 2021-02-08 18:41:07.315137+00 | PJSIP/d6jtulhp-00000005                                               | 1612809661.11 | 1612809661.11
+ BRIDGE_EXIT  | 2021-02-08 18:41:07.315452+00 | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+ BRIDGE_EXIT  | 2021-02-08 18:41:07.31554+00  | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;1 | 1612809662.14 | 1612809661.11
+ BRIDGE_ENTER | 2021-02-08 18:41:07.315559+00 | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+ CHAN_END     | 2021-02-08 18:41:07.315862+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;1 | 1612809662.14 | 1612809661.11
+ HANGUP       | 2021-02-08 18:41:07.315862+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;1 | 1612809662.14 | 1612809661.11
+ BRIDGE_EXIT  | 2021-02-08 18:41:07.316473+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;2 | 1612809662.15 | 1612809661.11
+ CHAN_END     | 2021-02-08 18:41:07.316698+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;2 | 1612809662.15 | 1612809661.11
+ HANGUP       | 2021-02-08 18:41:07.316698+00 | Local/03d26082-7c29-4db3-9814-79ba30640b47@usersharedlines-00000004;2 | 1612809662.15 | 1612809661.11
+ BRIDGE_EXIT  | 2021-02-08 18:41:08.891712+00 | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+ BRIDGE_EXIT  | 2021-02-08 18:41:08.891858+00 | PJSIP/d6jtulhp-00000005                                               | 1612809661.11 | 1612809661.11
+ HANGUP       | 2021-02-08 18:41:08.892839+00 | PJSIP/d6jtulhp-00000005                                               | 1612809661.11 | 1612809661.11
+ CHAN_END     | 2021-02-08 18:41:08.892839+00 | PJSIP/d6jtulhp-00000005                                               | 1612809661.11 | 1612809661.11
+ CHAN_END     | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+ HANGUP       | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+ LINKEDID_END | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
+
+'''
+    )
+    def test_given_group_call_then_destination_user_uuid_should_be_answered_callee(
+        self,
+    ):
+        self.confd.set_users(
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='uzyebgp2',
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '101', 'context': 'default'}],
+            ),
+            MockLine(
+                id=2,
+                name='9jqihz0h',
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '102', 'context': 'default'}],
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
+        )
+
+        self._assert_last_call_log_matches(
+            '1612809661.11',
+            has_properties(
+                date=datetime.fromisoformat('2021-02-08 18:41:01.659557+00:00'),
+                date_answer=datetime.fromisoformat('2021-02-08 18:41:07.315137+00:00'),
+                date_end=datetime.fromisoformat('2021-02-08 18:41:08.892839+00:00'),
+                source_line_identity='pjsip/d6jtulhp',
+                destination_line_identity='pjsip/9jqihz0h',
+                destination_user_uuid=USER_2_UUID,
+            ),
+        )
