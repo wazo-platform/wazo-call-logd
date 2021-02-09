@@ -1,15 +1,27 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import re
+
+RECORDING_FILENAME_RE = re.compile(r'^.+-(\d+)-([a-z0-9-]{36})(.*)?$')
+
 
 class CDRService:
     def __init__(self, dao):
         self._dao = dao
 
     def list(self, search_params):
+        searched = search_params.get('search')
+        recording_uuid = None
+        if searched:
+            matches = RECORDING_FILENAME_RE.search(searched)
+            if matches:
+                del search_params['search']
+                search_params['id'] = matches.group(1)
+                recording_uuid = matches.group(2)
         call_logs = self._dao.call_log.find_all_in_period(search_params)
         ids = [call_log.id for call_log in call_logs]
-        recordings = self._dao.recording.find_all_by_call_log_ids(ids)
+        recordings = self._dao.recording.find_all_by_call_log_ids(ids, recording_uuid)
         if recordings:
             rec_by_id = {}
             for recording in recordings:

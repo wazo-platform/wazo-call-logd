@@ -1,7 +1,6 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import timezone as tz
 import logging
 import csv
 
@@ -165,7 +164,7 @@ class CDRUserMeResource(CDRAuthResource):
 
 class RecordingMediaResource(AuthResource):
 
-    filename_tpl = 'filename={date}-{cdr_id}-{recording_uuid}.wav'
+    filename_tpl = 'filename={filename}'
 
     def __init__(self, service):
         super().__init__()
@@ -203,13 +202,7 @@ class RecordingMediaResource(AuthResource):
         if not recording.path:
             raise RecordingMediaNotFoundException(recording_uuid)
 
-        date_utc = (cdr.date - cdr.date.utcoffset()).replace(tzinfo=tz.utc)
-        date_str = date_utc.strftime('%Y-%m-%dT%H:%M:%SUTC')
-        filename = self.filename_tpl.format(
-            date=date_str,
-            cdr_id=cdr.id,
-            recording_uuid=recording_uuid,
-        )
+        filename = self.filename_tpl.format(filename=recording.filename)
         try:
             return send_file(
                 recording.path,

@@ -347,3 +347,5 @@ definitions:
         format: date-time
       deleted:
         type: boolean
+      filename:
+        type: string

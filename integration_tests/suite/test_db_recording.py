@@ -129,3 +129,12 @@ class TestRecording(DBIntegrationTest):
             uuid=rec1['uuid'], call_log_id=rec2['call_log_id']
         )
         assert_that(result, none())
+
+    @recording(call_log_id=1)
+    def test_recording_filename(self, rec):
+        recording_uuid = rec['uuid']
+        result = self.dao.recording.find_by(uuid=recording_uuid)
+        offset = rec['start_time'].utcoffset() or td(seconds=0)
+        date_utc = (rec['start_time'] - offset).replace(tzinfo=tz.utc)
+        start = date_utc.strftime('%Y-%m-%dT%H_%M_%SUTC')
+        assert_that(result, has_properties(filename=f'{start}-1-{recording_uuid}.wav'))
