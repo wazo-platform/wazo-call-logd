@@ -86,7 +86,7 @@ class TestRecording(DBIntegrationTest):
     def test_find_all_by_call_log_ids(self, rec1, rec2, rec3):
         call_log_ids = [rec1['call_log_id'], rec3['call_log_id']]
 
-        result = self.dao.recording.find_all_by_call_log_ids(call_log_ids)
+        result = self.dao.recording.find_all_by(call_log_ids=call_log_ids)
 
         assert_that(
             result,
@@ -96,19 +96,24 @@ class TestRecording(DBIntegrationTest):
             ),
         )
 
+        result = self.dao.recording.find_all_by(call_log_ids=[])
+        assert_that(result, empty())
+
     @recording(call_log_id=1)
     @recording(call_log_id=2)
     def test_find_all_by_call_log_id(self, rec1, rec2):
         call_log_id = rec2['call_log_id']
 
-        result = self.dao.recording.find_all_by_call_log_id(call_log_id)
+        result = self.dao.recording.find_all_by(call_log_id=call_log_id)
 
-        assert_that(
-            result,
-            contains_inanyorder(
-                has_properties(uuid=rec2['uuid']),
-            ),
-        )
+        assert_that(result, contains_inanyorder(has_properties(uuid=rec2['uuid'])))
+
+    @recording(call_log_id=1)
+    @recording(call_log_id=2)
+    def test_find_all_by_uuid(self, rec1, rec2):
+        result = self.dao.recording.find_all_by(uuid=rec2['uuid'])
+
+        assert_that(result, contains_inanyorder(has_properties(uuid=rec2['uuid'])))
 
     @recording(call_log_id=1)
     @recording(call_log_id=2)
