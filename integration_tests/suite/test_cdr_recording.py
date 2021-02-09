@@ -40,7 +40,7 @@ class TestRecording(IntegrationTest):
         assert_that(response.text, equal_to('my-recording-content'))
         assert_that(
             response.headers['Content-Disposition'],
-            equal_to(f'attachment; filename="filename={expected_filename}"'),
+            equal_to(f'attachment; filename={expected_filename}'),
         )
 
     @call_log(**{'id': 1}, recordings=[{'path': '/tmp/foobar.wav'}])
