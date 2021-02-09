@@ -37,7 +37,7 @@ class Recording(Base):
     def filename(self):
         offset = self.start_time.utcoffset() or td(seconds=0)
         date_utc = (self.start_time - offset).replace(tzinfo=tz.utc)
-        utc_start = date_utc.strftime('%Y-%m-%dT%H:%M:%SUTC')
+        utc_start = date_utc.strftime('%Y-%m-%dT%H_%M_%SUTC')
         return '{start}-{cdr_id}-{uuid}.wav'.format(
             start=utc_start,
             cdr_id=self.call_log_id,
