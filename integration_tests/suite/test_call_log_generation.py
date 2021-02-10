@@ -1064,3 +1064,64 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_user_uuid=USER_2_UUID,
             ),
         )
+
+    @raw_cels(
+        '''\
+  eventtype   |           eventtime           |        channame         |   uniqueid    |   linkedid
+--------------+-------------------------------+-------------------------+---------------+---------------
+ CHAN_START   | 2021-02-10 15:39:11.425631+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
+ ANSWER       | 2021-02-10 15:39:11.801189+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
+ CHAN_START   | 2021-02-10 15:39:12.944278+00 | PJSIP/w6hpvj79-00000034 | 1612971552.60 | 1612971551.59
+ CHAN_START   | 2021-02-10 15:39:12.946258+00 | PJSIP/o7r761lt-00000035 | 1612971552.61 | 1612971551.59
+ ANSWER       | 2021-02-10 15:39:14.086632+00 | PJSIP/o7r761lt-00000035 | 1612971552.61 | 1612971551.59
+ CHAN_END     | 2021-02-10 15:39:14.090523+00 | PJSIP/w6hpvj79-00000034 | 1612971552.60 | 1612971551.59
+ HANGUP       | 2021-02-10 15:39:14.090523+00 | PJSIP/w6hpvj79-00000034 | 1612971552.60 | 1612971551.59
+ BRIDGE_ENTER | 2021-02-10 15:39:14.413385+00 | PJSIP/o7r761lt-00000035 | 1612971552.61 | 1612971551.59
+ BRIDGE_ENTER | 2021-02-10 15:39:14.413848+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
+ BRIDGE_EXIT  | 2021-02-10 15:39:15.640067+00 | PJSIP/o7r761lt-00000035 | 1612971552.61 | 1612971551.59
+ BRIDGE_EXIT  | 2021-02-10 15:39:15.640637+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
+ CHAN_END     | 2021-02-10 15:39:15.6414+00   | PJSIP/o7r761lt-00000035 | 1612971552.61 | 1612971551.59
+ HANGUP       | 2021-02-10 15:39:15.6414+00   | PJSIP/o7r761lt-00000035 | 1612971552.61 | 1612971551.59
+ CHAN_END     | 2021-02-10 15:39:15.641666+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
+ HANGUP       | 2021-02-10 15:39:15.641666+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
+ LINKEDID_END | 2021-02-10 15:39:15.641666+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
+ '''
+    )
+    def test_given_queue_call_then_destination_user_uuid_should_be_answered_callee(
+        self,
+    ):
+        self.confd.set_users(
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='w6hpvj79',
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '101', 'context': 'default'}],
+            ),
+            MockLine(
+                id=2,
+                name='o7r761lt',
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '102', 'context': 'default'}],
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
+        )
+
+        self._assert_last_call_log_matches(
+            '1612971551.59',
+            has_properties(
+                date=datetime.fromisoformat('2021-02-10 15:39:11.425631+00:00'),
+                date_answer=datetime.fromisoformat('2021-02-10 15:39:14.413848+00:00'),
+                date_end=datetime.fromisoformat('2021-02-10 15:39:15.641666+00:00'),
+                source_line_identity='pjsip/svlhxtj3',
+                destination_line_identity='pjsip/o7r761lt',
+                destination_user_uuid=USER_2_UUID,
+            ),
+        )
