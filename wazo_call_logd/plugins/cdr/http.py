@@ -163,9 +163,6 @@ class CDRUserMeResource(CDRAuthResource):
 
 
 class RecordingMediaResource(AuthResource):
-
-    filename_tpl = 'filename={filename}'
-
     def __init__(self, service):
         super().__init__()
         self.service = service
@@ -202,13 +199,12 @@ class RecordingMediaResource(AuthResource):
         if not recording.path:
             raise RecordingMediaNotFoundException(recording_uuid)
 
-        filename = self.filename_tpl.format(filename=recording.filename)
         try:
             return send_file(
                 recording.path,
                 mimetype='audio/wav',
                 as_attachment=True,
-                attachment_filename=filename,
+                attachment_filename=recording.filename,
             )
         except PermissionError:
             logger.error('Permission denied: "%s"', recording.path)
