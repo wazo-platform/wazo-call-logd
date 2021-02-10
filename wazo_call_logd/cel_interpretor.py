@@ -321,14 +321,14 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         participant = find_participant(self._confd, cel.channame)
         if participant:
-            call.participants.append(
-                CallLogParticipant(
-                    role='destination',
-                    user_uuid=participant['uuid'],
-                    line_id=participant['line_id'],
-                    tags=participant['tags'],
-                )
+            participant_model = CallLogParticipant(
+                role='destination',
+                user_uuid=participant['uuid'],
+                line_id=participant['line_id'],
+                tags=participant['tags'],
             )
+            call.participants.append(participant_model)
+            call.participants_by_channame[cel.channame] = participant_model
             call.set_tenant_uuid(participant['tenant_uuid'])
 
             extension = participant['main_extension']
@@ -353,6 +353,10 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
+            participant = call.participants_by_channame.get(cel.channame)
+            if participant:
+                participant.answered = True
+
             call.interpret_callee_bridge_enter = False
         return call
 

@@ -33,6 +33,7 @@ class RawCallLog:
         self.source_line_identity = None
         self.direction = 'internal'
         self.participants = []
+        self.participants_by_channame = {}
         self.recordings = []
         self.cel_ids = []
         self.interpret_callee_bridge_enter = True
