@@ -231,6 +231,31 @@ def stat_call_on_queue(call):
     return _decorate
 
 
+def cel(**cel):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with self.cel_database.queries() as queries:
+                cel.setdefault('eventtype', 'eventtype')
+                cel.setdefault('eventtime', dt.now())
+                cel.setdefault('uniqueid', 'uniqueid')
+                cel.setdefault('linkedid', 'linkedid')
+                if cel.pop('processed', False):
+                    cel['call_log_id'] = queries.insert_call_log()
+                cel['id'] = queries.insert_cel(**cel)
+            try:
+                return func(self, *args, cel, **kwargs)
+            finally:
+                with self.cel_database.queries() as queries:
+                    queries.delete_cel(cel['id'])
+                    if cel.get('call_log_id'):
+                        queries.delete_call_log(cel['call_log_id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
 class DbHelper:
     @classmethod
     def build(cls, user, password, host, port, db):
