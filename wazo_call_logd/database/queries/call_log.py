@@ -189,12 +189,9 @@ class CallLogDAO(BaseDAO):
 
     def delete_from_list(self, call_log_ids):
         with self.new_session() as session:
-            for call_log_id in call_log_ids:
-                (
-                    session.query(CallLogSchema)
-                    .filter(CallLogSchema.id == call_log_id)
-                    .delete()
-                )
+            query = session.query(CallLogSchema)
+            query = query.filter(CallLogSchema.id.in_(call_log_ids))
+            query.delete(synchronize_session=False)
 
     def delete(self, older=None):
         with self.new_session() as session:
