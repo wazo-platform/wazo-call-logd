@@ -4,9 +4,6 @@
 import logging
 from datetime import datetime, timedelta
 
-from xivo_dao.helpers.db_utils import session_scope
-from xivo_dao.resources.call_log import dao as call_log_dao
-
 logger = logging.getLogger(__name__)
 
 
@@ -18,14 +15,12 @@ class CallLogsManager:
         self.publisher = publisher
 
     def delete_all(self):
-        with session_scope():
-            call_log_dao.delete()
+        self.dao.call_log.delete()
         self.dao.recording.delete_all()
 
     def delete_from_days(self, days):
         older = datetime.now() - timedelta(days=days)
-        with session_scope():
-            call_log_ids = call_log_dao.delete(older=older)
+        call_log_ids = self.dao.call_log.delete(older=older)
         self.dao.recording.delete_all_by_call_log_ids(call_log_ids)
 
     def generate_from_days(self, days):
