@@ -1,53 +1,27 @@
-# -*- coding: utf-8 -*-
-# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
 class CELEventType(object):
-    eventtype_list = (
-        answer,
-        app_end,
-        app_start,
-        attended_transfer,
-        blind_transfer,
-        bridge_end,  # removed in asterisk 12
-        bridge_start,  # removed in asterisk 12
-        bridge_enter,
-        bridge_exit,
-        chan_start,
-        chan_end,
-        forward,
-        hangup,
-        linkedid_end,
-        mixmonitor_start,
-        mixmonitor_stop,
-        pickup,
-        transfer,  # removed in asterisk 12
-        xivo_user_fwd,
-        xivo_from_s,
-        xivo_incall,
-        xivo_outcall,
-    ) = (
-        'ANSWER',
-        'APP_END',
-        'APP_START',
-        'ATTENDEDTRANSFER',
-        'BLINDTRANSFER',
-        'BRIDGE_END',
-        'BRIDGE_START',
-        'BRIDGE_ENTER',
-        'BRIDGE_EXIT',
-        'CHAN_START',
-        'CHAN_END',
-        'FORWARD',
-        'HANGUP',
-        'LINKEDID_END',
-        'MIXMONITOR_START',
-        'MIXMONITOR_STOP',
-        'PICKUP',
-        'TRANSFER',
-        'XIVO_USER_FWD',
-        'XIVO_FROM_S',
-        'XIVO_INCALL',
-        'XIVO_OUTCALL',
-    )
+    answer = 'ANSWER'
+    app_end = 'APP_END'
+    app_start = 'APP_START'
+    attended_transfer = 'ATTENDEDTRANSFER'
+    blind_transfer = 'BLINDTRANSFER'
+    bridge_end = 'BRIDGE_END'  # removed in asterisk 12
+    bridge_start = 'BRIDGE_START'  # removed in asterisk 12
+    bridge_enter = 'BRIDGE_ENTER'
+    bridge_exit = 'BRIDGE_EXIT'
+    chan_start = 'CHAN_START'
+    chan_end = 'CHAN_END'
+    forward = 'FORWARD'
+    hangup = 'HANGUP'
+    linkedid_end = 'LINKEDID_END'
+    mixmonitor_start = 'MIXMONITOR_START'
+    mixmonitor_stop = 'MIXMONITOR_STOP'
+    pickup = 'PICKUP'
+    transfer = 'TRANSFER'  # removed in asterisk 12
+    xivo_user_fwd = 'XIVO_USER_FWD'
+    xivo_from_s = 'XIVO_FROM_S'
+    xivo_incall = 'XIVO_INCALL'
+    xivo_outcall = 'XIVO_OUTCALL'

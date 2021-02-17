@@ -1,38 +1,48 @@
-# -*- coding: utf-8 -*-
 # Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from xivo_dao.helpers.db_manager import daosession
-from xivo_dao.alchemy.cel import CEL as CELSchema
+from xivo_dao.alchemy.cel import CEL
+
+from .base import BaseDAO
 
 
-@daosession
-def find_last_unprocessed(session, limit=None, older=None):
-    subquery = (session
-                .query(CELSchema.linkedid)
-                .filter(CELSchema.call_log_id == None)
-                .order_by(CELSchema.eventtime.desc()))
-    if limit:
-        subquery = subquery.limit(limit)
-    elif older:
-        subquery = subquery.filter(CELSchema.eventtime >= older)
+class CELDAO(BaseDAO):
+    def find_last_unprocessed(self, limit=None, older=None):
+        with self.new_session() as session:
+            subquery = (
+                session
+                .query(CEL.linkedid)
+                .filter(CEL.call_log_id.is_(None))
+                .order_by(CEL.eventtime.desc())
+            )
+            if limit:
+                subquery = subquery.limit(limit)
+            elif older:
+                subquery = subquery.filter(CEL.eventtime >= older)
 
-    linked_ids = subquery.subquery()
+            linked_ids = subquery.subquery()
 
-    cel_rows = (session
-                .query(CELSchema)
-                .filter(CELSchema.linkedid.in_(linked_ids))
-                .order_by(CELSchema.eventtime.desc())
-                .all())
-    cel_rows.reverse()
-    return cel_rows
+            cel_rows = (
+                session
+                .query(CEL)
+                .filter(CEL.linkedid.in_(linked_ids))
+                .order_by(CEL.eventtime.desc())
+                .all()
+            )
+            cel_rows.reverse()
+            for cel in cel_rows:
+                session.expunge(cel)
+            return cel_rows
 
-
-@daosession
-def find_from_linked_id(session, linked_id):
-    cel_rows = (session
-                .query(CELSchema)
-                .filter(CELSchema.linkedid == linked_id)
-                .order_by(CELSchema.eventtime.asc())
-                .all())
-    return cel_rows
+    def find_from_linked_id(self, linked_id):
+        with self.new_session() as session:
+            cel_rows = (
+                session
+                .query(CEL)
+                .filter(CEL.linkedid == linked_id)
+                .order_by(CEL.eventtime.asc())
+                .all()
+            )
+            for cel in cel_rows:
+                session.expunge(cel)
+            return cel_rows
