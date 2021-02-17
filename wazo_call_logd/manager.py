@@ -25,11 +25,11 @@ class CallLogsManager:
 
     def generate_from_days(self, days):
         older_cel = datetime.now() - timedelta(days=days)
-        cels = self.dao.cel.fetch_last_unprocessed(older=older_cel)
+        cels = self.dao.cel.find_last_unprocessed(older=older_cel)
         self._generate_from_cels(cels)
 
     def generate_from_count(self, cel_count):
-        cels = self.dao.cel.fetch_last_unprocessed(cel_count)
+        cels = self.dao.cel.find_last_unprocessed(cel_count)
         logger.debug(
             'Generating call logs from the last %s CEL (found %s)',
             cel_count,
@@ -38,7 +38,7 @@ class CallLogsManager:
         self._generate_from_cels(cels)
 
     def generate_from_linked_id(self, linked_id):
-        cels = self.dao.cel.fetch_from_linked_id(linked_id)
+        cels = self.dao.cel.find_from_linked_id(linked_id)
         logger.debug(
             'Generating call log for linked_id %s from %s CEL', linked_id, len(cels)
         )

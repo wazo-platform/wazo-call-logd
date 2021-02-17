@@ -29,22 +29,22 @@ class TestCallLogsManager(TestCase):
 
     def test_generate_from_count(self):
         cel_count = 132456
-        cels = self.dao.cel.fetch_last_unprocessed.return_value = [Mock(), Mock()]
+        cels = self.dao.cel.find_last_unprocessed.return_value = [Mock(), Mock()]
         call_logs = self.generator.from_cel.return_value = Mock(new_call_logs=[])
 
         self.manager.generate_from_count(cel_count=cel_count)
 
-        self.dao.cel.fetch_last_unprocessed.assert_called_once_with(cel_count)
+        self.dao.cel.find_last_unprocessed.assert_called_once_with(cel_count)
         self.generator.from_cel.assert_called_once_with(cels)
         self.writer.write.assert_called_once_with(call_logs)
 
     def test_generate_from_linked_id(self):
         linked_id = '666'
-        cels = self.dao.cel.fetch_from_linked_id.return_value = [Mock()]
+        cels = self.dao.cel.find_from_linked_id.return_value = [Mock()]
         call_logs = self.generator.from_cel.return_value = Mock(new_call_logs=[])
 
         self.manager.generate_from_linked_id(linked_id=linked_id)
 
-        self.dao.cel.fetch_from_linked_id.assert_called_once_with(linked_id)
+        self.dao.cel.find_from_linked_id.assert_called_once_with(linked_id)
         self.generator.from_cel.assert_called_once_with(cels)
         self.writer.write.assert_called_once_with(call_logs)
