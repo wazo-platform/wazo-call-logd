@@ -11,9 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class CallLogsManager:
-    def __init__(self, dao, cel_fetcher, generator, writer, publisher):
+    def __init__(self, dao, generator, writer, publisher):
         self.dao = dao
-        self.cel_fetcher = cel_fetcher
         self.generator = generator
         self.writer = writer
         self.publisher = publisher
@@ -32,12 +31,12 @@ class CallLogsManager:
     def generate_from_days(self, days):
         older_cel = datetime.now() - timedelta(days=days)
         with session_scope():
-            cels = self.cel_fetcher.fetch_last_unprocessed(older=older_cel)
+            cels = self.dao.cel.fetch_last_unprocessed(older=older_cel)
             self._generate_from_cels(cels)
 
     def generate_from_count(self, cel_count):
         with session_scope():
-            cels = self.cel_fetcher.fetch_last_unprocessed(cel_count)
+            cels = self.dao.cel.fetch_last_unprocessed(cel_count)
             logger.debug(
                 'Generating call logs from the last %s CEL (found %s)',
                 cel_count,
@@ -47,7 +46,7 @@ class CallLogsManager:
 
     def generate_from_linked_id(self, linked_id):
         with session_scope():
-            cels = self.cel_fetcher.fetch_from_linked_id(linked_id)
+            cels = self.dao.cel.fetch_from_linked_id(linked_id)
             logger.debug(
                 'Generating call log for linked_id %s from %s CEL', linked_id, len(cels)
             )
