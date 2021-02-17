@@ -4,6 +4,7 @@ https://github.com/wazo-platform/xivo-test-helpers/archive/master.zip
 docker-compose
 kombu
 marshmallow==3.0.0b14
+mock
 openapi-spec-validator
 pyhamcrest==1.9.0  # Versions 1.10.x are broken
 pytest

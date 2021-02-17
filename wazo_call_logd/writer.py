@@ -12,6 +12,7 @@ class CallLogsWriter:
         call_log_dao.delete_from_list(call_logs.call_logs_to_delete)
         self._dao.recording.delete_all_by_call_log_ids(call_logs.call_logs_to_delete)
         call_log_dao.create_from_list(call_logs.new_call_logs)
+        self._dao.cel.associate_all_to_call_logs(call_logs.new_call_logs)
 
         new_recordings = []
         for call_log in call_logs.new_call_logs:

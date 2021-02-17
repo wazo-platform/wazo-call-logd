@@ -11,13 +11,68 @@ from hamcrest import (
     contains_inanyorder,
     empty,
     has_property,
+    has_properties,
 )
+from mock import Mock
+from xivo_dao.alchemy.cel import CEL
 
 from .helpers.base import DBIntegrationTest
-from .helpers.database import cel
+from .helpers.database import cel, call_log
 
 
 class TestCEL(DBIntegrationTest):
+    @cel(linkedid='1')
+    def test_associate_when_no_call_logs(self, cel):
+        call_logs = []
+        self.dao.cel.associate_all_to_call_logs(call_logs)
+        result = self.cel_session.query(CEL).filter(CEL.id == cel['id']).first()
+        assert_that(result, has_properties(call_log_id=None))
+
+    @cel(linkedid='1')
+    def test_associate_when_no_cel_ids(self, cel):
+        call_logs = [Mock(cel_ids=[])]
+        self.dao.cel.associate_all_to_call_logs(call_logs)
+        result = self.cel_session.query(CEL).filter(CEL.id == cel['id']).first()
+        assert_that(result, has_properties(call_log_id=None))
+
+    @cel(linkedid='1')
+    @cel(linkedid='1')
+    @call_log(id=1234)
+    def test_associate_many_cels(self, cel1, cel2):
+        call_log_id = 1234
+        call_logs = [Mock(id=call_log_id, cel_ids=[cel1['id'], cel2['id']])]
+        self.dao.cel.associate_all_to_call_logs(call_logs)
+        result = self.cel_session.query(CEL).filter(CEL.linkedid == '1').all()
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_properties(call_log_id=call_log_id),
+                has_properties(call_log_id=call_log_id),
+            )
+        )
+
+    @cel(linkedid='1')
+    @cel(linkedid='2')
+    @call_log(id=1234)
+    @call_log(id=5678)
+    def test_associate_many_call_logs(self, cel1, cel2):
+        call_log_id_1 = 1234
+        call_log_id_2 = 5678
+        call_logs = [
+            Mock(id=call_log_id_1, cel_ids=[cel1['id']]),
+            Mock(id=call_log_id_2, cel_ids=[cel2['id']]),
+        ]
+        self.dao.cel.associate_all_to_call_logs(call_logs)
+        cels = [cel1['id'], cel2['id']]
+        result = self.cel_session.query(CEL).filter(CEL.id.in_(cels)).all()
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_properties(call_log_id=call_log_id_1),
+                has_properties(call_log_id=call_log_id_2),
+            )
+        )
+
     def test_find_last_unprocessed_no_cels(self):
         result = self.dao.cel.find_last_unprocessed()
 

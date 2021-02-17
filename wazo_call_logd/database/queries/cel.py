@@ -7,6 +7,14 @@ from .base import BaseDAO
 
 
 class CELDAO(BaseDAO):
+    def associate_all_to_call_logs(self, call_logs):
+        with self.new_session() as session:
+            for call_log in call_logs:
+                if not call_log.cel_ids:
+                    continue
+                query = session.query(CEL).filter(CEL.id.in_(call_log.cel_ids))
+                query.update({'call_log_id': call_log.id}, synchronize_session=False)
+
     def find_last_unprocessed(self, limit=None, older=None):
         with self.new_session() as session:
             subquery = (
