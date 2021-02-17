@@ -31,7 +31,7 @@ class TestRecording(IntegrationTest):
     @call_log(
         **{'id': 1},
         date='2021-01-01T01:00:00+01:00',
-        recordings=[{'path': '/tmp/foobar.wav'}, {'path': 'tmp/foobar2.wav'}],
+        recordings=[{'path': '/tmp/foobar.wav'}, {'path': '/tmp/foobar2.wav'}],
     )
     def test_get_media(self):
         cdr_id = 1
