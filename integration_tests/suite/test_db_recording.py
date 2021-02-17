@@ -80,6 +80,36 @@ class TestRecording(DBIntegrationTest):
         result = self.session.query(Recording).all()
         assert_that(result, contains_inanyorder(has_properties(uuid=rec2['uuid'])))
 
+    @recording(call_log_id=1, path='rec1')
+    @recording(call_log_id=2, path='rec2')
+    def test_delete_media_by_recording_uuid(self, rec1, rec2):
+        self.dao.recording.delete_media_by(uuid=rec1['uuid'])
+
+        result = self.session.query(Recording).all()
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_properties(uuid=rec1['uuid'], path=None),
+                has_properties(uuid=rec2['uuid'], path='rec2'),
+            )
+        )
+
+    @recording(call_log_id=1, path='rec1')
+    @recording(call_log_id=2, path='rec2')
+    @recording(call_log_id=2, path='rec3')
+    def test_delete_media_by_call_log_id(self, rec1, rec2, rec3):
+        self.dao.recording.delete_media_by(call_log_id=rec2['call_log_id'])
+
+        result = self.session.query(Recording).all()
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_properties(uuid=rec1['uuid'], path='rec1'),
+                has_properties(uuid=rec2['uuid'], path=None),
+                has_properties(uuid=rec3['uuid'], path=None),
+            )
+        )
+
     @recording(call_log_id=1)
     @recording(call_log_id=2)
     @recording(call_log_id=3)
