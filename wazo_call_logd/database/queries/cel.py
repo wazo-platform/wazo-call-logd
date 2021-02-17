@@ -18,8 +18,7 @@ class CELDAO(BaseDAO):
     def find_last_unprocessed(self, limit=None, older=None):
         with self.new_session() as session:
             subquery = (
-                session
-                .query(CEL.linkedid)
+                session.query(CEL.linkedid)
                 .filter(CEL.call_log_id.is_(None))
                 .order_by(CEL.eventtime.desc())
             )
@@ -31,8 +30,7 @@ class CELDAO(BaseDAO):
             linked_ids = subquery.subquery()
 
             cel_rows = (
-                session
-                .query(CEL)
+                session.query(CEL)
                 .filter(CEL.linkedid.in_(linked_ids))
                 .order_by(CEL.eventtime.desc())
                 .all()
@@ -45,8 +43,7 @@ class CELDAO(BaseDAO):
     def find_from_linked_id(self, linked_id):
         with self.new_session() as session:
             cel_rows = (
-                session
-                .query(CEL)
+                session.query(CEL)
                 .filter(CEL.linkedid == linked_id)
                 .order_by(CEL.eventtime.asc())
                 .all()

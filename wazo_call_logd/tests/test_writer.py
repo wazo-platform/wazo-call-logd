@@ -25,5 +25,9 @@ class TestCallLogsWriter(TestCase):
 
         self.writer.write(call_logs_creation)
 
-        self.dao.call_log.create_from_list.assert_called_once_with(call_logs_creation.new_call_logs)
-        self.dao.call_log.delete_from_list.assert_called_once_with(call_logs_creation.call_logs_to_delete)
+        self.dao.call_log.create_from_list.assert_called_once_with(
+            call_logs_creation.new_call_logs
+        )
+        self.dao.call_log.delete_from_list.assert_called_once_with(
+            call_logs_creation.call_logs_to_delete
+        )

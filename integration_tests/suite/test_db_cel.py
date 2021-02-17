@@ -46,7 +46,7 @@ class TestCEL(DBIntegrationTest):
             contains_inanyorder(
                 has_properties(call_log_id=call_log_id),
                 has_properties(call_log_id=call_log_id),
-            )
+            ),
         )
 
     @cel(linkedid='1')
@@ -68,7 +68,7 @@ class TestCEL(DBIntegrationTest):
             contains_inanyorder(
                 has_properties(call_log_id=call_log_id_1),
                 has_properties(call_log_id=call_log_id_2),
-            )
+            ),
         )
 
     def test_find_last_unprocessed_no_cels(self):
@@ -86,7 +86,7 @@ class TestCEL(DBIntegrationTest):
             contains(
                 has_property('id', cel2['id']),
                 has_property('id', cel3['id']),
-            )
+            ),
         )
 
     @cel(linkedid='1')
@@ -98,19 +98,21 @@ class TestCEL(DBIntegrationTest):
             contains(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
-            )
+            ),
         )
 
     @cel(linkedid='1')
     @cel(linkedid='1')
-    def test_find_last_unprocessed_under_limit_exceeding_limit_to_complete_call(self, cel1, cel2):
+    def test_find_last_unprocessed_under_limit_exceeding_limit_to_complete_call(
+        self, cel1, cel2
+    ):
         result = self.dao.cel.find_last_unprocessed(limit=1)
         assert_that(
             result,
             contains(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
-            )
+            ),
         )
 
     @cel(linkedid='1', processed=True)
@@ -128,7 +130,7 @@ class TestCEL(DBIntegrationTest):
                 has_property('id', cel2['id']),
                 has_property('id', cel3['id']),
                 has_property('id', cel4['id']),
-            )
+            ),
         )
 
     @cel(processed=True)
@@ -141,21 +143,25 @@ class TestCEL(DBIntegrationTest):
     @cel(linkedid='1', processed=True)
     @cel(linkedid='2')
     @cel(linkedid='2')
-    def test_find_last_unprocessed_with_processed_and_unprocessed(self, _, __, cel3, cel4):
+    def test_find_last_unprocessed_with_processed_and_unprocessed(
+        self, _, __, cel3, cel4
+    ):
         result = self.dao.cel.find_last_unprocessed(limit=10)
         assert_that(
             result,
             contains(
                 has_property('id', cel3['id']),
                 has_property('id', cel4['id']),
-            )
+            ),
         )
 
     @cel(linkedid='1')
     @cel(linkedid='1', processed=True)
     @cel(linkedid='2', processed=True)
     @cel(linkedid='2')
-    def test_find_last_unprocessed_with_partially_processed(self, cel1, cel2, cel3, cel4):
+    def test_find_last_unprocessed_with_partially_processed(
+        self, cel1, cel2, cel3, cel4
+    ):
         result = self.dao.cel.find_last_unprocessed(limit=10)
         assert_that(
             result,
@@ -164,7 +170,7 @@ class TestCEL(DBIntegrationTest):
                 has_property('id', cel2['id']),
                 has_property('id', cel3['id']),
                 has_property('id', cel4['id']),
-            )
+            ),
         )
 
     def test_find_from_linked_id_no_cels(self):
@@ -181,7 +187,7 @@ class TestCEL(DBIntegrationTest):
             contains_inanyorder(
                 has_property('id', cel1['id']),
                 has_property('id', cel3['id']),
-            )
+            ),
         )
 
     @cel(linkedid='666', eventtime=NOW)
@@ -197,7 +203,7 @@ class TestCEL(DBIntegrationTest):
                 has_property('id', cel2['id']),
                 has_property('id', cel1['id']),
                 has_property('id', cel3['id']),
-            )
+            ),
         )
 
     def test_find_last_unprocessed_no_cels_with_older(self):
@@ -216,7 +222,7 @@ class TestCEL(DBIntegrationTest):
             contains(
                 has_property('id', cel2['id']),
                 has_property('id', cel3['id']),
-            )
+            ),
         )
 
     @cel(linkedid='1')
@@ -229,13 +235,13 @@ class TestCEL(DBIntegrationTest):
             contains(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
-            )
+            ),
         )
 
     @cel(linkedid='1', eventtime=NOW - td(hours=2))
     @cel(linkedid='1')
     def test_find_last_unprocessed_under_older_exceeding_limit_to_complete_call(
-        self, cel1, cel2,
+        self, cel1, cel2
     ):
         older = NOW - td(hours=1)
         result = self.dao.cel.find_last_unprocessed(older=older)
@@ -244,5 +250,5 @@ class TestCEL(DBIntegrationTest):
             contains(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
-            )
+            ),
         )

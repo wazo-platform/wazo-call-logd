@@ -52,9 +52,7 @@ class Controller:
             generator.set_default_tenant_uuid
         )
         self._publisher = BusPublisher(config)
-        self.manager = CallLogsManager(
-            dao, generator, writer, self._publisher
-        )
+        self.manager = CallLogsManager(dao, generator, writer, self._publisher)
         self.bus_client = BusClient(config)
         self.http_server = HTTPServer(config)
         self.status_aggregator = StatusAggregator()
