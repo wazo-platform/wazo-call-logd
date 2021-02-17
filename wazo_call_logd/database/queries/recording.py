@@ -27,6 +27,28 @@ class RecordingDAO(BaseDAO):
             query.delete(synchronize_session='fetch')
             session.flush()
 
+    def delete_media_by(self, **kwargs):
+        with self.new_session() as session:
+            query = session.query(Recording)
+
+            if 'call_log_ids' in kwargs:
+                if not kwargs['call_log_ids']:
+                    return
+                query = query.filter(Recording.call_log_id.in_(kwargs['call_log_ids']))
+
+            if 'call_log_id' in kwargs:
+                query = query.filter(Recording.call_log_id == kwargs['call_log_id'])
+
+            if 'uuid' in kwargs:
+                query = query.filter(Recording.uuid == kwargs['uuid'])
+
+            recording = query.first()
+            if not recording:
+                return
+            recording.path = None
+            session.flush()
+            session.expunge(recording)
+
     def find_all_by(self, **kwargs):
         with self.new_session() as session:
             query = session.query(Recording)
