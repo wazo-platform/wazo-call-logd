@@ -188,7 +188,10 @@ class CallLogDAO(BaseDAO):
             for call_log in call_logs:
                 session.add(call_log)
                 session.flush()
-                session.expunge(call_log)
+                # NOTE(fblackburn): fetch relationship before expunge_all
+                call_log.source_participant
+                call_log.destination_participant
+            session.expunge_all()
 
     def delete_from_list(self, call_log_ids):
         with self.new_session() as session:
