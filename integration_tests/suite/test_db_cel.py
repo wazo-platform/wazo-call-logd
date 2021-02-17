@@ -1,10 +1,7 @@
 # Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import (
-    datetime as dt,
-    timedelta as td,
-)
+from datetime import timedelta as td
 from hamcrest import (
     assert_that,
     contains,
@@ -17,6 +14,7 @@ from mock import Mock
 from xivo_dao.alchemy.cel import CEL
 
 from .helpers.base import DBIntegrationTest
+from .helpers.constants import NOW
 from .helpers.database import cel, call_log
 
 
@@ -186,9 +184,9 @@ class TestCEL(DBIntegrationTest):
             )
         )
 
-    @cel(linkedid='666', eventtime=dt.now())
-    @cel(linkedid='666', eventtime=dt.now() - td(hours=1))
-    @cel(linkedid='666', eventtime=dt.now() + td(hours=1))
+    @cel(linkedid='666', eventtime=NOW)
+    @cel(linkedid='666', eventtime=NOW - td(hours=1))
+    @cel(linkedid='666', eventtime=NOW + td(hours=1))
     def test_find_from_linked_id_when_cels_are_unordered_then_return_cels_in_chronological_order(
         self, cel1, cel2, cel3
     ):
@@ -203,15 +201,15 @@ class TestCEL(DBIntegrationTest):
         )
 
     def test_find_last_unprocessed_no_cels_with_older(self):
-        older = dt.now() - td(hours=1)
+        older = NOW - td(hours=1)
         result = self.dao.cel.find_last_unprocessed(older=older)
         assert_that(result, empty())
 
-    @cel(eventtime=dt.now() - td(hours=2))  # excluded
+    @cel(eventtime=NOW - td(hours=2))  # excluded
     @cel(linkedid='2')
     @cel(linkedid='3')
     def test_find_last_unprocessed_over_older(self, _, cel2, cel3):
-        older = dt.now() - td(hours=1)
+        older = NOW - td(hours=1)
         result = self.dao.cel.find_last_unprocessed(older=older)
         assert_that(
             result,
@@ -224,7 +222,7 @@ class TestCEL(DBIntegrationTest):
     @cel(linkedid='1')
     @cel(linkedid='2')
     def test_find_last_unprocessed_under_older(self, cel1, cel2):
-        older = dt.now() - td(hours=1)
+        older = NOW - td(hours=1)
         result = self.dao.cel.find_last_unprocessed(older=older)
         assert_that(
             result,
@@ -234,12 +232,12 @@ class TestCEL(DBIntegrationTest):
             )
         )
 
-    @cel(linkedid='1', eventtime=dt.now() - td(hours=2))
+    @cel(linkedid='1', eventtime=NOW - td(hours=2))
     @cel(linkedid='1')
     def test_find_last_unprocessed_under_older_exceeding_limit_to_complete_call(
         self, cel1, cel2,
     ):
-        older = dt.now() - td(hours=1)
+        older = NOW - td(hours=1)
         result = self.dao.cel.find_last_unprocessed(older=older)
         assert_that(
             result,
