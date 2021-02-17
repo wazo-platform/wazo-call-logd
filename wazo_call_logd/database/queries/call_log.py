@@ -181,6 +181,9 @@ class CallLogDAO(BaseDAO):
         return query
 
     def create_from_list(self, call_logs):
+        if not call_logs:
+            return
+
         with self.new_session() as session:
             for call_log in call_logs:
                 session.add(call_log)
