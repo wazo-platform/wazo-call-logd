@@ -57,4 +57,5 @@ class RecordingService:
 
     def delete_media(self, cdr_id, recording_uuid, recording_path):
         self._dao.recording.delete_media_by(call_log_id=cdr_id, uuid=recording_uuid)
-        os.remove(recording_path)
+        if recording_path:
+            os.remove(recording_path)

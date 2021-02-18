@@ -227,9 +227,6 @@ class RecordingMediaResource(AuthResource):
         if not recording:
             raise RecordingNotFoundException(recording_uuid)
 
-        if not recording.path:
-            raise RecordingMediaNotFoundException(recording_uuid)
-
         try:
             self.service.delete_media(cdr_id, recording_uuid, recording.path)
         except PermissionError:
