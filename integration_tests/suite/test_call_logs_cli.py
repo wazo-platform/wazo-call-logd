@@ -15,11 +15,12 @@ from hamcrest import (
     has_properties,
 )
 from xivo_dao.alchemy.call_log import CallLog
+from xivo_dao.alchemy.cel import CEL
 from wazo_call_logd.database.models import Recording
 
 from .helpers.base import cdr, raw_cels, RawCelIntegrationTest
 from .helpers.constants import NOW
-from .helpers.database import call_log, recording
+from .helpers.database import call_log, cel, recording
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
@@ -253,12 +254,19 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
             contains_string('An other instance of ourself is probably running'),
         )
 
+    @cel(call_log_id=1)
     @call_log(**cdr(id_=1))
     @recording(call_log_id=1)
-    def test_delete_all(self, _):
+    def test_delete_all(self, cel, _):
         self.docker_exec(['wazo-call-logs', 'delete', '--all'])
         result = self.session.query(Recording).all()
         assert_that(result, empty())
+
+        result = self.cel_session.query(CallLog).all()
+        assert_that(result, empty())
+
+        result = self.cel_session.query(CEL).filter(CEL.id == cel['id']).first()
+        assert_that(result, has_properties(call_log_id=None))
 
     @call_log(**cdr(id_=1, start_time=NOW))
     @recording(call_log_id=1)
