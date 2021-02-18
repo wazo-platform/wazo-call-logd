@@ -273,7 +273,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
     @call_log(**cdr(id_=2, start_time=NOW - td(days=2)))
     @recording(call_log_id=2)
     def test_delete_older(self, *_):
-        print(self.docker_exec(['wazo-call-logs', 'delete', '--days', '1']))
+        self.docker_exec(['wazo-call-logs', 'delete', '--days', '1'])
 
         result = self.cel_session.query(CallLog).all()
         assert_that(result, contains(has_properties(id=2)))
