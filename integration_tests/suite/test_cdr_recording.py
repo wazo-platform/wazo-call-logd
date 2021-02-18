@@ -235,14 +235,9 @@ class TestRecording(IntegrationTest):
     @call_log(**{'id': 1}, recordings=[{'path': '/tmp/deleted.wav'}])
     def test_delete_media_when_file_deleted_on_filesystem(self):
         rec_uuid = self.call_logd.cdr.get_by_id(1)['recordings'][0]['uuid']
-        assert_that(
-            calling(self.call_logd.cdr.delete_recording_media).with_args(1, rec_uuid),
-            raises(CallLogdError).matching(
-                has_properties(
-                    status_code=500, error_id='recording-media-filesystem-not-found'
-                )
-            ),
-        )
+        self.call_logd.cdr.delete_recording_media(1, rec_uuid)
+        recording = self.call_logd.cdr.get_by_id(1)['recordings'][0]
+        assert_that(recording['deleted'], equal_to(True))
 
     @call_log(
         **{'id': 10},

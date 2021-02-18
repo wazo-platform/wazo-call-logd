@@ -232,10 +232,11 @@ class RecordingMediaResource(AuthResource):
 
         try:
             self.service.delete_media(cdr_id, recording_uuid, recording.path)
-            return '', 204
         except PermissionError:
             logger.error('Permission denied: "%s"', recording.path)
             raise RecordingMediaFSPermissionException(recording_uuid, recording.path)
         except FileNotFoundError:
-            logger.error('Recording file not found: "%s"', recording.path)
-            raise RecordingMediaFSNotFoundException(recording_uuid, recording.path)
+            logger.info(
+                'Recording file already deleted: "%s". Marking as such.', recording.path
+            )
+        return '', 204
