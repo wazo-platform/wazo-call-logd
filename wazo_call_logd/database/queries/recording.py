@@ -42,12 +42,11 @@ class RecordingDAO(BaseDAO):
             if 'uuid' in kwargs:
                 query = query.filter(Recording.uuid == kwargs['uuid'])
 
-            recording = query.first()
-            if not recording:
-                return
-            recording.path = None
-            session.flush()
-            session.expunge(recording)
+            recordings = query.all()
+            for recording in recordings:
+                recording.path = None
+                session.flush()
+                session.expunge(recording)
 
     def find_all_by(self, **kwargs):
         with self.new_session() as session:
