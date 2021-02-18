@@ -68,6 +68,19 @@ paths:
           $ref: '#/responses/NotFoundError'
       produces:
       - audio/wav
+    delete:
+      summary: Delete a recording media
+      description: '**Required ACL:** `call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete`'
+      tags:
+        - cdr
+      parameters:
+        - $ref: '#/parameters/cdr_id'
+        - $ref: '#/parameters/recording_uuid'
+      responses:
+        '204':
+          description: The recording was deleted successfully
+        '404':
+          $ref: '#/responses/NotFoundError'
   /users/{user_uuid}/cdr:
     get:
       summary: List CDR of the given user

@@ -1,5 +1,11 @@
 # Changelog
 
+## 21.03
+
+* New endpoint to delete recording media:
+
+  * `DELETE /cdr/<cdr_id>/recordings/<recording_uuid>/media`
+
 ## 21.02
 
 * `GET /cdr` has new attribute:

@@ -97,7 +97,7 @@ def recording(**recording):
             with self.database.queries() as queries:
                 recording['uuid'] = queries.insert_recording(**recording)
             try:
-                return func(self, recording, *args, **kwargs)
+                return func(self, *args, recording, **kwargs)
             finally:
                 with self.database.queries() as queries:
                     queries.delete_recording(recording['uuid'])

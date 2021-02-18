@@ -1,6 +1,7 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
 import re
 
 RECORDING_FILENAME_RE = re.compile(r'^.+-(\d+)-([a-z0-9-]{36})(.*)?$')
@@ -53,3 +54,8 @@ class RecordingService:
 
     def find_cdr(self, cdr_id, tenant_uuids):
         return self._dao.call_log.get_by_id(cdr_id, tenant_uuids)
+
+    def delete_media(self, cdr_id, recording_uuid, recording_path):
+        self._dao.recording.delete_media_by(call_log_id=cdr_id, uuid=recording_uuid)
+        if recording_path:
+            os.remove(recording_path)

@@ -212,3 +212,28 @@ class RecordingMediaResource(AuthResource):
         except FileNotFoundError:
             logger.error('Recording file not found: "%s"', recording.path)
             raise RecordingMediaFSNotFoundException(recording_uuid, recording.path)
+
+    @required_acl(
+        'call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete',
+        extract_token_id=extract_token_id_from_query_or_header,
+    )
+    def delete(self, cdr_id, recording_uuid):
+        tenant_uuids = self.visible_tenants(True)
+        cdr = self.service.find_cdr(cdr_id, tenant_uuids)
+        if not cdr:
+            raise CDRNotFoundException(details={'cdr_id': cdr_id})
+
+        recording = self.service.find_by(uuid=recording_uuid, call_log_id=cdr_id)
+        if not recording:
+            raise RecordingNotFoundException(recording_uuid)
+
+        try:
+            self.service.delete_media(cdr_id, recording_uuid, recording.path)
+        except PermissionError:
+            logger.error('Permission denied: "%s"', recording.path)
+            raise RecordingMediaFSPermissionException(recording_uuid, recording.path)
+        except FileNotFoundError:
+            logger.info(
+                'Recording file already deleted: "%s". Marking as such.', recording.path
+            )
+        return '', 204
