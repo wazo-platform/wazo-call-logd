@@ -8,6 +8,8 @@ class CallLogsWriter:
 
     def write(self, call_logs):
         self._dao.call_log.delete_from_list(call_logs.call_logs_to_delete)
+        self._dao.cel.unassociate_all_from_call_log_ids(call_logs.call_logs_to_delete)
+
         self._dao.recording.delete_all_by_call_log_ids(call_logs.call_logs_to_delete)
 
         self._dao.call_log.create_from_list(call_logs.new_call_logs)

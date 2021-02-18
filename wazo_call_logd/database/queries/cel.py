@@ -15,6 +15,19 @@ class CELDAO(BaseDAO):
                 query = session.query(CEL).filter(CEL.id.in_(call_log.cel_ids))
                 query.update({'call_log_id': call_log.id}, synchronize_session=False)
 
+    def unassociate_all_from_call_log_ids(self, call_log_ids):
+        if not call_log_ids:
+            return
+
+        with self.new_session() as session:
+            query = session.query(CEL).filter(CEL.call_log_id.in_(call_log_ids))
+            query.update({'call_log_id': None}, synchronize_session=False)
+
+    def unassociate_all(self):
+        with self.new_session() as session:
+            query = session.query(CEL)
+            query.update({'call_log_id': None}, synchronize_session=False)
+
     def find_last_unprocessed(self, limit=None, older=None):
         with self.new_session() as session:
             subquery = (

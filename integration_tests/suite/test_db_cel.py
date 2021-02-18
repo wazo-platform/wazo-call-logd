@@ -68,6 +68,46 @@ class TestCEL(DBIntegrationTest):
             ),
         )
 
+    @cel(linkedid='1', call_log_id=1234)
+    def test_unassociate_when_no_call_logs(self, cel):
+        call_log_ids = []
+        self.dao.cel.unassociate_all_from_call_log_ids(call_log_ids)
+        result = self.cel_session.query(CEL).filter(CEL.id == cel['id']).first()
+        assert_that(result, has_properties(call_log_id=1234))
+
+    @cel(linkedid='1', call_log_id=1234)
+    @cel(linkedid='1', call_log_id=42)
+    @cel(linkedid='2', call_log_id=5678)
+    def test_unassociate_many_call_logs(self, cel1, cel2, cel3):
+        call_log_id_1 = 1234
+        call_log_id_3 = 5678
+        call_log_ids = [call_log_id_1, call_log_id_3]
+        self.dao.cel.unassociate_all_from_call_log_ids(call_log_ids)
+        cels = [cel1['id'], cel2['id'], cel3['id']]
+        result = self.cel_session.query(CEL).filter(CEL.id.in_(cels)).all()
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_properties(call_log_id=None),
+                has_properties(call_log_id=42),
+                has_properties(call_log_id=None),
+            ),
+        )
+
+    @cel(linkedid='1', call_log_id=1)
+    @cel(linkedid='2', call_log_id=2)
+    def test_unassociate_all(self, cel1, cel2):
+        self.dao.cel.unassociate_all()
+        cels = [cel1['id'], cel2['id']]
+        result = self.cel_session.query(CEL).filter(CEL.id.in_(cels)).all()
+        assert_that(
+            result,
+            contains_inanyorder(
+                has_properties(call_log_id=None),
+                has_properties(call_log_id=None),
+            ),
+        )
+
     def test_find_last_unprocessed_no_cels(self):
         result = self.dao.cel.find_last_unprocessed()
 
