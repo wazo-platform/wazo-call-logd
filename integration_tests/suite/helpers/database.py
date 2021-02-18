@@ -18,7 +18,6 @@ from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
 from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
-from xivo_dao.tests.test_dao import ItemInserter
 
 from wazo_call_logd.database.models import Recording
 
@@ -295,15 +294,16 @@ class DatabaseQueries:
         self.connection = connection
         self.Session = scoped_session(sessionmaker(bind=connection))
 
-    @contextmanager
-    def inserter(self):
-        session = self.Session()
-        yield ItemInserter(session, tenant_uuid=MASTER_TENANT)
-        session.commit()
-
     def insert_call_log(self, **kwargs):
-        with self.inserter() as inserter:
-            return inserter.add_call_log(**kwargs).id
+        session = self.Session()
+        kwargs.setdefault('date', dt.now())
+        kwargs.setdefault('tenant_uuid', '00000000-0000-4000-8000-000000000000')
+        call_log = CallLog(**kwargs)
+        session.add(call_log)
+        session.flush()
+        call_log_id = call_log.id
+        session.commit()
+        return call_log_id
 
     def delete_call_log(self, call_log_id):
         session = self.Session()
@@ -340,8 +340,11 @@ class DatabaseQueries:
         session.commit()
 
     def insert_call_log_participant(self, **kwargs):
-        with self.inserter() as inserter:
-            return inserter.add_call_log_participant(**kwargs)
+        session = self.Session()
+        kwargs.setdefault('role', 'source')
+        call_log_participant = CallLogParticipant(**kwargs)
+        session.add(call_log_participant)
+        session.commit()
 
     def find_all_call_log(self):
         session = self.Session()
