@@ -15,7 +15,7 @@ from xivo_dao.alchemy.cel import CEL
 
 from .helpers.base import DBIntegrationTest
 from .helpers.constants import NOW
-from .helpers.database import cel, call_log
+from .helpers.database import cel
 
 
 class TestCEL(DBIntegrationTest):
@@ -35,7 +35,6 @@ class TestCEL(DBIntegrationTest):
 
     @cel(linkedid='1')
     @cel(linkedid='1')
-    @call_log(id=1234)
     def test_associate_many_cels(self, cel1, cel2):
         call_log_id = 1234
         call_logs = [Mock(id=call_log_id, cel_ids=[cel1['id'], cel2['id']])]
@@ -51,8 +50,6 @@ class TestCEL(DBIntegrationTest):
 
     @cel(linkedid='1')
     @cel(linkedid='2')
-    @call_log(id=1234)
-    @call_log(id=5678)
     def test_associate_many_call_logs(self, cel1, cel2):
         call_log_id_1 = 1234
         call_log_id_2 = 5678
