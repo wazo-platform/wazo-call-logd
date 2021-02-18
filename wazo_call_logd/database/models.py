@@ -15,7 +15,6 @@ from sqlalchemy.sql import case, select, text
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String, Text
 from sqlalchemy_utils import UUIDType, generic_repr
 
-from xivo_dao.alchemy.cel import CEL
 from xivo_dao.helpers.uuid import new_uuid
 
 Base = declarative_base()
@@ -76,8 +75,6 @@ class CallLog(Base):
     )
     destination_user_uuid = association_proxy('destination_participant', 'user_uuid')
     destination_line_id = association_proxy('destination_participant', 'line_id')
-
-    cels = relationship(CEL)
 
     cel_ids = []
 
