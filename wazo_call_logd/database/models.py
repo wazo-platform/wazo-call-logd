@@ -30,7 +30,7 @@ class CallLog(Base):
     date = Column(DateTime(timezone=True), nullable=False)
     date_answer = Column(DateTime(timezone=True))
     date_end = Column(DateTime(timezone=True))
-    tenant_uuid = Column(String(36), nullable=False)
+    tenant_uuid = Column(UUIDType, nullable=False)
     source_name = Column(String(255))
     source_exten = Column(String(255))
     source_internal_exten = Column(Text)
@@ -96,7 +96,7 @@ class CallLogParticipant(Base):
         Index('call_logd_call_log_participant__idx__user_uuid', 'user_uuid'),
     )
 
-    uuid = Column(String(38), default=new_uuid, primary_key=True)
+    uuid = Column(UUIDType, default=new_uuid, primary_key=True)
     call_log_id = Column(
         Integer,
         ForeignKey(
@@ -105,7 +105,7 @@ class CallLogParticipant(Base):
             ondelete='CASCADE',
         )
     )
-    user_uuid = Column(String(38), nullable=False)
+    user_uuid = Column(UUIDType, nullable=False)
     line_id = Column(Integer)
     role = Column(
         Enum(

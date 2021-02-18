@@ -6,7 +6,7 @@ Revises: 5648242a2fee
 """
 
 from alembic import op
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
@@ -21,7 +21,7 @@ def upgrade():
         sa.Column('date', sa.DateTime(timezone=True), nullable=False),
         sa.Column('date_answer', sa.DateTime(timezone=True)),
         sa.Column('date_end', sa.DateTime(timezone=True)),
-        sa.Column('tenant_uuid', sa.String(36), nullable=False),
+        sa.Column('tenant_uuid', UUID, nullable=False),
         sa.Column('source_name', sa.String(255)),
         sa.Column('source_exten', sa.String(255)),
         sa.Column('source_internal_exten', sa.Text),
@@ -47,9 +47,9 @@ def upgrade():
     )
     op.create_table(
         'call_logd_call_log_participant',
-        sa.Column('uuid', sa.String(38), primary_key=True),
+        sa.Column('uuid', UUID, primary_key=True),
         sa.Column('call_log_id', sa.Integer),
-        sa.Column('user_uuid', sa.tring(38), nullable=False),
+        sa.Column('user_uuid', UUID, nullable=False),
         sa.Column('line_id', sa.Integer),
         sa.Column(
             'role',
