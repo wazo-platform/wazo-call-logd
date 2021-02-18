@@ -91,7 +91,7 @@ class TestRecording(DBIntegrationTest):
             contains_inanyorder(
                 has_properties(uuid=rec1['uuid'], path=None),
                 has_properties(uuid=rec2['uuid'], path='rec2'),
-            )
+            ),
         )
 
     @recording(call_log_id=1, path='rec1')
@@ -107,7 +107,7 @@ class TestRecording(DBIntegrationTest):
                 has_properties(uuid=rec1['uuid'], path='rec1'),
                 has_properties(uuid=rec2['uuid'], path=None),
                 has_properties(uuid=rec3['uuid'], path=None),
-            )
+            ),
         )
 
     @recording(call_log_id=1, path='rec1')
@@ -115,7 +115,9 @@ class TestRecording(DBIntegrationTest):
     @recording(call_log_id=2, path='rec3')
     @recording(call_log_id=3, path='rec4')
     def test_delete_media_by_call_log_ids(self, rec1, rec2, rec3, rec4):
-        self.dao.recording.delete_media_by(call_log_ids=[rec1['call_log_id'], rec2['call_log_id']])
+        self.dao.recording.delete_media_by(
+            call_log_ids=[rec1['call_log_id'], rec2['call_log_id']]
+        )
 
         result = self.session.query(Recording).all()
         assert_that(
@@ -125,7 +127,7 @@ class TestRecording(DBIntegrationTest):
                 has_properties(uuid=rec2['uuid'], path=None),
                 has_properties(uuid=rec3['uuid'], path=None),
                 has_properties(uuid=rec4['uuid'], path='rec4'),
-            )
+            ),
         )
 
     @recording(call_log_id=1)

@@ -168,13 +168,17 @@ class TestRecording(IntegrationTest):
         self.call_logd.cdr.delete_recording_media(cdr_id, recording1['uuid'])
 
         assert_that(
-            calling(self.call_logd.cdr.get_recording_media).with_args(cdr_id, recording1['uuid']),
+            calling(self.call_logd.cdr.get_recording_media).with_args(
+                cdr_id, recording1['uuid']
+            ),
             raises(CallLogdError).matching(
                 has_properties(status_code=400, error_id='recording-media-not-found')
             ),
         )
         recordings = self.call_logd.cdr.get_by_id(cdr_id)['recordings']
-        assert_that(recordings, has_item(has_entries(uuid=recording1['uuid'], deleted=True)))
+        assert_that(
+            recordings, has_item(has_entries(uuid=recording1['uuid'], deleted=True))
+        )
 
         response = self.call_logd.cdr.get_recording_media(cdr_id, recording2['uuid'])
         expected_filename = recording2['filename']
