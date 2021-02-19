@@ -15,8 +15,6 @@ from sqlalchemy.sql import case, select, text
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String, Text
 from sqlalchemy_utils import UUIDType, generic_repr
 
-from xivo_dao.helpers.uuid import new_uuid
-
 Base = declarative_base()
 
 
@@ -93,7 +91,11 @@ class CallLogParticipant(Base):
         Index('call_logd_call_log_participant__idx__user_uuid', 'user_uuid'),
     )
 
-    uuid = Column(UUIDType, default=new_uuid, primary_key=True)
+    uuid = Column(
+        UUIDType,
+        server_default=text('uuid_generate_v4()'),
+        primary_key=True,
+    )
     call_log_id = Column(
         Integer,
         ForeignKey(

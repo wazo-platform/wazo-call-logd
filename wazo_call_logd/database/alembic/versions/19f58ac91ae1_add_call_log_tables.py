@@ -47,7 +47,12 @@ def upgrade():
     )
     op.create_table(
         'call_logd_call_log_participant',
-        sa.Column('uuid', UUID, primary_key=True),
+        sa.Column(
+            'uuid',
+            UUID,
+            server_default=sa.text('uuid_generate_v4()'),
+            primary_key=True,
+        ),
         sa.Column('call_log_id', sa.Integer),
         sa.Column('user_uuid', UUID, nullable=False),
         sa.Column('line_id', sa.Integer),
