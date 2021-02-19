@@ -22,13 +22,6 @@ class CDRService:
                 rec_search_params['uuid'] = matches.group(2)
         call_logs = self._dao.call_log.find_all_in_period(search_params)
         rec_search_params['call_log_ids'] = [call_log.id for call_log in call_logs]
-        recordings = self._dao.recording.find_all_by(**rec_search_params)
-        if recordings:
-            rec_by_id = {}
-            for recording in recordings:
-                rec_by_id.setdefault(recording.call_log_id, []).append(recording)
-            for call_log in call_logs:
-                call_log.recordings = rec_by_id.get(call_log.id, [])
         count = self._dao.call_log.count_in_period(search_params)
         return {
             'items': call_logs,
@@ -37,12 +30,7 @@ class CDRService:
         }
 
     def get(self, cdr_id, tenant_uuids):
-        call_log = self._dao.call_log.get_by_id(cdr_id, tenant_uuids)
-        if not call_log:
-            return
-        recordings = self._dao.recording.find_all_by(call_log_id=call_log.id)
-        call_log.recordings = recordings
-        return call_log
+        return self._dao.call_log.get_by_id(cdr_id, tenant_uuids)
 
 
 class RecordingService:

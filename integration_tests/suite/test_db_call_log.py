@@ -1,7 +1,10 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import timedelta as td
+from datetime import (
+    datetime as dt,
+    timedelta as td,
+)
 from hamcrest import (
     assert_that,
     contains,
@@ -12,11 +15,19 @@ from hamcrest import (
     has_property,
     has_properties,
 )
-from wazo_call_logd.database.models import CallLog
+from wazo_call_logd.database.models import CallLog, CallLogParticipant, Recording
 
 from .helpers.base import cdr, DBIntegrationTest
 from .helpers.database import call_log
-from .helpers.constants import ALICE, BOB, CHARLES, NOW, MINUTES, MASTER_TENANT
+from .helpers.constants import (
+    ALICE,
+    BOB,
+    CHARLES,
+    MASTER_TENANT,
+    MINUTES,
+    NOW,
+    USER_1_UUID,
+)
 
 
 class TestCallLog(DBIntegrationTest):
@@ -47,7 +58,18 @@ class TestCallLog(DBIntegrationTest):
         assert_that(result, has_entries(total=4, filtered=2))
 
     def test_create_from_list(self):
-        call_log_1 = CallLog(date=NOW, tenant_uuid=MASTER_TENANT)
+        end_time = dt.now()
+        start_time = end_time - td(hours=1)
+
+        call_log_1 = CallLog(
+            date=NOW,
+            tenant_uuid=MASTER_TENANT,
+            participants=[CallLogParticipant(role='source', user_uuid=USER_1_UUID)],
+            recordings=[
+                Recording(start_time=start_time, end_time=end_time),
+                Recording(start_time=start_time, end_time=end_time),
+            ]
+        )
         call_log_2 = CallLog(date=NOW, tenant_uuid=MASTER_TENANT)
 
         self.dao.call_log.create_from_list([call_log_1, call_log_2])
@@ -55,7 +77,15 @@ class TestCallLog(DBIntegrationTest):
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(2))
 
+        result = self.session.query(CallLogParticipant).all()
+        assert_that(result, has_length(1))
+
+        result = self.session.query(Recording).all()
+        assert_that(result, has_length(2))
+
         self.session.query(CallLog).delete()
+        self.session.query(CallLogParticipant).delete()
+        self.session.query(Recording).delete()
         self.session.commit()
 
     @call_log(**cdr(id_=1))

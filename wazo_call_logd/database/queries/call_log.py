@@ -26,6 +26,7 @@ class CallLogDAO(BaseDAO):
         with self.new_session() as session:
             query = session.query(CallLog).options(
                 joinedload('participants'),
+                joinedload('recordings'),
                 subqueryload('source_participant'),
                 subqueryload('destination_participant'),
             )
@@ -86,6 +87,7 @@ class CallLogDAO(BaseDAO):
 
         query = query.options(
             joinedload('participants'),
+            joinedload('recordings'),
             subqueryload('source_participant'),
             subqueryload('destination_participant'),
         )
@@ -187,6 +189,7 @@ class CallLogDAO(BaseDAO):
                 session.add(call_log)
                 session.flush()
                 # NOTE(fblackburn): fetch relationship before expunge_all
+                call_log.recordings
                 call_log.source_participant
                 call_log.destination_participant
             session.expunge_all()
