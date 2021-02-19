@@ -199,9 +199,7 @@ class CallLogDAO(BaseDAO):
 
     def delete(self, older=None):
         with self.new_session() as session:
-            # NOTE(fblackburn) returning object on DELETE is specific to postgresql
-            query = CallLog.__table__.delete().returning(CallLog.id)
+            query = session.query(CallLog)
             if older:
-                query = query.where(CallLog.date >= older)
-            result = [r.id for r in session.execute(query)]
-            return result
+                query = query.filter(CallLog.date >= older)
+            query.delete()

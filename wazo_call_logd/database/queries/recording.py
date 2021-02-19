@@ -17,20 +17,6 @@ class RecordingDAO(BaseDAO):
                 session.flush()
                 session.expunge(recording)
 
-    def delete_all(self):
-        with self.new_session() as session:
-            session.query(Recording).delete()
-            session.flush()
-
-    def delete_all_by_call_log_ids(self, call_log_ids):
-        if not call_log_ids:
-            return
-        with self.new_session() as session:
-            filter_ = Recording.call_log_id.in_(call_log_ids)
-            query = session.query(Recording).filter(filter_)
-            query.delete(synchronize_session='fetch')
-            session.flush()
-
     def delete_media_by(self, **kwargs):
         with self.new_session() as session:
             query = session.query(Recording)

@@ -72,9 +72,8 @@ class TestCallLog(DBIntegrationTest):
     @call_log(**cdr(id_=2))
     @call_log(**cdr(id_=3))
     def test_delete_all(self):
-        ids_deleted = self.dao.call_log.delete()
+        self.dao.call_log.delete()
 
-        assert_that(ids_deleted, contains_inanyorder(1, 2, 3))
         result = self.session.query(CallLog).all()
         assert_that(result, empty())
 
@@ -83,12 +82,7 @@ class TestCallLog(DBIntegrationTest):
     @call_log(**cdr(id_=3, start_time=NOW))
     def test_delete_older(self):
         older = NOW - td(hours=1)
-        ids_deleted = self.dao.call_log.delete(older=older)
+        self.dao.call_log.delete(older=older)
 
-        assert_that(ids_deleted, contains_inanyorder(1, 3))
         result = self.session.query(CallLog).all()
         assert_that(result, contains(has_property('id', 2)))
-
-    def test_delete_empty(self):
-        result = self.dao.call_log.delete()
-        assert_that(result, empty())
