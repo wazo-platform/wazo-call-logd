@@ -18,19 +18,9 @@ from xivo_test_helpers import until
 from .helpers.base import raw_cels, RawCelIntegrationTest
 from .helpers.confd import MockContext, MockLine, MockUser
 from .helpers.constants import USER_1_UUID, USER_2_UUID, USERS_TENANT, SERVICE_TENANT
-from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
 class TestCallLogGeneration(RawCelIntegrationTest):
-
-    asset = 'base'
-    wait_strategy = CallLogdEverythingUpWaitStrategy()
-
-    def setUp(self):
-        self.bus = self.make_bus()
-        self.confd = self.make_confd()
-        self.confd.reset()
-
     @raw_cels(
         '''\
 eventtype    | eventtime                  | cid_name | cid_num | cid_ani | exten    | context                    | channame                                             | appname  | appdata                                               | uniqueid      | linkedid      | peer                                                 | extra

@@ -12,8 +12,6 @@ from .helpers.base import IntegrationTest
 
 
 class TestDatabase(IntegrationTest):
-    asset = 'base'
-
     def restart_database(self, container_name):
         self.restart_service(container_name, signal='SIGINT')  # fast shutdown
         self.reset_clients()
