@@ -115,11 +115,7 @@ class CallLogParticipant(Base):
     tags = Column(ARRAY(String(128)), nullable=False, server_default='{}')
     answered = Column(Boolean, nullable=False, server_default='false')
 
-    call_log = relationship(
-        'CallLog',
-        primaryjoin='CallLog.id == CallLogParticipant.call_log_id',
-        uselist=False,
-    )
+    call_log = relationship('CallLog', uselist=False, viewonly=True)
 
     @hybrid_property
     def peer_exten(self):
