@@ -136,7 +136,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_has_no_user_uuid():
-                with self.cel_database.queries() as queries:
+                with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, is_(not_(none())))
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
@@ -220,7 +220,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_has_both_user_uuid_and_tenant_uuid():
-                with self.cel_database.queries() as queries:
+                with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(
                         call_log,

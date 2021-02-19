@@ -12,7 +12,7 @@ from hamcrest import (
     has_property,
     has_properties,
 )
-from xivo_dao.alchemy.call_log import CallLog
+from wazo_call_logd.database.models import CallLog
 
 from .helpers.base import cdr, DBIntegrationTest
 from .helpers.database import call_log
@@ -52,11 +52,11 @@ class TestCallLog(DBIntegrationTest):
 
         self.dao.call_log.create_from_list([call_log_1, call_log_2])
 
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, has_length(2))
 
-        self.cel_session.query(CallLog).delete()
-        self.cel_session.commit()
+        self.session.query(CallLog).delete()
+        self.session.commit()
 
     @call_log(**cdr(id_=1))
     @call_log(**cdr(id_=2))
@@ -65,7 +65,7 @@ class TestCallLog(DBIntegrationTest):
         id_1, id_2, id_3 = [1, 2, 3]
         self.dao.call_log.delete_from_list([id_1, id_3])
 
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, contains(has_property('id', id_2)))
 
     @call_log(**cdr(id_=1))
@@ -75,7 +75,7 @@ class TestCallLog(DBIntegrationTest):
         ids_deleted = self.dao.call_log.delete()
 
         assert_that(ids_deleted, contains_inanyorder(1, 2, 3))
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, empty())
 
     @call_log(**cdr(id_=1, start_time=NOW))
@@ -86,7 +86,7 @@ class TestCallLog(DBIntegrationTest):
         ids_deleted = self.dao.call_log.delete(older=older)
 
         assert_that(ids_deleted, contains_inanyorder(1, 3))
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, contains(has_property('id', 2)))
 
     def test_delete_empty(self):

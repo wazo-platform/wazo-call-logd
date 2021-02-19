@@ -11,10 +11,10 @@ from .recording import RecordingDAO
 class DAO:
 
     _dao = {
+        'call_log': CallLogDAO,
         'recording': RecordingDAO,
     }
     _cel_dao = {
-        'call_log': CallLogDAO,
         'cel': CELDAO,
         'queue_stat': QueueStatDAO,
         'agent_stat': AgentStatDAO,

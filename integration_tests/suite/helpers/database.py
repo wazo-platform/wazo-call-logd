@@ -12,14 +12,13 @@ import sqlalchemy as sa
 from contextlib import contextmanager
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import text
-from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.alchemy.stat_agent import StatAgent
 from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
 from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 
-from wazo_call_logd.database.models import Recording
+from wazo_call_logd.database.models import CallLog, CallLogParticipant, Recording
 
 from .constants import MASTER_TENANT
 
@@ -33,7 +32,7 @@ def call_logs(number, participant_user=None):
             call_log_ids = []
             for _ in range(number):
                 call_log = {'tenant_uuid': MASTER_TENANT}
-                with self.cel_database.queries() as queries:
+                with self.database.queries() as queries:
                     call_log_id = queries.insert_call_log(**call_log)
                     if participant_user:
                         participant = {
@@ -45,7 +44,7 @@ def call_logs(number, participant_user=None):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.cel_database.queries() as queries:
+                with self.database.queries() as queries:
                     for call_log_id in call_log_ids:
                         queries.delete_call_log(call_log_id)
 
@@ -61,13 +60,12 @@ def call_log(**call_log):
             recordings = call_log.pop('recordings', [])
             participants = call_log.pop('participants', [])
             call_log.setdefault('tenant_uuid', MASTER_TENANT)
-            with self.cel_database.queries() as queries:
+            with self.database.queries() as queries:
                 call_log['id'] = queries.insert_call_log(**call_log)
                 call_log['participants'] = participants
                 for participant in participants:
                     participant['call_log_id'] = call_log['id']
                     queries.insert_call_log_participant(**participant)
-            with self.database.queries() as queries:
                 for recording in recordings:
                     recording.setdefault('start_time', dt.utcnow() - td(hours=1))
                     recording.setdefault('end_time', dt.utcnow())
@@ -76,9 +74,8 @@ def call_log(**call_log):
             try:
                 return func(self, *args, **kwargs)
             finally:
-                with self.cel_database.queries() as queries:
-                    queries.delete_call_log(call_log['id'])
                 with self.database.queries() as queries:
+                    queries.delete_call_log(call_log['id'])
                     queries.delete_recording_by_call_log_id(call_log['id'])
 
         return wrapped_function
@@ -240,15 +237,13 @@ def cel(**cel):
                 cel.setdefault('uniqueid', 'uniqueid')
                 cel.setdefault('linkedid', 'linkedid')
                 if cel.pop('processed', False):
-                    cel['call_log_id'] = queries.insert_call_log()
+                    cel['call_log_id'] = 1
                 cel['id'] = queries.insert_cel(**cel)
             try:
                 return func(self, *args, cel, **kwargs)
             finally:
-                with self.cel_database.queries() as queries:
-                    queries.delete_cel(cel['id'])
-                    if cel.get('call_log_id'):
-                        queries.delete_call_log(cel['call_log_id'])
+                with self.cel_database.queries() as cel_queries:
+                    cel_queries.delete_cel(cel['id'])
 
         return wrapped_function
 

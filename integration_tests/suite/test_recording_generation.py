@@ -152,7 +152,7 @@ LINKEDID_END     | 2021-01-01 00:00:00.18 | SIP/aaaaaa-00000001 | 1000000000.01 
         )
 
     def _get_last_call_log_generated(self):
-        with self.cel_database.queries() as queries:
+        with self.database.queries() as queries:
 
             def call_log_generated():
                 return queries.find_last_call_log() is not None

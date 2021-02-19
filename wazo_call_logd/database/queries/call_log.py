@@ -9,10 +9,8 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import subqueryload
 
-from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
-from xivo_dao.alchemy.call_log_participant import CallLogParticipant
-
 from .base import BaseDAO
+from ..models import CallLog as CallLogSchema, CallLogParticipant
 
 
 class CallLogDAO(BaseDAO):

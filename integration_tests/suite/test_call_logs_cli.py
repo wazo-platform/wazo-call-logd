@@ -14,9 +14,8 @@ from hamcrest import (
     empty,
     has_properties,
 )
-from xivo_dao.alchemy.call_log import CallLog
 from xivo_dao.alchemy.cel import CEL
-from wazo_call_logd.database.models import Recording
+from wazo_call_logd.database.models import CallLog, Recording
 
 from .helpers.base import cdr, raw_cels, RawCelIntegrationTest
 from .helpers.constants import NOW
@@ -81,7 +80,7 @@ LINKEDID_END | 2015-06-18 14:17:37.545342 | Elès 45  | 1045    | s     | user  
         with self.no_call_logs():
             self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
 
-            with self.cel_database.queries() as queries:
+            with self.database.queries() as queries:
                 call_logs = queries.find_all_call_log()
                 assert_that(
                     call_logs,
@@ -145,7 +144,7 @@ LINKEDID_END | 2013-01-01 10:00:11 | Bob Marley    |    1002 | s     | user    |
             self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
             self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
 
-            with self.cel_database.queries() as queries:
+            with self.database.queries() as queries:
                 call_logs = queries.find_all_call_log()
                 assert_that(
                     call_logs,
@@ -185,7 +184,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
         with self.no_call_logs():
             self.docker_exec(['wazo-call-logs', '--cel-count', '1'])
 
-            with self.cel_database.queries() as queries:
+            with self.database.queries() as queries:
                 call_logs = queries.find_all_call_log()
                 assert_that(
                     call_logs,
@@ -229,7 +228,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
         with self.no_call_logs():
             self.docker_exec(['wazo-call-logs', '--cel-count', '20'])
 
-            with self.cel_database.queries() as queries:
+            with self.database.queries() as queries:
                 call_logs = queries.find_all_call_log()
                 assert_that(
                     call_logs,
@@ -262,7 +261,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
         result = self.session.query(Recording).all()
         assert_that(result, empty())
 
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, empty())
 
         result = self.cel_session.query(CEL).filter(CEL.id == cel['id']).first()
@@ -275,7 +274,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
     def test_delete_older(self, *_):
         self.docker_exec(['wazo-call-logs', 'delete', '--days', '1'])
 
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, contains(has_properties(id=2)))
 
         result = self.session.query(Recording).all()

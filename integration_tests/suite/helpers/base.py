@@ -372,12 +372,12 @@ class RawCelIntegrationTest(IntegrationTest):
 
     @contextmanager
     def no_call_logs(self):
-        with self.cel_database.queries() as queries:
+        with self.database.queries() as queries:
             queries.clear_call_logs()
 
         yield
 
-        with self.cel_database.queries() as queries:
+        with self.database.queries() as queries:
             queries.clear_call_logs()
 
     @contextmanager
@@ -395,7 +395,7 @@ class RawCelIntegrationTest(IntegrationTest):
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_generated():
-                with self.cel_database.queries() as queries:
+                with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, expected)
 
