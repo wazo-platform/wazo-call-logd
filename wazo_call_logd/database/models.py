@@ -172,7 +172,15 @@ class Recording(Base):
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=False)
     path = Column(Text)
-    call_log_id = Column(Integer(), nullable=False)
+    call_log_id = Column(
+        Integer(),
+        ForeignKey(
+            'call_logd_call_log.id',
+            name='call_logd_recording_call_log_id_fkey',
+            ondelete='CASCADE',
+        ),
+        nullable=False,
+    )
 
     @property
     def filename(self):

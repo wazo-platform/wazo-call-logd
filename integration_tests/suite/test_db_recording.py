@@ -19,10 +19,12 @@ from hamcrest import (
 from wazo_call_logd.database.models import Recording
 
 from .helpers.base import DBIntegrationTest
-from .helpers.database import recording
+from .helpers.database import recording, call_log
 
 
 class TestRecording(DBIntegrationTest):
+    @call_log(**{'id': 1234})
+    @call_log(**{'id': 5678})
     def test_create_all(self):
         end_time = dt.now(tz.utc)
         start_time = end_time - td(hours=1)
@@ -61,6 +63,8 @@ class TestRecording(DBIntegrationTest):
         self.session.query(Recording).delete()
         self.session.commit()
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
     @recording(call_log_id=1)
     @recording(call_log_id=2)
     def test_delete_all(self, rec1, rec2):
@@ -69,6 +73,9 @@ class TestRecording(DBIntegrationTest):
         result = self.session.query(Recording).all()
         assert_that(result, empty())
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
+    @call_log(**{'id': 3})
     @recording(call_log_id=1)
     @recording(call_log_id=2)
     @recording(call_log_id=3)
@@ -80,6 +87,8 @@ class TestRecording(DBIntegrationTest):
         result = self.session.query(Recording).all()
         assert_that(result, contains_inanyorder(has_properties(uuid=rec2['uuid'])))
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
     @recording(call_log_id=1, path='rec1')
     @recording(call_log_id=2, path='rec2')
     def test_delete_media_by_recording_uuid(self, rec1, rec2):
@@ -94,6 +103,8 @@ class TestRecording(DBIntegrationTest):
             ),
         )
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
     @recording(call_log_id=1, path='rec1')
     @recording(call_log_id=2, path='rec2')
     @recording(call_log_id=2, path='rec3')
@@ -110,6 +121,9 @@ class TestRecording(DBIntegrationTest):
             ),
         )
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
+    @call_log(**{'id': 3})
     @recording(call_log_id=1, path='rec1')
     @recording(call_log_id=2, path='rec2')
     @recording(call_log_id=2, path='rec3')
@@ -130,6 +144,9 @@ class TestRecording(DBIntegrationTest):
             ),
         )
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
+    @call_log(**{'id': 3})
     @recording(call_log_id=1)
     @recording(call_log_id=2)
     @recording(call_log_id=3)
@@ -149,6 +166,8 @@ class TestRecording(DBIntegrationTest):
         result = self.dao.recording.find_all_by(call_log_ids=[])
         assert_that(result, empty())
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
     @recording(call_log_id=1)
     @recording(call_log_id=2)
     def test_find_all_by_call_log_id(self, rec1, rec2):
@@ -158,6 +177,8 @@ class TestRecording(DBIntegrationTest):
 
         assert_that(result, contains_inanyorder(has_properties(uuid=rec2['uuid'])))
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
     @recording(call_log_id=1)
     @recording(call_log_id=2)
     def test_find_all_by_uuid(self, rec1, rec2):
@@ -165,6 +186,8 @@ class TestRecording(DBIntegrationTest):
 
         assert_that(result, contains_inanyorder(has_properties(uuid=rec2['uuid'])))
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
     @recording(call_log_id=1)
     @recording(call_log_id=2)
     def test_find_by(self, rec1, rec2):
@@ -185,6 +208,7 @@ class TestRecording(DBIntegrationTest):
         )
         assert_that(result, none())
 
+    @call_log(**{'id': 1})
     @recording(call_log_id=1)
     def test_recording_filename(self, rec):
         recording_uuid = rec['uuid']
