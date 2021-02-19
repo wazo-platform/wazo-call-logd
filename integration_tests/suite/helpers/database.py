@@ -351,6 +351,12 @@ class DatabaseQueries:
         session = self.Session()
         call_log = session.query(CallLog).order_by(CallLog.date).first()
         session.commit()
+        if call_log:
+            call_log.tenant_uuid = str(call_log.tenant_uuid)
+            if call_log.destination_user_uuid:
+                call_log.destination_user_uuid = str(call_log.destination_user_uuid)
+            if call_log.source_user_uuid:
+                call_log.source_user_uuid = str(call_log.source_user_uuid)
         return call_log
 
     def find_all_recordings(self, call_log_id):

@@ -16,7 +16,7 @@ from wazo_call_logd.database.models import CallLog
 
 from .helpers.base import cdr, DBIntegrationTest
 from .helpers.database import call_log
-from .helpers.constants import ALICE, BOB, CHARLES, NOW, MINUTES
+from .helpers.constants import ALICE, BOB, CHARLES, NOW, MINUTES, MASTER_TENANT
 
 
 class TestCallLog(DBIntegrationTest):
@@ -47,8 +47,8 @@ class TestCallLog(DBIntegrationTest):
         assert_that(result, has_entries(total=4, filtered=2))
 
     def test_create_from_list(self):
-        call_log_1 = CallLog(date=NOW, tenant_uuid='1')
-        call_log_2 = CallLog(date=NOW, tenant_uuid='1')
+        call_log_1 = CallLog(date=NOW, tenant_uuid=MASTER_TENANT)
+        call_log_2 = CallLog(date=NOW, tenant_uuid=MASTER_TENANT)
 
         self.dao.call_log.create_from_list([call_log_1, call_log_2])
 
