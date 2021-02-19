@@ -15,6 +15,8 @@ down_revision = '5648242a2fee'
 
 
 def upgrade():
+    op.create_table('call_logd_tenant', sa.Column('uuid', UUID, primary_key=True))
+
     op.create_table(
         'call_logd_call_log',
         sa.Column('id', sa.Integer, nullable=False, primary_key=True),
@@ -44,6 +46,14 @@ def upgrade():
         'call_logd_call_log_direction_check',
         'call_logd_call_log',
         "direction IN ('inbound','internal','outbound')",
+    )
+    op.create_foreign_key(
+        constraint_name='call_logd_call_log_tenant_uuid_fkey',
+        source_table='call_logd_call_log',
+        referent_table='call_logd_tenant',
+        local_cols=['tenant_uuid'],
+        remote_cols=['uuid'],
+        ondelete='CASCADE',
     )
     op.create_table(
         'call_logd_call_log_participant',
@@ -82,3 +92,4 @@ def upgrade():
 def downgrade():
     op.drop_table('call_logd_call_log_participant')
     op.drop_table('call_logd_call_log')
+    op.drop_table('call_logd_tenant')

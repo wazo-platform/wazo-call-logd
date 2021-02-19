@@ -19,6 +19,14 @@ Base = declarative_base()
 
 
 @generic_repr
+class Tenant(Base):
+
+    __tablename__ = 'call_logd_tenant'
+
+    uuid = Column(UUIDType, primary_key=True)
+
+
+@generic_repr
 class CallLog(Base):
 
     __tablename__ = 'call_logd_call_log'
@@ -27,7 +35,15 @@ class CallLog(Base):
     date = Column(DateTime(timezone=True), nullable=False)
     date_answer = Column(DateTime(timezone=True))
     date_end = Column(DateTime(timezone=True))
-    tenant_uuid = Column(UUIDType, nullable=False)
+    tenant_uuid = Column(
+        UUIDType,
+        ForeignKey(
+            'call_logd_tenant.uuid',
+            name='call_logd_call_log_tenant_uuid_fkey',
+            ondelete='CASCADE',
+        ),
+        nullable=False,
+    )
     source_name = Column(String(255))
     source_exten = Column(String(255))
     source_internal_exten = Column(Text)

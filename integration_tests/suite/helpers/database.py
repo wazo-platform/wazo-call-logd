@@ -292,7 +292,7 @@ class DatabaseQueries:
     def insert_call_log(self, **kwargs):
         session = self.Session()
         kwargs.setdefault('date', dt.now())
-        kwargs.setdefault('tenant_uuid', '00000000-0000-4000-8000-000000000000')
+        kwargs.setdefault('tenant_uuid', MASTER_TENANT)
         call_log = CallLog(**kwargs)
         session.add(call_log)
         session.flush()

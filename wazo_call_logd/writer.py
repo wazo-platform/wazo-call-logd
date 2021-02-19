@@ -12,6 +12,8 @@ class CallLogsWriter:
 
         self._dao.recording.delete_all_by_call_log_ids(call_logs.call_logs_to_delete)
 
+        tenant_uuids = set(cdr.tenant_uuid for cdr in call_logs.new_call_logs)
+        self._dao.tenant.create_all_uuids_if_not_exist(tenant_uuids)
         self._dao.call_log.create_from_list(call_logs.new_call_logs)
         self._dao.cel.associate_all_to_call_logs(call_logs.new_call_logs)
 

@@ -338,6 +338,8 @@ class DBIntegrationTest(AssetLaunchingTestCase):
         self.dao = DAO(Session, CELSession)
         self.session = Session()
         self.cel_session = CELSession()
+        tenant_uuids = [MASTER_TENANT, OTHER_TENANT, USERS_TENANT]
+        self.dao.tenant.create_all_uuids_if_not_exist(tenant_uuids)
 
 
 class RawCelIntegrationTest(IntegrationTest):
