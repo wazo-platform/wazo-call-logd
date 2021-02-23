@@ -162,7 +162,7 @@ class CDRUserMeResource(CDRAuthResource):
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs)
 
 
-class RecordingMediaItemResource(AuthResource):
+class RecordingMediaAuthResource(AuthResource):
     def __init__(self, service):
         super().__init__()
         self.service = service
@@ -182,6 +182,8 @@ class RecordingMediaItemResource(AuthResource):
         else:
             return [tenant_uuid]
 
+
+class RecordingMediaItemResource(RecordingMediaAuthResource):
     @required_acl(
         'call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read',
         extract_token_id=extract_token_id_from_query_or_header,
