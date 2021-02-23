@@ -91,5 +91,6 @@ def upgrade():
 
 def downgrade():
     op.drop_table('call_logd_call_log_participant')
+    op.execute('DROP TYPE call_logd_call_log_participant_role')
     op.drop_table('call_logd_call_log')
     op.drop_table('call_logd_tenant')
