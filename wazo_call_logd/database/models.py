@@ -123,7 +123,7 @@ class CallLogParticipant(Base):
             'call_logd_call_log.id',
             name='call_logd_call_log_participant_call_log_id_fkey',
             ondelete='CASCADE',
-        )
+        ),
     )
     user_uuid = Column(UUIDType, nullable=False)
     line_id = Column(Integer)
@@ -153,14 +153,14 @@ class CallLogParticipant(Base):
             [
                 (
                     cls.role == 'source',
-                    select([CallLog.requested_exten]).where(
-                        cls.call_log_id == CallLog.id
-                    ).as_scalar()
+                    select([CallLog.requested_exten])
+                    .where(cls.call_log_id == CallLog.id)
+                    .as_scalar(),
                 )
             ],
-            else_=select([CallLog.source_exten]).where(
-                cls.call_log_id == CallLog.id
-            ).as_scalar()
+            else_=select([CallLog.source_exten])
+            .where(cls.call_log_id == CallLog.id)
+            .as_scalar(),
         )
 
 

@@ -68,7 +68,7 @@ class TestCallLog(DBIntegrationTest):
             recordings=[
                 Recording(start_time=start_time, end_time=end_time),
                 Recording(start_time=start_time, end_time=end_time),
-            ]
+            ],
         )
         call_log_2 = CallLog(date=NOW, tenant_uuid=MASTER_TENANT)
 

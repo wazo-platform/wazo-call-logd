@@ -101,9 +101,8 @@ def migrate_call_log_tables(config, max_entries):
             cel_cur = cel_conn.cursor()
             cur = conn.cursor()
 
-            if (
-                not table_exists(cel_cur, 'call_log')
-                or not table_exists(cel_cur, 'call_log_participant')
+            if not table_exists(cel_cur, 'call_log') or not table_exists(
+                cel_cur, 'call_log_participant'
             ):
                 logger.info('Migration already done')
                 sys.exit(2)
@@ -115,10 +114,15 @@ def migrate_call_log_tables(config, max_entries):
             query = 'SELECT count(*) FROM call_log_participant;'
             cel_cur.execute(query)
             count_call_log_participant = cel_cur.fetchone()[0]
-            logger.debug('call_log_participant: %s entries to migrate', count_call_log_participant)
+            logger.debug(
+                'call_log_participant: %s entries to migrate',
+                count_call_log_participant,
+            )
             total_rows = count_call_log + count_call_log_participant
             if max_entries and total_rows > max_entries:
-                logger.error('Too much entries to process. Maximum allowed: %s', max_entries)
+                logger.error(
+                    'Too much entries to process. Maximum allowed: %s', max_entries
+                )
                 sys.exit(3)
 
             logger.info('Migrate call log tables. This may take a while...')
@@ -180,7 +184,9 @@ def migrate_call_log_tables(config, max_entries):
             table_name = 'call_logd_call_log_participant'
             write_table(cur, obj, table_name, columns)
             end_time = datetime.datetime.now()
-            logger.info('call_log_participant table migrated in %s', end_time - start_time)
+            logger.info(
+                'call_log_participant table migrated in %s', end_time - start_time
+            )
 
             logger.info('Verifying everything is ok...')
             query = 'SELECT count(*) FROM call_logd_call_log;'

@@ -68,7 +68,9 @@ def upgrade():
         sa.Column('line_id', sa.Integer),
         sa.Column(
             'role',
-            sa.Enum('source', 'destination', name='call_logd_call_log_participant_role'),
+            sa.Enum(
+                'source', 'destination', name='call_logd_call_log_participant_role'
+            ),
             nullable=False,
         ),
         sa.Column('tags', ARRAY(sa.String(128)), nullable=False, server_default='{}'),
