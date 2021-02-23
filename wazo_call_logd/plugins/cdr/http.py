@@ -162,7 +162,7 @@ class CDRUserMeResource(CDRAuthResource):
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs)
 
 
-class RecordingMediaResource(AuthResource):
+class RecordingMediaItemResource(AuthResource):
     def __init__(self, service):
         super().__init__()
         self.service = service
