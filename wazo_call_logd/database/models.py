@@ -29,6 +29,8 @@ class Tenant(Base):
 @generic_repr
 class CallLog(Base):
 
+    # NOTE: Until bullseye upgrade, this schema must match the one migrated from manage-db and the
+    # one injected in integration tests
     __tablename__ = 'call_logd_call_log'
 
     id = Column(Integer, nullable=False, primary_key=True)
@@ -103,6 +105,8 @@ class CallLog(Base):
 
 class CallLogParticipant(Base):
 
+    # NOTE: Until bullseye upgrade, this schema must match the one migrated from manage-db and the
+    # one injected in integration tests
     __tablename__ = 'call_logd_call_log_participant'
     __table_args__ = (
         Index('call_logd_call_log_participant__idx__user_uuid', 'user_uuid'),
