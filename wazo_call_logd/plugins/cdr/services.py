@@ -40,6 +40,9 @@ class RecordingService:
     def find_by(self, **kwargs):
         return self._dao.recording.find_by(**kwargs)
 
+    def find_all_by(self, **kwargs):
+        return self._dao.recording.find_all_by(**kwargs)
+
     def find_cdr(self, cdr_id, tenant_uuids):
         return self._dao.call_log.get_by_id(cdr_id, tenant_uuids)
 

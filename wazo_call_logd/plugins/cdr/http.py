@@ -23,7 +23,12 @@ from .exceptions import (
     RecordingMediaFSPermissionException,
     RecordingMediaFSNotFoundException,
 )
-from .schemas import CDRSchema, CDRSchemaList, CDRListRequestSchema
+from .schemas import (
+    CDRSchema,
+    CDRSchemaList,
+    CDRListRequestSchema,
+    RecordingMediaDeleteRequestSchema,
+)
 
 logger = logging.getLogger(__name__)
 CSV_HEADERS = [
@@ -189,7 +194,31 @@ class RecordingsMediaResource(RecordingMediaAuthResource):
         extract_token_id=extract_token_id_from_query_or_header,
     )
     def delete(self):
-        raise NotImplementedError()
+        args = RecordingMediaDeleteRequestSchema().load(request.get_json(force=True))
+        tenant_uuids = self.visible_tenants(True)
+        call_log_ids = args['cdr_ids']
+        for cdr_id in call_log_ids:
+            cdr = self.service.find_cdr(cdr_id, tenant_uuids)
+            if not cdr:
+                raise CDRNotFoundException(details={'cdr_id': cdr_id})
+
+        recordings = self.service.find_all_by(call_log_ids=call_log_ids)
+        for recording in recordings:
+            try:
+                self.service.delete_media(
+                    recording.call_log_id, recording.uuid, recording.path
+                )
+            except PermissionError:
+                logger.error('Permission denied: "%s"', recording.path)
+                raise RecordingMediaFSPermissionException(
+                    recording.uuid, recording.path
+                )
+            except FileNotFoundError:
+                logger.info(
+                    'Recording file already deleted: "%s". Marking as such.',
+                    recording.path,
+                )
+        return '', 204
 
 
 class RecordingMediaItemResource(RecordingMediaAuthResource):
