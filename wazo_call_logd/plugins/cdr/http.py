@@ -183,6 +183,15 @@ class RecordingMediaAuthResource(AuthResource):
             return [tenant_uuid]
 
 
+class RecordingsMediaResource(RecordingMediaAuthResource):
+    @required_acl(
+        'call-logd.cdr.recordings.media.delete',
+        extract_token_id=extract_token_id_from_query_or_header,
+    )
+    def delete(self):
+        raise NotImplementedError()
+
+
 class RecordingMediaItemResource(RecordingMediaAuthResource):
     @required_acl(
         'call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read',
