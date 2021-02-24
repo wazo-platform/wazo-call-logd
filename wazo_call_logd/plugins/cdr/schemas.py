@@ -25,13 +25,6 @@ class RecordingSchema(Schema):
 class RecordingMediaDeleteRequestSchema(Schema):
     cdr_ids = fields.List(fields.Integer())
 
-    @pre_load
-    def convert_cdr_ids_to_list(self, data):
-        result = data.to_dict()
-        if data.get('cdr_ids'):
-            result['cdr_ids'] = data['cdr_ids'].split(',')
-        return result
-
 
 class CDRSchema(Schema):
     id = fields.Integer()
