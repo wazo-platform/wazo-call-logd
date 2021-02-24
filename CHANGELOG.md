@@ -2,8 +2,9 @@
 
 ## 21.03
 
-* New endpoint to delete recording media:
+* New endpoints to delete recording media:
 
+  * `DELETE /cdr/recordings/media`
   * `DELETE /cdr/<cdr_id>/recordings/<recording_uuid>/media`
 
 ## 21.02
