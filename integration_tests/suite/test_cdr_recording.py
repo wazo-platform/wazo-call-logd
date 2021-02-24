@@ -284,3 +284,13 @@ class TestRecording(IntegrationTest):
         params = {'tenant': SUB_TENANT, 'token': MAIN_TOKEN}
         response = requests.delete(api_url, params=params)
         assert_that(response.status_code, equal_to(404))
+
+    # Deleting recording media from multiple CDRs
+
+    def test_delete_media_multi_cdr_no_cdr(self):
+        assert_that(
+            calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([]),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='invalid-data')
+            ),
+        )

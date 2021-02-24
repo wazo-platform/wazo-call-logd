@@ -8,7 +8,7 @@ from marshmallow import (
     post_dump,
 )
 from xivo.mallow import fields
-from xivo.mallow.validate import OneOf, Range, Regexp
+from xivo.mallow.validate import Length, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
 
 NUMBER_REGEX = r'^_?[0-9]+_?$'
@@ -23,7 +23,7 @@ class RecordingSchema(Schema):
 
 
 class RecordingMediaDeleteRequestSchema(Schema):
-    cdr_ids = fields.List(fields.Integer())
+    cdr_ids = fields.List(fields.Integer(), validate=Length(min=1))
 
 
 class CDRSchema(Schema):
