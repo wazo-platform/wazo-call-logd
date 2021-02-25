@@ -30,5 +30,6 @@ setup(
             'support_center = wazo_call_logd.plugins.support_center.plugin:Plugin',
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
         ],
+        'wazo_purge_db.purgers': ['call-logs = wazo_call_logd.purger:CallLogsPurger'],
     },
 )
