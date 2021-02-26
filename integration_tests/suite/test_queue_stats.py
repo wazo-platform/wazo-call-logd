@@ -25,9 +25,6 @@ from .helpers.hamcrest.contains_string_ignoring_case import (
 
 
 class TestNoAuth(IntegrationTest):
-
-    asset = 'base'
-
     def test_given_no_auth_when_list_queues_then_503(self):
         with self.auth_stopped():
             assert_that(
@@ -78,9 +75,6 @@ class TestNoAuth(IntegrationTest):
 
 
 class TestInputParameters(IntegrationTest):
-
-    asset = 'base'
-
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 13:00:00', 'answered': 1})
     def test_that_getting_queue_stats_with_wrong_parameters_raises_error(self):
         erronous_bodies = [
@@ -277,9 +271,6 @@ class TestInputParameters(IntegrationTest):
 
 
 class TestStatistics(IntegrationTest):
-
-    asset = 'base'
-
     def test_list_queue_statistics_when_no_stats(self):
         results = self.call_logd.queue_statistics.list()
         assert_that(

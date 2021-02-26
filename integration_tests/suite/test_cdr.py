@@ -52,9 +52,6 @@ from .helpers.hamcrest.contains_string_ignoring_case import (
 
 
 class TestNoAuth(IntegrationTest):
-
-    asset = 'base'
-
     def test_given_no_auth_when_list_cdr_then_503(self):
         with self.auth_stopped():
             assert_that(
@@ -103,9 +100,6 @@ class TestNoAuth(IntegrationTest):
 
 
 class TestGetCDRId(IntegrationTest):
-
-    asset = 'base'
-
     def test_given_wrong_id_when_get_cdr_by_id_then_404(self):
         assert_that(
             calling(self.call_logd.cdr.get_by_id).with_args(cdr_id=33),
@@ -358,9 +352,6 @@ class TestGetCDRId(IntegrationTest):
 
 
 class TestListCDR(IntegrationTest):
-
-    asset = 'base'
-
     def test_given_no_call_logs_when_list_cdr_then_empty_list(self):
         result = self.call_logd.cdr.list()
 

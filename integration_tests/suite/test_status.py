@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, equal_to, has_entries, has_entry
@@ -19,10 +19,8 @@ class TestStatusNoRabbitMQ(IntegrationTest):
 
 
 class TestStatusRabbitMQStops(IntegrationTest):
-
-    asset = 'base'
-
     def setUp(self):
+        super().setUp()
         self.bus = self.make_bus()
         until.true(self.bus.is_up, timeout=10)
 
@@ -37,10 +35,8 @@ class TestStatusRabbitMQStops(IntegrationTest):
 
 
 class TestStatusAllOK(IntegrationTest):
-
-    asset = 'base'
-
     def setUp(self):
+        super().setUp()
         self.bus = self.make_bus()
         until.true(self.bus.is_up, timeout=10)
 

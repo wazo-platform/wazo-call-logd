@@ -16,12 +16,11 @@ class CallLogsManager:
 
     def delete_all(self):
         self.dao.call_log.delete()
-        self.dao.recording.delete_all()
+        self.dao.cel.unassociate_all()
 
     def delete_from_days(self, days):
         older = datetime.now() - timedelta(days=days)
-        call_log_ids = self.dao.call_log.delete(older=older)
-        self.dao.recording.delete_all_by_call_log_ids(call_log_ids)
+        self.dao.call_log.delete(older=older)
 
     def generate_from_days(self, days):
         older_cel = datetime.now() - timedelta(days=days)

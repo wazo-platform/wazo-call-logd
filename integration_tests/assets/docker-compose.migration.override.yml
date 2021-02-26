@@ -1,0 +1,27 @@
+version: '3'
+services:
+  sync:
+    depends_on:
+      - auth
+      - call-logd
+      - cel-postgres
+      - confd
+      - postgres
+      - rabbitmq
+    environment:
+      TARGETS: "cel-postgres:5432 postgres:5432 rabbitmq:5672 call-logd:9298 confd:9486 auth:9497"
+
+  cel-postgres:
+    image: postgres
+    ports:
+      - "5432"
+    volumes:
+      - "./populate/migrate.sql:/docker-entrypoint-initdb.d/migrate.sql"
+      - type: tmpfs
+        target: /var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: asterisk
+      POSTGRES_PASSWORD: proformatique
+      POSTGRES_DB: asterisk
+
+

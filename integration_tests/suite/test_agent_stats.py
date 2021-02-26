@@ -29,9 +29,6 @@ from .helpers.base import IntegrationTest
 
 
 class TestNoAuth(IntegrationTest):
-
-    asset = 'base'
-
     def test_given_no_auth_when_list_agents_then_503(self):
         with self.auth_stopped():
             assert_that(
@@ -82,9 +79,6 @@ class TestNoAuth(IntegrationTest):
 
 
 class TestInputParameters(IntegrationTest):
-
-    asset = 'base'
-
     # fmt: off
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     @stat_call_on_queue({'agent_id': 1, 'time': '2020-10-06 13:35:12', 'status': 'answered'})
@@ -206,9 +200,6 @@ class TestInputParameters(IntegrationTest):
 
 
 class TestStatistics(IntegrationTest):
-
-    asset = 'base'
-
     def _get_tomorrow(self, timezone=None):
         timezone = timezone or pytz.utc
         today = timezone.normalize(timezone.localize(datetime.now()))

@@ -13,10 +13,10 @@ call-logd:
 	docker build -t wazoplatform/wazo-call-logd ..
 	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..
 
-update-db:
+cel-db:
 	docker build --no-cache -t wazoplatform/wazo-confd-db-test -f $(CEL_POSTGRES_DOCKER) $(MANAGE_DB_DIR)
 
 db:
 	docker build -f ../contribs/docker/Dockerfile-db -t wazoplatform/wazo-call-logd-db ..
 
-.PHONY: test-setup test call-logd update-db db
+.PHONY: test-setup test call-logd cel-db db

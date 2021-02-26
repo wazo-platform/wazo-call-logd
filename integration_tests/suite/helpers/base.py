@@ -123,21 +123,15 @@ class WrongClient:
         raise Exception('Could not create client {}'.format(self.name))
 
 
-class IntegrationTest(AssetLaunchingTestCase):
+class _BaseIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
-    service = 'call-logd'
-    wait_strategy = NoWaitStrategy()
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.reset_clients()
         cls.wait_strategy.wait(cls)
-
-    def setUp(self):
-        super().setUp()
-        self.call_logd.set_token(MASTER_TOKEN)
 
     @classmethod
     def reset_clients(cls):
@@ -287,75 +281,63 @@ class IntegrationTest(AssetLaunchingTestCase):
             )
         ).isoformat(timespec='seconds')
 
+    @property
+    def session(self):
+        return self._Session()
 
-class DBIntegrationTest(AssetLaunchingTestCase):
-
-    asset = 'database'
-    assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
-    service = 'postgres'
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.database = cls.make_database()
-        cls.cel_database = cls.make_cel_database()
-
-    @classmethod
-    def make_database(cls):
-        try:
-            port = cls.service_port(5432, 'postgres')
-        except (NoSuchService, NoSuchPort):
-            return WrongClient(name='database')
-
-        return DbHelper.build(
-            'wazo-call-logd',
-            'Secr7t',
-            'localhost',
-            port,
-            'wazo-call-logd',
-        )
-
-    @classmethod
-    def make_cel_database(cls):
-        try:
-            port = cls.service_port(5432, 'cel-postgres')
-        except (NoSuchService, NoSuchPort):
-            return WrongClient(name='cel_database')
-
-        return DbHelper.build(
-            'asterisk',
-            'proformatique',
-            'localhost',
-            port,
-            'asterisk',
-        )
+    @property
+    def cel_session(self):
+        return self._CELSession()
 
     def setUp(self):
-        cel_db_uri = CEL_DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
-        CELSession = new_db_session(cel_db_uri)
         db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
-        Session = new_db_session(db_uri)
-        self.dao = DAO(Session, CELSession)
-        self.session = Session()
-        self.cel_session = CELSession()
+        self._Session = new_db_session(db_uri)
+
+        cel_db_uri = CEL_DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
+        self._CELSession = new_db_session(cel_db_uri)
+
+        self.dao = DAO(self._Session, self._CELSession)
+
+        tenant_uuids = [MASTER_TENANT, OTHER_TENANT, USERS_TENANT]
+        self.dao.tenant.create_all_uuids_if_not_exist(tenant_uuids)
+
+    def tearDown(self):
+        self._Session.rollback()
+        self._Session.remove()
+        self._CELSession.rollback()
+        self._CELSession.remove()
 
 
-class RawCelIntegrationTest(IntegrationTest):
+class IntegrationTest(_BaseIntegrationTest):
 
     asset = 'base'
+    service = 'call-logd'
+    wait_strategy = NoWaitStrategy()
+
+    def setUp(self):
+        super().setUp()
+        self.call_logd.set_token(MASTER_TOKEN)
+
+
+class DBIntegrationTest(_BaseIntegrationTest):
+
+    asset = 'database'
+    service = 'postgres'
+    wait_strategy = NoWaitStrategy()
+
+
+class RawCelIntegrationTest(_BaseIntegrationTest):
+
+    asset = 'base'
+    service = 'call-logd'
     wait_strategy = CallLogdEverythingUpWaitStrategy()
 
     def setUp(self):
+        super().setUp()
+        self.call_logd.set_token(MASTER_TOKEN)
         self.bus = self.make_bus()
         self.confd = self.make_confd()
         self.confd.reset()
-
-        db_uri = DB_URI.format(port=self.service_port(5432, 'postgres'))
-        Session = new_db_session(db_uri)
-        self.session = Session()
-        cel_db_uri = CEL_DB_URI.format(port=self.service_port(5432, 'cel-postgres'))
-        CELSession = new_db_session(cel_db_uri)
-        self.cel_session = CELSession()
 
     @contextmanager
     def cels(self, cels):
@@ -372,12 +354,12 @@ class RawCelIntegrationTest(IntegrationTest):
 
     @contextmanager
     def no_call_logs(self):
-        with self.cel_database.queries() as queries:
+        with self.database.queries() as queries:
             queries.clear_call_logs()
 
         yield
 
-        with self.cel_database.queries() as queries:
+        with self.database.queries() as queries:
             queries.clear_call_logs()
 
     @contextmanager
@@ -395,7 +377,7 @@ class RawCelIntegrationTest(IntegrationTest):
             self.bus.send_linkedid_end(linkedid)
 
             def call_log_generated():
-                with self.cel_database.queries() as queries:
+                with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
                     assert_that(call_log, expected)
 

@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -14,9 +14,6 @@ logger.setLevel(logging.INFO)
 
 
 class TestDocumentation(IntegrationTest):
-
-    asset = 'documentation'
-
     def test_documentation_errors(self):
         port = self.service_port(9298, 'call-logd')
         api_url = 'http://localhost:{port}/1.0/api/api.yml'.format(port=port)

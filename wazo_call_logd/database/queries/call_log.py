@@ -9,30 +9,29 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import subqueryload
 
-from xivo_dao.alchemy.call_log import CallLog as CallLogSchema
-from xivo_dao.alchemy.call_log_participant import CallLogParticipant
-
 from .base import BaseDAO
+from ..models import CallLog, CallLogParticipant
 
 
 class CallLogDAO(BaseDAO):
 
     searched_columns = (
-        CallLogSchema.source_name,
-        CallLogSchema.source_exten,
-        CallLogSchema.destination_name,
-        CallLogSchema.destination_exten,
+        CallLog.source_name,
+        CallLog.source_exten,
+        CallLog.destination_name,
+        CallLog.destination_exten,
     )
 
     def get_by_id(self, cdr_id, tenant_uuids):
         with self.new_session() as session:
-            query = session.query(CallLogSchema).options(
+            query = session.query(CallLog).options(
                 joinedload('participants'),
+                joinedload('recordings'),
                 subqueryload('source_participant'),
                 subqueryload('destination_participant'),
             )
             query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})
-            query = query.filter(CallLogSchema.id == cdr_id)
+            query = query.filter(CallLog.id == cdr_id)
             cdr = query.one_or_none()
             if cdr:
                 session.expunge_all()
@@ -44,11 +43,11 @@ class CallLogDAO(BaseDAO):
             order_field = None
             if params.get('order'):
                 if params['order'] == 'marshmallow_duration':
-                    order_field = CallLogSchema.date_end - CallLogSchema.date_answer
+                    order_field = CallLog.date_end - CallLog.date_answer
                 elif params['order'] == 'marshmallow_answered':
-                    order_field = CallLogSchema.date_answer
+                    order_field = CallLog.date_answer
                 else:
-                    order_field = getattr(CallLogSchema, params['order'])
+                    order_field = getattr(CallLog, params['order'])
             if params.get('direction') == 'desc':
                 order_field = order_field.desc().nullslast()
             if params.get('direction') == 'asc':
@@ -80,14 +79,15 @@ class CallLogDAO(BaseDAO):
                 .subquery()
             )
 
-            query = session.query(CallLogSchema).join(
-                sub_query, and_(CallLogSchema.id == sub_query.c.max_id)
+            query = session.query(CallLog).join(
+                sub_query, and_(CallLog.id == sub_query.c.max_id)
             )
         else:
-            query = session.query(CallLogSchema)
+            query = session.query(CallLog)
 
         query = query.options(
             joinedload('participants'),
+            joinedload('recordings'),
             subqueryload('source_participant'),
             subqueryload('destination_participant'),
         )
@@ -98,7 +98,7 @@ class CallLogDAO(BaseDAO):
 
     def count_in_period(self, params):
         with self.new_session() as session:
-            query = session.query(CallLogSchema)
+            query = session.query(CallLog)
             query = self._apply_user_filter(query, params)
 
             segregation_fields = ('tenant_uuids', 'me_user_uuid')
@@ -118,21 +118,21 @@ class CallLogDAO(BaseDAO):
         if params.get('me_user_uuid'):
             me_user_uuid = params['me_user_uuid']
             query = query.filter(
-                CallLogSchema.participant_user_uuids.contains(str(me_user_uuid))
+                CallLog.participant_user_uuids.contains(str(me_user_uuid))
             )
         return query
 
     def _apply_filters(self, query, params):
         if params.get('start'):
-            query = query.filter(CallLogSchema.date >= params['start'])
+            query = query.filter(CallLog.date >= params['start'])
         if params.get('end'):
-            query = query.filter(CallLogSchema.date < params['end'])
+            query = query.filter(CallLog.date < params['end'])
 
         if params.get('call_direction'):
-            query = query.filter(CallLogSchema.direction == params['call_direction'])
+            query = query.filter(CallLog.direction == params['call_direction'])
 
         if params.get('id'):
-            query = query.filter(CallLogSchema.id == params['id'])
+            query = query.filter(CallLog.id == params['id'])
 
         if params.get('search'):
             filters = (
@@ -146,37 +146,37 @@ class CallLogDAO(BaseDAO):
             filters = (
                 sql.cast(column, sa.String).like('%s' % sql_regex)
                 for column in [
-                    CallLogSchema.source_exten,
-                    CallLogSchema.destination_exten,
+                    CallLog.source_exten,
+                    CallLog.destination_exten,
                 ]
             )
             query = query.filter(sql.or_(*filters))
 
         for tag in params.get('tags', []):
             query = query.filter(
-                CallLogSchema.participants.any(
+                CallLog.participants.any(
                     CallLogParticipant.tags.contains(sql.cast([tag], ARRAY(sa.String)))
                 )
             )
 
         if params.get('tenant_uuids'):
-            query = query.filter(CallLogSchema.tenant_uuid.in_(params['tenant_uuids']))
+            query = query.filter(CallLog.tenant_uuid.in_(params['tenant_uuids']))
 
         if params.get('me_user_uuid'):
             me_user_uuid = params['me_user_uuid']
             query = query.filter(
-                CallLogSchema.participant_user_uuids.contains(str(me_user_uuid))
+                CallLog.participant_user_uuids.contains(str(me_user_uuid))
             )
 
         if params.get('user_uuids'):
             filters = (
-                CallLogSchema.participant_user_uuids.contains(str(user_uuid))
+                CallLog.participant_user_uuids.contains(str(user_uuid))
                 for user_uuid in params['user_uuids']
             )
             query = query.filter(sql.or_(*filters))
 
         if params.get('start_id'):
-            query = query.filter(CallLogSchema.id >= params['start_id'])
+            query = query.filter(CallLog.id >= params['start_id'])
 
         return query
 
@@ -189,21 +189,20 @@ class CallLogDAO(BaseDAO):
                 session.add(call_log)
                 session.flush()
                 # NOTE(fblackburn): fetch relationship before expunge_all
+                call_log.recordings
                 call_log.source_participant
                 call_log.destination_participant
             session.expunge_all()
 
     def delete_from_list(self, call_log_ids):
         with self.new_session() as session:
-            query = session.query(CallLogSchema)
-            query = query.filter(CallLogSchema.id.in_(call_log_ids))
+            query = session.query(CallLog)
+            query = query.filter(CallLog.id.in_(call_log_ids))
             query.delete(synchronize_session=False)
 
     def delete(self, older=None):
         with self.new_session() as session:
-            # NOTE(fblackburn) returning object on DELETE is specific to postgresql
-            query = CallLogSchema.__table__.delete().returning(CallLogSchema.id)
+            query = session.query(CallLog)
             if older:
-                query = query.where(CallLogSchema.date >= older)
-            result = [r.id for r in session.execute(query)]
-            return result
+                query = query.filter(CallLog.date >= older)
+            query.delete()

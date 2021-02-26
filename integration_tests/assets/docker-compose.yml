@@ -43,3 +43,6 @@ services:
     image: rabbitmq
     ports:
       - "5672"
+    volumes:
+      - type: tmpfs
+        target: /var/lib/rabbitmq

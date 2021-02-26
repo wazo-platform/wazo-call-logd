@@ -1,7 +1,10 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import timedelta as td
+from datetime import (
+    datetime as dt,
+    timedelta as td,
+)
 from hamcrest import (
     assert_that,
     contains,
@@ -12,11 +15,19 @@ from hamcrest import (
     has_property,
     has_properties,
 )
-from xivo_dao.alchemy.call_log import CallLog
+from wazo_call_logd.database.models import CallLog, CallLogParticipant, Recording
 
 from .helpers.base import cdr, DBIntegrationTest
 from .helpers.database import call_log
-from .helpers.constants import ALICE, BOB, CHARLES, NOW, MINUTES
+from .helpers.constants import (
+    ALICE,
+    BOB,
+    CHARLES,
+    MASTER_TENANT,
+    MINUTES,
+    NOW,
+    USER_1_UUID,
+)
 
 
 class TestCallLog(DBIntegrationTest):
@@ -47,16 +58,35 @@ class TestCallLog(DBIntegrationTest):
         assert_that(result, has_entries(total=4, filtered=2))
 
     def test_create_from_list(self):
-        call_log_1 = CallLog(date=NOW, tenant_uuid='1')
-        call_log_2 = CallLog(date=NOW, tenant_uuid='1')
+        end_time = dt.now()
+        start_time = end_time - td(hours=1)
+
+        call_log_1 = CallLog(
+            date=NOW,
+            tenant_uuid=MASTER_TENANT,
+            participants=[CallLogParticipant(role='source', user_uuid=USER_1_UUID)],
+            recordings=[
+                Recording(start_time=start_time, end_time=end_time),
+                Recording(start_time=start_time, end_time=end_time),
+            ],
+        )
+        call_log_2 = CallLog(date=NOW, tenant_uuid=MASTER_TENANT)
 
         self.dao.call_log.create_from_list([call_log_1, call_log_2])
 
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, has_length(2))
 
-        self.cel_session.query(CallLog).delete()
-        self.cel_session.commit()
+        result = self.session.query(CallLogParticipant).all()
+        assert_that(result, has_length(1))
+
+        result = self.session.query(Recording).all()
+        assert_that(result, has_length(2))
+
+        self.session.query(CallLog).delete()
+        self.session.query(CallLogParticipant).delete()
+        self.session.query(Recording).delete()
+        self.session.commit()
 
     @call_log(**cdr(id_=1))
     @call_log(**cdr(id_=2))
@@ -65,17 +95,16 @@ class TestCallLog(DBIntegrationTest):
         id_1, id_2, id_3 = [1, 2, 3]
         self.dao.call_log.delete_from_list([id_1, id_3])
 
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, contains(has_property('id', id_2)))
 
     @call_log(**cdr(id_=1))
     @call_log(**cdr(id_=2))
     @call_log(**cdr(id_=3))
     def test_delete_all(self):
-        ids_deleted = self.dao.call_log.delete()
+        self.dao.call_log.delete()
 
-        assert_that(ids_deleted, contains_inanyorder(1, 2, 3))
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, empty())
 
     @call_log(**cdr(id_=1, start_time=NOW))
@@ -83,12 +112,7 @@ class TestCallLog(DBIntegrationTest):
     @call_log(**cdr(id_=3, start_time=NOW))
     def test_delete_older(self):
         older = NOW - td(hours=1)
-        ids_deleted = self.dao.call_log.delete(older=older)
+        self.dao.call_log.delete(older=older)
 
-        assert_that(ids_deleted, contains_inanyorder(1, 3))
-        result = self.cel_session.query(CallLog).all()
+        result = self.session.query(CallLog).all()
         assert_that(result, contains(has_property('id', 2)))
-
-    def test_delete_empty(self):
-        result = self.dao.call_log.delete()
-        assert_that(result, empty())
