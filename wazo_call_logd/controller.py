@@ -13,7 +13,6 @@ from xivo.status import StatusAggregator, TokenStatus
 from xivo.token_renewer import TokenRenewer
 
 from wazo_call_logd.bus_client import BusClient
-from wazo_call_logd.cel_fetcher import CELFetcher
 from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
 from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
@@ -32,7 +31,6 @@ logger = logging.getLogger(__name__)
 class Controller:
     def __init__(self, config):
         auth_client = AuthClient(**config['auth'])
-        cel_fetcher = CELFetcher()
         confd_client = ConfdClient(**config['confd'])
         generator = CallLogsGenerator(
             confd_client,
@@ -54,9 +52,7 @@ class Controller:
             generator.set_default_tenant_uuid
         )
         self._publisher = BusPublisher(config)
-        self.manager = CallLogsManager(
-            dao, cel_fetcher, generator, writer, self._publisher
-        )
+        self.manager = CallLogsManager(dao, generator, writer, self._publisher)
         self.bus_client = BusClient(config)
         self.http_server = HTTPServer(config)
         self.status_aggregator = StatusAggregator()

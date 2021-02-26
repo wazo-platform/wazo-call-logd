@@ -1,12 +1,18 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import timedelta as td
 from hamcrest import (
     assert_that,
+    contains,
     contains_inanyorder,
     has_entries,
+    has_length,
+    empty,
+    has_property,
     has_properties,
 )
+from xivo_dao.alchemy.call_log import CallLog
 
 from .helpers.base import cdr, DBIntegrationTest
 from .helpers.database import call_log
@@ -39,3 +45,50 @@ class TestCallLog(DBIntegrationTest):
 
         result = self.dao.call_log.count_in_period(params)
         assert_that(result, has_entries(total=4, filtered=2))
+
+    def test_create_from_list(self):
+        call_log_1 = CallLog(date=NOW, tenant_uuid='1')
+        call_log_2 = CallLog(date=NOW, tenant_uuid='1')
+
+        self.dao.call_log.create_from_list([call_log_1, call_log_2])
+
+        result = self.cel_session.query(CallLog).all()
+        assert_that(result, has_length(2))
+
+        self.cel_session.query(CallLog).delete()
+        self.cel_session.commit()
+
+    @call_log(**cdr(id_=1))
+    @call_log(**cdr(id_=2))
+    @call_log(**cdr(id_=3))
+    def test_delete_from_list(self):
+        id_1, id_2, id_3 = [1, 2, 3]
+        self.dao.call_log.delete_from_list([id_1, id_3])
+
+        result = self.cel_session.query(CallLog).all()
+        assert_that(result, contains(has_property('id', id_2)))
+
+    @call_log(**cdr(id_=1))
+    @call_log(**cdr(id_=2))
+    @call_log(**cdr(id_=3))
+    def test_delete_all(self):
+        ids_deleted = self.dao.call_log.delete()
+
+        assert_that(ids_deleted, contains_inanyorder(1, 2, 3))
+        result = self.cel_session.query(CallLog).all()
+        assert_that(result, empty())
+
+    @call_log(**cdr(id_=1, start_time=NOW))
+    @call_log(**cdr(id_=2, start_time=NOW - td(hours=2)))  # excluded
+    @call_log(**cdr(id_=3, start_time=NOW))
+    def test_delete_older(self):
+        older = NOW - td(hours=1)
+        ids_deleted = self.dao.call_log.delete(older=older)
+
+        assert_that(ids_deleted, contains_inanyorder(1, 3))
+        result = self.cel_session.query(CallLog).all()
+        assert_that(result, contains(has_property('id', 2)))
+
+    def test_delete_empty(self):
+        result = self.dao.call_log.delete()
+        assert_that(result, empty())

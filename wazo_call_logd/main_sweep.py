@@ -18,7 +18,6 @@ from xivo_dao import init_db_from_config
 
 from wazo_call_logd.bus_publisher import BusPublisher
 from wazo_call_logd.config import DEFAULT_CONFIG
-from wazo_call_logd.cel_fetcher import CELFetcher
 from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
 from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
@@ -69,7 +68,6 @@ def _generate_call_logs():
     token_renewer = TokenRenewer(auth_client)
     token_renewer.subscribe_to_token_change(confd_client.set_token)
 
-    cel_fetcher = CELFetcher()
     generator = CallLogsGenerator(
         confd_client,
         [
@@ -84,7 +82,7 @@ def _generate_call_logs():
     )
     writer = CallLogsWriter(dao)
     publisher = BusPublisher(config)
-    manager = CallLogsManager(dao, cel_fetcher, generator, writer, publisher)
+    manager = CallLogsManager(dao, generator, writer, publisher)
 
     options = vars(options)
     with token_renewer:

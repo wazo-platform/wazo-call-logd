@@ -4,54 +4,45 @@
 import logging
 from datetime import datetime, timedelta
 
-from xivo_dao.helpers.db_utils import session_scope
-from xivo_dao.resources.call_log import dao as call_log_dao
-
 logger = logging.getLogger(__name__)
 
 
 class CallLogsManager:
-    def __init__(self, dao, cel_fetcher, generator, writer, publisher):
+    def __init__(self, dao, generator, writer, publisher):
         self.dao = dao
-        self.cel_fetcher = cel_fetcher
         self.generator = generator
         self.writer = writer
         self.publisher = publisher
 
     def delete_all(self):
-        with session_scope():
-            call_log_dao.delete()
+        self.dao.call_log.delete()
         self.dao.recording.delete_all()
 
     def delete_from_days(self, days):
         older = datetime.now() - timedelta(days=days)
-        with session_scope():
-            call_log_ids = call_log_dao.delete(older=older)
+        call_log_ids = self.dao.call_log.delete(older=older)
         self.dao.recording.delete_all_by_call_log_ids(call_log_ids)
 
     def generate_from_days(self, days):
         older_cel = datetime.now() - timedelta(days=days)
-        with session_scope():
-            cels = self.cel_fetcher.fetch_last_unprocessed(older=older_cel)
-            self._generate_from_cels(cels)
+        cels = self.dao.cel.find_last_unprocessed(older=older_cel)
+        self._generate_from_cels(cels)
 
     def generate_from_count(self, cel_count):
-        with session_scope():
-            cels = self.cel_fetcher.fetch_last_unprocessed(cel_count)
-            logger.debug(
-                'Generating call logs from the last %s CEL (found %s)',
-                cel_count,
-                len(cels),
-            )
-            self._generate_from_cels(cels)
+        cels = self.dao.cel.find_last_unprocessed(cel_count)
+        logger.debug(
+            'Generating call logs from the last %s CEL (found %s)',
+            cel_count,
+            len(cels),
+        )
+        self._generate_from_cels(cels)
 
     def generate_from_linked_id(self, linked_id):
-        with session_scope():
-            cels = self.cel_fetcher.fetch_from_linked_id(linked_id)
-            logger.debug(
-                'Generating call log for linked_id %s from %s CEL', linked_id, len(cels)
-            )
-            self._generate_from_cels(cels)
+        cels = self.dao.cel.find_from_linked_id(linked_id)
+        logger.debug(
+            'Generating call log for linked_id %s from %s CEL', linked_id, len(cels)
+        )
+        self._generate_from_cels(cels)
 
     def _generate_from_cels(self, cels):
         call_logs = self.generator.from_cel(cels)

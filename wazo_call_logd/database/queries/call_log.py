@@ -179,3 +179,31 @@ class CallLogDAO(BaseDAO):
             query = query.filter(CallLogSchema.id >= params['start_id'])
 
         return query
+
+    def create_from_list(self, call_logs):
+        if not call_logs:
+            return
+
+        with self.new_session() as session:
+            for call_log in call_logs:
+                session.add(call_log)
+                session.flush()
+                # NOTE(fblackburn): fetch relationship before expunge_all
+                call_log.source_participant
+                call_log.destination_participant
+            session.expunge_all()
+
+    def delete_from_list(self, call_log_ids):
+        with self.new_session() as session:
+            query = session.query(CallLogSchema)
+            query = query.filter(CallLogSchema.id.in_(call_log_ids))
+            query.delete(synchronize_session=False)
+
+    def delete(self, older=None):
+        with self.new_session() as session:
+            # NOTE(fblackburn) returning object on DELETE is specific to postgresql
+            query = CallLogSchema.__table__.delete().returning(CallLogSchema.id)
+            if older:
+                query = query.where(CallLogSchema.date >= older)
+            result = [r.id for r in session.execute(query)]
+            return result

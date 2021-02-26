@@ -8,9 +8,9 @@ import logging
 from xivo.asterisk.line_identity import identity_from_channel
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo.asterisk.protocol_interface import InvalidChannelError
-from xivo_dao.resources.cel.event_type import CELEventType
 from xivo_dao.alchemy.call_log_participant import CallLogParticipant
 
+from .database.cel_event_type import CELEventType
 from .database.models import Recording
 
 

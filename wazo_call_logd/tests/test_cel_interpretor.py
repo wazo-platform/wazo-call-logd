@@ -13,8 +13,6 @@ from hamcrest import (
 )
 from mock import Mock, sentinel
 
-from xivo_dao.resources.cel.event_type import CELEventType
-
 from ..cel_interpretor import (
     AbstractCELInterpretor,
     CallerCELInterpretor,
@@ -24,6 +22,7 @@ from ..cel_interpretor import (
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
 )
+from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog
 
 

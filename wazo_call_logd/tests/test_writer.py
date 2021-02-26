@@ -3,7 +3,7 @@
 
 from unittest import TestCase
 
-from mock import Mock, patch
+from mock import Mock
 
 from wazo_call_logd.generator import CallLogsCreation
 from wazo_call_logd.writer import CallLogsWriter
@@ -11,15 +11,13 @@ from wazo_call_logd.writer import CallLogsWriter
 
 class TestCallLogsWriter(TestCase):
     def setUp(self):
-        dao = Mock()
-        self.writer = CallLogsWriter(dao)
+        self.dao = Mock()
+        self.writer = CallLogsWriter(self.dao)
 
     def tearDown(self):
         pass
 
-    @patch('xivo_dao.resources.call_log.dao.create_from_list')
-    @patch('xivo_dao.resources.call_log.dao.delete_from_list')
-    def test_write(self, mock_dao_delete, mock_dao_create):
+    def test_write(self):
         call_logs_creation = CallLogsCreation(
             new_call_logs=[Mock(recordings=[]), Mock(recordings=[])],
             call_logs_to_delete=None,
@@ -27,5 +25,9 @@ class TestCallLogsWriter(TestCase):
 
         self.writer.write(call_logs_creation)
 
-        mock_dao_create.assert_called_once_with(call_logs_creation.new_call_logs)
-        mock_dao_delete.assert_called_once_with(call_logs_creation.call_logs_to_delete)
+        self.dao.call_log.create_from_list.assert_called_once_with(
+            call_logs_creation.new_call_logs
+        )
+        self.dao.call_log.delete_from_list.assert_called_once_with(
+            call_logs_creation.call_logs_to_delete
+        )
