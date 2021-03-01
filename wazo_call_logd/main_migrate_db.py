@@ -220,6 +220,8 @@ def migrate_call_log_tables(config, max_entries):
             logger.info('Removing old tables...')
             query = 'DROP TABLE call_log, call_log_participant;'
             cel_cur.execute(query)
+            query = 'DROP TYPE call_log_participant_role;'
+            cel_cur.execute(query)
             logger.info('Old tables removed')
 
     logger.info('Call logs tables successfully migrated')

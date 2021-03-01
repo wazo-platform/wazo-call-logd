@@ -3,6 +3,7 @@
     parent: wazo-tox-integration
     required-projects:
       wazo-platform/xivo-manage-db
+    timeout: 3600
     vars:
       docker_compose_services_override:
         - call-logd
