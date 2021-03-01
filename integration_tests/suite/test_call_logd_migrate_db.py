@@ -36,6 +36,10 @@ class TestMigration(RawCelIntegrationTest):
                 self._insert_old_call_log_participant(queries, call_log_id)
             old_id_seq = self._get_old_call_log_id_seq(queries)
 
+            assert_that(self._old_call_log_table_exists(queries))
+            assert_that(self._old_call_log_participant_table_exists(queries))
+            assert_that(self._old_call_log_participant_role_type_exists(queries))
+
         with self.no_call_logs():
             code = self._exec(['wazo-call-logd-migrate-db', '-i'])
             assert_that(code, equal_to(0))
@@ -50,6 +54,11 @@ class TestMigration(RawCelIntegrationTest):
                 assert_that(count, equal_to(nb_call_logs))
                 count = self._count_call_log_participant(queries)
                 assert_that(count, equal_to(nb_call_logs))
+
+            with self.cel_database.queries() as q:
+                assert_that(not self._old_call_log_table_exists(q))
+                assert_that(not self._old_call_log_participant_table_exists(q))
+                assert_that(not self._old_call_log_participant_role_type_exists(q))
 
     def test_migration_already_done(self):
         code = self._exec(['wazo-call-logd-migrate-db', '-i'])
@@ -152,3 +161,24 @@ class TestMigration(RawCelIntegrationTest):
         count = session.execute(query).fetchone()[0]
         session.commit()
         return count
+
+    def _old_call_log_table_exists(self, queries):
+        session = queries.Session()
+        query = "SELECT to_regclass('call_log');"
+        result = session.execute(query).fetchone()[0]
+        session.commit()
+        return result
+
+    def _old_call_log_participant_table_exists(self, queries):
+        session = queries.Session()
+        query = "SELECT to_regclass('call_log_participant');"
+        result = session.execute(query).fetchone()[0]
+        session.commit()
+        return result
+
+    def _old_call_log_participant_role_type_exists(self, queries):
+        session = queries.Session()
+        query = "SELECT to_regtype('call_log_participant_role');"
+        result = session.execute(query).fetchone()[0]
+        session.commit()
+        return result
