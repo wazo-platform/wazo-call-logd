@@ -293,7 +293,7 @@ class TestRecording(IntegrationTest):
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args(None),
             raises(CallLogdError).matching(
                 has_properties(status_code=400, error_id='invalid-data')
-            )
+            ),
         )
 
     def test_delete_media_multi_cdr_no_cdr(self):
@@ -374,7 +374,11 @@ class TestRecording(IntegrationTest):
         assert_that(
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([2, 3]),
             raises(CallLogdError).matching(
-                has_properties(status_code=404, error_id='cdr-not-found-with-given-id')
+                has_properties(
+                    status_code=404,
+                    error_id='cdr-not-found-with-given-id',
+                    details=has_entries(cdr_id=2),
+                ),
             ),
         )
 
@@ -383,7 +387,11 @@ class TestRecording(IntegrationTest):
         assert_that(
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([2, 1]),
             raises(CallLogdError).matching(
-                has_properties(status_code=404, error_id='cdr-not-found-with-given-id')
+                has_properties(
+                    status_code=404,
+                    error_id='cdr-not-found-with-given-id',
+                    details=has_entries(cdr_id=2),
+                ),
             ),
         )
 
@@ -440,7 +448,11 @@ class TestRecording(IntegrationTest):
                 [10, 11], tenant_uuid=SUB_TENANT
             ),
             raises(CallLogdError).matching(
-                has_properties(status_code=404, error_id='cdr-not-found-with-given-id')
+                has_properties(
+                    status_code=404,
+                    error_id='cdr-not-found-with-given-id',
+                    details=has_entries(cdr_id=11),
+                ),
             ),
         )
 
