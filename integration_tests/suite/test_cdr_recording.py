@@ -405,7 +405,9 @@ class TestRecording(IntegrationTest):
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([1, 2]),
             raises(CallLogdError).matching(
                 has_properties(
-                    status_code=500, error_id='recording-media-permission-denied'
+                    status_code=500,
+                    error_id='recording-media-permission-denied',
+                    details=has_entries(cdr_id=1),
                 )
             ),
         )

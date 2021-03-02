@@ -18,6 +18,7 @@ from wazo_call_logd.http import AuthResource
 
 from .exceptions import (
     CDRNotFoundException,
+    CDRRecordingMediaFSPermissionException,
     RecordingNotFoundException,
     RecordingMediaNotFoundException,
     RecordingMediaFSPermissionException,
@@ -212,8 +213,8 @@ class RecordingsMediaResource(RecordingMediaAuthResource):
                 )
             except PermissionError:
                 logger.error('Permission denied: "%s"', recording.path)
-                raise RecordingMediaFSPermissionException(
-                    recording.uuid, recording.path
+                raise CDRRecordingMediaFSPermissionException(
+                    recording.call_log_id, recording.uuid, recording.path
                 )
             except FileNotFoundError:
                 logger.info(
