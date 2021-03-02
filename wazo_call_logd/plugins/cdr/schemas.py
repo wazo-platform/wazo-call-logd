@@ -23,7 +23,7 @@ class RecordingSchema(Schema):
 
 
 class RecordingMediaDeleteRequestSchema(Schema):
-    cdr_ids = fields.List(fields.Integer(), validate=Length(min=1))
+    cdr_ids = fields.List(fields.Integer(), validate=Length(min=1), required=True)
 
 
 class CDRSchema(Schema):

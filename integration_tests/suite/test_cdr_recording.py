@@ -288,6 +288,14 @@ class TestRecording(IntegrationTest):
 
     # Deleting recording media from multiple CDRs
 
+    def test_delete_media_multi_cdr_no_body(self):
+        assert_that(
+            calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args(None),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='invalid-data')
+            )
+        )
+
     def test_delete_media_multi_cdr_no_cdr(self):
         assert_that(
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([]),
