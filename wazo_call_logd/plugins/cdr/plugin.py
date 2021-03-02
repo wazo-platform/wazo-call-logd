@@ -8,7 +8,8 @@ from .http import (
     CDRIdResource,
     CDRUserResource,
     CDRUserMeResource,
-    RecordingMediaResource,
+    RecordingMediaItemResource,
+    RecordingsMediaResource,
 )
 from .services import CDRService, RecordingService
 
@@ -29,12 +30,17 @@ class Plugin:
             resource_class_args=[cdr_service],
         )
         api.add_resource(
+            RecordingsMediaResource,
+            '/cdr/recordings/media',
+            resource_class_args=[recording_service],
+        )
+        api.add_resource(
             CDRIdResource,
             '/cdr/<int:cdr_id>',
             resource_class_args=[cdr_service],
         )
         api.add_resource(
-            RecordingMediaResource,
+            RecordingMediaItemResource,
             '/cdr/<int:cdr_id>/recordings/<uuid:recording_uuid>/media',
             resource_class_args=[recording_service],
         )

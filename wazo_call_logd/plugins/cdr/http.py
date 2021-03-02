@@ -18,12 +18,18 @@ from wazo_call_logd.http import AuthResource
 
 from .exceptions import (
     CDRNotFoundException,
+    CDRRecordingMediaFSPermissionException,
     RecordingNotFoundException,
     RecordingMediaNotFoundException,
     RecordingMediaFSPermissionException,
     RecordingMediaFSNotFoundException,
 )
-from .schemas import CDRSchema, CDRSchemaList, CDRListRequestSchema
+from .schemas import (
+    CDRSchema,
+    CDRSchemaList,
+    CDRListRequestSchema,
+    RecordingMediaDeleteRequestSchema,
+)
 
 logger = logging.getLogger(__name__)
 CSV_HEADERS = [
@@ -162,7 +168,7 @@ class CDRUserMeResource(CDRAuthResource):
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs)
 
 
-class RecordingMediaResource(AuthResource):
+class RecordingMediaAuthResource(AuthResource):
     def __init__(self, service):
         super().__init__()
         self.service = service
@@ -174,7 +180,7 @@ class RecordingMediaResource(AuthResource):
         g.token = tenant_helpers.Tokens(auth_client).get(token_uuid)
         auth_client.set_token(g.token.uuid)
 
-    def visible_tenants(self, recurse=True):
+    def query_or_header_visible_tenants(self, recurse=True):
         self._set_up_token_helper_to_verify_tenant()
         tenant_uuid = Tenant.autodetect(include_query=True).uuid
         if recurse:
@@ -182,12 +188,53 @@ class RecordingMediaResource(AuthResource):
         else:
             return [tenant_uuid]
 
+    def visible_tenants(self, recurse=True):
+        tenant_uuid = Tenant.autodetect().uuid
+        if recurse:
+            return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
+        else:
+            return [tenant_uuid]
+
+
+class RecordingsMediaResource(RecordingMediaAuthResource):
+    @required_acl('call-logd.cdr.recordings.media.delete')
+    def delete(self):
+        args = RecordingMediaDeleteRequestSchema().load(request.get_json(force=True))
+        tenant_uuids = self.visible_tenants(True)
+        call_log_ids = args['cdr_ids']
+        recordings_to_delete = []
+        # We do not want to delete any recording if one of the CDR has not been found
+        for cdr_id in call_log_ids:
+            cdr = self.service.find_cdr(cdr_id, tenant_uuids)
+            if not cdr:
+                raise CDRNotFoundException(details={'cdr_id': cdr_id})
+            recordings_to_delete.extend(cdr.recordings)
+
+        for recording in recordings_to_delete:
+            try:
+                self.service.delete_media(
+                    recording.call_log_id, recording.uuid, recording.path
+                )
+            except PermissionError:
+                logger.error('Permission denied: "%s"', recording.path)
+                raise CDRRecordingMediaFSPermissionException(
+                    recording.call_log_id, recording.uuid, recording.path
+                )
+            except FileNotFoundError:
+                logger.info(
+                    'Recording file already deleted: "%s". Marking as such.',
+                    recording.path,
+                )
+        return '', 204
+
+
+class RecordingMediaItemResource(RecordingMediaAuthResource):
     @required_acl(
         'call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read',
         extract_token_id=extract_token_id_from_query_or_header,
     )
     def get(self, cdr_id, recording_uuid):
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.query_or_header_visible_tenants(True)
         cdr = self.service.find_cdr(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
@@ -213,10 +260,7 @@ class RecordingMediaResource(AuthResource):
             logger.error('Recording file not found: "%s"', recording.path)
             raise RecordingMediaFSNotFoundException(recording_uuid, recording.path)
 
-    @required_acl(
-        'call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete',
-        extract_token_id=extract_token_id_from_query_or_header,
-    )
+    @required_acl('call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete')
     def delete(self, cdr_id, recording_uuid):
         tenant_uuids = self.visible_tenants(True)
         cdr = self.service.find_cdr(cdr_id, tenant_uuids)

@@ -58,3 +58,17 @@ class RecordingMediaFSPermissionException(APIException):
                 'recording_path': recording_path,
             },
         )
+
+
+class CDRRecordingMediaFSPermissionException(APIException):
+    def __init__(self, cdr_id, recording_uuid, recording_path):
+        super().__init__(
+            status_code=500,
+            message='Recording media: permission denied',
+            error_id='recording-media-permission-denied',
+            details={
+                'cdr_id': cdr_id,
+                'recording_uuid': str(recording_uuid),
+                'recording_path': recording_path,
+            },
+        )

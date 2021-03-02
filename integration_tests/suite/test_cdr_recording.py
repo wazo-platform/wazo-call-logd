@@ -9,6 +9,7 @@ from hamcrest import (
     equal_to,
     has_entries,
     has_item,
+    has_items,
     has_properties,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
@@ -264,23 +265,177 @@ class TestRecording(IntegrationTest):
         response = self.call_logd.cdr.get_by_id(11)['recordings'][0]
         assert_that(response, has_entries(uuid=rec_uuid, deleted=True))
 
+    # Deleting recording media from multiple CDRs
+
+    def test_delete_media_multi_cdr_no_body(self):
+        assert_that(
+            calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args(None),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='invalid-data')
+            ),
+        )
+
+    def test_delete_media_multi_cdr_no_cdr(self):
+        assert_that(
+            calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([]),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='invalid-data')
+            ),
+        )
+
     @call_log(
         **{'id': 1},
-        tenant_uuid=MAIN_TENANT,
-        recordings=[{'path': '/tmp/foobar.wav'}],
+        date='2021-01-01T01:00:00+01:00',
+        recordings=[{'path': '/tmp/foobar.wav'}, {'path': '/tmp/foobar2.wav'}],
     )
-    def test_delete_media_using_token_tenant_query_string(self):
-        cdr_id = 1
-        self.filesystem.create_file('/tmp/foobar.wav', content='my-recording-content')
-        recording_uuid = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][0]['uuid']
-        port = self.service_port(9298, 'call-logd')
-        base_url = f'http://localhost:{port}/1.0'
-        api_url = f'{base_url}/cdr/{cdr_id}/recordings/{recording_uuid}/media'
+    @call_log(
+        **{'id': 2},
+        date='2021-01-01T03:00:00+01:00',
+        recordings=[{'path': '/tmp/foobar3.wav'}],
+    )
+    @call_log(
+        **{'id': 3},
+        date='2021-01-01T03:00:00+01:00',
+        recordings=[{'path': '/tmp/foobar4.wav'}],
+    )
+    def test_delete_media_multi_cdr(self):
+        cdr_ids = [1, 2, 3]
+        self.filesystem.create_file('/tmp/foobar.wav', content='deleted')
+        self.filesystem.create_file('/tmp/foobar2.wav', content='deleted')
+        self.filesystem.create_file('/tmp/foobar3.wav', content='deleted')
+        self.filesystem.create_file('/tmp/foobar4.wav', content='visible')
+        recording1 = self.call_logd.cdr.get_by_id(cdr_ids[0])['recordings'][0]
+        recording2 = self.call_logd.cdr.get_by_id(cdr_ids[0])['recordings'][1]
+        recording3 = self.call_logd.cdr.get_by_id(cdr_ids[1])['recordings'][0]
+        recording4 = self.call_logd.cdr.get_by_id(cdr_ids[2])['recordings'][0]
 
-        params = {'tenant': MAIN_TENANT, 'token': MAIN_TOKEN}
-        response = requests.delete(api_url, params=params)
-        assert_that(response.status_code, equal_to(204))
+        self.call_logd.cdr.delete_cdrs_recording_media([cdr_ids[0], cdr_ids[1]])
 
-        params = {'tenant': SUB_TENANT, 'token': MAIN_TOKEN}
-        response = requests.delete(api_url, params=params)
-        assert_that(response.status_code, equal_to(404))
+        assert_that(
+            calling(self.call_logd.cdr.get_recording_media).with_args(
+                cdr_ids[0], recording1['uuid']
+            ),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='recording-media-not-found')
+            ),
+        )
+        recordings = self.call_logd.cdr.get_by_id(cdr_ids[0])['recordings']
+        assert_that(
+            recordings,
+            has_items(
+                has_entries(uuid=recording1['uuid'], deleted=True),
+                has_entries(uuid=recording2['uuid'], deleted=True),
+            ),
+        )
+
+        recordings = self.call_logd.cdr.get_by_id(cdr_ids[1])['recordings']
+        assert_that(
+            recordings, has_item(has_entries(uuid=recording3['uuid'], deleted=True))
+        )
+
+        recordings = self.call_logd.cdr.get_by_id(cdr_ids[2])['recordings']
+        assert_that(
+            recordings, has_item(has_entries(uuid=recording4['uuid'], deleted=False))
+        )
+
+        response = self.call_logd.cdr.get_recording_media(
+            cdr_ids[2], recording4['uuid']
+        )
+        assert_that(response.text, equal_to('visible'))
+
+    @call_log(**{'id': 1}, recordings=[{'path': '/tmp/foobar.wav'}])
+    def test_delete_media_with_invalid_cdr_multi_cdr(self):
+        assert_that(
+            calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([2, 3]),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=404,
+                    error_id='cdr-not-found-with-given-id',
+                    details=has_entries(cdr_id=2),
+                ),
+            ),
+        )
+
+    @call_log(**{'id': 1}, recordings=[{'path': '/tmp/foobar.wav'}])
+    def test_delete_media_with_wrong_cdr_multi_cdr(self):
+        assert_that(
+            calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([2, 1]),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=404,
+                    error_id='cdr-not-found-with-given-id',
+                    details=has_entries(cdr_id=2),
+                ),
+            ),
+        )
+
+    @call_log(**{'id': 1}, recordings=[{'path': None}])
+    @call_log(**{'id': 2}, recordings=[{'path': None}])
+    def test_delete_media_with_recording_already_deleted_multi_cdr(self):
+        self.call_logd.cdr.delete_cdrs_recording_media([1, 2])
+        recording = self.call_logd.cdr.get_by_id(1)['recordings'][0]
+        assert_that(recording['deleted'], equal_to(True))
+        recording = self.call_logd.cdr.get_by_id(2)['recordings'][0]
+        assert_that(recording['deleted'], equal_to(True))
+
+    @call_log(**{'id': 1}, recordings=[{'path': '/tmp/denied.wav'}])
+    @call_log(**{'id': 2}, recordings=[{'path': '/tmp/ok.wav'}])
+    def test_delete_media_when_file_has_wrong_permission_multi_cdr(self):
+        self.filesystem.create_file('/tmp/denied.wav', mode='000', root=True)
+        self.filesystem.create_file('/tmp/ok.wav')
+        assert_that(
+            calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([1, 2]),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=500,
+                    error_id='recording-media-permission-denied',
+                    details=has_entries(cdr_id=1),
+                )
+            ),
+        )
+
+    @call_log(**{'id': 1}, recordings=[{'path': '/tmp/deleted1.wav'}])
+    @call_log(**{'id': 2}, recordings=[{'path': '/tmp/deleted2.wav'}])
+    def test_delete_media_when_file_deleted_on_filesystem_multi_cdr(self):
+        self.call_logd.cdr.delete_cdrs_recording_media([1, 2])
+        recording = self.call_logd.cdr.get_by_id(1)['recordings'][0]
+        assert_that(recording['deleted'], equal_to(True))
+        recording = self.call_logd.cdr.get_by_id(2)['recordings'][0]
+        assert_that(recording['deleted'], equal_to(True))
+
+    @call_log(
+        **{'id': 10},
+        tenant_uuid=SUB_TENANT,
+        recordings=[{'path': '/tmp/10-recording.wav'}],
+    )
+    @call_log(
+        **{'id': 11},
+        tenant_uuid=MAIN_TENANT,
+        recordings=[{'path': '/tmp/11-recording.wav'}],
+    )
+    def test_delete_media_mutli_tenant_multi_cdr(self):
+        self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
+        self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
+
+        assert_that(
+            calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args(
+                [10, 11], tenant_uuid=SUB_TENANT
+            ),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=404,
+                    error_id='cdr-not-found-with-given-id',
+                    details=has_entries(cdr_id=11),
+                ),
+            ),
+        )
+
+        recording = self.call_logd.cdr.get_by_id(10)['recordings'][0]
+        assert_that(recording, has_entries(deleted=False))
+        recording = self.call_logd.cdr.get_by_id(11)['recordings'][0]
+        assert_that(recording, has_entries(deleted=False))
+
+        rec_uuid = self.call_logd.cdr.get_by_id(11)['recordings'][0]['uuid']
+        self.call_logd.cdr.delete_cdrs_recording_media([11], tenant_uuid=MAIN_TENANT)
+        response = self.call_logd.cdr.get_by_id(11)['recordings'][0]
+        assert_that(response, has_entries(uuid=rec_uuid, deleted=True))

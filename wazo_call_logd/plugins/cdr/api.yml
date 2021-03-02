@@ -31,6 +31,29 @@ paths:
       produces:
         - application/json
         - text/csv; charset=utf-8
+  /cdr/recordings/media:
+    delete:
+      summary: Delete multiple CDRs recording media
+      description: '**Required ACL:** `call-logd.cdr.recordings.media.delete`'
+      tags:
+        - cdr
+      parameters:
+        - name: body
+          in: body
+          description: The CDR IDs list from which to delete recording media
+          required: true
+          schema:
+            type: object
+            properties:
+              cdr_ids:
+                type: array
+                items:
+                  type: integer
+      responses:
+        '204':
+          description: The CDRs recording media were deleted successfully
+        '404':
+          $ref: '#/responses/NotFoundError'
   /cdr/{cdr_id}:
     get:
       summary: Get a CDR by ID
