@@ -180,7 +180,7 @@ class RecordingMediaAuthResource(AuthResource):
         g.token = tenant_helpers.Tokens(auth_client).get(token_uuid)
         auth_client.set_token(g.token.uuid)
 
-    def visible_tenants(self, recurse=True):
+    def query_or_header_visible_tenants(self, recurse=True):
         self._set_up_token_helper_to_verify_tenant()
         tenant_uuid = Tenant.autodetect(include_query=True).uuid
         if recurse:
@@ -188,12 +188,16 @@ class RecordingMediaAuthResource(AuthResource):
         else:
             return [tenant_uuid]
 
+    def visible_tenants(self, recurse=True):
+        tenant_uuid = Tenant.autodetect().uuid
+        if recurse:
+            return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
+        else:
+            return [tenant_uuid]
+
 
 class RecordingsMediaResource(RecordingMediaAuthResource):
-    @required_acl(
-        'call-logd.cdr.recordings.media.delete',
-        extract_token_id=extract_token_id_from_query_or_header,
-    )
+    @required_acl('call-logd.cdr.recordings.media.delete')
     def delete(self):
         args = RecordingMediaDeleteRequestSchema().load(request.get_json(force=True))
         tenant_uuids = self.visible_tenants(True)
@@ -230,7 +234,7 @@ class RecordingMediaItemResource(RecordingMediaAuthResource):
         extract_token_id=extract_token_id_from_query_or_header,
     )
     def get(self, cdr_id, recording_uuid):
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.query_or_header_visible_tenants(True)
         cdr = self.service.find_cdr(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
@@ -256,10 +260,7 @@ class RecordingMediaItemResource(RecordingMediaAuthResource):
             logger.error('Recording file not found: "%s"', recording.path)
             raise RecordingMediaFSNotFoundException(recording_uuid, recording.path)
 
-    @required_acl(
-        'call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete',
-        extract_token_id=extract_token_id_from_query_or_header,
-    )
+    @required_acl('call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete')
     def delete(self, cdr_id, recording_uuid):
         tenant_uuids = self.visible_tenants(True)
         cdr = self.service.find_cdr(cdr_id, tenant_uuids)

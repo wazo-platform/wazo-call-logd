@@ -265,27 +265,6 @@ class TestRecording(IntegrationTest):
         response = self.call_logd.cdr.get_by_id(11)['recordings'][0]
         assert_that(response, has_entries(uuid=rec_uuid, deleted=True))
 
-    @call_log(
-        **{'id': 1},
-        tenant_uuid=MAIN_TENANT,
-        recordings=[{'path': '/tmp/foobar.wav'}],
-    )
-    def test_delete_media_using_token_tenant_query_string(self):
-        cdr_id = 1
-        self.filesystem.create_file('/tmp/foobar.wav', content='my-recording-content')
-        recording_uuid = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][0]['uuid']
-        port = self.service_port(9298, 'call-logd')
-        base_url = f'http://localhost:{port}/1.0'
-        api_url = f'{base_url}/cdr/{cdr_id}/recordings/{recording_uuid}/media'
-
-        params = {'tenant': MAIN_TENANT, 'token': MAIN_TOKEN}
-        response = requests.delete(api_url, params=params)
-        assert_that(response.status_code, equal_to(204))
-
-        params = {'tenant': SUB_TENANT, 'token': MAIN_TOKEN}
-        response = requests.delete(api_url, params=params)
-        assert_that(response.status_code, equal_to(404))
-
     # Deleting recording media from multiple CDRs
 
     def test_delete_media_multi_cdr_no_body(self):
@@ -460,23 +439,3 @@ class TestRecording(IntegrationTest):
         self.call_logd.cdr.delete_cdrs_recording_media([11], tenant_uuid=MAIN_TENANT)
         response = self.call_logd.cdr.get_by_id(11)['recordings'][0]
         assert_that(response, has_entries(uuid=rec_uuid, deleted=True))
-
-    @call_log(
-        **{'id': 1},
-        tenant_uuid=MAIN_TENANT,
-        recordings=[{'path': '/tmp/foobar.wav'}],
-    )
-    def test_delete_media_using_token_tenant_query_string_multi_cdr(self):
-        cdr_id = 1
-        self.filesystem.create_file('/tmp/foobar.wav', content='my-recording-content')
-        port = self.service_port(9298, 'call-logd')
-        base_url = f'http://localhost:{port}/1.0'
-        api_url = f'{base_url}/cdr/recordings/media'
-
-        params = {'tenant': MAIN_TENANT, 'token': MAIN_TOKEN}
-        response = requests.delete(api_url, json={'cdr_ids': [cdr_id]}, params=params)
-        assert_that(response.status_code, equal_to(204))
-
-        params = {'tenant': SUB_TENANT, 'token': MAIN_TOKEN}
-        response = requests.delete(api_url, json={'cdr_ids': [cdr_id]}, params=params)
-        assert_that(response.status_code, equal_to(404))
