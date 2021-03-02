@@ -51,7 +51,7 @@ paths:
                   type: integer
       responses:
         '204':
-          description: The CDR recording medias were deleted successfully
+          description: The CDRs recording media were deleted successfully
         '404':
           $ref: '#/responses/NotFoundError'
   /cdr/{cdr_id}:
