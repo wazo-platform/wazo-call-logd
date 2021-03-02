@@ -362,12 +362,7 @@ class TestRecording(IntegrationTest):
         response = self.call_logd.cdr.get_recording_media(
             cdr_ids[2], recording4['uuid']
         )
-        expected_filename = recording4['filename']
         assert_that(response.text, equal_to('visible'))
-        assert_that(
-            response.headers['Content-Disposition'],
-            equal_to(f'attachment; filename={expected_filename}'),
-        )
 
     @call_log(**{'id': 1}, recordings=[{'path': '/tmp/foobar.wav'}])
     def test_delete_media_with_invalid_cdr_multi_cdr(self):
