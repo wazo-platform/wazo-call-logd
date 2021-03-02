@@ -197,13 +197,15 @@ class RecordingsMediaResource(RecordingMediaAuthResource):
         args = RecordingMediaDeleteRequestSchema().load(request.get_json(force=True))
         tenant_uuids = self.visible_tenants(True)
         call_log_ids = args['cdr_ids']
+        recordings_to_delete = []
+        # We do not want to delete any recording if one of the CDR has not been found
         for cdr_id in call_log_ids:
             cdr = self.service.find_cdr(cdr_id, tenant_uuids)
             if not cdr:
                 raise CDRNotFoundException(details={'cdr_id': cdr_id})
+            recordings_to_delete.extend(cdr.recordings)
 
-        recordings = self.service.find_all_by(call_log_ids=call_log_ids)
-        for recording in recordings:
+        for recording in recordings_to_delete:
             try:
                 self.service.delete_media(
                     recording.call_log_id, recording.uuid, recording.path
