@@ -1,5 +1,12 @@
 # Changelog
 
+## 21.04
+
+* `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` accept new query string
+  argument:
+
+  * `recorded`
+
 ## 21.03
 
 * New endpoints to delete recording media:

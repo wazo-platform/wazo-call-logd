@@ -574,6 +574,14 @@ class TestListCDR(IntegrationTest):
                 ),
             )
 
+        for wrong_param in wrong_params | {'-1'}:
+            assert_that(
+                calling(self.call_logd.cdr.list).with_args(recorded=wrong_param),
+                raises(CallLogdError).matching(
+                    has_properties(status_code=400, details=has_key('recorded'))
+                ),
+            )
+
     def test_given_error_when_list_cdr_as_csv_then_return_error_in_csv(self):
         assert_that(
             calling(self.call_logd.cdr.list_csv).with_args(from_='wrong'),

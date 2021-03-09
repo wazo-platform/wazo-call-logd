@@ -21,6 +21,7 @@ paths:
       - $ref: '#/parameters/recurse'
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/distinct'
+      - $ref: '#/parameters/recorded'
       responses:
         '200':
           description: List CDR
@@ -129,6 +130,7 @@ paths:
       - $ref: '#/parameters/number'
       - $ref: '#/parameters/from_id'
       - $ref: '#/parameters/distinct'
+      - $ref: '#/parameters/recorded'
       responses:
         '200':
           description: List CDR
@@ -159,6 +161,7 @@ paths:
       - $ref: '#/parameters/from_id'
       - $ref: '#/parameters/user_uuid'
       - $ref: '#/parameters/distinct'
+      - $ref: '#/parameters/recorded'
       responses:
         '200':
           description: List CDR
@@ -276,6 +279,12 @@ parameters:
     required: true
     type: integer
     in: path
+  recorded:
+    name: recorded
+    description: Filter by recorded status.
+    required: false
+    type: boolean
+    in: query
 definitions:
   CDRList:
     type: object
