@@ -8,6 +8,7 @@ from itertools import groupby
 from operator import attrgetter
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd import raw_call_log
+from .participant import find_participant
 
 
 logger = logging.getLogger(__name__)
