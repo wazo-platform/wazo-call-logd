@@ -8,8 +8,7 @@ import logging
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import CallLogParticipant, Recording
-from .participant import find_participant
+from .database.models import Recording
 
 
 logger = logging.getLogger(__name__)
@@ -129,22 +128,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.requested_context = cel.context
         call.destination_exten = cel.exten if cel.exten != 's' else ''
         call.source_line_identity = identity_from_channel(cel.channame)
-        participant = find_participant(self._confd, cel.channame)
-        if participant:
-            call.participants.append(
-                CallLogParticipant(
-                    role='source',
-                    user_uuid=participant['uuid'],
-                    line_id=participant['line_id'],
-                    tags=participant['tags'],
-                )
-            )
-            call.set_tenant_uuid(participant['tenant_uuid'])
-
-            extension = participant['main_extension']
-            if extension:
-                call.source_internal_exten = extension['exten']
-                call.source_internal_context = extension['context']
+        call.raw_participants[cel.channame].update(role='source')
 
         return call
 
@@ -256,26 +240,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             if not call.requested_name:
                 call.requested_name = cel.cid_name
 
-        participant = find_participant(self._confd, cel.channame)
-        if participant:
-            participant_model = CallLogParticipant(
-                role='destination',
-                user_uuid=participant['uuid'],
-                line_id=participant['line_id'],
-                tags=participant['tags'],
-            )
-            call.participants.append(participant_model)
-            call.participants_by_channame[cel.channame] = participant_model
-            call.set_tenant_uuid(participant['tenant_uuid'])
-
-            extension = participant['main_extension']
-            if extension:
-                call.destination_internal_exten = extension['exten']
-                call.destination_internal_context = extension['context']
-
-                if not call.requested_internal_exten:
-                    call.requested_internal_exten = extension['exten']
-                    call.requested_internal_context = extension['context']
+        call.raw_participants[cel.channame].update(role='destination')
 
         return call
 
@@ -290,9 +255,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
-            participant = call.participants_by_channame.get(cel.channame)
-            if participant:
-                participant.answered = True
+            call.raw_participants[cel.channame].update(answered=True)
 
             call.interpret_callee_bridge_enter = False
         return call
@@ -367,17 +330,7 @@ class LocalOriginateCELInterpretor:
         call.source_line_identity = identity_from_channel(
             source_channel_answer.channame
         )
-        participant = find_participant(self._confd, source_channel_answer.channame)
-        if participant:
-            call.participants.append(
-                CallLogParticipant(
-                    role='source',
-                    user_uuid=participant['uuid'],
-                    line_id=participant['line_id'],
-                    tags=participant['tags'],
-                )
-            )
-            call.set_tenant_uuid(participant['tenant_uuid'])
+        call.raw_participants[source_channel_answer.channame].update(role='source')
 
         call.destination_exten = local_channel2_answer.cid_num
 
@@ -441,19 +394,9 @@ class LocalOriginateCELInterpretor:
             call.destination_line_identity = identity_from_channel(
                 destination_channel_answer.channame
             )
-            participant = find_participant(
-                self._confd, destination_channel_answer.channame
+            call.raw_participants[destination_channel_answer.channame].update(
+                role='destination'
             )
-            if participant:
-                call.participants.append(
-                    CallLogParticipant(
-                        role='destination',
-                        user_uuid=participant['uuid'],
-                        line_id=participant['line_id'],
-                        tags=participant['tags'],
-                    )
-                )
-                call.set_tenant_uuid(participant['tenant_uuid'])
             call.date_answer = destination_channel_bridge_enter.eventtime
 
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
