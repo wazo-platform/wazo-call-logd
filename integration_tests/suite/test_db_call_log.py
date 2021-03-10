@@ -18,7 +18,7 @@ from hamcrest import (
 from wazo_call_logd.database.models import CallLog, CallLogParticipant, Recording
 
 from .helpers.base import cdr, DBIntegrationTest
-from .helpers.database import call_log
+from .helpers.database import recording, call_log
 from .helpers.constants import (
     ALICE,
     BOB,
@@ -44,6 +44,20 @@ class TestCallLog(DBIntegrationTest):
             contains_inanyorder(
                 has_properties(id=3),  # The most recent call between Alice and Bob
                 has_properties(id=4),  # The most recent call between Alice and Charles
+            ),
+        )
+
+    @call_log(**{'id': 1})
+    @recording(call_log_id=1, start_time=NOW + 2 * MINUTES)
+    @recording(call_log_id=1, start_time=NOW + 1 * MINUTES)
+    def test_that_recordings_order_is_by_start_time(self, rec1, rec2):
+        params = {}
+        result = self.dao.call_log.find_all_in_period(params)
+        assert_that(
+            result[0].recordings,
+            contains(
+                has_properties(uuid=rec2['uuid']),
+                has_properties(uuid=rec1['uuid']),
             ),
         )
 

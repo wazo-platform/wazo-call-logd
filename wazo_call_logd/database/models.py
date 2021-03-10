@@ -64,7 +64,11 @@ class CallLog(Base):
     direction = Column(String(255))
     user_field = Column(String(255))
 
-    recordings = relationship('Recording', cascade='all,delete-orphan')
+    recordings = relationship(
+        'Recording',
+        order_by='Recording.start_time',
+        cascade='all,delete-orphan',
+    )
     participants = relationship('CallLogParticipant', cascade='all,delete-orphan')
     participant_user_uuids = association_proxy('participants', 'user_uuid')
 
