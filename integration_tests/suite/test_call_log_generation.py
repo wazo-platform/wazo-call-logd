@@ -4,10 +4,13 @@
 from datetime import datetime
 from hamcrest import (
     assert_that,
+    all_of,
     contains_inanyorder,
     empty,
     has_entries,
+    has_item,
     has_key,
+    has_length,
     has_properties,
     is_,
     not_,
@@ -1113,5 +1116,84 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 source_line_identity='pjsip/svlhxtj3',
                 destination_line_identity='pjsip/o7r761lt',
                 destination_user_uuid=USER_2_UUID,
+            ),
+        )
+
+    @raw_cels(
+        '''\
+   eventtype   |           eventtime           |           channame           |    uniqueid    |    linkedid
+--------------+-------------------------------+------------------------------+----------------+----------------
+ CHAN_START   | 2021-03-10 15:52:46.207359-05 | SCCP/101-0000000b            | 1615409566.206 | 1615409566.206
+ CHAN_START   | 2021-03-10 15:52:46.427365-05 | Local/104@default-0000004f;1 | 1615409566.207 | 1615409566.206
+ CHAN_START   | 2021-03-10 15:52:46.427441-05 | Local/104@default-0000004f;2 | 1615409566.208 | 1615409566.206
+ CHAN_START   | 2021-03-10 15:52:46.869701-05 | PJSIP/mvkph8he-00000025      | 1615409566.209 | 1615409566.206
+ WAZO_USER    | 2021-03-10 15:52:46.873033-05 | PJSIP/mvkph8he-00000025      | 1615409566.209 | 1615409566.206
+ CHAN_END     | 2021-03-10 15:53:01.501216-05 | Local/104@default-0000004f;1 | 1615409566.207 | 1615409566.206
+ HANGUP       | 2021-03-10 15:53:01.501216-05 | Local/104@default-0000004f;1 | 1615409566.207 | 1615409566.206
+ HANGUP       | 2021-03-10 15:53:01.503904-05 | Local/104@default-0000004f;2 | 1615409566.208 | 1615409566.206
+ CHAN_END     | 2021-03-10 15:53:01.503904-05 | Local/104@default-0000004f;2 | 1615409566.208 | 1615409566.206
+ CHAN_END     | 2021-03-10 15:53:01.506432-05 | PJSIP/mvkph8he-00000025      | 1615409566.209 | 1615409566.206
+ HANGUP       | 2021-03-10 15:53:01.506432-05 | PJSIP/mvkph8he-00000025      | 1615409566.209 | 1615409566.206
+ CHAN_START   | 2021-03-10 15:53:06.501732-05 | Local/104@default-00000050;1 | 1615409586.210 | 1615409566.206
+ CHAN_START   | 2021-03-10 15:53:06.501859-05 | Local/104@default-00000050;2 | 1615409586.211 | 1615409566.206
+ CHAN_START   | 2021-03-10 15:53:06.792964-05 | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ WAZO_USER    | 2021-03-10 15:53:06.796245-05 | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ ANSWER       | 2021-03-10 15:53:08.641888-05 | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ ANSWER       | 2021-03-10 15:53:08.642619-05 | Local/104@default-00000050;2 | 1615409586.211 | 1615409566.206
+ ANSWER       | 2021-03-10 15:53:08.645208-05 | Local/104@default-00000050;1 | 1615409586.210 | 1615409566.206
+ BRIDGE_ENTER | 2021-03-10 15:53:08.651079-05 | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ BRIDGE_ENTER | 2021-03-10 15:53:08.651592-05 | Local/104@default-00000050;2 | 1615409586.211 | 1615409566.206
+ ANSWER       | 2021-03-10 15:53:09.258801-05 | SCCP/101-0000000b            | 1615409566.206 | 1615409566.206
+ BRIDGE_ENTER | 2021-03-10 15:53:09.260174-05 | Local/104@default-00000050;1 | 1615409586.210 | 1615409566.206
+ BRIDGE_ENTER | 2021-03-10 15:53:09.261166-05 | SCCP/101-0000000b            | 1615409566.206 | 1615409566.206
+ BRIDGE_EXIT  | 2021-03-10 15:53:09.275335-05 | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ BRIDGE_EXIT  | 2021-03-10 15:53:09.275506-05 | Local/104@default-00000050;1 | 1615409586.210 | 1615409566.206
+ BRIDGE_ENTER | 2021-03-10 15:53:09.275531-05 | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ CHAN_END     | 2021-03-10 15:53:09.276109-05 | Local/104@default-00000050;1 | 1615409586.210 | 1615409566.206
+ HANGUP       | 2021-03-10 15:53:09.276109-05 | Local/104@default-00000050;1 | 1615409586.210 | 1615409566.206
+ BRIDGE_EXIT  | 2021-03-10 15:53:09.277653-05 | Local/104@default-00000050;2 | 1615409586.211 | 1615409566.206
+ HANGUP       | 2021-03-10 15:53:09.277997-05 | Local/104@default-00000050;2 | 1615409586.211 | 1615409566.206
+ CHAN_END     | 2021-03-10 15:53:09.277997-05 | Local/104@default-00000050;2 | 1615409586.211 | 1615409566.206
+ BRIDGE_EXIT  | 2021-03-10 15:53:10.292963-05 | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ BRIDGE_EXIT  | 2021-03-10 15:53:10.294797-05 | SCCP/101-0000000b            | 1615409566.206 | 1615409566.206
+ HANGUP       | 2021-03-10 15:53:10.29554-05  | SCCP/101-0000000b            | 1615409566.206 | 1615409566.206
+ CHAN_END     | 2021-03-10 15:53:10.29554-05  | SCCP/101-0000000b            | 1615409566.206 | 1615409566.206
+ CHAN_END     | 2021-03-10 15:53:10.29859-05  | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ HANGUP       | 2021-03-10 15:53:10.29859-05  | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+ LINKEDID_END | 2021-03-10 15:53:10.29859-05  | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
+    '''
+    )
+    def test_group_call_has_no_duplicate_participant(self):
+        self.confd.set_users(
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='101',
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '101', 'context': 'default'}],
+            ),
+            MockLine(
+                id=2,
+                name='mvkph8he',
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '102', 'context': 'default'}],
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
+        )
+
+        self._assert_last_call_log_matches(
+            '1615409566.206',
+            has_properties(
+                participants=all_of(
+                    has_length(2),
+                    has_item(has_properties(user_uuid=USER_2_UUID, answered=True)),
+                )
             ),
         )

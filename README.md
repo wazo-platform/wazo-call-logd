@@ -9,3 +9,12 @@ wazo-call-logd is a service for collecting statistics on calls made on a Wazo se
 ```shell
 tox --recreate -e py37
 ```
+
+## Developing integration tests
+
+To extract CELs of the latest call from a real Wazo Platform instance and insert
+them into an integration test:
+
+```
+sudo -u postgres psql asterisk -c "select eventtype,eventtime,channame,uniqueid,linkedid from cel where linkedid = (select max(linkedid) from cel) order by eventtime"
+```
