@@ -103,7 +103,7 @@ class AbstractCELInterpretor:
 
 
 class CallerCELInterpretor(AbstractCELInterpretor):
-    def __init__(self, confd):
+    def __init__(self):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.chan_end: self.interpret_chan_end,
@@ -118,7 +118,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
             CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
         }
-        self._confd = confd
 
     def interpret_chan_start(self, cel, call):
         call.date = cel.eventtime
@@ -217,7 +216,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
 
 class CalleeCELInterpretor(AbstractCELInterpretor):
-    def __init__(self, confd):
+    def __init__(self):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.chan_end: self.interpret_chan_end,
@@ -226,7 +225,6 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             CELEventType.mixmonitor_start: self.interpret_mixmonitor_start,
             CELEventType.mixmonitor_stop: self.interpret_mixmonitor_stop,
         }
-        self._confd = confd
 
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
@@ -285,9 +283,6 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
 
 class LocalOriginateCELInterpretor:
-    def __init__(self, confd):
-        self._confd = confd
-
     def interpret_cels(self, cels, call):
         uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
         try:

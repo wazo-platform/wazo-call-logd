@@ -71,10 +71,8 @@ def _generate_call_logs():
     generator = CallLogsGenerator(
         confd_client,
         [
-            LocalOriginateCELInterpretor(confd_client),
-            DispatchCELInterpretor(
-                CallerCELInterpretor(confd_client), CalleeCELInterpretor(confd_client)
-            ),
+            LocalOriginateCELInterpretor(),
+            DispatchCELInterpretor(CallerCELInterpretor(), CalleeCELInterpretor()),
         ],
     )
     token_renewer.subscribe_to_next_token_details_change(

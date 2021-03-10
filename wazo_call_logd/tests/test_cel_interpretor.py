@@ -25,16 +25,6 @@ from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog
 
 
-def confd_mock(lines=None):
-    lines = lines or []
-    confd = Mock()
-    confd.lines.list.return_value = {'items': lines}
-    confd.users.get.return_value = (
-        lines[0]['users'][0] if lines and lines[0].get('users') else None
-    )
-    return confd
-
-
 class TestExtractMixmonitorExtra:
     def test_valid_extra(self):
         extra = '{"key": "value", "key2": "value2"}'
@@ -197,7 +187,7 @@ class TestAbstractCELInterpretor(TestCase):
 
 class TestCallerCELInterpretor(TestCase):
     def setUp(self):
-        self.caller_cel_interpretor = CallerCELInterpretor(confd_mock())
+        self.caller_cel_interpretor = CallerCELInterpretor()
 
     def test_interpret_cel_unknown_or_ignored_event(self):
         cel = Mock(eventtype='unknown_or_ignored_eventtype')
