@@ -178,6 +178,12 @@ class CallLogDAO(BaseDAO):
         if params.get('start_id'):
             query = query.filter(CallLog.id >= params['start_id'])
 
+        if params.get('recorded'):
+            if params['recorded'] is True:
+                query = query.filter(CallLog.recordings != None)  # noqa
+            elif params['recorded'] is False:
+                query = query.filter(CallLog.recordings == None)  # noqa
+
         return query
 
     def create_from_list(self, call_logs):

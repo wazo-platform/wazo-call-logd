@@ -1078,6 +1078,42 @@ class TestListCDR(IntegrationTest):
             ),
         )
 
+    @call_log(
+        **{'id': 1},
+        recordings=[{'path': '/tmp/foobar.wav'}],
+    )
+    @call_log(**{'id': 2})
+    @call_log(
+        **{'id': 3},
+        recordings=[{'path': '/tmp/foobar2.wav'}],
+    )
+    def test_given_call_logs_when_list_cdr_recorded_filter_then_list_recorded(self):
+        results = self.call_logd.cdr.list(recorded=True)
+        assert_that(
+            results,
+            has_entries(
+                filtered=2,
+                total=3,
+                items=contains_inanyorder(
+                    has_entries(id=1),
+                    has_entries(id=3),
+                ),
+            ),
+        )
+
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
+    def test_given_call_logs_when_list_cdr_recorded_filter_but_no_calls_recorded(self):
+        results = self.call_logd.cdr.list(recorded=True)
+        assert_that(
+            results,
+            has_entries(
+                filtered=0,
+                total=2,
+                items=empty(),
+            ),
+        )
+
     @call_log(date='2017-04-10', date_answer='2017-04-10', date_end='2017-04-09')
     def test_negative_duration_then_duration_is_zero(self):
         result = self.call_logd.cdr.list()
@@ -1105,6 +1141,35 @@ class TestListCDR(IntegrationTest):
                 items=contains_exactly(
                     has_entries(start='2017-04-13T00:00:00+00:00'),
                     has_entries(start='2017-04-12T00:00:00+00:00'),
+                ),
+            ),
+        )
+
+    @call_log(
+        **{'id': 1},
+        recordings=[{'path': '/tmp/foobar.wav'}],
+        participants=[{'user_uuid': USER_1_UUID}],
+    )
+    @call_log(
+        **{'id': 2},
+        participants=[{'user_uuid': USER_1_UUID}],
+    )
+    @call_log(
+        **{'id': 3},
+        recordings=[{'path': '/tmp/foobar2.wav'}],
+        participants=[{'user_uuid': USER_2_UUID}],
+    )
+    def test_given_call_logs_when_list_cdr_of_user_recorded_filter_then_list_recorded(
+        self,
+    ):
+        results = self.call_logd.cdr.list_for_user(USER_1_UUID, recorded=True)
+        assert_that(
+            results,
+            has_entries(
+                filtered=1,
+                total=3,
+                items=contains_inanyorder(
+                    has_entries(id=1),
                 ),
             ),
         )
@@ -1224,6 +1289,68 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             all_of(has_entry('total', 1100), has_entry('items', has_length(1000))),
+        )
+
+    @call_log(
+        **{'id': 1},
+        recordings=[{'path': '/tmp/foobar.wav'}],
+        participants=[{'user_uuid': USER_1_UUID}],
+    )
+    @call_log(**{'id': 2}, participants=[{'user_uuid': USER_1_UUID}])
+    @call_log(
+        **{'id': 3},
+        recordings=[{'path': '/tmp/foobar2.wav'}],
+        participants=[{'user_uuid': USER_1_UUID}],
+    )
+    def test_given_call_logs_when_list_my_cdr_recorded_filter_then_list_my_recorded_cdr(
+        self,
+    ):
+        SOME_TOKEN = 'my-token'
+        self.auth.set_token(
+            MockUserToken(
+                SOME_TOKEN,
+                user_uuid=USER_1_UUID,
+                metadata={"tenant_uuid": MASTER_TENANT},
+            )
+        )
+
+        self.call_logd.set_token(SOME_TOKEN)
+        results = self.call_logd.cdr.list_from_user(recorded=True)
+        assert_that(
+            results,
+            has_entries(
+                filtered=2,
+                total=3,
+                items=contains_inanyorder(
+                    has_entries(id=1),
+                    has_entries(id=3),
+                ),
+            ),
+        )
+
+    @call_log(**{'id': 1}, participants=[{'user_uuid': USER_1_UUID}])
+    @call_log(**{'id': 2}, participants=[{'user_uuid': USER_1_UUID}])
+    def test_given_call_logs_when_list_my_cdr_recorded_filter_but_no_recorded_calls(
+        self,
+    ):
+        SOME_TOKEN = 'my-token'
+        self.auth.set_token(
+            MockUserToken(
+                SOME_TOKEN,
+                user_uuid=USER_1_UUID,
+                metadata={"tenant_uuid": MASTER_TENANT},
+            )
+        )
+
+        self.call_logd.set_token(SOME_TOKEN)
+        results = self.call_logd.cdr.list_from_user(recorded=True)
+        assert_that(
+            results,
+            has_entries(
+                filtered=0,
+                total=2,
+                items=empty(),
+            ),
         )
 
     @call_log(
