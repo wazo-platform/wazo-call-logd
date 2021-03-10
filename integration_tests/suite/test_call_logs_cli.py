@@ -8,7 +8,7 @@ from datetime import (
 
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     contains_string,
     empty,
@@ -275,7 +275,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
         self.docker_exec(['wazo-call-logs', 'delete', '--days', '1'])
 
         result = self.session.query(CallLog).all()
-        assert_that(result, contains(has_properties(id=2)))
+        assert_that(result, contains_exactly(has_properties(id=2)))
 
         result = self.session.query(Recording).all()
-        assert_that(result, contains(has_properties(call_log_id=2)))
+        assert_that(result, contains_exactly(has_properties(call_log_id=2)))

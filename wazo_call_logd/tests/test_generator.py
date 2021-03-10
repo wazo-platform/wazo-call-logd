@@ -6,7 +6,7 @@ from unittest import TestCase
 from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import calling
-from hamcrest import contains
+from hamcrest import contains_exactly
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_property
@@ -63,7 +63,7 @@ class TestCallLogsGenerator(TestCase):
         result = self.generator.call_logs_from_cel(cels)
 
         self.interpretor.interpret_cels.assert_called_once_with(cels, call)
-        assert_that(result, contains(expected_call))
+        assert_that(result, contains_exactly(expected_call))
 
     @patch('wazo_call_logd.raw_call_log.RawCallLog')
     def test_call_logs_from_cel_two_calls(self, raw_call_log_constructor):
@@ -101,7 +101,7 @@ class TestCallLogsGenerator(TestCase):
 
         self.interpretor.interpret_cels.assert_any_call(cels_1, ANY)
         self.interpretor.interpret_cels.assert_any_call(cels_2, ANY)
-        assert_that(result, contains(expected_call_1))
+        assert_that(result, contains_exactly(expected_call_1))
 
     def test_list_call_log_ids(self):
         cel_1, cel_2 = Mock(call_log_id=1), Mock(call_log_id=1)

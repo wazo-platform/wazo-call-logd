@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     equal_to,
     has_entries,
     none,
@@ -94,7 +94,7 @@ class TestCELDispatcher(TestCase):
 
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 
-        assert_that(result, contains(contains(), contains()))
+        assert_that(result, contains_exactly(contains_exactly(), contains_exactly()))
 
     def test_split_caller_callee_cels_1_uniqueid(self):
         cels = cel_1, cel_2 = [
@@ -104,7 +104,9 @@ class TestCELDispatcher(TestCase):
 
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 
-        assert_that(result, contains(contains(cel_1, cel_2), contains()))
+        assert_that(
+            result, contains_exactly(contains_exactly(cel_1, cel_2), contains_exactly())
+        )
 
     def test_split_caller_callee_cels_2_uniqueids(self):
         cels = cel_1, cel_2, cel_3, cel_4 = [
@@ -116,7 +118,12 @@ class TestCELDispatcher(TestCase):
 
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 
-        assert_that(result, contains(contains(cel_1, cel_3), contains(cel_2, cel_4)))
+        assert_that(
+            result,
+            contains_exactly(
+                contains_exactly(cel_1, cel_3), contains_exactly(cel_2, cel_4)
+            ),
+        )
 
     def test_split_caller_callee_cels_3_uniqueids(self):
         cels = cel_1, cel_2, cel_3 = [
@@ -127,7 +134,10 @@ class TestCELDispatcher(TestCase):
 
         result = self.cel_dispatcher.split_caller_callee_cels(cels)
 
-        assert_that(result, contains(contains(cel_1), contains(cel_2, cel_3)))
+        assert_that(
+            result,
+            contains_exactly(contains_exactly(cel_1), contains_exactly(cel_2, cel_3)),
+        )
 
 
 class TestAbstractCELInterpretor(TestCase):
