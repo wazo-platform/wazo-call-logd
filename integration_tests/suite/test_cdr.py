@@ -1100,6 +1100,17 @@ class TestListCDR(IntegrationTest):
                 ),
             ),
         )
+        results = self.call_logd.cdr.list(recorded=False)
+        assert_that(
+            results,
+            has_entries(
+                filtered=1,
+                total=3,
+                items=contains_inanyorder(
+                    has_entries(id=2),
+                ),
+            ),
+        )
 
     @call_log(date='2017-04-10', date_answer='2017-04-10', date_end='2017-04-09')
     def test_negative_duration_then_duration_is_zero(self):
@@ -1157,6 +1168,17 @@ class TestListCDR(IntegrationTest):
                 total=3,
                 items=contains_inanyorder(
                     has_entries(id=1),
+                ),
+            ),
+        )
+        results = self.call_logd.cdr.list_for_user(USER_1_UUID, recorded=False)
+        assert_that(
+            results,
+            has_entries(
+                filtered=1,
+                total=3,
+                items=contains_inanyorder(
+                    has_entries(id=2),
                 ),
             ),
         )
@@ -1311,6 +1333,17 @@ class TestListCDR(IntegrationTest):
                 items=contains_inanyorder(
                     has_entries(id=1),
                     has_entries(id=3),
+                ),
+            ),
+        )
+        results = self.call_logd.cdr.list_from_user(recorded=False)
+        assert_that(
+            results,
+            has_entries(
+                filtered=1,
+                total=3,
+                items=contains_inanyorder(
+                    has_entries(id=2),
                 ),
             ),
         )
