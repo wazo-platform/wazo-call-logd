@@ -1309,7 +1309,7 @@ class TestListCDR(IntegrationTest):
     @call_log(
         **{'id': 3},
         recordings=[{'path': '/tmp/foobar2.wav'}],
-        participants=[{'user_uuid': USER_1_UUID}],
+        participants=[{'user_uuid': USER_2_UUID}],
     )
     def test_given_call_logs_when_list_my_cdr_recorded_filter_then_list_my_recorded_cdr(
         self,
@@ -1328,11 +1328,10 @@ class TestListCDR(IntegrationTest):
         assert_that(
             results,
             has_entries(
-                filtered=2,
-                total=3,
+                filtered=1,
+                total=2,
                 items=contains_inanyorder(
                     has_entries(id=1),
-                    has_entries(id=3),
                 ),
             ),
         )
@@ -1341,7 +1340,7 @@ class TestListCDR(IntegrationTest):
             results,
             has_entries(
                 filtered=1,
-                total=3,
+                total=2,
                 items=contains_inanyorder(
                     has_entries(id=2),
                 ),
