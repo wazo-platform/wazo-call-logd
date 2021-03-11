@@ -69,10 +69,10 @@ class TestCallLog(DBIntegrationTest):
         result = self.dao.call_log.find_all_in_period(params)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_properties(
                     id=1,
-                    recordings=contains(has_properties(uuid=rec1['uuid'])),
+                    recordings=contains_exactly(has_properties(uuid=rec1['uuid'])),
                 ),
             ),
         )
@@ -80,7 +80,7 @@ class TestCallLog(DBIntegrationTest):
         result = self.dao.call_log.find_all_in_period(params)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_properties(
                     id=2,
                     recordings=empty(),
