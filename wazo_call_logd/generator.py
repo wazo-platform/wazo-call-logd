@@ -8,6 +8,10 @@ from itertools import groupby
 from operator import attrgetter
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd import raw_call_log
+from xivo.asterisk.protocol_interface import protocol_interface_from_channel
+
+from .participant import find_participant
+from .database.models import CallLogParticipant
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +48,10 @@ class CallLogsGenerator:
             interpretor = self._get_interpretor(cels_by_call)
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
 
+            self._remove_duplicate_participants(call_log)
+            self._fetch_participants(self.confd, call_log)
             self._ensure_tenant_uuid_is_set(call_log)
+            self._fill_extensions_from_participants(call_log)
             self._remove_incomplete_recordings(call_log)
 
             try:
@@ -70,7 +77,44 @@ class CallLogsGenerator:
             'Could not find suitable interpretor in {}'.format(self._cel_interpretors)
         )
 
+    def _remove_duplicate_participants(self, call_log):
+        channel_names = call_log.raw_participants.keys()
+        channel_names = sorted(channel_names)
+        for _, line_channel_names in groupby(
+            channel_names, protocol_interface_from_channel
+        ):
+            duplicate_channel_names = tuple(line_channel_names)[:-1]
+            for duplicate_channel_name in duplicate_channel_names:
+                call_log.raw_participants.pop(duplicate_channel_name, None)
+
+    def _fetch_participants(self, confd, call_log):
+        call_log.participants = []
+        for channel_name, raw_attributes in call_log.raw_participants.items():
+            confd_participant = find_participant(confd, channel_name)
+            if not confd_participant:
+                continue
+            raw_attributes.update(**confd_participant)
+            answered = {}
+            if 'answered' in raw_attributes:
+                answered['answered'] = raw_attributes['answered']
+            participant_model = CallLogParticipant(
+                user_uuid=confd_participant['uuid'],
+                line_id=confd_participant['line_id'],
+                tags=confd_participant['tags'],
+                role=raw_attributes['role'],
+                **answered,
+            )
+            call_log.participants.append(participant_model)
+
     def _ensure_tenant_uuid_is_set(self, call_log):
+        tenant_uuids = {
+            raw_participant['tenant_uuid']
+            for raw_participant in call_log.raw_participants.values()
+            if raw_participant.get('tenant_uuid')
+        }
+        for tenant_uuid in tenant_uuids:
+            call_log.set_tenant_uuid(tenant_uuid)
+
         if not call_log.tenant_uuid:
             # NOTE(sileht): requested_context
             if call_log.requested_context:
@@ -88,6 +132,46 @@ class CallLogsGenerator:
                 self._service_tenant_uuid,
             )
             call_log.set_tenant_uuid(self._service_tenant_uuid)
+
+    def _fill_extensions_from_participants(self, call_log):
+        source_participants = (
+            participant
+            for participant in call_log.raw_participants.values()
+            if participant['role'] == 'source'
+        )
+        for source_participant in source_participants:
+            extension = source_participant.get('main_extension')
+            if not extension:
+                continue
+            if not (
+                call_log.source_internal_exten and call_log.source_internal_context
+            ):
+                call_log.source_internal_exten = extension['exten']
+                call_log.source_internal_context = extension['context']
+
+        destination_participants = (
+            participant
+            for participant in call_log.raw_participants.values()
+            if participant['role'] == 'destination'
+        )
+        for destination_participant in destination_participants:
+            extension = destination_participant.get('main_extension')
+            if not extension:
+                continue
+
+            if not (
+                call_log.destination_internal_exten
+                and call_log.destination_internal_context
+            ):
+                call_log.destination_internal_exten = extension['exten']
+                call_log.destination_internal_context = extension['context']
+
+            if not (
+                call_log.requested_internal_exten
+                and call_log.requested_internal_context
+            ):
+                call_log.requested_internal_exten = extension['exten']
+                call_log.requested_internal_context = extension['context']
 
     def _remove_incomplete_recordings(self, call_log):
         new_recordings = []

@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
@@ -6,7 +6,7 @@ import pytz
 from datetime import datetime
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
 )
 from unittest import TestCase
 
@@ -32,7 +32,7 @@ class TestSupportCenterService(TestCase):
         result = [(d1.isoformat(), d2.isoformat()) for d1, d2 in intervals]
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 (
                     '2020-10-10T00:00:00-04:00',
                     '2020-10-11T00:00:00-04:00',
@@ -59,7 +59,7 @@ class TestSupportCenterService(TestCase):
         result = [(d1.isoformat(), d2.isoformat()) for d1, d2 in intervals]
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 (
                     '2020-10-31T23:00:00-04:00',
                     '2020-11-01T00:00:00-04:00',
@@ -86,7 +86,7 @@ class TestSupportCenterService(TestCase):
         result = [(d1.isoformat(), d2.isoformat()) for d1, d2 in intervals]
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 (
                     '2020-10-31T00:00:00-04:00',
                     '2020-11-01T00:00:00-04:00',
@@ -109,7 +109,7 @@ class TestSupportCenterService(TestCase):
         result = [(d1.isoformat(), d2.isoformat()) for d1, d2 in intervals]
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 (
                     '2020-10-01T00:00:00-04:00',
                     '2020-11-01T00:00:00-04:00',
@@ -132,7 +132,7 @@ class TestSupportCenterService(TestCase):
         result = [(d1.isoformat(), d2.isoformat()) for d1, d2 in intervals]
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 (
                     '2020-03-07T23:00:00-05:00',
                     '2020-03-08T00:00:00-05:00',
@@ -163,7 +163,7 @@ class TestSupportCenterService(TestCase):
         result = [(d1.isoformat(), d2.isoformat()) for d1, d2 in intervals]
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 (
                     '2020-03-07T00:00:00-05:00',
                     '2020-03-08T00:00:00-05:00',
@@ -186,7 +186,7 @@ class TestSupportCenterService(TestCase):
         result = [(d1.isoformat(), d2.isoformat()) for d1, d2 in intervals]
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 (
                     '2020-03-01T00:00:00-05:00',
                     '2020-04-01T00:00:00-04:00',
@@ -202,7 +202,7 @@ class TestSupportCenterService(TestCase):
         intervals = list(self.service._generate_qos_interval([]))
         assert_that(
             intervals,
-            contains(
+            contains_exactly(
                 (0, None),
             ),
         )
@@ -211,7 +211,7 @@ class TestSupportCenterService(TestCase):
         intervals = list(self.service._generate_qos_interval([1]))
         assert_that(
             intervals,
-            contains(
+            contains_exactly(
                 (0, 1),
                 (1, None),
             ),
@@ -221,7 +221,7 @@ class TestSupportCenterService(TestCase):
         intervals = list(self.service._generate_qos_interval([1, 2, 3, 4]))
         assert_that(
             intervals,
-            contains(
+            contains_exactly(
                 (0, 1),
                 (1, 2),
                 (2, 3),

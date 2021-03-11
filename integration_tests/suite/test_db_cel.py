@@ -4,7 +4,7 @@
 from datetime import timedelta as td
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     empty,
     has_property,
@@ -120,7 +120,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(limit=2)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel2['id']),
                 has_property('id', cel3['id']),
             ),
@@ -132,7 +132,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(limit=10)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
             ),
@@ -146,7 +146,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(limit=1)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
             ),
@@ -162,7 +162,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(limit=2)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
                 has_property('id', cel3['id']),
@@ -186,7 +186,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(limit=10)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel3['id']),
                 has_property('id', cel4['id']),
             ),
@@ -202,7 +202,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(limit=10)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
                 has_property('id', cel3['id']),
@@ -236,7 +236,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_from_linked_id('666')
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel2['id']),
                 has_property('id', cel1['id']),
                 has_property('id', cel3['id']),
@@ -256,7 +256,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(older=older)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel2['id']),
                 has_property('id', cel3['id']),
             ),
@@ -269,7 +269,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(older=older)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
             ),
@@ -284,7 +284,7 @@ class TestCEL(DBIntegrationTest):
         result = self.dao.cel.find_last_unprocessed(older=older)
         assert_that(
             result,
-            contains(
+            contains_exactly(
                 has_property('id', cel1['id']),
                 has_property('id', cel2['id']),
             ),

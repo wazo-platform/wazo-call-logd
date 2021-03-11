@@ -6,7 +6,7 @@ from unittest import TestCase
 from hamcrest import all_of
 from hamcrest import assert_that
 from hamcrest import calling
-from hamcrest import contains
+from hamcrest import contains_exactly
 from hamcrest import contains_inanyorder
 from hamcrest import equal_to
 from hamcrest import has_property
@@ -55,7 +55,7 @@ class TestCallLogsGenerator(TestCase):
     def test_call_logs_from_cel_one_call(self, raw_call_log_constructor):
         linkedid = '9328742934'
         cels = self._generate_cel_for_call([linkedid])
-        call = Mock(recordings=[])
+        call = Mock(raw_participants={}, recordings=[])
         self.interpretor.interpret_cels.return_value = call
         raw_call_log_constructor.return_value = call
         expected_call = call.to_call_log.return_value
@@ -63,15 +63,15 @@ class TestCallLogsGenerator(TestCase):
         result = self.generator.call_logs_from_cel(cels)
 
         self.interpretor.interpret_cels.assert_called_once_with(cels, call)
-        assert_that(result, contains(expected_call))
+        assert_that(result, contains_exactly(expected_call))
 
     @patch('wazo_call_logd.raw_call_log.RawCallLog')
     def test_call_logs_from_cel_two_calls(self, raw_call_log_constructor):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1 = Mock(recordings=[])
-        call_2 = Mock(recordings=[])
+        call_1 = Mock(raw_participants={}, recordings=[])
+        call_2 = Mock(raw_participants={}, recordings=[])
         self.interpretor.interpret_cels.side_effect = [call_1, call_2]
         raw_call_log_constructor.side_effect = [call_1, call_2]
         expected_call_1 = call_1.to_call_log.return_value
@@ -90,8 +90,8 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1 = Mock(recordings=[])
-        call_2 = Mock(recordings=[])
+        call_1 = Mock(raw_participants={}, recordings=[])
+        call_2 = Mock(raw_participants={}, recordings=[])
         self.interpretor.interpret_cels.side_effect = [call_1, call_2]
         raw_call_log_constructor.side_effect = [call_1, call_2]
         expected_call_1 = call_1.to_call_log.return_value
@@ -101,7 +101,7 @@ class TestCallLogsGenerator(TestCase):
 
         self.interpretor.interpret_cels.assert_any_call(cels_1, ANY)
         self.interpretor.interpret_cels.assert_any_call(cels_2, ANY)
-        assert_that(result, contains(expected_call_1))
+        assert_that(result, contains_exactly(expected_call_1))
 
     def test_list_call_log_ids(self):
         cel_1, cel_2 = Mock(call_log_id=1), Mock(call_log_id=1)
@@ -119,8 +119,12 @@ class TestCallLogsGenerator(TestCase):
         interpretor_true_1.can_interpret.return_value = True
         interpretor_true_2.can_interpret.return_value = True
         interpretor_false.can_interpret.return_value = False
-        interpretor_true_1.interpret_cels.return_value = Mock(recordings=[])
-        interpretor_true_2.interpret_cels.return_value = Mock(recordings=[])
+        interpretor_true_1.interpret_cels.return_value = Mock(
+            raw_participants={}, recordings=[]
+        )
+        interpretor_true_2.interpret_cels.return_value = Mock(
+            raw_participants={}, recordings=[]
+        )
         generator = CallLogsGenerator(
             self.confd_client,
             [

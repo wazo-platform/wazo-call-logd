@@ -3,6 +3,7 @@
 
 import logging
 
+from collections import defaultdict
 from wazo_call_logd.database.models import CallLog
 
 from wazo_call_logd.exceptions import InvalidCallLogException
@@ -32,6 +33,7 @@ class RawCallLog:
         self.date_answer = None
         self.source_line_identity = None
         self.direction = 'internal'
+        self.raw_participants = defaultdict(dict)
         self.participants = []
         self.participants_by_channame = {}
         self.recordings = []

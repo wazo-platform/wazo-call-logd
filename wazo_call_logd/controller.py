@@ -35,10 +35,10 @@ class Controller:
         generator = CallLogsGenerator(
             confd_client,
             [
-                LocalOriginateCELInterpretor(confd_client),
+                LocalOriginateCELInterpretor(),
                 DispatchCELInterpretor(
-                    CallerCELInterpretor(confd_client),
-                    CalleeCELInterpretor(confd_client),
+                    CallerCELInterpretor(),
+                    CalleeCELInterpretor(),
                 ),
             ],
         )

@@ -7,7 +7,7 @@ from datetime import (
 )
 from hamcrest import (
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     has_entries,
     has_length,
@@ -55,7 +55,7 @@ class TestCallLog(DBIntegrationTest):
         result = self.dao.call_log.find_all_in_period(params)
         assert_that(
             result[0].recordings,
-            contains(
+            contains_exactly(
                 has_properties(uuid=rec2['uuid']),
                 has_properties(uuid=rec1['uuid']),
             ),
@@ -110,7 +110,7 @@ class TestCallLog(DBIntegrationTest):
         self.dao.call_log.delete_from_list([id_1, id_3])
 
         result = self.session.query(CallLog).all()
-        assert_that(result, contains(has_property('id', id_2)))
+        assert_that(result, contains_exactly(has_property('id', id_2)))
 
     @call_log(**cdr(id_=1))
     @call_log(**cdr(id_=2))
@@ -129,4 +129,4 @@ class TestCallLog(DBIntegrationTest):
         self.dao.call_log.delete(older=older)
 
         result = self.session.query(CallLog).all()
-        assert_that(result, contains(has_property('id', 2)))
+        assert_that(result, contains_exactly(has_property('id', 2)))

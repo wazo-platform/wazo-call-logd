@@ -9,7 +9,7 @@ from hamcrest import (
     any_of,
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     equal_to,
     empty,
@@ -647,7 +647,7 @@ class TestListCDR(IntegrationTest):
             result_start_asc,
             has_entry(
                 'items',
-                contains(
+                contains_exactly(
                     has_entries(start='2017-04-10T00:00:00+00:00'),
                     has_entries(start='2017-04-11T00:00:00+00:00'),
                     has_entries(start='2017-04-12T00:00:00+00:00'),
@@ -659,7 +659,7 @@ class TestListCDR(IntegrationTest):
             result_start_desc,
             has_entry(
                 'items',
-                contains(
+                contains_exactly(
                     has_entries(start='2017-04-12T00:00:00+00:00'),
                     has_entries(start='2017-04-11T00:00:00+00:00'),
                     has_entries(start='2017-04-10T00:00:00+00:00'),
@@ -671,7 +671,7 @@ class TestListCDR(IntegrationTest):
             result_duration,
             has_entry(
                 'items',
-                contains(
+                contains_exactly(
                     has_entries(duration=0),
                     has_entries(duration=1),
                     has_entries(duration=2),
@@ -692,7 +692,7 @@ class TestListCDR(IntegrationTest):
 
         assert_that(
             duration_asc['items'],
-            contains(
+            contains_exactly(
                 has_entries(duration=None),
                 has_entries(duration=1),
                 has_entries(duration=2),
@@ -700,7 +700,7 @@ class TestListCDR(IntegrationTest):
         )
         assert_that(
             duration_desc['items'],
-            contains(
+            contains_exactly(
                 has_entries(duration=2),
                 has_entries(duration=1),
                 has_entries(duration=None),
@@ -719,7 +719,9 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result_paginated,
             has_entries(
-                filtered=3, total=3, items=contains(result_unpaginated['items'][1])
+                filtered=3,
+                total=3,
+                items=contains_exactly(result_unpaginated['items'][1]),
             ),
         )
 
@@ -764,7 +766,7 @@ class TestListCDR(IntegrationTest):
     def test_search_by_filename(self):
         expected = self.call_logd.cdr.list()['items'][0]
         result = self.call_logd.cdr.list(search=expected['recordings'][0]['filename'])
-        assert_that(result, has_entries(items=contains(expected)))
+        assert_that(result, has_entries(items=contains_exactly(expected)))
 
     @call_logs(number=1100)
     def test_list_default_limit(self):
@@ -1072,7 +1074,9 @@ class TestListCDR(IntegrationTest):
     def test_negative_duration_then_duration_is_zero(self):
         result = self.call_logd.cdr.list()
 
-        assert_that(result, has_entry('items', contains(has_entries(duration=0))))
+        assert_that(
+            result, has_entry('items', contains_exactly(has_entries(duration=0)))
+        )
 
     @call_log(date='2017-04-10')
     @call_log(date='2017-04-11', participants=[{'user_uuid': USER_1_UUID}])
@@ -1090,7 +1094,7 @@ class TestListCDR(IntegrationTest):
             has_entries(
                 filtered=4,
                 total=6,
-                items=contains(
+                items=contains_exactly(
                     has_entries(start='2017-04-13T00:00:00+00:00'),
                     has_entries(start='2017-04-12T00:00:00+00:00'),
                 ),
@@ -1239,7 +1243,7 @@ class TestListCDR(IntegrationTest):
         assert_that(results['total'], equal_to(1))
         assert_that(
             results['items'],
-            contains(
+            contains_exactly(
                 has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT)
             ),
         )
@@ -1249,7 +1253,7 @@ class TestListCDR(IntegrationTest):
         assert_that(results['filtered'], equal_to(1))
         assert_that(
             results['items'],
-            contains(
+            contains_exactly(
                 has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
             ),
         )
@@ -1263,7 +1267,7 @@ class TestListCDR(IntegrationTest):
         assert_that(results['total'], equal_to(1))
         assert_that(
             results['items'],
-            contains(
+            contains_exactly(
                 has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
             ),
         )
@@ -1273,7 +1277,7 @@ class TestListCDR(IntegrationTest):
         assert_that(results['total'], equal_to(1))
         assert_that(
             results['items'],
-            contains(
+            contains_exactly(
                 has_entries(source_user_uuid=OTHER_USER_UUID, tenant_uuid=OTHER_TENANT)
             ),
         )

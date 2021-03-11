@@ -6,77 +6,14 @@ import re
 import logging
 
 from xivo.asterisk.line_identity import identity_from_channel
-from xivo.asterisk.protocol_interface import protocol_interface_from_channel
-from xivo.asterisk.protocol_interface import InvalidChannelError
 
 from .database.cel_event_type import CELEventType
-from .database.models import CallLogParticipant, Recording
+from .database.models import Recording
 
 
 logger = logging.getLogger(__name__)
 
 EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?:,|"})'
-
-
-def find_participant(confd, channame):
-    # TODO PJSIP clean after migration
-    channame = channame.replace('PJSIP', 'SIP')
-
-    try:
-        protocol, line_name = protocol_interface_from_channel(channame)
-    except InvalidChannelError:
-        return None
-
-    if protocol == 'Local':
-        logger.debug('Ignoring participant %s', channame)
-        return None
-
-    logger.debug(
-        'Looking up participant with protocol %s and line name "%s"',
-        protocol,
-        line_name,
-    )
-    lines = confd.lines.list(name=line_name, recurse=True)['items']
-    if not lines:
-        return
-
-    line = lines[0]
-    logger.debug('Found participant line id %s', line['id'])
-    users = line['users']
-    if not users:
-        return
-
-    user = confd.users.get(users[0]['uuid'])
-    tags = (
-        [tag.strip() for tag in user['userfield'].split(',')]
-        if user['userfield']
-        else []
-    )
-    logger.debug(
-        'Found participant user uuid %s tenant uuid %s',
-        user['uuid'],
-        user['tenant_uuid'],
-    )
-
-    extensions = line['extensions']
-    if extensions:
-        main_extension = extensions[0]
-
-        logger.debug(
-            'Found main internal extension %s@%s',
-            main_extension['exten'],
-            main_extension['context'],
-        )
-    else:
-        main_extension = None
-
-    return {
-        'uuid': user['uuid'],
-        'tenant_uuid': user['tenant_uuid'],
-        'line_id': line['id'],
-        'tags': tags,
-        'main_extension': main_extension,
-    }
 
 
 def extract_mixmonitor_extra(extra):
@@ -166,7 +103,7 @@ class AbstractCELInterpretor:
 
 
 class CallerCELInterpretor(AbstractCELInterpretor):
-    def __init__(self, confd):
+    def __init__(self):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.chan_end: self.interpret_chan_end,
@@ -181,7 +118,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
             CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
         }
-        self._confd = confd
 
     def interpret_chan_start(self, cel, call):
         call.date = cel.eventtime
@@ -191,22 +127,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.requested_context = cel.context
         call.destination_exten = cel.exten if cel.exten != 's' else ''
         call.source_line_identity = identity_from_channel(cel.channame)
-        participant = find_participant(self._confd, cel.channame)
-        if participant:
-            call.participants.append(
-                CallLogParticipant(
-                    role='source',
-                    user_uuid=participant['uuid'],
-                    line_id=participant['line_id'],
-                    tags=participant['tags'],
-                )
-            )
-            call.set_tenant_uuid(participant['tenant_uuid'])
-
-            extension = participant['main_extension']
-            if extension:
-                call.source_internal_exten = extension['exten']
-                call.source_internal_context = extension['context']
+        call.raw_participants[cel.channame].update(role='source')
 
         return call
 
@@ -295,7 +216,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
 
 class CalleeCELInterpretor(AbstractCELInterpretor):
-    def __init__(self, confd):
+    def __init__(self):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.chan_end: self.interpret_chan_end,
@@ -304,7 +225,6 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             CELEventType.mixmonitor_start: self.interpret_mixmonitor_start,
             CELEventType.mixmonitor_stop: self.interpret_mixmonitor_stop,
         }
-        self._confd = confd
 
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
@@ -318,26 +238,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             if not call.requested_name:
                 call.requested_name = cel.cid_name
 
-        participant = find_participant(self._confd, cel.channame)
-        if participant:
-            participant_model = CallLogParticipant(
-                role='destination',
-                user_uuid=participant['uuid'],
-                line_id=participant['line_id'],
-                tags=participant['tags'],
-            )
-            call.participants.append(participant_model)
-            call.participants_by_channame[cel.channame] = participant_model
-            call.set_tenant_uuid(participant['tenant_uuid'])
-
-            extension = participant['main_extension']
-            if extension:
-                call.destination_internal_exten = extension['exten']
-                call.destination_internal_context = extension['context']
-
-                if not call.requested_internal_exten:
-                    call.requested_internal_exten = extension['exten']
-                    call.requested_internal_context = extension['context']
+        call.raw_participants[cel.channame].update(role='destination')
 
         return call
 
@@ -352,9 +253,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
-            participant = call.participants_by_channame.get(cel.channame)
-            if participant:
-                participant.answered = True
+            call.raw_participants[cel.channame].update(answered=True)
 
             call.interpret_callee_bridge_enter = False
         return call
@@ -384,9 +283,6 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
 
 class LocalOriginateCELInterpretor:
-    def __init__(self, confd):
-        self._confd = confd
-
     def interpret_cels(self, cels, call):
         uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
         try:
@@ -429,17 +325,7 @@ class LocalOriginateCELInterpretor:
         call.source_line_identity = identity_from_channel(
             source_channel_answer.channame
         )
-        participant = find_participant(self._confd, source_channel_answer.channame)
-        if participant:
-            call.participants.append(
-                CallLogParticipant(
-                    role='source',
-                    user_uuid=participant['uuid'],
-                    line_id=participant['line_id'],
-                    tags=participant['tags'],
-                )
-            )
-            call.set_tenant_uuid(participant['tenant_uuid'])
+        call.raw_participants[source_channel_answer.channame].update(role='source')
 
         call.destination_exten = local_channel2_answer.cid_num
 
@@ -503,19 +389,9 @@ class LocalOriginateCELInterpretor:
             call.destination_line_identity = identity_from_channel(
                 destination_channel_answer.channame
             )
-            participant = find_participant(
-                self._confd, destination_channel_answer.channame
+            call.raw_participants[destination_channel_answer.channame].update(
+                role='destination'
             )
-            if participant:
-                call.participants.append(
-                    CallLogParticipant(
-                        role='destination',
-                        user_uuid=participant['uuid'],
-                        line_id=participant['line_id'],
-                        tags=participant['tags'],
-                    )
-                )
-                call.set_tenant_uuid(participant['tenant_uuid'])
             call.date_answer = destination_channel_bridge_enter.eventtime
 
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
