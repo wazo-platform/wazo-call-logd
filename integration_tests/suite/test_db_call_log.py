@@ -61,6 +61,33 @@ class TestCallLog(DBIntegrationTest):
             ),
         )
 
+    @call_log(**{'id': 1})
+    @call_log(**{'id': 2})
+    @recording(call_log_id=1)
+    def test_that_recordings_filter_shows_only_filtered_calls(self, rec1):
+        params = {'recorded': True}
+        result = self.dao.call_log.find_all_in_period(params)
+        assert_that(
+            result,
+            contains(
+                has_properties(
+                    id=1,
+                    recordings=contains(has_properties(uuid=rec1['uuid'])),
+                ),
+            ),
+        )
+        params = {'recorded': False}
+        result = self.dao.call_log.find_all_in_period(params)
+        assert_that(
+            result,
+            contains(
+                has_properties(
+                    id=2,
+                    recordings=empty(),
+                ),
+            ),
+        )
+
     @call_log(**cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW))
     @call_log(**cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES))
     @call_log(**cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES))
