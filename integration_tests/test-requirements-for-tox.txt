@@ -6,7 +6,7 @@ kombu
 marshmallow==3.0.0b14
 mock
 openapi-spec-validator
-pyhamcrest==1.9.0  # Versions 1.10.x are broken
+pyhamcrest
 pytest
 python-dateutil==2.7.3  # from marshmallow, to accept more date formats
 pytz==2019.1
