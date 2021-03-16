@@ -15,7 +15,7 @@ stevedore  # from wazo-call-logd-client
 
 # for database tests
 psycopg2-binary  # from sqlalchemy
-sqlalchemy
-sqlalchemy_utils
+sqlalchemy==1.2.18
+sqlalchemy_utils==0.32.21
 https://github.com/wazo-platform/xivo-dao/archive/master.zip
 https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
