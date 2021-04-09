@@ -16,8 +16,8 @@
     check:
       jobs:
         - wazo-tox-integration-call-logd:
-            nodeset: debian10-vm
+            nodeset: vm-debian-10-m1s
     gate:
       jobs:
         - wazo-tox-integration-call-logd:
-            nodeset: debian10-vm
+            nodeset: vm-debian-10-m1s
