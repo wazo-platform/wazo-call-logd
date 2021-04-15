@@ -5,12 +5,10 @@
       - debian-packaging-template
     check:
       jobs:
-        - wazo-tox-integration-call-logd:
-            nodeset: vm-debian-10-m1s
+        - wazo-tox-integration-call-logd
     gate:
       jobs:
-        - wazo-tox-integration-call-logd:
-            nodeset: vm-debian-10-m1s
+        - wazo-tox-integration-call-logd
 
 - job:
     name: wazo-tox-integration-call-logd
