@@ -1,0 +1,46 @@
+paths:
+  /retention:
+    get:
+      summary: Retention configuration
+      description: '**Required ACL:** `call-logd.retention.read`'
+      tags:
+        - retention
+      parameters:
+      - $ref: '#/parameters/tenantuuid'
+      responses:
+        '200':
+          description: Retention
+          schema:
+            $ref: '#/definitions/Retention'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+    put:
+      summary: Update retention configuration
+      description: |
+        **Required ACL:** `call-logd.retention.update`
+
+        **WARNING** This endpoint reset undefined keys to `null`.
+      tags:
+        - retention
+      parameters:
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The retention configuration to apply
+          required: true
+          schema:
+            $ref: '#/definitions/Retention'
+      responses:
+        '204':
+          description: Retention was updated successfully
+        '400':
+          $ref: '#/responses/InvalidRequest'
+
+definitions:
+  Retention:
+    type: object
+    properties:
+      cdr_days:
+        type: integer
+      recording_days:
+        type: integer
