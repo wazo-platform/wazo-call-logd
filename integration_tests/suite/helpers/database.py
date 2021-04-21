@@ -18,7 +18,12 @@ from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 
-from wazo_call_logd.database.models import CallLog, CallLogParticipant, Recording
+from wazo_call_logd.database.models import (
+    CallLog,
+    CallLogParticipant,
+    Recording,
+    Retention,
+)
 
 from .constants import MASTER_TENANT
 
@@ -97,6 +102,24 @@ def recording(**recording):
             finally:
                 with self.database.queries() as queries:
                     queries.delete_recording(recording['uuid'])
+
+        return wrapped_function
+
+    return _decorate
+
+
+def retention(**retention):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            retention.setdefault('tenant_uuid', MASTER_TENANT)
+            with self.database.queries() as queries:
+                queries.insert_retention(**retention)
+            try:
+                return func(self, *args, retention, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_retention(retention['tenant_uuid'])
 
         return wrapped_function
 
@@ -317,6 +340,19 @@ class DatabaseQueries:
     def delete_recording(self, recording_uuid):
         session = self.Session()
         session.query(Recording).filter(Recording.uuid == recording_uuid).delete()
+        session.commit()
+
+    def insert_retention(self, **kwargs):
+        session = self.Session()
+        retention = Retention(**kwargs)
+        session.add(retention)
+        session.commit()
+
+    def delete_retention(self, tenant_uuid):
+        session = self.Session()
+        query = session.query(Retention)
+        query = query.filter(Retention.tenant_uuid == tenant_uuid)
+        query.delete()
         session.commit()
 
     def delete_recording_by_call_log_id(self, call_log_id):

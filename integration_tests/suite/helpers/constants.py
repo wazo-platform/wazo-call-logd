@@ -1,8 +1,9 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
 
+UNKNOWN_UUID = '00000000-0000-4000-8000-000000000000'
 NON_USER_TOKEN = 'non-user-token'
 
 WAZO_UUID = '613747fd-f7e7-4329-b115-3869e44a05d2'
