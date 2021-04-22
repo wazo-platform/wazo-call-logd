@@ -1,3 +1,15 @@
+- project:
+    templates:
+      - wazo-tox-py37
+      - wazo-tox-linters
+      - debian-packaging-template
+    check:
+      jobs:
+        - wazo-tox-integration-call-logd
+    gate:
+      jobs:
+        - wazo-tox-integration-call-logd
+
 - job:
     name: wazo-tox-integration-call-logd
     parent: wazo-tox-integration
@@ -7,17 +19,3 @@
     vars:
       docker_compose_services_override:
         - call-logd
-
-- project:
-    templates:
-      - wazo-tox-py37
-      - wazo-tox-linters
-      - debian-packaging-template
-    check:
-      jobs:
-        - wazo-tox-integration-call-logd:
-            nodeset: debian10-vm
-    gate:
-      jobs:
-        - wazo-tox-integration-call-logd:
-            nodeset: debian10-vm
