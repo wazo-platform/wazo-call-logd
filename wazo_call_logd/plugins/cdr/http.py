@@ -110,12 +110,14 @@ def _output_csv(data, code, http_headers=None):
 
 
 def format_cdr_result(result):
-    is_csv = request.args.get('format') == 'csv' or request.headers.get('Accept') == 'text/csv; charset=utf-8'
+    is_csv = (
+        request.args.get('format') == 'csv'
+        or request.headers.get('Accept') == 'text/csv; charset=utf-8'
+    )
     return _output_csv(result, 200) if is_csv else result
 
 
 class CDRAuthResource(AuthResource):
-
     def __init__(self, service):
         super().__init__()
         self.cdr_service = service
@@ -144,7 +146,9 @@ class CDRAuthResource(AuthResource):
 
 
 class CDRResource(CDRAuthResource):
-    @required_acl('call-logd.cdr.read', extract_token_id=extract_token_id_from_query_or_header)
+    @required_acl(
+        'call-logd.cdr.read', extract_token_id=extract_token_id_from_query_or_header
+    )
     def get(self):
         args = CDRListRequestSchema().load(request.args)
         args['tenant_uuids'] = self.query_or_header_visible_tenants(args['recurse'])
@@ -163,7 +167,10 @@ class CDRIdResource(CDRAuthResource):
 
 
 class CDRUserResource(CDRAuthResource):
-    @required_acl('call-logd.users.{user_uuid}.cdr.read', extract_token_id=extract_token_id_from_query_or_header)
+    @required_acl(
+        'call-logd.users.{user_uuid}.cdr.read',
+        extract_token_id=extract_token_id_from_query_or_header,
+    )
     def get(self, user_uuid):
         args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args)
         args['user_uuids'] = [user_uuid]
@@ -177,7 +184,10 @@ class CDRUserMeResource(CDRAuthResource):
         super().__init__(cdr_service)
         self.auth_client = auth_client
 
-    @required_acl('call-logd.users.me.cdr.read', extract_token_id=extract_token_id_from_query_or_header)
+    @required_acl(
+        'call-logd.users.me.cdr.read',
+        extract_token_id=extract_token_id_from_query_or_header,
+    )
     def get(self):
         args = CDRListRequestSchema().load(request.args)
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
