@@ -2,7 +2,9 @@ paths:
   /cdr:
     get:
       summary: List CDR
-      description: '**Required ACL:** `call-logd.cdr.read`'
+      description: |
+        **Required ACL:** `call-logd.cdr.read`
+        This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
       tags:
         - cdr
       parameters:
@@ -108,7 +110,9 @@ paths:
   /users/{user_uuid}/cdr:
     get:
       summary: List CDR of the given user
-      description: '**Required ACL:** `call-logd.users.{user_uuid}.cdr.read`'
+      description: |
+        **Required ACL:** `call-logd.users.{user_uuid}.cdr.read`
+        This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
       tags:
         - cdr
         - users
@@ -144,7 +148,9 @@ paths:
   /users/me/cdr:
     get:
       summary: List CDR of the authenticated user
-      description: '**Required ACL:** `call-logd.users.me.cdr.read`'
+      description: |
+        **Required ACL:** `call-logd.users.me.cdr.read`
+        This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
       tags:
         - cdr
         - users

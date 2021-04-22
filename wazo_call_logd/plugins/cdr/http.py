@@ -112,9 +112,24 @@ def _output_csv(data, code, http_headers=None):
 class CDRAuthResource(AuthResource):
     representations = {'text/csv; charset=utf-8': _output_csv}
 
-    def __init__(self, cdr_service):
+    def __init__(self, service):
         super().__init__()
-        self.cdr_service = cdr_service
+        self.cdr_service = service
+
+    def _set_up_token_helper_to_verify_tenant(self):
+        token_uuid = extract_token_id_from_query_or_header()
+        if not token_uuid:
+            raise tenant_helpers.InvalidToken()
+        g.token = tenant_helpers.Tokens(auth_client).get(token_uuid)
+        auth_client.set_token(g.token.uuid)
+
+    def query_or_header_visible_tenants(self, recurse=True):
+        self._set_up_token_helper_to_verify_tenant()
+        tenant_uuid = Tenant.autodetect(include_query=True).uuid
+        if recurse:
+            return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
+        else:
+            return [tenant_uuid]
 
     def visible_tenants(self, recurse=True):
         tenant_uuid = Tenant.autodetect().uuid
@@ -125,10 +140,10 @@ class CDRAuthResource(AuthResource):
 
 
 class CDRResource(CDRAuthResource):
-    @required_acl('call-logd.cdr.read')
+    @required_acl('call-logd.cdr.read', extract_token_id=extract_token_id_from_query_or_header)
     def get(self):
         args = CDRListRequestSchema().load(request.args)
-        args["tenant_uuids"] = self.visible_tenants(args["recurse"])
+        args['tenant_uuids'] = self.query_or_header_visible_tenants(args['recurse'])
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList().dump(cdrs)
 
@@ -144,11 +159,11 @@ class CDRIdResource(CDRAuthResource):
 
 
 class CDRUserResource(CDRAuthResource):
-    @required_acl('call-logd.users.{user_uuid}.cdr.read')
+    @required_acl('call-logd.users.{user_uuid}.cdr.read', extract_token_id=extract_token_id_from_query_or_header)
     def get(self, user_uuid):
         args = CDRListRequestSchema(exclude=['user_uuid']).load(request.args)
         args['user_uuids'] = [user_uuid]
-        args['tenant_uuids'] = [Tenant.autodetect().uuid]
+        args['tenant_uuids'] = self.query_or_header_visible_tenants(args['recurse'])
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList().dump(cdrs)
 
@@ -158,12 +173,12 @@ class CDRUserMeResource(CDRAuthResource):
         super().__init__(cdr_service)
         self.auth_client = auth_client
 
-    @required_acl('call-logd.users.me.cdr.read')
+    @required_acl('call-logd.users.me.cdr.read', extract_token_id=extract_token_id_from_query_or_header)
     def get(self):
         args = CDRListRequestSchema().load(request.args)
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         args['me_user_uuid'] = user_uuid
-        args['tenant_uuids'] = [token.tenant_uuid]
+        args['tenant_uuids'] = self.query_or_header_visible_tenants(False)
         cdrs = self.cdr_service.list(args)
         return CDRSchemaList(exclude=['items.tags']).dump(cdrs)
 
