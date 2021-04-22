@@ -1471,7 +1471,7 @@ class TestListCDR(IntegrationTest):
     def test_list_multitenant_token_and_tenant_as_query_string(self):
         port = self.service_port(9298, 'call-logd')
 
-        response = requests.get(f'http://localhost:{port}/1.0/users/me/cdr', params={'token': USER_1_TOKEN})
+        response = requests.get(f'http://localhost:{port}/1.0/users/me/cdr', params={'format': 'csv', 'token': USER_1_TOKEN})
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
             result,
@@ -1480,7 +1480,7 @@ class TestListCDR(IntegrationTest):
 
         response = requests.get(
             f'http://localhost:{port}/1.0/users/{USER_2_UUID}/cdr',
-            params={'token': USER_1_TOKEN, 'tenant_uuids': USERS_TENANT},
+            params={'token': USER_1_TOKEN, 'tenant_uuids': USERS_TENANT, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
@@ -1490,14 +1490,14 @@ class TestListCDR(IntegrationTest):
 
         response = requests.get(
             f'http://localhost:{port}/1.0/users/{OTHER_USER_UUID}/cdr',
-            params={'token': USER_1_TOKEN, 'tenant_uuids': USERS_TENANT},
+            params={'token': USER_1_TOKEN, 'tenant_uuids': USERS_TENANT, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(result, empty())
 
         response = requests.get(
             f'http://localhost:{port}/1.0/users/me/cdr',
-            params={'token': USER_2_TOKEN, 'tenant_uuids': USERS_TENANT},
+            params={'token': USER_2_TOKEN, 'tenant_uuids': USERS_TENANT, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
@@ -1509,7 +1509,7 @@ class TestListCDR(IntegrationTest):
 
         response = requests.get(
             f'http://localhost:{port}/1.0/users/me/cdr',
-            params={'token': OTHER_USER_TOKEN},
+            params={'token': OTHER_USER_TOKEN, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
@@ -1521,7 +1521,7 @@ class TestListCDR(IntegrationTest):
 
         response = requests.get(
             f'http://localhost:{port}/1.0/cdr',
-            params={'token': MASTER_TOKEN},
+            params={'token': MASTER_TOKEN, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
@@ -1533,7 +1533,7 @@ class TestListCDR(IntegrationTest):
 
         response = requests.get(
             f'http://localhost:{port}/1.0/cdr',
-            params={'token': USER_1_TOKEN},
+            params={'token': USER_1_TOKEN, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
@@ -1546,7 +1546,7 @@ class TestListCDR(IntegrationTest):
 
         response = requests.get(
             f'http://localhost:{port}/1.0/cdr',
-            params={'token': MASTER_TOKEN, 'recurse': True},
+            params={'token': MASTER_TOKEN, 'recurse': True, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
@@ -1556,5 +1556,104 @@ class TestListCDR(IntegrationTest):
                 has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT),
                 has_entries(source_user_uuid=OTHER_USER_UUID, tenant_uuid=OTHER_TENANT),
                 has_entries(tenant_uuid=MASTER_TENANT),
+            ),
+        )
+
+    @call_log(
+        **{'id': 10},
+        tenant_uuid=USERS_TENANT,
+        date='2017-03-23 00:00:00',
+        participants=[{'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'}],
+    )
+    @call_log(
+        **{'id': 11},
+        tenant_uuid=USERS_TENANT,
+        date='2017-03-23 00:00:00',
+        participants=[{'user_uuid': USER_2_UUID, 'line_id': '1', 'role': 'source'}],
+    )
+    @call_log(
+        **{'id': 12},
+        tenant_uuid=OTHER_TENANT,
+        date='2017-03-23 00:00:00',
+        participants=[{'user_uuid': OTHER_USER_UUID, 'line_id': '1', 'role': 'source'}],
+    )
+    @call_log(**{'id': 13}, date='2017-03-23 00:00:00', tenant_uuid=MASTER_TENANT)
+    def test_list_format_parameter(self):
+        port = self.service_port(9298, 'call-logd')
+
+        response = requests.get(f'http://localhost:{port}/1.0/users/me/cdr', params={'format': 'csv', 'token': USER_1_TOKEN})
+        result = list(csv.DictReader(StringIO(response.text)))
+        assert_that(
+            result,
+            contains_exactly(has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT))
+        )
+
+        response = requests.get(f'http://localhost:{port}/1.0/users/me/cdr', params={'format': 'json', 'token': USER_1_TOKEN})
+        assert_that(
+            response.json()['items'],
+            contains_exactly(has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT))
+        )
+
+        response = requests.get(
+            f'http://localhost:{port}/1.0/users/{USER_2_UUID}/cdr',
+            params={'token': USER_1_TOKEN, 'tenant_uuids': USERS_TENANT, 'format': 'csv'},
+        )
+        result = list(csv.DictReader(StringIO(response.text)))
+        assert_that(
+            result,
+            contains_exactly(has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT))
+        )
+
+        response = requests.get(
+            f'http://localhost:{port}/1.0/users/{USER_2_UUID}/cdr',
+            params={'token': USER_1_TOKEN, 'tenant_uuids': USERS_TENANT, 'format': 'json'},
+        )
+        assert_that(
+            response.json()['items'],
+            contains_exactly(has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT))
+        )
+
+        response = requests.get(
+            f'http://localhost:{port}/1.0/users/me/cdr',
+            params={'token': USER_2_TOKEN, 'tenant_uuids': USERS_TENANT, 'format': 'csv'},
+        )
+        result = list(csv.DictReader(StringIO(response.text)))
+        assert_that(
+            result,
+            contains_exactly(
+                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+            ),
+        )
+
+        response = requests.get(
+            f'http://localhost:{port}/1.0/users/me/cdr',
+            params={'token': USER_2_TOKEN, 'tenant_uuids': USERS_TENANT, 'format': 'json'},
+        )
+        assert_that(
+            response.json()['items'],
+            contains_exactly(
+                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+            ),
+        )
+
+        response = requests.get(
+            f'http://localhost:{port}/1.0/cdr',
+            params={'token': MASTER_TOKEN, 'format': 'csv'},
+        )
+        result = list(csv.DictReader(StringIO(response.text)))
+        assert_that(
+            result,
+            contains_exactly(
+                has_entries(tenant_uuid=MASTER_TENANT)
+            ),
+        )
+        response = requests.get(
+            f'http://localhost:{port}/1.0/cdr',
+            params={'token': MASTER_TOKEN, 'format': 'json'},
+        )
+        assert_that(
+            response.json()['items'],
+            contains_exactly(
+                has_entries(tenant_uuid=MASTER_TENANT)
             ),
         )

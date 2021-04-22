@@ -109,8 +109,12 @@ def _output_csv(data, code, http_headers=None):
     return response
 
 
+def format_cdr_result(result):
+    is_csv = request.args.get('format') == 'csv' or request.headers.get('Accept') == 'text/csv; charset=utf-8'
+    return _output_csv(result, 200) if is_csv else result
+
+
 class CDRAuthResource(AuthResource):
-    representations = {'text/csv; charset=utf-8': _output_csv}
 
     def __init__(self, service):
         super().__init__()
@@ -145,7 +149,7 @@ class CDRResource(CDRAuthResource):
         args = CDRListRequestSchema().load(request.args)
         args['tenant_uuids'] = self.query_or_header_visible_tenants(args['recurse'])
         cdrs = self.cdr_service.list(args)
-        return CDRSchemaList().dump(cdrs)
+        return format_cdr_result(CDRSchemaList().dump(cdrs))
 
 
 class CDRIdResource(CDRAuthResource):
@@ -155,7 +159,7 @@ class CDRIdResource(CDRAuthResource):
         cdr = self.cdr_service.get(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
-        return CDRSchema().dump(cdr)
+        return format_cdr_result(CDRSchema().dump(cdr))
 
 
 class CDRUserResource(CDRAuthResource):
@@ -165,7 +169,7 @@ class CDRUserResource(CDRAuthResource):
         args['user_uuids'] = [user_uuid]
         args['tenant_uuids'] = self.query_or_header_visible_tenants(args['recurse'])
         cdrs = self.cdr_service.list(args)
-        return CDRSchemaList().dump(cdrs)
+        return format_cdr_result(CDRSchemaList().dump(cdrs))
 
 
 class CDRUserMeResource(CDRAuthResource):
@@ -180,7 +184,7 @@ class CDRUserMeResource(CDRAuthResource):
         args['me_user_uuid'] = user_uuid
         args['tenant_uuids'] = self.query_or_header_visible_tenants(False)
         cdrs = self.cdr_service.list(args)
-        return CDRSchemaList(exclude=['items.tags']).dump(cdrs)
+        return format_cdr_result(CDRSchemaList(exclude=['items.tags']).dump(cdrs))
 
 
 class RecordingMediaAuthResource(AuthResource):

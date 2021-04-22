@@ -99,6 +99,7 @@ class CDRListRequestSchema(Schema):
     recurse = fields.Boolean(missing=False)
     distinct = fields.String(validate=OneOf(['peer_exten']), missing=None)
     recorded = fields.Boolean(missing=None)
+    format = fields.String(validate=OneOf(['csv', 'json']), missing=None)
 
     @pre_load
     def convert_tags_and_user_uuid_to_list(self, data):
