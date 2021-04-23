@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -26,11 +26,11 @@ class BusPublisher:
         )
         self._publisher = xivo_bus.PublishingQueue(publisher_fcty)
 
-    def publish_all(self, call_logs):
+    def publish_call_logs(self, call_logs):
         for call_log in call_logs:
-            self.publish(call_log)
+            self.publish_call_log(call_log)
 
-    def publish(self, call_log):
+    def publish_call_log(self, call_log):
         payload = CDRSchema().dump(call_log)
         logger.debug('publishing new call log: %s', payload)
         event = CallLogCreatedEvent(payload)

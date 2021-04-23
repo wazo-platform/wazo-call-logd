@@ -51,8 +51,8 @@ class Controller:
         self.token_renewer.subscribe_to_next_token_details_change(
             generator.set_default_tenant_uuid
         )
-        self._publisher = BusPublisher(config)
-        self.manager = CallLogsManager(dao, generator, writer, self._publisher)
+        self.bus_publisher = BusPublisher(config)
+        self.manager = CallLogsManager(dao, generator, writer, self.bus_publisher)
         self.bus_client = BusClient(config)
         self.http_server = HTTPServer(config)
         self.status_aggregator = StatusAggregator()
@@ -77,7 +77,7 @@ class Controller:
         self.status_aggregator.add_provider(self.bus_client.provide_status)
         self.status_aggregator.add_provider(self.token_status.provide_status)
         signal.signal(signal.SIGTERM, partial(_sigterm_handler, self))
-        bus_publisher_thread = Thread(target=self._publisher.run)
+        bus_publisher_thread = Thread(target=self.bus_publisher.run)
         bus_publisher_thread.start()
         bus_consumer_thread = Thread(
             target=self.bus_client.run, args=[self.manager], name='bus_consumer_thread'
@@ -90,7 +90,7 @@ class Controller:
         finally:
             logger.info('Stopping wazo-call-logd')
             self.bus_client.stop()
-            self._publisher.stop()
+            self.bus_publisher.stop()
             bus_consumer_thread.join()
             bus_publisher_thread.join()
 

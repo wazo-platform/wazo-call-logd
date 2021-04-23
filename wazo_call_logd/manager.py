@@ -47,4 +47,4 @@ class CallLogsManager:
         call_logs = self.generator.from_cel(cels)
         logger.debug('Generated %s call logs', len(call_logs.new_call_logs))
         self.writer.write(call_logs)
-        self.publisher.publish_all(call_logs.new_call_logs)
+        self.publisher.publish_call_logs(call_logs.new_call_logs)
