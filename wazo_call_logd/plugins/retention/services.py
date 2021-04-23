@@ -3,8 +3,9 @@
 
 
 class RetentionService:
-    def __init__(self, dao):
+    def __init__(self, dao, notifier):
         self._dao = dao
+        self._notifier = notifier
 
     def find(self, tenant_uuid):
         return self._dao.retention.find(tenant_uuid)
@@ -13,5 +14,5 @@ class RetentionService:
         return self._dao.retention.find_or_create(tenant_uuid)
 
     def update(self, retention):
-        return self._dao.retention.update(retention)
-        # FIXME: send bus event
+        self._dao.retention.update(retention)
+        self._notifier.updated(retention)

@@ -44,6 +44,9 @@ class BusPublisher:
                 headers={'user_uuid:{uuid}'.format(uuid=participant.user_uuid): True},
             )
 
+    def publish(self, event):
+        self._publisher.publish(event)
+
     def run(self):
         logger.info('status publisher starting')
         self._publisher.run()

@@ -3,14 +3,17 @@
 
 from .http import RetentionResource
 from .services import RetentionService
+from .notifier import RetentionNotifier
 
 
 class Plugin:
     def load(self, dependencies):
         api = dependencies['api']
         dao = dependencies['dao']
+        bus_publisher = dependencies['bus_publisher']
 
-        service = RetentionService(dao)
+        notifier = RetentionNotifier(bus_publisher)
+        service = RetentionService(dao, notifier)
         api.add_resource(
             RetentionResource,
             '/retention',

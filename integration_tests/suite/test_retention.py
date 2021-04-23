@@ -4,10 +4,12 @@
 from hamcrest import (
     assert_that,
     calling,
+    contains,
     has_entries,
     has_properties,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
+from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
@@ -69,3 +71,30 @@ class TestRetention(IntegrationTest):
                 has_properties(status_code=401, error_id='unauthorized-tenant')
             ),
         )
+
+    @retention()
+    def test_update_events(self, retention):
+        args = {'cdr_days': 2, 'recording_days': 2}
+        routing_key = 'call_logd.retention.updated'
+        event_accumulator = self.bus.accumulator(routing_key)
+
+        tenant = retention['tenant_uuid']
+        self.call_logd.retention.update(**args, tenant_uuid=tenant)
+
+        result = self.call_logd.retention.get(tenant_uuid=MASTER_TENANT)
+        assert_that(result, has_entries(**args))
+
+        # TODO(fblackburn) code should publish event BEFORE returning HTTP response
+        def event_received():
+            events = event_accumulator.accumulate()
+            assert_that(
+                events,
+                contains(
+                    has_entries(
+                        data=has_entries(**args),
+                        required_acl=f'events.{routing_key}',
+                    ),
+                ),
+            )
+
+        until.assert_(event_received, tries=3)

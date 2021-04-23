@@ -66,6 +66,7 @@ class Controller:
                 'dao': dao,
                 'token_renewer': self.token_renewer,
                 'status_aggregator': self.status_aggregator,
+                'bus_publisher': self.bus_publisher,
             },
         )
 

@@ -135,6 +135,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def reset_clients(cls):
+        cls.bus = cls.make_bus()
         cls.call_logd = cls.make_call_logd()
         cls.database = cls.make_database()
         cls.cel_database = cls.make_cel_database()
@@ -335,7 +336,6 @@ class RawCelIntegrationTest(_BaseIntegrationTest):
     def setUp(self):
         super().setUp()
         self.call_logd.set_token(MASTER_TOKEN)
-        self.bus = self.make_bus()
         self.confd = self.make_confd()
         self.confd.reset()
 
