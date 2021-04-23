@@ -141,7 +141,7 @@ class TestRecording(IntegrationTest):
         self.filesystem.create_file('/tmp/foobar.wav', content='my-recording-content')
         recording_uuid = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][0]['uuid']
         port = self.service_port(9298, 'call-logd')
-        base_url = f'http://localhost:{port}/1.0'
+        base_url = f'http://127.0.0.1:{port}/1.0'
         api_url = f'{base_url}/cdr/{cdr_id}/recordings/{recording_uuid}/media'
 
         params = {'tenant': MAIN_TENANT, 'token': MAIN_TOKEN}
