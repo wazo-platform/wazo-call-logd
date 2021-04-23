@@ -52,8 +52,8 @@ from .filesystem import FileSystemClient
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)
 
-CEL_DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@localhost:{port}')
-DB_URI = os.getenv('DB_URI', 'postgresql://wazo-call-logd:Secr7t@localhost:{port}')
+CEL_DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@127.0.0.1:{port}')
+DB_URI = os.getenv('DB_URI', 'postgresql://wazo-call-logd:Secr7t@127.0.0.1:{port}')
 
 
 # this decorator takes the output of a psql and changes it into a list of dict
@@ -151,7 +151,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
             return WrongClient(name='call-logd')
 
         return CallLogdClient(
-            'localhost',
+            '127.0.0.1',
             port,
             prefix=None,
             https=False,
@@ -165,7 +165,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         except (NoSuchService, NoSuchPort):
             return WrongClient(name='auth')
 
-        return AuthClient('localhost', port)
+        return AuthClient('127.0.0.1', port)
 
     @classmethod
     def make_database(cls):
@@ -177,7 +177,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         return DbHelper.build(
             'wazo-call-logd',
             'Secr7t',
-            'localhost',
+            '127.0.0.1',
             port,
             'wazo-call-logd',
         )
@@ -192,7 +192,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         return DbHelper.build(
             'asterisk',
             'proformatique',
-            'localhost',
+            '127.0.0.1',
             port,
             'asterisk',
         )
@@ -205,7 +205,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def make_confd(cls):
-        return ConfdClient('localhost', cls.service_port(9486, 'confd'))
+        return ConfdClient('127.0.0.1', cls.service_port(9486, 'confd'))
 
     @classmethod
     def make_filesystem(cls):
