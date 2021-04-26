@@ -7,7 +7,7 @@ from datetime import (
 )
 from hamcrest import assert_that, has_length
 
-from wazo_call_logd.purger import CallLogsPurger
+from wazo_call_logd.purger import CallLogsPurger, RecordingsPurger
 from wazo_call_logd.database.models import CallLog, Recording
 
 from .helpers.base import DBIntegrationTest
@@ -15,7 +15,7 @@ from .helpers.constants import MASTER_TENANT, OTHER_TENANT
 from .helpers.database import call_log, recording, retention
 
 
-class TestPurger(DBIntegrationTest):
+class TestCallLogPurger(DBIntegrationTest):
     @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1))
     @call_log(**{'id': 2}, date=dt.utcnow() - td(days=2))
     @call_log(**{'id': 3}, date=dt.utcnow() - td(days=3))
@@ -76,3 +76,66 @@ class TestPurger(DBIntegrationTest):
         self.session.commit()
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(0))
+
+
+class TestRecordingPurger(DBIntegrationTest):
+    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1))
+    @call_log(**{'id': 2}, date=dt.utcnow() - td(days=2))
+    @call_log(**{'id': 3}, date=dt.utcnow() - td(days=3))
+    @recording(call_log_id=1, path='/tmp/1')
+    @recording(call_log_id=2, path='/tmp/2')
+    @recording(call_log_id=3, path='/tmp/3')
+    def test_purger(self, *_):
+        self._assert_len_recording_path(3)
+
+        days_to_keep = 42
+        RecordingsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        self._assert_len_recording_path(3)
+
+        days_to_keep = 2
+        RecordingsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        self._assert_len_recording_path(1)
+
+        days_to_keep = 0
+        RecordingsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        self._assert_len_recording_path(0)
+
+        # TODO test filesystem
+
+    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=2), tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 2}, date=dt.utcnow() - td(days=4), tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 3}, date=dt.utcnow() - td(days=2), tenant_uuid=OTHER_TENANT)
+    @recording(call_log_id=1, path='/tmp/1')
+    @recording(call_log_id=2, path='/tmp/2')
+    @recording(call_log_id=3, path='/tmp/3')
+    @retention(tenant_uuid=MASTER_TENANT, recording_days=3)
+    def test_purger_by_retention(self, *_):
+        self._assert_len_recording_path(3)
+
+        # When retention < default
+        days_to_keep = 365
+        RecordingsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        self._assert_len_recording_path(2)
+
+        # When retention > default
+        days_to_keep = 1
+        RecordingsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        self._assert_len_recording_path(1)
+
+    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
+    @recording(call_log_id=1, path='/tmp/1')
+    @retention(tenant_uuid=MASTER_TENANT, recording_days=0)
+    def test_purger_when_retention_is_zero(self, *_):
+        days_to_keep = 365
+        RecordingsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        self._assert_len_recording_path(0)
+
+    def _assert_len_recording_path(self, number):
+        result = self.session.query(Recording).filter(Recording.path.isnot(None)).all()
+        assert_that(result, has_length(number))
