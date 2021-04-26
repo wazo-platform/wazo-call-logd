@@ -11,7 +11,8 @@ from wazo_call_logd.purger import CallLogsPurger
 from wazo_call_logd.database.models import CallLog, Recording
 
 from .helpers.base import DBIntegrationTest
-from .helpers.database import call_log, recording
+from .helpers.constants import MASTER_TENANT, OTHER_TENANT
+from .helpers.database import call_log, recording, retention
 
 
 class TestPurger(DBIntegrationTest):
@@ -27,8 +28,8 @@ class TestPurger(DBIntegrationTest):
         days_to_keep = 42
         CallLogsPurger().purge(days_to_keep, self.session)
         self.session.commit()
-
         self._assert_len_call_logs(3)
+
         days_to_keep = 2
         CallLogsPurger().purge(days_to_keep, self.session)
         self.session.commit()
@@ -44,3 +45,34 @@ class TestPurger(DBIntegrationTest):
         assert_that(result, has_length(number))
         result = self.session.query(Recording).all()
         assert_that(result, has_length(number))
+
+    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=2), tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 2}, date=dt.utcnow() - td(days=4), tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 3}, date=dt.utcnow() - td(days=2), tenant_uuid=OTHER_TENANT)
+    @retention(tenant_uuid=MASTER_TENANT, cdr_days=3)
+    def test_purger_by_retention(self, *_):
+        result = self.session.query(CallLog).all()
+        assert_that(result, has_length(3))
+
+        # When retention < default
+        days_to_keep = 365
+        CallLogsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        result = self.session.query(CallLog).all()
+        assert_that(result, has_length(2))
+
+        # When retention > default
+        days_to_keep = 1
+        CallLogsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        result = self.session.query(CallLog).all()
+        assert_that(result, has_length(1))
+
+    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
+    @retention(tenant_uuid=MASTER_TENANT, cdr_days=0)
+    def test_purger_when_retention_is_zero(self, *_):
+        days_to_keep = 365
+        CallLogsPurger().purge(days_to_keep, self.session)
+        self.session.commit()
+        result = self.session.query(CallLog).all()
+        assert_that(result, has_length(0))
