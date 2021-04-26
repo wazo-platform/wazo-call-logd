@@ -200,9 +200,11 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     def make_bus(cls):
-        return CallLogBusClient.from_connection_fields(
-            port=cls.service_port(5672, 'rabbitmq')
-        )
+        try:
+            port = cls.service_port(5672, 'rabbitmq')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient(name='bus')
+        return CallLogBusClient.from_connection_fields(port=port)
 
     @classmethod
     def make_confd(cls):
