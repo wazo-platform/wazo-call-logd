@@ -109,12 +109,23 @@ def _output_csv(data, code, http_headers=None):
     return response
 
 
-def format_cdr_result(result):
-    is_csv = (
-        request.args.get('format') == 'csv'
-        or request.headers.get('Accept') == 'text/csv; charset=utf-8'
+def request_wants_csv():
+    best = request.accept_mimetypes.best_match(
+        ['text/csv; charset=utf-8', 'application/json']
     )
-    return _output_csv(result, 200) if is_csv else result
+    csv_header = (
+        best == 'text/csv; charset=utf-8'
+        and request.accept_mimetypes[best]
+        > request.accept_mimetypes['application/json']
+    )
+    return request.args.get('format') == 'csv' or csv_header
+
+
+def format_cdr_result(result):
+    if request_wants_csv():
+        return _output_csv(result, 200)
+    else:
+        return result
 
 
 class CDRAuthResource(AuthResource):
