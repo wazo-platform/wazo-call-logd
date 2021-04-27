@@ -1,0 +1,14 @@
+db_uri: postgresql://wazo-call-logd:Secr7t@postgres/wazo-call-logd
+enabled_plugins:
+  purgers:
+    # enabled by the code
+    # call-logs: true
+    # recordings: true
+
+    # Avoid to install xivo-dao inside purge-db container
+    cel: false
+    queue-log: false
+    stat-agent: false
+    stat-call-on: false
+    stat-queue: false
+    stat-switchboard: false

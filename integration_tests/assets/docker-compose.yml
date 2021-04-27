@@ -46,3 +46,9 @@ services:
     volumes:
       - type: tmpfs
         target: /var/lib/rabbitmq
+
+  purge-db:
+    image: wazo-purge-db-test
+    volumes:
+      - "../..:/usr/src/wazo-call-logd"
+      - "./etc/wazo-purge-db/conf.d/50-default.yml:/etc/wazo-purge-db/conf.d/50-default.yml"
