@@ -60,6 +60,7 @@ DEFAULT_CONFIG = {
     'enabled_plugins': {
         'api': True,
         'cdr': True,
+        'config': True,
         'retention': True,
         'support_center': True,
         'status': True,
