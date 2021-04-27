@@ -73,6 +73,18 @@ class TestRetention(IntegrationTest):
         )
 
     @retention()
+    def test_update_errors(self, retention):
+        args = {'cdr_days': 1, 'recording_days': 2}
+        assert_that(
+            calling(self.call_logd.retention.update).with_args(
+                **args, tenant_uuid=retention['tenant_uuid']
+            ),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='invalid-data')
+            ),
+        )
+
+    @retention()
     def test_update_events(self, retention):
         args = {'cdr_days': 2, 'recording_days': 2}
         routing_key = 'call_logd.retention.updated'
