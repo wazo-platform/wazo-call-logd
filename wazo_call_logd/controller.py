@@ -22,10 +22,11 @@ from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
+from .auth import init_master_tenant
 from .bus_publisher import BusPublisher
 from .database.queries import DAO
 from .database.helpers import new_db_session
-from .http_server import api, HTTPServer
+from .http_server import app, api, HTTPServer
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,11 @@ class Controller:
         self.manager = CallLogsManager(dao, generator, writer, self.bus_publisher)
         self.bus_client = BusClient(config)
         self.http_server = HTTPServer(config)
+        if not app.config['auth'].get('master_tenant_uuid'):
+            self.token_renewer.subscribe_to_next_token_details_change(
+                init_master_tenant
+            )
+
         self.status_aggregator = StatusAggregator()
         self.token_status = TokenStatus()
         plugin_helpers.load(

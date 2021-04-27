@@ -55,6 +55,7 @@ DEFAULT_CONFIG = {
         'prefix': None,
         'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-key.yml',
+        'master_tenant_uuid': None,
     },
     'confd': {'host': 'localhost', 'port': 9486, 'prefix': None, 'https': False},
     'enabled_plugins': {
