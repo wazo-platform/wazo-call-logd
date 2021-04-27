@@ -1,5 +1,13 @@
 # Changelog
 
+## 21.06
+
+* The following resources now allow the token, tenant and format to be specified as a query string.
+
+  * `GET /cdr`
+  * `GET /users/<user_uuid>/cdr`
+  * `GET /users/me/cdr`
+
 ## 21.04
 
 * `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` accept new query string

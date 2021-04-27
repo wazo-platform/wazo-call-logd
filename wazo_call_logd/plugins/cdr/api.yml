@@ -2,7 +2,9 @@ paths:
   /cdr:
     get:
       summary: List CDR
-      description: '**Required ACL:** `call-logd.cdr.read`'
+      description: |
+        **Required ACL:** `call-logd.cdr.read`
+        This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
       tags:
         - cdr
       parameters:
@@ -22,6 +24,7 @@ paths:
       - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/distinct'
       - $ref: '#/parameters/recorded'
+      - $ref: '#/parameters/format'
       responses:
         '200':
           description: List CDR
@@ -108,7 +111,9 @@ paths:
   /users/{user_uuid}/cdr:
     get:
       summary: List CDR of the given user
-      description: '**Required ACL:** `call-logd.users.{user_uuid}.cdr.read`'
+      description: |
+        **Required ACL:** `call-logd.users.{user_uuid}.cdr.read`
+        This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
       tags:
         - cdr
         - users
@@ -131,6 +136,7 @@ paths:
       - $ref: '#/parameters/from_id'
       - $ref: '#/parameters/distinct'
       - $ref: '#/parameters/recorded'
+      - $ref: '#/parameters/format'
       responses:
         '200':
           description: List CDR
@@ -144,7 +150,9 @@ paths:
   /users/me/cdr:
     get:
       summary: List CDR of the authenticated user
-      description: '**Required ACL:** `call-logd.users.me.cdr.read`'
+      description: |
+        **Required ACL:** `call-logd.users.me.cdr.read`
+        This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
       tags:
         - cdr
         - users
@@ -162,6 +170,7 @@ paths:
       - $ref: '#/parameters/user_uuid'
       - $ref: '#/parameters/distinct'
       - $ref: '#/parameters/recorded'
+      - $ref: '#/parameters/format'
       responses:
         '200':
           description: List CDR
@@ -174,6 +183,13 @@ paths:
         - text/csv; charset=utf-8
 
 parameters:
+  format:
+    name: format
+    description: Overrides the Content-Type header. This is used to be able to have a downloadable link. Allowed values are "csv" and "json"
+    in: query
+    type: string
+    required: false
+    enum: [csv, json]
   from:
     name: from
     description: Ignore CDR starting before the given date. Format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.
