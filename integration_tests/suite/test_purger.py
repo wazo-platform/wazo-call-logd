@@ -36,7 +36,7 @@ class _BasePurger(DBIntegrationTest):
         self.filesystem.remove_file('/tmp/3')
 
     def _purge(self, days_to_keep):
-        command = ['wazo-purge-db', '-d', f'{days_to_keep}']
+        command = ['/bin/bash', '-c', f'wazo-purge-db -d {days_to_keep} &> /proc/1/fd/1']
         rc = self.docker_exec(command, service_name='purge-db', return_attr='returncode')
         assert_that(rc, equal_to(0))
 
