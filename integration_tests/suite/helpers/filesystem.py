@@ -20,6 +20,10 @@ class FileSystemClient:
             command = ['chown', f'{FILE_USER}:{FILE_GROUP}', path]
             self.execute(command, service_name=self.service_name)
 
+    def remove_file(self, path):
+        command = ['rm', '-f', f'{path}']
+        self.execute(command, service_name=self.service_name)
+
     def path_exists(self, path):
         command = ['ls', path]
         result = self.execute(

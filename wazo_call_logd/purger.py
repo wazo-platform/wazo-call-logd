@@ -17,6 +17,21 @@ from .database.models import (
 logger = logging.getLogger(__name__)
 
 
+def _remove_recording_files(call_logs):
+    for call_log in call_logs:
+        for recording in call_log.recordings:
+            if recording.path:
+                try:
+                    # NOTE(fblackburn): wazo-purge-db must be executed
+                    # on the same filesystem than wazo-call-logd
+                    os.remove(recording.path)
+                except FileNotFoundError:
+                    logger.info(
+                        'Recording file already deleted: "%s". Marking as such.',
+                        recording.path,
+                    )
+
+
 class CallLogsPurger:
     def purge(self, days_to_keep, session):
         retentions = {r.tenant_uuid: r for r in session.query(Retention).all()}
@@ -28,6 +43,15 @@ class CallLogsPurger:
                 days = retention.cdr_days
 
             max_date = func.now() - datetime.timedelta(days=days)
+            query = (
+                session.query(CallLog)
+                .join(Recording, Recording.call_log_id == CallLog.id)
+                .filter(CallLog.date < max_date)
+                .filter(CallLog.tenant_uuid == tenant.uuid)
+            )
+            call_logs = query.all()
+            _remove_recording_files(call_logs)
+
             query = (
                 session.query(CallLog)
                 .filter(CallLog.date < max_date)
@@ -53,19 +77,8 @@ class RecordingsPurger:
                 .filter(CallLog.date < max_date)
                 .filter(CallLog.tenant_uuid == tenant.uuid)
             )
-
-            for cdr in query.all():
-                for recording in cdr.recordings:
-                    if recording.path:
-                        try:
-                            # NOTE(fblackburn): wazo-purge-db must be executed
-                            # on the same filesystem than wazo-call-logd
-                            os.remove(recording.path)
-                        except FileNotFoundError:
-                            logger.info(
-                                'Recording file already deleted: "%s". Marking as such.',
-                                recording.path,
-                            )
+            call_logs = query.all()
+            _remove_recording_files(call_logs)
 
             subquery = (
                 session.query(CallLog.id)

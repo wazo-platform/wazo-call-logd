@@ -7,7 +7,6 @@ from datetime import (
 )
 from hamcrest import assert_that, has_length, equal_to
 
-from wazo_call_logd.purger import CallLogsPurger
 from wazo_call_logd.database.models import CallLog, Recording
 
 from .helpers.base import DBIntegrationTest
@@ -16,30 +15,74 @@ from .helpers.database import call_log, recording, retention
 from .helpers.filesystem import FileSystemClient
 
 
-class TestCallLogPurger(DBIntegrationTest):
+class _BasePurger(DBIntegrationTest):
+
+    asset = 'purge'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.filesystem = FileSystemClient(
+            execute=cls.docker_exec,
+            service_name='purge-db',
+            root=True
+        )
+        cls.config_file = '/etc/wazo-purge-db/conf.d/10-enable-plugin.yml'
+
+    def setUp(self):
+        super().setUp()
+        self.filesystem.remove_file('/tmp/1')
+        self.filesystem.remove_file('/tmp/2')
+        self.filesystem.remove_file('/tmp/3')
+
+    def _purge(self, days_to_keep):
+        command = ['wazo-purge-db', '-d', f'{days_to_keep}']
+        rc = self.docker_exec(command, service_name='purge-db', return_attr='returncode')
+        assert_that(rc, equal_to(0))
+
+
+class TestCallLogPurger(_BasePurger):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.filesystem.create_file(
+            cls.config_file,
+            content='enabled_plugins: {purgers:{call-logs: true}}',
+        )
+
     @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1))
     @call_log(**{'id': 2}, date=dt.utcnow() - td(days=2))
     @call_log(**{'id': 3}, date=dt.utcnow() - td(days=3))
-    @recording(call_log_id=1)
-    @recording(call_log_id=2)
-    @recording(call_log_id=3)
+    @recording(call_log_id=1, path='/tmp/1')
+    @recording(call_log_id=2, path='/tmp/2')
+    @recording(call_log_id=3, path='/tmp/3')
     def test_purger(self, *_):
+        self.filesystem.create_file('/tmp/1')
+        self.filesystem.create_file('/tmp/2')
+        self.filesystem.create_file('/tmp/3')
         self._assert_len_call_logs(3)
 
         days_to_keep = 42
-        CallLogsPurger().purge(days_to_keep, self.session)
-        self.session.commit()
+        self._purge(days_to_keep)
         self._assert_len_call_logs(3)
+        assert_that(self.filesystem.path_exists('/tmp/1'))
+        assert_that(self.filesystem.path_exists('/tmp/2'))
+        assert_that(self.filesystem.path_exists('/tmp/3'))
 
         days_to_keep = 2
-        CallLogsPurger().purge(days_to_keep, self.session)
-        self.session.commit()
+        self._purge(days_to_keep)
         self._assert_len_call_logs(1)
+        assert_that(self.filesystem.path_exists('/tmp/1'))
+        assert_that(not self.filesystem.path_exists('/tmp/2'))
+        assert_that(not self.filesystem.path_exists('/tmp/3'))
 
         days_to_keep = 0
-        CallLogsPurger().purge(days_to_keep, self.session)
-        self.session.commit()
+        self._purge(days_to_keep)
         self._assert_len_call_logs(0)
+        assert_that(not self.filesystem.path_exists('/tmp/1'))
+        assert_that(not self.filesystem.path_exists('/tmp/2'))
+        assert_that(not self.filesystem.path_exists('/tmp/3'))
 
     def _assert_len_call_logs(self, number):
         result = self.session.query(CallLog).all()
@@ -57,15 +100,13 @@ class TestCallLogPurger(DBIntegrationTest):
 
         # When retention < default
         days_to_keep = 365
-        CallLogsPurger().purge(days_to_keep, self.session)
-        self.session.commit()
+        self._purge(days_to_keep)
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(2))
 
         # When retention > default
         days_to_keep = 1
-        CallLogsPurger().purge(days_to_keep, self.session)
-        self.session.commit()
+        self._purge(days_to_keep)
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(1))
 
@@ -73,26 +114,18 @@ class TestCallLogPurger(DBIntegrationTest):
     @retention(tenant_uuid=MASTER_TENANT, cdr_days=0)
     def test_purger_when_retention_is_zero(self, *_):
         days_to_keep = 365
-        CallLogsPurger().purge(days_to_keep, self.session)
-        self.session.commit()
+        self._purge(days_to_keep)
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(0))
 
 
-class TestRecordingPurger(DBIntegrationTest):
-
-    asset = 'purge'
+class TestRecordingPurger(_BasePurger):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.filesystem = FileSystemClient(
-            execute=cls.docker_exec,
-            service_name='purge-db',
-            root=True
-        )
         cls.filesystem.create_file(
-            '/etc/wazo-purge-db/conf.d/10-enable-plugin.yml',
+            cls.config_file,
             content='enabled_plugins: {purgers:{recordings: true}}',
         )
 
@@ -180,8 +213,3 @@ class TestRecordingPurger(DBIntegrationTest):
     def _assert_len_recording_path(self, number):
         result = self.session.query(Recording).filter(Recording.path.isnot(None)).all()
         assert_that(result, has_length(number))
-
-    def _purge(self, days_to_keep):
-        command = ['wazo-purge-db', '-d', f'{days_to_keep}']
-        rc = self.docker_exec(command, service_name='purge-db', return_attr='returncode')
-        assert_that(rc, equal_to(0))
