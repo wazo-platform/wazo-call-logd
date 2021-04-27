@@ -23,9 +23,7 @@ class _BasePurger(DBIntegrationTest):
     def setUpClass(cls):
         super().setUpClass()
         cls.filesystem = FileSystemClient(
-            execute=cls.docker_exec,
-            service_name='purge-db',
-            root=True
+            execute=cls.docker_exec, service_name='purge-db', root=True
         )
         cls.config_file = '/etc/wazo-purge-db/conf.d/10-enable-plugin.yml'
 
@@ -36,13 +34,18 @@ class _BasePurger(DBIntegrationTest):
         self.filesystem.remove_file('/tmp/3')
 
     def _purge(self, days_to_keep):
-        command = ['/bin/bash', '-c', f'wazo-purge-db -d {days_to_keep} &> /proc/1/fd/1']
-        rc = self.docker_exec(command, service_name='purge-db', return_attr='returncode')
+        command = [
+            '/bin/bash',
+            '-c',
+            f'wazo-purge-db -d {days_to_keep} &> /proc/1/fd/1',
+        ]
+        rc = self.docker_exec(
+            command, service_name='purge-db', return_attr='returncode'
+        )
         assert_that(rc, equal_to(0))
 
 
 class TestCallLogPurger(_BasePurger):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -120,7 +123,6 @@ class TestCallLogPurger(_BasePurger):
 
 
 class TestRecordingPurger(_BasePurger):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
