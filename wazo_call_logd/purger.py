@@ -1,6 +1,7 @@
 # Copyright 2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
 import datetime
 import logging
 
@@ -46,6 +47,26 @@ class RecordingsPurger:
                 days = retention.recording_days
 
             max_date = func.now() - datetime.timedelta(days=days)
+            query = (
+                session.query(CallLog)
+                .join(Recording, Recording.call_log_id == CallLog.id)
+                .filter(CallLog.date < max_date)
+                .filter(CallLog.tenant_uuid == tenant.uuid)
+            )
+
+            for cdr in query.all():
+                for recording in cdr.recordings:
+                    if recording.path:
+                        try:
+                            # NOTE(fblackburn): wazo-purge-db must be executed
+                            # on the same filesystem than wazo-call-logd
+                            os.remove(recording.path)
+                        except FileNotFoundError:
+                            logger.info(
+                                'Recording file already deleted: "%s". Marking as such.',
+                                recording.path,
+                            )
+
             subquery = (
                 session.query(CallLog.id)
                 .filter(CallLog.date < max_date)
