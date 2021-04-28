@@ -1700,3 +1700,15 @@ class TestListCDR(IntegrationTest):
             response.json()['items'],
             contains_exactly(has_entries(tenant_uuid=MASTER_TENANT)),
         )
+
+    def test_list_csv_export_adds_the_content_disposition_header(self):
+        port = self.service_port(9298, 'call-logd')
+
+        response = requests.get(
+            f'http://localhost:{port}/1.0/users/me/cdr',
+            params={'format': 'csv', 'token': USER_1_TOKEN},
+        )
+        assert_that(
+            response.headers,
+            has_entries('Content-Disposition', 'attachment; filename=cdr.csv'),
+        )

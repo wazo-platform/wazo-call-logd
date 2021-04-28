@@ -100,7 +100,10 @@ def _output_csv(data, code, http_headers=None):
         for csv_line in csv_body:
             writer.writerow(csv_line)
 
-        response = make_response(csv_text.getvalue())
+        response = make_response(
+            csv_text.getvalue(),
+            {'Content-Disposition': 'attachment; filename=cdr.csv'},
+        )
     else:
         raise NotImplementedError('No known CSV representation')
 
