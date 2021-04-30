@@ -6,7 +6,10 @@ from hamcrest import (
     calling,
     has_key,
     has_properties,
+    not_,
+    raises as hraises,
 )
+from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.raises import raises
 from wazo_call_logd_client.exceptions import CallLogdError
 
@@ -25,3 +28,44 @@ class TestConfig(IntegrationTest):
                 calling(self.call_logd.config.get),
                 raises(CallLogdError, has_properties(status_code=401)),
             )
+
+    def test_restrict_on_with_slow_wazo_auth(self):
+        config_file = '/etc/wazo-call-logd/conf.d/01-master-tenant.yml'
+
+        self.filesystem.create_file(
+            config_file,
+            content='auth: {master_tenant_uuid: ""}',
+        )
+        self.stop_service('auth')
+        self.restart_service('call-logd')
+        self.reset_clients()
+
+        def _returns_503():
+            try:
+                assert_that(
+                    calling(self.call_logd.config.get),
+                    raises(
+                        CallLogdError,
+                        has_properties(
+                            status_code=503,
+                            error_id='not-initialized',
+                        )
+                    ),
+                )
+            except ConnectionError:
+                raise AssertionError
+
+        until.assert_(_returns_503, tries=10)
+
+        self.filesystem.remove_file(config_file)
+        self.start_service('auth')
+        self.restart_service('call-logd')
+        self.reset_clients()
+
+        def _does_not_return_503():
+            assert_that(
+                calling(self.call_logd.config.get),
+                not_(hraises(CallLogdError)),
+            )
+
+        until.assert_(_does_not_return_503, tries=10)
