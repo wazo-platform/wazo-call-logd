@@ -228,3 +228,13 @@ class Retention(Base):
     )
     cdr_days = Column(Integer)
     recording_days = Column(Integer)
+
+
+@generic_repr
+class Config(Base):
+
+    __tablename__ = 'call_logd_config'
+
+    id = Column(Integer, primary_key=True)
+    retention_cdr_days = Column(Integer)
+    retention_recording_days = Column(Integer)
