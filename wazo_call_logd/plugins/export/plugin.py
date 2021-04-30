@@ -3,6 +3,8 @@
 
 from wazo_auth_client import Client as AuthClient
 
+from .services import build_service
+
 
 class Plugin:
     def load(self, dependencies):
@@ -11,3 +13,4 @@ class Plugin:
         dao = dependencies['dao']
 
         auth_client = AuthClient(**config['auth'])
+        export_service = build_service(dao)
