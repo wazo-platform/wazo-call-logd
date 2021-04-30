@@ -66,6 +66,10 @@ DEFAULT_CONFIG = {
         'support_center': True,
         'status': True,
     },
+    'retention': {
+        'cdr_days': None,
+        'recording_days': None,
+    },
 }
 
 

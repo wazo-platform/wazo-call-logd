@@ -33,17 +33,18 @@ logger = logging.getLogger(__name__)
 
 class Controller:
     def __init__(self, config):
+        self.config = config
         DBSession = new_db_session(config['db_uri'])
         CELDBSession = new_db_session(config['cel_db_uri'])
-        dao = DAO(DBSession, CELDBSession)
-        writer = CallLogsWriter(dao)
+        self.dao = DAO(DBSession, CELDBSession)
+        writer = CallLogsWriter(self.dao)
 
         # NOTE(afournier): it is important to load the tasks before configuring the Celery app
         self.celery_task_manager = plugin_helpers.load(
             namespace='wazo_call_logd.celery_tasks',
             names=config['enabled_celery_tasks'],
             dependencies={
-                'dao': dao,
+                'dao': self.dao,
             },
         )
         celery.configure(config)
@@ -67,7 +68,7 @@ class Controller:
             generator.set_default_tenant_uuid
         )
         self.bus_publisher = BusPublisher(config)
-        self.manager = CallLogsManager(dao, generator, writer, self.bus_publisher)
+        self.manager = CallLogsManager(self.dao, generator, writer, self.bus_publisher)
         self.bus_client = BusClient(config)
         self.http_server = HTTPServer(config)
         if not app.config['auth'].get('master_tenant_uuid'):
@@ -83,7 +84,7 @@ class Controller:
             dependencies={
                 'api': api,
                 'config': config,
-                'dao': dao,
+                'dao': self.dao,
                 'token_renewer': self.token_renewer,
                 'status_aggregator': self.status_aggregator,
                 'bus_publisher': self.bus_publisher,
@@ -98,6 +99,9 @@ class Controller:
         self.status_aggregator.add_provider(self.bus_client.provide_status)
         self.status_aggregator.add_provider(self.token_status.provide_status)
         signal.signal(signal.SIGTERM, partial(_sigterm_handler, self))
+
+        self._update_db_from_config_file()
+
         bus_publisher_thread = Thread(target=self.bus_publisher.run)
         bus_publisher_thread.start()
         bus_consumer_thread = Thread(
@@ -120,6 +124,17 @@ class Controller:
     def stop(self, reason):
         logger.warning('Stopping wazo-call-logd: %s', reason)
         self.http_server.stop()
+
+    def _update_db_from_config_file(self):
+        with self.dao.helper.db_ready():
+            config = self.dao.config.find_or_create()
+            cdr_days = self.config['retention']['cdr_days']
+            if cdr_days is not None:
+                config.retention_cdr_days = cdr_days
+            recording_days = self.config['retention']['recording_days']
+            if recording_days is not None:
+                config.retention_recording_days = recording_days
+            self.dao.config.update(config)
 
 
 def _sigterm_handler(controller, signum, frame):
