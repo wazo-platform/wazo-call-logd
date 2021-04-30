@@ -18,7 +18,9 @@ def upgrade():
         'call_logd_config',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('retention_cdr_days', sa.Integer),
+        sa.Column('retention_cdr_days_from_file', sa.Boolean, nullable=False),
         sa.Column('retention_recording_days', sa.Integer),
+        sa.Column('retention_recording_days_from_file', sa.Boolean, nullable=False),
     )
 
 

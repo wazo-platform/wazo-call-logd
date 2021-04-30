@@ -15,7 +15,9 @@ class ConfigDAO(BaseDAO):
             if not config:
                 config = Config(
                     retention_cdr_days=DEFAULT_CDR_DAYS,
+                    retention_cdr_days_from_file=False,
                     retention_recording_days=DEFAULT_RECORDING_DAYS,
+                    retention_recording_days_from_file=False,
                 )
                 session.add(config)
             session.flush()

@@ -237,4 +237,6 @@ class Config(Base):
 
     id = Column(Integer, primary_key=True)
     retention_cdr_days = Column(Integer)
+    retention_cdr_days_from_file = Column(Boolean)
     retention_recording_days = Column(Integer)
+    retention_recording_days_from_file = Column(Boolean)

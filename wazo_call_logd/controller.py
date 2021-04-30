@@ -131,9 +131,15 @@ class Controller:
             cdr_days = self.config['retention']['cdr_days']
             if cdr_days is not None:
                 config.retention_cdr_days = cdr_days
+                config.retention_cdr_days_from_file = True
+            else:
+                config.retention_cdr_days_from_file = False
             recording_days = self.config['retention']['recording_days']
             if recording_days is not None:
                 config.retention_recording_days = recording_days
+                config.retention_recording_days_from_file = True
+            else:
+                config.retention_recording_days_from_file = False
             self.dao.config.update(config)
 
 
