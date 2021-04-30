@@ -1,0 +1,46 @@
+paths:
+  /exports/{export_uuid}:
+    get:
+      summary: Get an export by the given UUID
+      description: '**Required ACL:** `call-logd.exports.{export_uuid}.read`'
+      tags:
+        - exports
+      parameters:
+        - $ref: '#/parameters/export_uuid'
+      responses:
+        '200':
+          description: Get an export by UUID
+          schema:
+            $ref: '#/definitions/Export'
+        '404':
+          $ref: '#/responses/NotFoundError'
+
+parameters:
+  export_uuid:
+    name: export_uuid
+    description: UUID of the given export
+    required: true
+    type: string
+    in: path
+
+definitions:
+  Export:
+    type: object
+    properties:
+      uuid:
+        type: string
+      tenant_uuid:
+        type: string
+      user_uuid:
+        type: string
+      date:
+        type: string
+        format: date-time
+      filename:
+        type: string
+      status:
+        type: string
+        enum:
+          - in_progress
+          - finished
+          - deleted
