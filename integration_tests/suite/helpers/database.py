@@ -21,11 +21,12 @@ from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 from wazo_call_logd.database.models import (
     CallLog,
     CallLogParticipant,
+    Export,
     Recording,
     Retention,
 )
 
-from .constants import MASTER_TENANT
+from .constants import MASTER_TENANT, USER_1_UUID
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,26 @@ def call_log(**call_log):
                 with self.database.queries() as queries:
                     queries.delete_call_log(call_log['id'])
                     queries.delete_recording_by_call_log_id(call_log['id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
+def export(**export):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            export.setdefault('date', dt.utcnow())
+            export.setdefault('tenant_uuid', MASTER_TENANT)
+            export.setdefault('user_uuid', USER_1_UUID)
+            with self.database.queries() as queries:
+                export['uuid'] = queries.insert_export(**export)
+            try:
+                return func(self, *args, export, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    queries.delete_export(export['uuid'])
 
         return wrapped_function
 
@@ -326,6 +347,20 @@ class DatabaseQueries:
     def delete_call_log(self, call_log_id):
         session = self.Session()
         session.query(CallLog).filter(CallLog.id == call_log_id).delete()
+        session.commit()
+
+    def insert_export(self, **kwargs):
+        session = self.Session()
+        export = Export(**kwargs)
+        session.add(export)
+        session.flush()
+        export_uuid = export.uuid
+        session.commit()
+        return export_uuid
+
+    def delete_export(self, export_uuid):
+        session = self.Session()
+        session.query(Export).filter(Export.uuid == export_uuid).delete()
         session.commit()
 
     def insert_recording(self, **kwargs):

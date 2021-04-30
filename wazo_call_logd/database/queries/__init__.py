@@ -5,6 +5,7 @@ from .agent_stat import AgentStatDAO
 from .call_log import CallLogDAO
 from .cel import CELDAO
 from .config import ConfigDAO
+from .export import ExportDAO
 from .helper import HelperDAO
 from .queue_stat import QueueStatDAO
 from .recording import RecordingDAO
@@ -17,6 +18,7 @@ class DAO:
     _dao = {
         'call_log': CallLogDAO,
         'config': ConfigDAO,
+        'export': ExportDAO,
         'helper': HelperDAO,
         'recording': RecordingDAO,
         'retention': RetentionDAO,
