@@ -29,6 +29,7 @@ setup(
             'api = wazo_call_logd.plugins.api.plugin:Plugin',
             'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
             'config = wazo_call_logd.plugins.config.plugin:Plugin',
+            'export = wazo_call_logd.plugins.export.plugin:Plugin',
             'retention = wazo_call_logd.plugins.retention.plugin:Plugin',
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
             'support_center = wazo_call_logd.plugins.support_center.plugin:Plugin',

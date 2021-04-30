@@ -62,9 +62,10 @@ DEFAULT_CONFIG = {
         'api': True,
         'cdr': True,
         'config': True,
+        'export': True,
         'retention': True,
-        'support_center': True,
         'status': True,
+        'support_center': True,
     },
     'retention': {
         'cdr_days': None,
