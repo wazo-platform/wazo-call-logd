@@ -12,6 +12,8 @@ from xivo import plugin_helpers
 from xivo.status import StatusAggregator, TokenStatus
 from xivo.token_renewer import TokenRenewer
 
+from wazo_call_logd import celery
+
 from wazo_call_logd.bus_client import BusClient
 from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
@@ -30,6 +32,8 @@ logger = logging.getLogger(__name__)
 
 class Controller:
     def __init__(self, config):
+        celery.configure(config)
+        self._celery_process = celery.spawn_workers(config)
         auth_client = AuthClient(**config['auth'])
         confd_client = ConfdClient(**config['confd'])
         generator = CallLogsGenerator(
@@ -91,9 +95,11 @@ class Controller:
         finally:
             logger.info('Stopping wazo-call-logd')
             self.bus_client.stop()
-            self.bus_publisher.stop()
+            self._publisher.stop()
+            self._celery_process.terminate()
             bus_consumer_thread.join()
             bus_publisher_thread.join()
+            self._celery_process.join()
 
     def stop(self, reason):
         logger.warning('Stopping wazo-call-logd: %s', reason)
