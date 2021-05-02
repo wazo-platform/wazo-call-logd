@@ -15,6 +15,28 @@ paths:
         '404':
           $ref: '#/responses/NotFoundError'
 
+  /exports/{export_uuid}/download:
+    get:
+      summary: Download an export as a ZIP archive by the given UUID
+      description: |
+        **Required ACL:** `call-logd.exports.{export_uuid}.download.read`
+        This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
+      tags:
+        - exports
+      parameters:
+        - $ref: '#/parameters/export_uuid'
+      responses:
+        '200':
+          description: Download an export by UUID
+        '202':
+          description: Export not done yet
+          schema:
+            $ref: '#/responses/NotDoneYetError'
+        '404':
+          $ref: '#/responses/NotFoundError'
+      produces:
+        - application/zip
+
 parameters:
   export_uuid:
     name: export_uuid

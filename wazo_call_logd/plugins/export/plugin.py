@@ -6,6 +6,7 @@ from wazo_auth_client import Client as AuthClient
 from .services import build_service
 
 from .http import (
+    ExportDownloadResource,
     ExportResource,
 )
 
@@ -13,10 +14,8 @@ from .http import (
 class Plugin:
     def load(self, dependencies):
         api = dependencies['api']
-        config = dependencies['config']
         dao = dependencies['dao']
 
-        auth_client = AuthClient(**config['auth'])
         export_service = build_service(dao)
 
         api.add_resource(
@@ -24,4 +23,11 @@ class Plugin:
             '/exports/<uuid:export_uuid>',
             resource_class_args=[export_service],
             endpoint='export_resource',
+        )
+
+        api.add_resource(
+            ExportDownloadResource,
+            '/exports/<uuid:export_uuid>/download',
+            resource_class_args=[export_service],
+            endpoint='export_download_resource',
         )
