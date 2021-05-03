@@ -58,6 +58,50 @@ paths:
           description: The CDRs recording media were deleted successfully
         '404':
           $ref: '#/responses/NotFoundError'
+  /cdr/recordings/media/export:
+    post:
+      summary: Create an export for the recording media of multiple CDRs
+      description: |
+        **Required ACL:** `call-logd.cdr.recordings.media.export.create`
+
+        This endpoint creates a new export and returns its UUID.
+      tags:
+        - cdr
+      parameters:
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/search'
+        - $ref: '#/parameters/call_direction'
+        - $ref: '#/parameters/number'
+        - $ref: '#/parameters/tags'
+        - $ref: '#/parameters/from_id'
+        - $ref: '#/parameters/recurse'
+        - $ref: '#/parameters/tenantuuid'
+        - name: body
+          in: body
+          description: The CDR IDs list from which to create an export
+          required: false
+          schema:
+            type: object
+            properties:
+              cdr_ids:
+                type: array
+                items:
+                  type: string
+      responses:
+        '202':
+          description: Creation of multiple recording media export started
+          schema:
+            type: object
+            properties:
+              export_uuid:
+                type: string
+              warnings:
+                type: array
+                items:
+                  type: object
+        '404':
+          $ref: '#/responses/NotFoundError'
   /cdr/{cdr_id}:
     get:
       summary: Get a CDR by ID

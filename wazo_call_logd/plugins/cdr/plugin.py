@@ -3,12 +3,16 @@
 
 from wazo_auth_client import Client as AuthClient
 
+from wazo_call_logd.plugins.export.services import build_service as build_export_service
+
+from .celery_tasks import RecordingExportTask
 from .http import (
     CDRResource,
     CDRIdResource,
     CDRUserResource,
     CDRUserMeResource,
     RecordingMediaItemResource,
+    RecordingsMediaExportResource,
     RecordingsMediaResource,
 )
 from .services import CDRService, RecordingService
@@ -22,7 +26,8 @@ class Plugin:
 
         auth_client = AuthClient(**config['auth'])
         cdr_service = CDRService(dao)
-        recording_service = RecordingService(dao)
+        export_service = build_export_service(dao)
+        recording_service = RecordingService(dao, export_service, config['exports'])
 
         api.add_resource(
             CDRResource,
@@ -33,6 +38,11 @@ class Plugin:
             RecordingsMediaResource,
             '/cdr/recordings/media',
             resource_class_args=[recording_service],
+        )
+        api.add_resource(
+            RecordingsMediaExportResource,
+            '/cdr/recordings/media/export',
+            resource_class_args=[recording_service, api, auth_client],
         )
         api.add_resource(
             CDRIdResource,

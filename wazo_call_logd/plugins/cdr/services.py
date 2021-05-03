@@ -3,6 +3,11 @@
 
 import os
 import re
+import uuid
+
+from datetime import datetime
+
+from .celery_tasks import export_recording_task
 
 RECORDING_FILENAME_RE = re.compile(r'^.+-(\d+)-([a-z0-9-]{36})(.*)?$')
 
@@ -34,8 +39,10 @@ class CDRService:
 
 
 class RecordingService:
-    def __init__(self, dao):
+    def __init__(self, dao, export_service, config):
         self._dao = dao
+        self._export_service = export_service
+        self._config = config
 
     def find_by(self, **kwargs):
         return self._dao.recording.find_by(**kwargs)
@@ -47,3 +54,13 @@ class RecordingService:
         self._dao.recording.delete_media_by(call_log_id=cdr_id, uuid=recording_uuid)
         if recording_path:
             os.remove(recording_path)
+
+    def start_recording_export(self, recording_files, user_uuid, tenant_uuid):
+        destination = self._config.get('directory')
+        task_uuid = str(uuid.uuid4())
+        self._export_service.create(task_uuid, user_uuid, tenant_uuid, datetime.now())
+        export_recording_task.apply_async(
+            args=(task_uuid, recording_files, destination, tenant_uuid),
+            task_id=task_uuid,
+        )
+        return task_uuid

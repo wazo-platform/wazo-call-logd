@@ -6,7 +6,7 @@ import csv
 
 from io import StringIO
 
-from flask import jsonify, make_response, request, send_file, g
+from flask import g, jsonify, make_response, request, send_file, url_for
 from xivo import tenant_helpers
 from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import token, Tenant, auth_client
@@ -19,6 +19,7 @@ from wazo_call_logd.http import AuthResource
 from .exceptions import (
     CDRNotFoundException,
     CDRRecordingMediaFSPermissionException,
+    NoRecordingToExportException,
     RecordingNotFoundException,
     RecordingMediaNotFoundException,
     RecordingMediaFSPermissionException,
@@ -28,6 +29,8 @@ from .schemas import (
     CDRSchema,
     CDRSchemaList,
     CDRListRequestSchema,
+    RecordingMediaExportBodySchema,
+    RecordingMediaExportRequestSchema,
     RecordingMediaDeleteRequestSchema,
 )
 
@@ -237,6 +240,47 @@ class RecordingMediaAuthResource(AuthResource):
             return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
         else:
             return [tenant_uuid]
+
+
+class RecordingsMediaExportResource(RecordingMediaAuthResource):
+    def __init__(self, service, api, auth_client, *args, **kwargs):
+        super().__init__(service, *args, **kwargs)
+        self.api = api
+        self.auth_client = auth_client
+
+    @required_acl('call-logd.cdr.recordings.media.export.create')
+    def post(self):
+        args = RecordingMediaExportRequestSchema().load(request.args)
+        body_args = RecordingMediaExportBodySchema().load(request.get_json(force=True))
+        user_uuid = get_token_user_uuid_from_request(self.auth_client)
+        tenant_uuids = self.visible_tenants(True)
+        call_log_ids = body_args['cdr_ids']
+        recordings_to_download = []
+        # We do not want to export any recording if one of the CDR has not been found
+        for cdr_id in call_log_ids:
+            cdr = self.service.find_cdr(cdr_id, tenant_uuids)
+            if not cdr:
+                raise CDRNotFoundException(details={'cdr_id': cdr_id})
+            recordings_to_download.extend(cdr.recordings)
+
+        recording_files = []
+        for recording in recordings_to_download:
+            recording_files.append(
+                {
+                    'uuid': recording.uuid,
+                    'filename': recording.filename,
+                    'path': recording.path,
+                }
+            )
+
+        if not recording_files:
+            raise NoRecordingToExportException()
+
+        export_uuid = self.service.start_recording_export(recording_files, user_uuid, tenant_uuids[0])
+        response = jsonify({'export_uuid': str(export_uuid)})
+        response.headers.extend({'Location': url_for('export_resource', export_uuid=export_uuid)})
+        response.status_code = 202
+        return response
 
 
 class RecordingsMediaResource(RecordingMediaAuthResource):

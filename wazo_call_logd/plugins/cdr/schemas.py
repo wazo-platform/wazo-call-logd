@@ -26,6 +26,23 @@ class RecordingMediaDeleteRequestSchema(Schema):
     cdr_ids = fields.List(fields.Integer(), validate=Length(min=1), required=True)
 
 
+class RecordingMediaExportRequestSchema(Schema):
+    from_ = fields.DateTime(data_key='from', attribute='start', missing=None)
+    until = fields.DateTime(attribute='end', missing=None)
+    search = fields.String(missing=None)
+    call_direction = fields.String(
+        validate=OneOf(['internal', 'inbound', 'outbound']), missing=None
+    )
+    number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
+    tags = fields.List(fields.String(), missing=[])
+    from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
+    recurse = fields.Boolean(missing=False)
+
+
+class RecordingMediaExportBodySchema(Schema):
+    cdr_ids = fields.List(fields.Integer(), validate=Length(min=1), required=True)
+
+
 class CDRSchema(Schema):
     id = fields.Integer()
     tenant_uuid = fields.UUID()
