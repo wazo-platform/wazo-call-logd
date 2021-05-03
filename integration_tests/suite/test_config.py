@@ -49,7 +49,7 @@ class TestConfig(IntegrationTest):
                         has_properties(
                             status_code=503,
                             error_id='not-initialized',
-                        )
+                        ),
                     ),
                 )
             except ConnectionError:
