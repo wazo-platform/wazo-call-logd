@@ -38,6 +38,7 @@ DEFAULT_CONFIG = {
         'worker_min': 3,
         'worker_max': 5,
     },
+    'enabled_celery_tasks': {},
     'rest_api': {
         'listen': '127.0.0.1',
         'port': 9298,

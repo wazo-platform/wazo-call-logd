@@ -4,7 +4,7 @@
 import logging
 import multiprocessing
 
-from celery import Celery
+from celery import Celery, Task
 
 app = Celery()
 
@@ -47,7 +47,6 @@ def spawn_workers(config):
     return process
 
 
-# NOTE(sileht): This defeat usage of stevedore but celery worker process need
-# all tasks to be loaded when we create app Celery(). Also we don't want to
-# load the whole plugin but just this task, we don't care about the rest
-import wazo_webhookd.plugins.subscription.celery_tasks  # noqa
+class LoadableTask(Task):
+    def load(self, dao):
+        self._dao = dao

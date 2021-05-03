@@ -32,8 +32,22 @@ logger = logging.getLogger(__name__)
 
 class Controller:
     def __init__(self, config):
+        DBSession = new_db_session(config['db_uri'])
+        CELDBSession = new_db_session(config['cel_db_uri'])
+        dao = DAO(DBSession, CELDBSession)
+        writer = CallLogsWriter(dao)
+
+        # NOTE(afournier): it is important to load the tasks before configuring the Celery app
+        self.celery_task_manager = plugin_helpers.load(
+            namespace='wazo_call_logd.celery_tasks',
+            names=config['enabled_celery_tasks'],
+            dependencies={
+                'dao': dao,
+            },
+        )
         celery.configure(config)
         self._celery_process = celery.spawn_workers(config)
+
         auth_client = AuthClient(**config['auth'])
         confd_client = ConfdClient(**config['confd'])
         generator = CallLogsGenerator(
@@ -46,10 +60,6 @@ class Controller:
                 ),
             ],
         )
-        DBSession = new_db_session(config['db_uri'])
-        CELDBSession = new_db_session(config['cel_db_uri'])
-        dao = DAO(DBSession, CELDBSession)
-        writer = CallLogsWriter(dao)
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)
         self.token_renewer.subscribe_to_next_token_details_change(

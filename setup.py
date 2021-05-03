@@ -24,6 +24,7 @@ setup(
             'wazo-call-logd-migrate-db=wazo_call_logd.main_migrate_db:main',
             'wazo-call-logs=wazo_call_logd.main_sweep:main',
         ],
+        'wazo_call_logd.celery_tasks': [],
         'wazo_call_logd.plugins': [
             'api = wazo_call_logd.plugins.api.plugin:Plugin',
             'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
