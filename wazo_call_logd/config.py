@@ -38,7 +38,9 @@ DEFAULT_CONFIG = {
         'worker_min': 3,
         'worker_max': 5,
     },
-    'enabled_celery_tasks': {},
+    'enabled_celery_tasks': {
+        'recording_export': True,
+    },
     'rest_api': {
         'listen': '127.0.0.1',
         'port': 9298,
