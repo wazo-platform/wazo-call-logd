@@ -210,3 +210,21 @@ class Recording(Base):
     @property
     def deleted(self):
         return self.path is None
+
+
+@generic_repr
+class Retention(Base):
+
+    __tablename__ = 'call_logd_retention'
+
+    tenant_uuid = Column(
+        UUIDType,
+        ForeignKey(
+            'call_logd_tenant.uuid',
+            name='call_logd_call_log_tenant_uuid_fkey',
+            ondelete='CASCADE',
+        ),
+        primary_key=True,
+    )
+    cdr_days = Column(Integer)
+    recording_days = Column(Integer)

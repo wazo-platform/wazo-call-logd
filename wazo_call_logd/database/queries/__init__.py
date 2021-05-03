@@ -6,6 +6,7 @@ from .call_log import CallLogDAO
 from .cel import CELDAO
 from .queue_stat import QueueStatDAO
 from .recording import RecordingDAO
+from .retention import RetentionDAO
 from .tenant import TenantDAO
 
 
@@ -14,6 +15,7 @@ class DAO:
     _dao = {
         'call_log': CallLogDAO,
         'recording': RecordingDAO,
+        'retention': RetentionDAO,
         'tenant': TenantDAO,
     }
     _cel_dao = {

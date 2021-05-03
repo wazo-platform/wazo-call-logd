@@ -8,6 +8,11 @@
   * `GET /users/<user_uuid>/cdr`
   * `GET /users/me/cdr`
 
+* New endpoints for retention policy configuration:
+
+  * `GET /retention`
+  * `PUT /retention`
+
 ## 21.04
 
 * `GET /cdr`, `GET /users/me/cdr` and `GET /users/<user_uuid>/cdr` accept new query string

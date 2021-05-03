@@ -1,13 +1,16 @@
 MANAGE_DB_DIR ?= ../../xivo-manage-db/
 CEL_POSTGRES_DOCKER=$(MANAGE_DB_DIR)/contribs/docker/wazo-confd-db-test/Dockerfile
 
-test-setup: egg-info call-logd db
+test-setup: egg-info call-logd purge-db db
 
 egg-info:
 	cd .. && python setup.py egg_info
 
 test:
 	pytest
+
+purge-db:
+	docker build --no-cache -t wazo-purge-db-test -f docker/Dockerfile-purge-db-test ..
 
 call-logd:
 	docker build -t wazoplatform/wazo-call-logd ..
@@ -19,4 +22,4 @@ cel-db:
 db:
 	docker build -f ../contribs/docker/Dockerfile-db -t wazoplatform/wazo-call-logd-db ..
 
-.PHONY: test-setup test call-logd cel-db db
+.PHONY: test-setup test call-logd purge-db cel-db db
