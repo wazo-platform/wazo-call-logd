@@ -105,7 +105,7 @@ class Controller:
         finally:
             logger.info('Stopping wazo-call-logd')
             self.bus_client.stop()
-            self._publisher.stop()
+            self.bus_publisher.stop()
             self._celery_process.terminate()
             bus_consumer_thread.join()
             bus_publisher_thread.join()
