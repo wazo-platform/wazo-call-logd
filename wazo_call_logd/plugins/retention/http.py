@@ -32,7 +32,7 @@ class RetentionResource(AuthResource):
             result['tenant_uuid'] = tenant_uuid
         return result
 
-    @required_acl('call-logd.retention.read')
+    @required_acl('call-logd.retention.update')
     def put(self):
         tenant_uuid = Tenant.autodetect().uuid
         retention = self.service.find_or_create(tenant_uuid)
