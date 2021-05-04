@@ -275,6 +275,13 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
             },
         )
 
+    @contextmanager
+    def set_token(self, token):
+        old_token = self.call_logd._token_id
+        self.call_logd.set_token(token)
+        yield
+        self.call_logd.set_token(old_token)
+
     def _get_tomorrow(self, timezone=None):
         timezone = timezone or pytz.utc
         today = timezone.normalize(timezone.localize(datetime.now()))

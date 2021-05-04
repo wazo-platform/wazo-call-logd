@@ -5,6 +5,7 @@ cel_db_uri: postgresql://asterisk:proformatique@cel-postgres/asterisk
 auth:
   host: auth
   key_file: /etc/wazo-call-logd/key.yml
+  master_tenant_uuid: 4eb57648-b914-446b-a69f-58643ae08dd4
 bus:
   host: rabbitmq
 confd:
