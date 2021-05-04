@@ -12,6 +12,8 @@ from xivo import plugin_helpers
 from xivo.status import StatusAggregator, TokenStatus
 from xivo.token_renewer import TokenRenewer
 
+from wazo_call_logd import celery
+
 from wazo_call_logd.bus_client import BusClient
 from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
@@ -30,6 +32,22 @@ logger = logging.getLogger(__name__)
 
 class Controller:
     def __init__(self, config):
+        DBSession = new_db_session(config['db_uri'])
+        CELDBSession = new_db_session(config['cel_db_uri'])
+        dao = DAO(DBSession, CELDBSession)
+        writer = CallLogsWriter(dao)
+
+        # NOTE(afournier): it is important to load the tasks before configuring the Celery app
+        self.celery_task_manager = plugin_helpers.load(
+            namespace='wazo_call_logd.celery_tasks',
+            names=config['enabled_celery_tasks'],
+            dependencies={
+                'dao': dao,
+            },
+        )
+        celery.configure(config)
+        self._celery_process = celery.spawn_workers(config)
+
         auth_client = AuthClient(**config['auth'])
         confd_client = ConfdClient(**config['confd'])
         generator = CallLogsGenerator(
@@ -42,10 +60,6 @@ class Controller:
                 ),
             ],
         )
-        DBSession = new_db_session(config['db_uri'])
-        CELDBSession = new_db_session(config['cel_db_uri'])
-        dao = DAO(DBSession, CELDBSession)
-        writer = CallLogsWriter(dao)
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)
         self.token_renewer.subscribe_to_next_token_details_change(
@@ -92,8 +106,10 @@ class Controller:
             logger.info('Stopping wazo-call-logd')
             self.bus_client.stop()
             self.bus_publisher.stop()
+            self._celery_process.terminate()
             bus_consumer_thread.join()
             bus_publisher_thread.join()
+            self._celery_process.join()
 
     def stop(self, reason):
         logger.warning('Stopping wazo-call-logd: %s', reason)

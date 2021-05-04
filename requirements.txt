@@ -5,6 +5,7 @@ https://github.com/wazo-platform/xivo-dao/archive/master.zip
 https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 https://github.com/wazo-platform/wazo-lib-rest-client/archive/master.zip  # from xivo-*-client
 alembic==1.0.0
+celery==4.4.6
 cheroot==6.5.4
 flask==1.0.2
 flask-restful==0.3.7
@@ -16,6 +17,7 @@ python-dateutil==2.7.3  # from marshmallow, to accept more date formats
 pytz==2019.1
 pyyaml==3.13
 requests==2.21.0  # from xivo-*-client
+setproctitle==1.1.10
 sqlalchemy==1.2.18
 sqlalchemy_utils==0.32.21
 stevedore==1.29.0

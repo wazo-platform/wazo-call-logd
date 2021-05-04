@@ -2,11 +2,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
+import os
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_file
 from xivo.config_helper import read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
+
+_PID_DIR = '/run/wazo-call-logd'
 
 DEFAULT_CONFIG = {
     'logfile': '/var/log/wazo-call-logd.log',
@@ -27,6 +30,15 @@ DEFAULT_CONFIG = {
         'exchange_type': 'topic',
         'exchange_durable': True,
     },
+    'celery': {
+        'broker': 'amqp://guest:guest@localhost:5672',
+        'exchange_name': 'celery-call-logd',
+        'queue_name': 'celery-call-logd',
+        'worker_pid_file': os.path.join(_PID_DIR, 'celery-worker.pid'),
+        'worker_min': 3,
+        'worker_max': 5,
+    },
+    'enabled_celery_tasks': {},
     'rest_api': {
         'listen': '127.0.0.1',
         'port': 9298,

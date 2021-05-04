@@ -6,6 +6,7 @@ StartLimitBurst=15
 StartLimitIntervalSec=150
 
 [Service]
+ExecStartPre=/usr/bin/install -d -o wazo-call-logd -g wazo-call-logd /run/wazo-call-logd
 ExecStart=/usr/bin/wazo-call-logd
 Restart=on-failure
 RestartSec=5

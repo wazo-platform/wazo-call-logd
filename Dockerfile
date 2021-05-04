@@ -5,6 +5,10 @@ RUN python -m venv /opt/venv
 # Activate virtual env
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Necessary for setproctitle
+RUN apt-get -q update
+RUN apt-get -yq install gcc
+
 # Install wazo-call-logd
 COPY . /usr/src/wazo-call-logd
 WORKDIR /usr/src/wazo-call-logd
