@@ -229,6 +229,12 @@ class Retention(Base):
     cdr_days = Column(Integer)
     recording_days = Column(Integer)
 
+    def __init__(self, *args, **kwargs):
+        # NOTE(fblackburn): Declare used properties
+        self.default_cdr_days = None
+        self.default_recording_days = None
+        super().__init__(*args, **kwargs)
+
 
 @generic_repr
 class Config(Base):

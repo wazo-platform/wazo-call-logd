@@ -335,6 +335,10 @@ class DBIntegrationTest(_BaseIntegrationTest):
     service = 'postgres'
     wait_strategy = NoWaitStrategy()
 
+    def setUp(self):
+        super().setUp()
+        self.dao.config.find_or_create()
+
 
 class RawCelIntegrationTest(_BaseIntegrationTest):
 

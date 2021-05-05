@@ -7,7 +7,6 @@ from hamcrest import (
     assert_that,
     equal_to,
     has_properties,
-    none,
 )
 
 from wazo_call_logd.database.models import Retention
@@ -24,7 +23,16 @@ class TestRecording(DBIntegrationTest):
         assert_that(result, has_properties(tenant_uuid=tenant_uuid))
 
         result = self.dao.retention.find_or_create(tenant_uuid)
-        assert_that(result, has_properties(tenant_uuid=tenant_uuid))
+        assert_that(
+            result,
+            has_properties(
+                tenant_uuid=tenant_uuid,
+                cdr_days=None,
+                recording_days=None,
+                default_cdr_days=365,
+                default_recording_days=365,
+            ),
+        )
 
         result = self.session.query(Retention).count()
         assert_that(result, equal_to(1))
@@ -39,7 +47,16 @@ class TestRecording(DBIntegrationTest):
         assert_that(result, has_properties(tenant_uuid=expected))
 
         result = self.dao.retention.find(UNKNOWN_UUID)
-        assert_that(result, none())
+        assert_that(
+            result,
+            has_properties(
+                tenant_uuid=UNKNOWN_UUID,
+                cdr_days=None,
+                recording_days=None,
+                default_cdr_days=365,
+                default_recording_days=365,
+            ),
+        )
 
     @retention(cdr_days=1, recording_days=1)
     def test_update(self, retention):

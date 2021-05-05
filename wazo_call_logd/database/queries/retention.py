@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from .base import BaseDAO
-from ..models import Retention
+from ..models import Config, Retention
 
 
 class RetentionDAO(BaseDAO):
@@ -12,9 +12,13 @@ class RetentionDAO(BaseDAO):
             query = query.filter(Retention.tenant_uuid == tenant_uuid)
             retention = query.first()
             if not retention:
-                return
-            session.flush()
-            session.expunge(retention)
+                retention = Retention(tenant_uuid=tenant_uuid)
+            else:
+                session.flush()
+                session.expunge(retention)
+            config = session.query(Config).first()
+            retention.default_cdr_days = config.retention_cdr_days
+            retention.default_recording_days = config.retention_recording_days
         return retention
 
     def find_or_create(self, tenant_uuid):
@@ -25,6 +29,9 @@ class RetentionDAO(BaseDAO):
             if not retention:
                 retention = Retention(tenant_uuid=tenant_uuid)
                 session.add(retention)
+            config = session.query(Config).first()
+            retention.default_cdr_days = config.retention_cdr_days
+            retention.default_recording_days = config.retention_recording_days
             session.flush()
             session.expunge(retention)
         return retention

@@ -28,8 +28,6 @@ class RetentionResource(AuthResource):
         tenant_uuid = Tenant.autodetect().uuid
         retention = self.service.find(tenant_uuid)
         result = RetentionSchema().dump(retention)
-        if not retention:
-            result['tenant_uuid'] = tenant_uuid
         return result
 
     @required_acl('call-logd.retention.update')
