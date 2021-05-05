@@ -44,3 +44,9 @@ definitions:
         type: integer
       recording_days:
         type: integer
+      default_cdr_days:
+        type: integer
+        readOnly: true
+      default_recording_days:
+        type: integer
+        readOnly: true

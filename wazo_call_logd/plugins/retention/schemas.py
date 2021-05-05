@@ -13,6 +13,8 @@ class RetentionSchema(Schema):
     tenant_uuid = fields.UUID(dump_only=True)
     cdr_days = fields.Integer(validate=Range(min=0), missing=None)
     recording_days = fields.Integer(validate=Range(min=0), missing=None)
+    default_cdr_days = fields.Integer(dump_only=True)
+    default_recording_days = fields.Integer(dump_only=True)
 
     @validates_schema
     def validate_days(self, data):
