@@ -9,12 +9,16 @@ from sqlalchemy import func
 
 from .database.models import (
     CallLog,
+    Config,
     Recording,
     Retention,
     Tenant,
 )
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_PURGE_DB_DAYS = 365
+DEFAULT_CALL_LOGD_DAYS = 365
 
 
 def _remove_recording_files(call_logs):
@@ -32,15 +36,31 @@ def _remove_recording_files(call_logs):
                     )
 
 
+def _extract_days_to_keep(tenant_days, default_days, purge_db_days):
+    if tenant_days is not None:
+        return tenant_days
+
+    purge_db_days_customized = purge_db_days != DEFAULT_PURGE_DB_DAYS
+    default_days_customized = default_days != DEFAULT_CALL_LOGD_DAYS
+    if purge_db_days_customized and not default_days_customized:
+        return purge_db_days
+
+    return default_days
+
+
 class CallLogsPurger:
     def purge(self, days_to_keep, session):
+        config = session.query(Config).first()
+        if not config:
+            raise Exception('No default config found')
+        default_days = config.retention_cdr_days
+
         retentions = {r.tenant_uuid: r for r in session.query(Retention).all()}
         tenants = session.query(Tenant).all()
         for tenant in tenants:
-            days = days_to_keep
             retention = retentions.get(tenant.uuid)
-            if retention and retention.cdr_days is not None:
-                days = retention.cdr_days
+            tenant_days = retention.cdr_days if retention else None
+            days = _extract_days_to_keep(tenant_days, default_days, days_to_keep)
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
@@ -62,13 +82,18 @@ class CallLogsPurger:
 
 class RecordingsPurger:
     def purge(self, days_to_keep, session):
+        config = session.query(Config).first()
+        if not config:
+            raise Exception('No default config found')
+        default_days = config.retention_recording_days
+
         retentions = {r.tenant_uuid: r for r in session.query(Retention).all()}
         tenants = session.query(Tenant).all()
         for tenant in tenants:
             days = days_to_keep
             retention = retentions.get(tenant.uuid)
-            if retention and retention.recording_days is not None:
-                days = retention.recording_days
+            tenant_days = retention.recording_days if retention else None
+            days = _extract_days_to_keep(tenant_days, default_days, days_to_keep)
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
