@@ -3,7 +3,7 @@
 
 from contextlib import contextmanager
 from .base import BaseDAO
-from ..database import wait_is_ready
+from ..helpers import wait_is_ready
 
 
 class HelperDAO(BaseDAO):

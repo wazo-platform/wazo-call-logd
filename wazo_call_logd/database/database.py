@@ -9,24 +9,9 @@ import alembic.command
 import alembic.migration
 from sqlalchemy import create_engine
 
-from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
+from .helpers import wait_is_ready
 
 logger = logging.getLogger(__name__)
-
-
-@retry(
-    stop=stop_after_attempt(60 * 5),
-    wait=wait_fixed(1),
-    before=before_log(logger, logging.INFO),
-    after=after_log(logger, logging.WARN),
-)
-def wait_is_ready(connection):
-    try:
-        # Try to create session to check if DB is awake
-        connection.execute('SELECT 1')
-    except Exception as e:
-        logger.warning('fail to connect to the database: %s', e)
-        raise
 
 
 def upgrade(uri):
