@@ -45,6 +45,7 @@ class Controller:
             names=config['enabled_celery_tasks'],
             dependencies={
                 'dao': self.dao,
+                'app': celery.app,
             },
         )
         celery.configure(config)
