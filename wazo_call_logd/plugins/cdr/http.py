@@ -3,6 +3,7 @@
 
 import logging
 import csv
+import hashlib
 
 from io import StringIO
 
@@ -100,9 +101,13 @@ def _output_csv(data, code, http_headers=None):
         for csv_line in csv_body:
             writer.writerow(csv_line)
 
+        response_body = csv_text.getvalue()
+        hash_ = hashlib.sha1()
+        hash_.update(response_body.encode())
+        sha1sum = hash_.hexdigest()
         response = make_response(
             csv_text.getvalue(),
-            {'Content-Disposition': 'attachment; filename=cdr.csv'},
+            {'Content-Disposition': f'attachment; filename=cdr-{sha1sum}.csv'},
         )
     else:
         raise NotImplementedError('No known CSV representation')

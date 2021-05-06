@@ -20,6 +20,7 @@ from hamcrest import (
     has_key,
     has_length,
     has_properties,
+    starts_with,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
 from xivo_test_helpers.auth import MockUserToken
@@ -1710,5 +1711,7 @@ class TestListCDR(IntegrationTest):
         )
         assert_that(
             response.headers,
-            has_entries('Content-Disposition', 'attachment; filename=cdr.csv'),
+            has_entries(
+                'Content-Disposition', starts_with('attachment; filename=cdr-')
+            ),
         )
