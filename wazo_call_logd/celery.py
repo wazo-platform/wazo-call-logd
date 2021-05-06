@@ -48,5 +48,7 @@ def spawn_workers(config):
 
 
 class LoadableTask(Task):
-    def load(self, dao):
-        self._dao = dao
+    _dao = None
+
+    def load(self, dependencies):
+        self._dao = dependencies['dao']
