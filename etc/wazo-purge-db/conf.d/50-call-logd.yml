@@ -1,3 +1,4 @@
 enabled_plugins:
     purgers:
         call-logs: true
+        recordings: true
