@@ -1472,7 +1472,7 @@ class TestListCDR(IntegrationTest):
         port = self.service_port(9298, 'call-logd')
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/me/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={'format': 'csv', 'token': USER_1_TOKEN},
         )
         result = list(csv.DictReader(StringIO(response.text)))
@@ -1484,7 +1484,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/{USER_2_UUID}/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/{USER_2_UUID}/cdr',
             params={
                 'token': USER_1_TOKEN,
                 'tenant_uuids': USERS_TENANT,
@@ -1500,7 +1500,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/{OTHER_USER_UUID}/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/{OTHER_USER_UUID}/cdr',
             params={
                 'token': USER_1_TOKEN,
                 'tenant_uuids': USERS_TENANT,
@@ -1511,7 +1511,7 @@ class TestListCDR(IntegrationTest):
         assert_that(result, empty())
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/me/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={
                 'token': USER_2_TOKEN,
                 'tenant_uuids': USERS_TENANT,
@@ -1527,7 +1527,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/me/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={'token': OTHER_USER_TOKEN, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
@@ -1539,7 +1539,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/cdr',
+            f'http://127.0.0.1:{port}/1.0/cdr',
             params={'token': MASTER_TOKEN, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
@@ -1549,7 +1549,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/cdr',
+            f'http://127.0.0.1:{port}/1.0/cdr',
             params={'token': USER_1_TOKEN, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
@@ -1562,7 +1562,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/cdr',
+            f'http://127.0.0.1:{port}/1.0/cdr',
             params={'token': MASTER_TOKEN, 'recurse': True, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
@@ -1599,7 +1599,7 @@ class TestListCDR(IntegrationTest):
         port = self.service_port(9298, 'call-logd')
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/me/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={'format': 'csv', 'token': USER_1_TOKEN},
         )
         result = list(csv.DictReader(StringIO(response.text)))
@@ -1611,7 +1611,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/me/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={'format': 'json', 'token': USER_1_TOKEN},
         )
         assert_that(
@@ -1622,7 +1622,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/{USER_2_UUID}/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/{USER_2_UUID}/cdr',
             params={
                 'token': USER_1_TOKEN,
                 'tenant_uuids': USERS_TENANT,
@@ -1638,7 +1638,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/{USER_2_UUID}/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/{USER_2_UUID}/cdr',
             params={
                 'token': USER_1_TOKEN,
                 'tenant_uuids': USERS_TENANT,
@@ -1653,7 +1653,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/me/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={
                 'token': USER_2_TOKEN,
                 'tenant_uuids': USERS_TENANT,
@@ -1669,7 +1669,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/me/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={
                 'token': USER_2_TOKEN,
                 'tenant_uuids': USERS_TENANT,
@@ -1684,7 +1684,7 @@ class TestListCDR(IntegrationTest):
         )
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/cdr',
+            f'http://127.0.0.1:{port}/1.0/cdr',
             params={'token': MASTER_TOKEN, 'format': 'csv'},
         )
         result = list(csv.DictReader(StringIO(response.text)))
@@ -1693,7 +1693,7 @@ class TestListCDR(IntegrationTest):
             contains_exactly(has_entries(tenant_uuid=MASTER_TENANT)),
         )
         response = requests.get(
-            f'http://localhost:{port}/1.0/cdr',
+            f'http://127.0.0.1:{port}/1.0/cdr',
             params={'token': MASTER_TOKEN, 'format': 'json'},
         )
         assert_that(
@@ -1705,7 +1705,7 @@ class TestListCDR(IntegrationTest):
         port = self.service_port(9298, 'call-logd')
 
         response = requests.get(
-            f'http://localhost:{port}/1.0/users/me/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={'format': 'csv', 'token': USER_1_TOKEN},
         )
         assert_that(
