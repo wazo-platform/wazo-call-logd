@@ -32,6 +32,13 @@ class _BasePurger(DBIntegrationTest):
         self.filesystem.remove_file('/tmp/1')
         self.filesystem.remove_file('/tmp/2')
         self.filesystem.remove_file('/tmp/3')
+        self._reset_default_config()
+
+    def _reset_default_config(self):
+        config = self.dao.config.find_or_create()
+        config.retention_cdr_days = 365
+        config.retention_recording_days = 365
+        self.dao.config.update(config)
 
     def _purge(self, days_to_keep):
         command = [
