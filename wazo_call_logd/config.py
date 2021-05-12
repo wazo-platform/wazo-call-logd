@@ -21,6 +21,9 @@ DEFAULT_CONFIG = {
     'db_upgrade_on_startup': False,
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
+    'exports': {
+        'directory': '/var/lib/wazo-call-logd/exports',
+    },
     'bus': {
         'username': 'guest',
         'password': 'guest',
