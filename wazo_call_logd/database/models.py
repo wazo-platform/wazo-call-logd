@@ -228,3 +228,21 @@ class Retention(Base):
     )
     cdr_days = Column(Integer)
     recording_days = Column(Integer)
+
+    def __init__(self, *args, **kwargs):
+        # NOTE(fblackburn): Declare used properties
+        self.default_cdr_days = None
+        self.default_recording_days = None
+        super().__init__(*args, **kwargs)
+
+
+@generic_repr
+class Config(Base):
+
+    __tablename__ = 'call_logd_config'
+
+    id = Column(Integer, primary_key=True)
+    retention_cdr_days = Column(Integer)
+    retention_cdr_days_from_file = Column(Boolean)
+    retention_recording_days = Column(Integer)
+    retention_recording_days_from_file = Column(Boolean)

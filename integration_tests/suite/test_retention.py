@@ -25,7 +25,16 @@ class TestRetention(IntegrationTest):
     @retention(cdr_days=2, recording_days=2)
     def test_get(self, retention):
         result = self.call_logd.retention.get(tenant_uuid=MASTER_TENANT)
-        assert_that(result, has_entries(**retention))
+        assert_that(
+            result,
+            has_entries(
+                tenant_uuid=MASTER_TENANT,
+                cdr_days=2,
+                recording_days=2,
+                default_cdr_days=365,
+                default_recording_days=365,
+            ),
+        )
 
     def test_get_not_configured_tenant(self):
         result = self.call_logd.retention.get(tenant_uuid=OTHER_TENANT)
@@ -35,6 +44,8 @@ class TestRetention(IntegrationTest):
                 tenant_uuid=OTHER_TENANT,
                 cdr_days=None,
                 recording_days=None,
+                default_cdr_days=365,
+                default_recording_days=365,
             ),
         )
 

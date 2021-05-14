@@ -32,6 +32,13 @@ class _BasePurger(DBIntegrationTest):
         self.filesystem.remove_file('/tmp/1')
         self.filesystem.remove_file('/tmp/2')
         self.filesystem.remove_file('/tmp/3')
+        self._reset_default_config()
+
+    def _reset_default_config(self):
+        config = self.dao.config.find_or_create()
+        config.retention_cdr_days = 365
+        config.retention_recording_days = 365
+        self.dao.config.update(config)
 
     def _purge(self, days_to_keep):
         command = [
@@ -120,6 +127,18 @@ class TestCallLogPurger(_BasePurger):
         self._purge(days_to_keep)
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(0))
+
+    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
+    def test_purger_when_default_days_is_customized(self, *_):
+        config = self.dao.config.find_or_create()
+        config.retention_cdr_days = 42
+        self.dao.config.update(config)
+        days_to_keep = 0
+
+        self._purge(days_to_keep)
+
+        result = self.session.query(CallLog).all()
+        assert_that(result, has_length(1))
 
 
 class TestRecordingPurger(_BasePurger):
@@ -211,6 +230,20 @@ class TestRecordingPurger(_BasePurger):
         self._purge(days_to_keep)
         self._assert_len_recording_path(0)
         assert_that(not self.filesystem.path_exists('/tmp/1'))
+
+    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
+    @recording(call_log_id=1, path='/tmp/1')
+    def test_purger_when_default_days_is_customizedd(self, *_):
+        self.filesystem.create_file('/tmp/1')
+        config = self.dao.config.find_or_create()
+        config.retention_recording_days = 42
+        self.dao.config.update(config)
+        days_to_keep = 0
+
+        self._purge(days_to_keep)
+
+        self._assert_len_recording_path(1)
+        assert_that(self.filesystem.path_exists('/tmp/1'))
 
     def _assert_len_recording_path(self, number):
         result = self.session.query(Recording).filter(Recording.path.isnot(None)).all()

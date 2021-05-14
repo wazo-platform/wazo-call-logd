@@ -8,6 +8,7 @@ paths:
       tags:
         - cdr
       parameters:
+      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/from'
       - $ref: '#/parameters/until'
       - $ref: '#/parameters/limit'
@@ -21,7 +22,6 @@ paths:
       - $ref: '#/parameters/user_uuid'
       - $ref: '#/parameters/from_id'
       - $ref: '#/parameters/recurse'
-      - $ref: '#/parameters/tenantuuid'
       - $ref: '#/parameters/distinct'
       - $ref: '#/parameters/recorded'
       - $ref: '#/parameters/format'

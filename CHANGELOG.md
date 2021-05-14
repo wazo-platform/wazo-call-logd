@@ -1,5 +1,12 @@
 # Changelog
 
+## 21.07
+
+* `GET /retention` has new attributes:
+
+  * `default_cdr_days`
+  * `default_recording_days`
+
 ## 21.06
 
 * The following resources now allow the token, tenant and format to be specified as a query string.
