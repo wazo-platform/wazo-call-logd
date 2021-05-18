@@ -40,6 +40,14 @@ class TestRecording(DBIntegrationTest):
         self.session.query(Retention).delete()
         self.session.commit()
 
+    def test_find_or_create_when_tenant_does_not_exist(self):
+        tenant_uuid = uuid.uuid4()
+        result = self.dao.retention.find_or_create(tenant_uuid)
+        assert_that(result, has_properties(tenant_uuid=tenant_uuid))
+
+        result = self.session.query(Retention).count()
+        assert_that(result, equal_to(1))
+
     @retention()
     def test_find(self, retention):
         result = self.dao.retention.find(retention['tenant_uuid'])
