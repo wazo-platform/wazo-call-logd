@@ -214,37 +214,15 @@ class CDRUserMeResource(CDRAuthResource):
         return format_cdr_result(CDRSchemaList(exclude=['items.tags']).dump(cdrs))
 
 
-class RecordingMediaAuthResource(AuthResource):
-    def __init__(self, service):
-        super().__init__()
-        self.service = service
-
-    def _set_up_token_helper_to_verify_tenant(self):
-        token_uuid = extract_token_id_from_query_or_header()
-        if not token_uuid:
-            raise tenant_helpers.InvalidToken()
-        g.token = tenant_helpers.Tokens(auth_client).get(token_uuid)
-        auth_client.set_token(g.token.uuid)
-
-    def query_or_header_visible_tenants(self, recurse=True):
-        self._set_up_token_helper_to_verify_tenant()
-        tenant_uuid = Tenant.autodetect(include_query=True).uuid
-        if recurse:
-            return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
-        else:
-            return [tenant_uuid]
-
-    def visible_tenants(self, recurse=True):
-        tenant_uuid = Tenant.autodetect().uuid
-        if recurse:
-            return [tenant.uuid for tenant in token.visible_tenants(tenant_uuid)]
-        else:
-            return [tenant_uuid]
+class RecordingMediaAuthResource(CDRAuthResource):
+    def __init__(self, recording_service, cdr_service):
+        super().__init__(cdr_service)
+        self.recording_service = recording_service
 
 
 class RecordingsMediaExportResource(RecordingMediaAuthResource):
-    def __init__(self, service, api, auth_client, *args, **kwargs):
-        super().__init__(service, *args, **kwargs)
+    def __init__(self, recording_service, cdr_service, api, auth_client, *args, **kwargs):
+        super().__init__(recording_service, cdr_service, *args, **kwargs)
         self.api = api
         self.auth_client = auth_client
 
@@ -292,14 +270,14 @@ class RecordingsMediaResource(RecordingMediaAuthResource):
         recordings_to_delete = []
         # We do not want to delete any recording if one of the CDR has not been found
         for cdr_id in call_log_ids:
-            cdr = self.service.find_cdr(cdr_id, tenant_uuids)
+            cdr = self.cdr_service.get(cdr_id, tenant_uuids)
             if not cdr:
                 raise CDRNotFoundException(details={'cdr_id': cdr_id})
             recordings_to_delete.extend(cdr.recordings)
 
         for recording in recordings_to_delete:
             try:
-                self.service.delete_media(
+                self.recording_service.delete_media(
                     recording.call_log_id, recording.uuid, recording.path
                 )
             except PermissionError:
@@ -322,11 +300,11 @@ class RecordingMediaItemResource(RecordingMediaAuthResource):
     )
     def get(self, cdr_id, recording_uuid):
         tenant_uuids = self.query_or_header_visible_tenants(True)
-        cdr = self.service.find_cdr(cdr_id, tenant_uuids)
+        cdr = self.cdr_service.get(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
 
-        recording = self.service.find_by(uuid=recording_uuid, call_log_id=cdr_id)
+        recording = self.recording_service.find_by(uuid=recording_uuid, call_log_id=cdr_id)
         if not recording:
             raise RecordingNotFoundException(recording_uuid)
 
@@ -350,16 +328,16 @@ class RecordingMediaItemResource(RecordingMediaAuthResource):
     @required_acl('call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete')
     def delete(self, cdr_id, recording_uuid):
         tenant_uuids = self.visible_tenants(True)
-        cdr = self.service.find_cdr(cdr_id, tenant_uuids)
+        cdr = self.cdr_service.get(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
 
-        recording = self.service.find_by(uuid=recording_uuid, call_log_id=cdr_id)
+        recording = self.recording_service.find_by(uuid=recording_uuid, call_log_id=cdr_id)
         if not recording:
             raise RecordingNotFoundException(recording_uuid)
 
         try:
-            self.service.delete_media(cdr_id, recording_uuid, recording.path)
+            self.recording_service.delete_media(cdr_id, recording_uuid, recording.path)
         except PermissionError:
             logger.error('Permission denied: "%s"', recording.path)
             raise RecordingMediaFSPermissionException(recording_uuid, recording.path)

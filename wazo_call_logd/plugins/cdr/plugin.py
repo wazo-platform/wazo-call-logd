@@ -37,12 +37,12 @@ class Plugin:
         api.add_resource(
             RecordingsMediaResource,
             '/cdr/recordings/media',
-            resource_class_args=[recording_service],
+            resource_class_args=[recording_service, cdr_service],
         )
         api.add_resource(
             RecordingsMediaExportResource,
             '/cdr/recordings/media/export',
-            resource_class_args=[recording_service, api, auth_client],
+            resource_class_args=[recording_service, cdr_service, api, auth_client],
         )
         api.add_resource(
             CDRIdResource,
