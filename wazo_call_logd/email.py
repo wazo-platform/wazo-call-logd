@@ -1,6 +1,8 @@
 # Copyright 2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
+
 from jinja2 import BaseLoader, Environment, TemplateNotFound
 
 

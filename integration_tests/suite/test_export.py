@@ -3,19 +3,12 @@
 
 from hamcrest import (
     assert_that,
-    calling,
-    contains,
     has_entries,
-    has_properties,
 )
-from wazo_call_logd_client.exceptions import CallLogdError
-from xivo_test_helpers import until
-from xivo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import (
     MASTER_TENANT,
-    OTHER_TENANT,
     UNKNOWN_UUID,
 )
 from .helpers.database import export
@@ -66,4 +59,4 @@ class TestExports(IntegrationTest):
         pass
 
     def test_get_unknown_export(self):
-        result = self.call_logd.export.get(UNKNOWN_UUID)
+        self.call_logd.export.get(UNKNOWN_UUID)

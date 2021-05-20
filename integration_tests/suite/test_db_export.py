@@ -9,7 +9,6 @@ from datetime import (
 )
 from hamcrest import (
     assert_that,
-    equal_to,
     has_properties,
     none,
 )

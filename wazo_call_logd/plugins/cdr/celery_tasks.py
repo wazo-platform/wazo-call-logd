@@ -10,7 +10,6 @@ from email import utils as email_utils
 from email.message import EmailMessage
 from zipfile import ZipFile, ZIP_BZIP2
 
-from wazo_auth_client import Client as AuthClient
 from wazo_call_logd.celery import LoadableTask
 from .exceptions import RecordingMediaFSPermissionException, RecordingMediaFSNotFoundException
 

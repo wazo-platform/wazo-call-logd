@@ -1,8 +1,6 @@
 # Copyright 2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from wazo_auth_client import Client as AuthClient
-
 from .services import build_service
 
 from .http import (

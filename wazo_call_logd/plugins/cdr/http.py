@@ -226,7 +226,8 @@ class RecordingMediaAuthResource(CDRAuthResource):
                 return email
 
     def create_token_for_export(self):
-        export_token = auth_client.token.create()
+        return auth_client.token.create()
+
 
 class RecordingsMediaExportResource(RecordingMediaAuthResource):
     def __init__(self, recording_service, cdr_service, api, auth_client, *args, **kwargs):
