@@ -9,7 +9,7 @@ from io import StringIO
 from flask import g, jsonify, make_response, request, send_file, url_for
 from xivo import tenant_helpers
 from xivo.auth_verifier import required_acl
-from xivo.tenant_flask_helpers import token, Tenant, auth_client
+from xivo.tenant_flask_helpers import auth_client, token, Tenant
 from wazo_call_logd.auth import (
     extract_token_id_from_query_or_header,
     get_token_user_uuid_from_request,
@@ -219,6 +219,14 @@ class RecordingMediaAuthResource(CDRAuthResource):
         super().__init__(cdr_service)
         self.recording_service = recording_service
 
+    def get_token_user_email(self):
+        user_infos = auth_client.users.get(token.user_uuid)
+        for email in user_infos.get('emails'):
+            if email.get('main'):
+                return email
+
+    def create_token_for_export(self):
+        export_token = auth_client.token.create()
 
 class RecordingsMediaExportResource(RecordingMediaAuthResource):
     def __init__(self, recording_service, cdr_service, api, auth_client, *args, **kwargs):
@@ -254,7 +262,11 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         if not recording_files:
             raise NoRecordingToExportException()
 
-        export_uuid = self.service.start_recording_export(recording_files, user_uuid, tenant_uuids[0])
+        destination_email = args['email']
+        if not destination_email:
+            destination_email = self.get_token_user_email()
+
+        export_uuid = self.recording_service.start_recording_export(recording_files, user_uuid, tenant_uuids[0], destination_email)
         response = jsonify({'export_uuid': str(export_uuid)})
         response.headers.extend({'Location': url_for('export_resource', export_uuid=export_uuid)})
         response.status_code = 202

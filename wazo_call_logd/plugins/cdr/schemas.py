@@ -37,6 +37,7 @@ class RecordingMediaExportRequestSchema(Schema):
     tags = fields.List(fields.String(), missing=[])
     from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
     recurse = fields.Boolean(missing=False)
+    email = fields.String(missing=None)
 
 
 class RecordingMediaExportBodySchema(Schema):
