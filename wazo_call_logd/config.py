@@ -72,6 +72,16 @@ DEFAULT_CONFIG = {
         'status': True,
         'support_center': True,
     },
+    'email': {
+        'host': 'smtp.gmail.com',
+        'port': 587,
+        'timeout': 10,
+        'from_name': 'Wazo',
+        'from_address': 'no-reply@wazo.community',
+        'username': 'user@example.com',
+        'password': None,
+        'subject': 'Your export is ready',
+    },
     'retention': {
         'cdr_days': None,
         'recording_days': None,
