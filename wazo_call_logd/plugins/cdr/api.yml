@@ -67,6 +67,7 @@ paths:
         This endpoint creates a new export and returns its UUID.
       tags:
         - cdr
+        - exports
       parameters:
         - $ref: '#/parameters/from'
         - $ref: '#/parameters/until'
