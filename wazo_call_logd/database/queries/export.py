@@ -38,14 +38,8 @@ class ExportDAO(BaseDAO):
         query = self._add_tenant_filter(query, params.get('tenant_uuids'))
         return query
 
-    def create(self, export_uuid, user_uuid, tenant_uuid, date):
+    def create(self, export):
         with self.new_session() as session:
-            export = Export(
-                uuid=export_uuid,
-                user_uuid=user_uuid,
-                tenant_uuid=tenant_uuid,
-                date=date,
-            )
             session.add(export)
             session.flush()
             session.expunge(export)

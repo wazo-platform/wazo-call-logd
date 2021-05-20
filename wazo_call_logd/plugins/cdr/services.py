@@ -3,9 +3,9 @@
 
 import os
 import re
-import uuid
-
 from datetime import datetime
+
+from wazo_call_logd.database.models import Export
 
 from .celery_tasks import export_recording_task
 
@@ -39,9 +39,8 @@ class CDRService:
 
 
 class RecordingService:
-    def __init__(self, dao, export_service, config):
+    def __init__(self, dao, config):
         self._dao = dao
-        self._export_service = export_service
         self._config = config
 
     def find_by(self, **kwargs):
@@ -54,10 +53,14 @@ class RecordingService:
 
     def start_recording_export(self, recording_files, user_uuid, tenant_uuid, destination_email):
         destination = self._config.get('directory')
-        task_uuid = str(uuid.uuid4())
-        self._export_service.create(task_uuid, user_uuid, tenant_uuid, datetime.now())
-        export_recording_task.apply_async(
-            args=(task_uuid, recording_files, destination, tenant_uuid, destination_email),
-            task_id=task_uuid,
+        export = Export(
+            user_uuid=user_uuid,
+            tenant_uuid=tenant_uuid,
+            date=datetime.now(),
         )
-        return task_uuid
+        export_uuid = self._dao.export.create(export)
+        export_recording_task.apply_async(
+            args=(export_uuid, recording_files, destination, tenant_uuid, destination_email),
+            task_id=export_uuid,
+        )
+        return export_uuid

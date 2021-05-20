@@ -4,6 +4,7 @@
 import uuid
 
 from datetime import (
+    datetime as dt,
     timedelta as td,
     timezone as tz,
 )
@@ -11,8 +12,10 @@ from hamcrest import (
     assert_that,
     calling,
     has_properties,
+    not_none,
 )
 from xivo_test_helpers.hamcrest.raises import raises
+from wazo_call_logd.database.models import Export
 from wazo_call_logd.exceptions import ExportNotFoundException
 
 from .helpers.base import DBIntegrationTest
@@ -58,3 +61,15 @@ class TestDBExport(DBIntegrationTest):
         assert_that(result, has_properties(status='deleted'))
         result.path = 'test-path'
         assert_that(result, has_properties(status='finished'))
+
+    def test_create(self):
+        body = {
+            'tenant_uuid': uuid.UUID(MASTER_TENANT),
+            'user_uuid': uuid.uuid4(),
+            'date': dt.now(),
+        }
+        result = self.dao.export.create(Export(**body))
+        assert_that(result, has_properties(uuid=not_none(), **body))
+
+        self.session.query(Export).delete()
+        self.session.commit()
