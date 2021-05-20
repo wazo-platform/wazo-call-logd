@@ -44,6 +44,7 @@ class Controller:
             namespace='wazo_call_logd.celery_tasks',
             names=config['enabled_celery_tasks'],
             dependencies={
+                'config': self.config,
                 'dao': self.dao,
                 'app': celery.app,
             },
