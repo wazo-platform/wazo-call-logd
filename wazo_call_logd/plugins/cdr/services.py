@@ -66,7 +66,7 @@ class RecordingService:
             tenant_uuid=tenant_uuid,
             date=datetime.now(),
         )
-        export_uuid = self._dao.export.create(export)
+        export_uuid = self._dao.export.create(export).uuid
         export_recording_task.apply_async(
             args=(
                 export_uuid,
@@ -75,6 +75,6 @@ class RecordingService:
                 tenant_uuid,
                 destination_email,
             ),
-            task_id=export_uuid,
+            task_id=str(export_uuid),
         )
         return export_uuid
