@@ -1,18 +1,25 @@
 # Copyright 2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import text
 
 from .base import BaseDAO
 from ..models import Export
 from ...exceptions import ExportNotFoundException
 
 
+class _UselessQuery(Exception):
+    pass
+
+
 class ExportDAO(BaseDAO):
     def get(self, export_uuid, tenant_uuids=None):
         with self.new_session() as session:
             query = session.query(Export)
-            query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})
+            try:
+                query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})
+            except _UselessQuery:
+                raise ExportNotFoundException(export_uuid)
+
             query = query.filter(Export.uuid == export_uuid)
             export = query.one_or_none()
             if not export:
@@ -24,7 +31,7 @@ class ExportDAO(BaseDAO):
         if tenant_uuids:
             query = query.filter(Export.tenant_uuid.in_(tenant_uuids))
         elif not tenant_uuids and tenant_uuids is not None:
-            query = query.filter(text('false'))
+            raise _UselessQuery()
         return query
 
     def _apply_filters(self, query, params):
