@@ -51,7 +51,15 @@ class RecordingService:
         if recording_path:
             os.remove(recording_path)
 
-    def start_recording_export(self, recording_files, user_uuid, tenant_uuid, destination_email):
+    def start_recording_export(self, recordings, user_uuid, tenant_uuid, destination_email):
+        recording_files = [
+            {
+                'uuid': recording.uuid,
+                'filename': recording.filename,
+                'path': recording.path,
+            } for recording in recordings
+        ]
+
         destination = self._config.get('directory')
         export = Export(
             user_uuid=user_uuid,
@@ -60,7 +68,13 @@ class RecordingService:
         )
         export_uuid = self._dao.export.create(export)
         export_recording_task.apply_async(
-            args=(export_uuid, recording_files, destination, tenant_uuid, destination_email),
+            args=(
+                export_uuid,
+                recording_files,
+                destination,
+                tenant_uuid,
+                destination_email,
+            ),
             task_id=export_uuid,
         )
         return export_uuid

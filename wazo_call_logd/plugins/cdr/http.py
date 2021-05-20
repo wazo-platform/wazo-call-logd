@@ -247,17 +247,7 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         for cdr in call_logs:
             recordings_to_download.extend(cdr.recordings)
 
-        recording_files = []
-        for recording in recordings_to_download:
-            recording_files.append(
-                {
-                    'uuid': recording.uuid,
-                    'filename': recording.filename,
-                    'path': recording.path,
-                }
-            )
-
-        if not recording_files:
+        if not recordings_to_download:
             raise NoRecordingToExportException()
 
         destination_email = args['email']
@@ -268,9 +258,15 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         if not destination_email:
             warnings.append({'warning': 'E-mail undefined: no e-mail will be sent'})
 
-        export_uuid = self.recording_service.start_recording_export(recording_files, user_uuid, tenant_uuids[0], destination_email)
+        export_uuid = self.recording_service.start_recording_export(
+            recordings_to_download,
+            user_uuid,
+            tenant_uuids[0],
+            destination_email,
+        )
         response = jsonify({'export_uuid': str(export_uuid), 'warnings': warnings})
-        response.headers.extend({'Location': url_for('export_resource', export_uuid=export_uuid)})
+        location = url_for('export_resource', export_uuid=export_uuid)
+        response.headers.extend({'Location': location})
         response.status_code = 202
         return response
 
