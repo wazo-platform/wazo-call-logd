@@ -9,9 +9,11 @@ from datetime import (
 )
 from hamcrest import (
     assert_that,
+    calling,
     has_properties,
-    none,
 )
+from xivo_test_helpers.hamcrest.raises import raises
+from wazo_call_logd.exceptions import ExportNotFoundException
 
 from .helpers.base import DBIntegrationTest
 from .helpers.database import export
@@ -30,8 +32,12 @@ class TestDBExport(DBIntegrationTest):
         result = self.dao.export.get_by_uuid(export1['uuid'], [master_tenant])
         assert_that(result, has_properties(uuid=export1['uuid']))
 
-        result = self.dao.export.get_by_uuid(export1['uuid'], [other_tenant])
-        assert_that(result, none())
+        assert_that(
+            calling(self.dao.export.get_by_uuid).with_args(
+                export1['uuid'], [other_tenant]
+            ),
+            raises(ExportNotFoundException),
+        )
 
     @export()
     def test_export_filename(self, export):

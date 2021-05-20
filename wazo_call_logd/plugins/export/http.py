@@ -8,14 +8,12 @@ from xivo import tenant_helpers
 
 from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import auth_client, token, Tenant
-from wazo_call_logd.auth import (
-    extract_token_id_from_query_or_header,
-)
+from wazo_call_logd.auth import extract_token_id_from_query_or_header
+from wazo_call_logd.exceptions import ExportNotFoundException
 from wazo_call_logd.http import AuthResource
 
 from .exceptions import (
     ExportNotDoneYetException,
-    ExportNotFoundException,
     ExportFSNotFoundException,
     ExportFSPermissionException,
 )
@@ -59,8 +57,6 @@ class ExportResource(ExportAuthResource):
     def get(self, export_uuid):
         tenant_uuids = self.visible_tenants(recurse=True)
         export = self.service.get(export_uuid, tenant_uuids)
-        if not export:
-            raise ExportNotFoundException(export_uuid)
         return ExportSchema().dump(export)
 
 

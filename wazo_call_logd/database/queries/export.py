@@ -5,6 +5,7 @@ from sqlalchemy import text
 
 from .base import BaseDAO
 from ..models import Export
+from ...exceptions import ExportNotFoundException
 
 
 class ExportDAO(BaseDAO):
@@ -14,9 +15,10 @@ class ExportDAO(BaseDAO):
             query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})
             query = query.filter(Export.uuid == export_uuid)
             export = query.one_or_none()
-            if export:
-                session.expunge_all()
-                return export
+            if not export:
+                raise ExportNotFoundException(export_uuid)
+            session.expunge_all()
+            return export
 
     def _add_tenant_filter(self, query, tenant_uuids):
         if tenant_uuids:
