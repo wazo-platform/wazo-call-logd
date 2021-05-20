@@ -47,9 +47,6 @@ class RecordingService:
     def find_by(self, **kwargs):
         return self._dao.recording.find_by(**kwargs)
 
-    def find_cdr(self, cdr_id, tenant_uuids):
-        return self._dao.call_log.get_by_id(cdr_id, tenant_uuids)
-
     def delete_media(self, cdr_id, recording_uuid, recording_path):
         self._dao.recording.delete_media_by(call_log_id=cdr_id, uuid=recording_uuid)
         if recording_path:

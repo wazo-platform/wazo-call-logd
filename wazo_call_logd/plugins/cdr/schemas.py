@@ -41,7 +41,7 @@ class RecordingMediaExportRequestSchema(Schema):
 
 
 class RecordingMediaExportBodySchema(Schema):
-    cdr_ids = fields.List(fields.Integer(), validate=Length(min=1), required=True)
+    cdr_ids = fields.List(fields.Integer(), missing=None)
 
 
 class CDRSchema(Schema):

@@ -240,13 +240,10 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         body_args = RecordingMediaExportBodySchema().load(request.get_json(force=True))
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         tenant_uuids = self.visible_tenants(True)
-        call_log_ids = body_args['cdr_ids']
+        args['cdr_ids'] = body_args['cdr_ids']
         recordings_to_download = []
-        # We do not want to export any recording if one of the CDR has not been found
-        for cdr_id in call_log_ids:
-            cdr = self.service.find_cdr(cdr_id, tenant_uuids)
-            if not cdr:
-                raise CDRNotFoundException(details={'cdr_id': cdr_id})
+        call_logs = self.cdr_service.list(args)['items']
+        for cdr in call_logs:
             recordings_to_download.extend(cdr.recordings)
 
         recording_files = []
