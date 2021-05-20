@@ -9,7 +9,7 @@ from ...exceptions import ExportNotFoundException
 
 
 class ExportDAO(BaseDAO):
-    def get_by_uuid(self, export_uuid, tenant_uuids=None):
+    def get(self, export_uuid, tenant_uuids=None):
         with self.new_session() as session:
             query = session.query(Export)
             query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})

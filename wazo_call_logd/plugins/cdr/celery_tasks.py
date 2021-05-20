@@ -30,7 +30,7 @@ class RecordingExportTask(LoadableTask):
         logger.debug('registered instance: %s', self)
 
     def run(self, task_uuid, recordings, output_dir, tenant_uuid, destination_email):
-        export = self._dao.export.get_by_uuid(task_uuid, [tenant_uuid])
+        export = self._dao.export.get(task_uuid, [tenant_uuid])
         filename = f'{task_uuid}.zip'
         fullpath = os.path.join(output_dir, filename)
         with ZipFile(fullpath, mode='w', compression=ZIP_BZIP2) as zip_file:

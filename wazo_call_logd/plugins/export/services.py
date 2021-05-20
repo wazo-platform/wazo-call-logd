@@ -7,7 +7,7 @@ class ExportService:
         self._dao = dao
 
     def get(self, export_uuid, tenant_uuids):
-        return self._dao.export.get_by_uuid(export_uuid, tenant_uuids)
+        return self._dao.export.get(export_uuid, tenant_uuids)
 
     def create(self, *args, **kwargs):
         return self._dao.export.create(*args, **kwargs)
