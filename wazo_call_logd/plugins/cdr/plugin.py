@@ -50,7 +50,7 @@ class Plugin:
         api.add_resource(
             RecordingMediaItemResource,
             '/cdr/<int:cdr_id>/recordings/<uuid:recording_uuid>/media',
-            resource_class_args=[recording_service],
+            resource_class_args=[recording_service, cdr_service],
         )
         api.add_resource(
             CDRUserResource,
