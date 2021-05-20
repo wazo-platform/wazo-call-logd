@@ -345,6 +345,11 @@ parameters:
     required: false
     type: boolean
     in: query
+  email:
+    name: email
+    description: E-mail address
+    type: string
+    in: query
 definitions:
   CDRList:
     type: object
