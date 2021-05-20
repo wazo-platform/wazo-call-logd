@@ -351,6 +351,8 @@ class DatabaseQueries:
 
     def insert_export(self, **kwargs):
         session = self.Session()
+        kwargs.setdefault('date', dt.now())
+        kwargs.setdefault('tenant_uuid', MASTER_TENANT)
         export = Export(**kwargs)
         session.add(export)
         session.flush()
