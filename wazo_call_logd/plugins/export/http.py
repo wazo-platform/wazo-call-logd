@@ -57,7 +57,7 @@ class ExportAuthResource(AuthResource):
 class ExportResource(ExportAuthResource):
     @required_acl('call-logd.exports.{export_uuid}.read')
     def get(self, export_uuid):
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         export = self.service.get(export_uuid, tenant_uuids)
         if not export:
             raise ExportNotFoundException(export_uuid)
@@ -70,7 +70,7 @@ class ExportDownloadResource(ExportAuthResource):
         extract_token_id=extract_token_id_from_query_or_header,
     )
     def get(self, export_uuid):
-        tenant_uuids = self.query_or_header_visible_tenants(True)
+        tenant_uuids = self.query_or_header_visible_tenants(recurse=True)
         export = self.service.get(export_uuid, tenant_uuids)
 
         if not export:

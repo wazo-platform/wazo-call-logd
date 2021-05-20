@@ -176,7 +176,7 @@ class CDRResource(CDRAuthResource):
 class CDRIdResource(CDRAuthResource):
     @required_acl('call-logd.cdr.{cdr_id}.read')
     def get(self, cdr_id):
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         cdr = self.cdr_service.get(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
@@ -209,7 +209,7 @@ class CDRUserMeResource(CDRAuthResource):
         args = CDRListRequestSchema().load(request.args)
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         args['me_user_uuid'] = user_uuid
-        args['tenant_uuids'] = self.query_or_header_visible_tenants(False)
+        args['tenant_uuids'] = self.query_or_header_visible_tenants(recurse=False)
         cdrs = self.cdr_service.list(args)
         return format_cdr_result(CDRSchemaList(exclude=['items.tags']).dump(cdrs))
 
@@ -240,7 +240,7 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         args = RecordingMediaExportRequestSchema().load(request.args)
         body_args = RecordingMediaExportBodySchema().load(request.get_json(force=True))
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         args['cdr_ids'] = body_args['cdr_ids']
         recordings_to_download = []
         call_logs = self.cdr_service.list(args)['items']
@@ -275,7 +275,7 @@ class RecordingsMediaResource(RecordingMediaAuthResource):
     @required_acl('call-logd.cdr.recordings.media.delete')
     def delete(self):
         args = RecordingMediaDeleteRequestSchema().load(request.get_json(force=True))
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         call_log_ids = args['cdr_ids']
         recordings_to_delete = []
         # We do not want to delete any recording if one of the CDR has not been found
@@ -309,7 +309,7 @@ class RecordingMediaItemResource(RecordingMediaAuthResource):
         extract_token_id=extract_token_id_from_query_or_header,
     )
     def get(self, cdr_id, recording_uuid):
-        tenant_uuids = self.query_or_header_visible_tenants(True)
+        tenant_uuids = self.query_or_header_visible_tenants(recurse=True)
         cdr = self.cdr_service.get(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
@@ -337,7 +337,7 @@ class RecordingMediaItemResource(RecordingMediaAuthResource):
 
     @required_acl('call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.delete')
     def delete(self, cdr_id, recording_uuid):
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         cdr = self.cdr_service.get(cdr_id, tenant_uuids)
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
