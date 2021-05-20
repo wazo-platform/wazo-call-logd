@@ -77,4 +77,4 @@ class RecordingService:
             ),
             task_id=str(export_uuid),
         )
-        return export_uuid
+        return {'uuid': export_uuid}

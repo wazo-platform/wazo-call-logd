@@ -37,11 +37,15 @@ class RecordingMediaExportRequestSchema(Schema):
     tags = fields.List(fields.String(), missing=[])
     from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
     recurse = fields.Boolean(missing=False)
-    email = fields.String(missing=None)
+    email = fields.Email(missing=None)
 
 
 class RecordingMediaExportBodySchema(Schema):
     cdr_ids = fields.List(fields.Integer(), missing=None)
+
+
+class RecordingMediaExportSchema(Schema):
+    uuid = fields.UUID()
 
 
 class CDRSchema(Schema):

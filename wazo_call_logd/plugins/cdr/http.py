@@ -29,6 +29,7 @@ from .schemas import (
     CDRSchema,
     CDRSchemaList,
     CDRListRequestSchema,
+    RecordingMediaExportSchema,
     RecordingMediaExportBodySchema,
     RecordingMediaExportRequestSchema,
     RecordingMediaDeleteRequestSchema,
@@ -254,20 +255,16 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         if not destination_email:
             destination_email = self.get_token_user_email()
 
-        warnings = []
-        if not destination_email:
-            warnings.append({'warning': 'E-mail undefined: no e-mail will be sent'})
-
-        export_uuid = self.recording_service.start_recording_export(
+        export = self.recording_service.start_recording_export(
             recordings_to_download,
             user_uuid,
             tenant_uuids[0],
             destination_email,
         )
-        response = jsonify({'export_uuid': str(export_uuid), 'warnings': warnings})
-        location = url_for('export_resource', export_uuid=export_uuid)
+        export_body = RecordingMediaExportSchema().dump(export)
+        response = make_response(export_body, 202)
+        location = url_for('export_resource', export_uuid=export['uuid'])
         response.headers.extend({'Location': location})
-        response.status_code = 202
         return response
 
 

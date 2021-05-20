@@ -97,10 +97,6 @@ paths:
             properties:
               export_uuid:
                 type: string
-              warnings:
-                type: array
-                items:
-                  type: object
         '404':
           $ref: '#/responses/NotFoundError'
   /cdr/{cdr_id}:
