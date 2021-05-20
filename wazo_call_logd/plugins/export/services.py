@@ -14,13 +14,3 @@ class ExportService:
 
     def update(self, export):
         self._dao.export.update(export)
-
-
-_service = None
-
-
-def build_service(dao):
-    global _service
-    if _service is None:
-        _service = ExportService(dao)
-    return _service
