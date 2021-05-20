@@ -34,17 +34,16 @@ class RecordingExportTask(LoadableTask):
         export = self._dao.export.get_by_uuid(task_uuid, [tenant_uuid])
         filename = f'{task_uuid}.zip'
         fullpath = os.path.join(output_dir, filename)
-        zip_file = ZipFile(fullpath, mode='w', compression=ZIP_BZIP2)
-        for recording in recordings:
-            try:
-                zip_file.write(recording['path'], arcname=recording['filename'])
-            except PermissionError:
-                logger.error('Permission denied: "%s"', recording['path'])
-                raise RecordingMediaFSPermissionException(recording['uuid'], recording['path'])
-            except FileNotFoundError:
-                logger.error('Recording file not found: "%s"', recording['path'])
-                raise RecordingMediaFSNotFoundException(recording['uuid'], recording['path'])
-        zip_file.close()
+        with ZipFile(fullpath, mode='w', compression=ZIP_BZIP2) as zip_file:
+            for recording in recordings:
+                try:
+                    zip_file.write(recording['path'], arcname=recording['filename'])
+                except PermissionError:
+                    logger.error('Permission denied: "%s"', recording['path'])
+                    raise RecordingMediaFSPermissionException(recording['uuid'], recording['path'])
+                except FileNotFoundError:
+                    logger.error('Recording file not found: "%s"', recording['path'])
+                    raise RecordingMediaFSNotFoundException(recording['uuid'], recording['path'])
         export.path = fullpath
         export.done = True
         self._dao.export.update(export)
