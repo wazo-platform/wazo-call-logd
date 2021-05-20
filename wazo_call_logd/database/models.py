@@ -252,6 +252,9 @@ class Config(Base):
 class Export(Base):
 
     __tablename__ = 'call_logd_export'
+    __table_args__ = (
+        Index('call_logd_export__idx__user_uuid', 'user_uuid'),
+    )
 
     uuid = Column(
         UUIDType,
