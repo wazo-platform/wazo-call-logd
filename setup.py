@@ -25,7 +25,7 @@ setup(
             'wazo-call-logs=wazo_call_logd.main_sweep:main',
         ],
         'wazo_call_logd.celery_tasks': [
-            'recording_export = wazo_call_logd.plugins.cdr.celery_tasks:RecordingExportTask',
+            'recording_export = wazo_call_logd.plugins.cdr.celery_tasks:Plugin',
         ],
         'wazo_call_logd.plugins': [
             'api = wazo_call_logd.plugins.api.plugin:Plugin',

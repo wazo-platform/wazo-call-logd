@@ -5,12 +5,12 @@ import logging
 import os
 import smtplib
 
+from celery import Task
 from collections import namedtuple
 from email import utils as email_utils
 from email.message import EmailMessage
 from zipfile import ZipFile, ZIP_BZIP2
 
-from wazo_call_logd.celery import LoadableTask
 from .exceptions import RecordingMediaFSPermissionException, RecordingMediaFSNotFoundException
 
 logger = logging.getLogger(__name__)
@@ -20,17 +20,33 @@ export_recording_task = None
 EmailDestination = namedtuple('EmailDestination', ['name', 'address'])
 
 
-class RecordingExportTask(LoadableTask):
+class Plugin:
     def load(self, dependencies):
-        super().load(dependencies)
         global export_recording_task
-        self._app = dependencies['app']
-        self._config = dependencies['config']
-        export_recording_task = self._app.register_task(self)
-        logger.debug('registered instance: %s', self)
+        app = dependencies['app']
+        config = dependencies['config']
+        dao = dependencies['dao']
 
-    def run(self, task_uuid, recordings, output_dir, tenant_uuid, destination_email):
-        export = self._dao.export.get(task_uuid, [tenant_uuid])
+        @app.task(base=RecordingExportTask, bind=True)
+        def _export_recording_task(
+            task, task_uuid, recordings, output_dir, tenant_uuid, email
+        ):
+            task._run(
+                config,
+                dao,
+                task_uuid,
+                recordings,
+                output_dir,
+                tenant_uuid,
+                email,
+            )
+
+        export_recording_task = _export_recording_task
+
+
+class RecordingExportTask(Task):
+    def _run(self, config, dao, task_uuid, recordings, output_dir, tenant_uuid, email):
+        export = dao.export.get(task_uuid, [tenant_uuid])
         filename = f'{task_uuid}.zip'
         fullpath = os.path.join(output_dir, filename)
         with ZipFile(fullpath, mode='w', compression=ZIP_BZIP2) as zip_file:
@@ -41,17 +57,23 @@ class RecordingExportTask(LoadableTask):
                     zip_file.write(recording['path'], arcname=recording['filename'])
                 except PermissionError:
                     logger.error('Permission denied: "%s"', recording['path'])
-                    raise RecordingMediaFSPermissionException(recording['uuid'], recording['path'])
+                    raise RecordingMediaFSPermissionException(
+                        recording['uuid'],
+                        recording['path'],
+                    )
                 except FileNotFoundError:
                     logger.error('Recording file not found: "%s"', recording['path'])
-                    raise RecordingMediaFSNotFoundException(recording['uuid'], recording['path'])
+                    raise RecordingMediaFSNotFoundException(
+                        recording['uuid'],
+                        recording['path'],
+                    )
         export.path = fullpath
         export.done = True
-        self._dao.export.update(export)
-        self.send_email(task_uuid, 'Wazo user', destination_email)
+        dao.export.update(export)
+        self._send_email(task_uuid, 'Wazo user', email, config)
 
-    def send_email(self, task_uuid, destination_name, destination_address):
-        email_config = self._config['email']
+    def _send_email(self, task_uuid, destination_name, destination_address, config):
+        email_config = config['email']
         host = email_config.get('host')
         port = email_config.get('port')
         timeout = email_config.get('timeout')

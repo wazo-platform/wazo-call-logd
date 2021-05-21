@@ -4,7 +4,7 @@
 import logging
 import multiprocessing
 
-from celery import Celery, Task
+from celery import Celery
 
 app = Celery()
 
@@ -45,10 +45,3 @@ def spawn_workers(config):
     process = multiprocessing.Process(target=app.worker_main, args=(argv,))
     process.start()
     return process
-
-
-class LoadableTask(Task):
-    _dao = None
-
-    def load(self, dependencies):
-        self._dao = dependencies['dao']

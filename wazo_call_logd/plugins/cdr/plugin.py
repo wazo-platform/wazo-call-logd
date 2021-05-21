@@ -3,8 +3,6 @@
 
 from wazo_auth_client import Client as AuthClient
 
-
-from .celery_tasks import RecordingExportTask
 from .http import (
     CDRResource,
     CDRIdResource,
