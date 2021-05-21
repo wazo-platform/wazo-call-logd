@@ -252,8 +252,6 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
             raise NoRecordingToExportException()
 
         destination_email = args['email']
-        if not destination_email:
-            destination_email = self.get_token_user_email()
 
         export = self.recording_service.start_recording_export(
             recordings_to_download,
