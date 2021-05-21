@@ -231,7 +231,9 @@ class RecordingMediaAuthResource(CDRAuthResource):
 
 
 class RecordingsMediaExportResource(RecordingMediaAuthResource):
-    def __init__(self, recording_service, cdr_service, api, auth_client, *args, **kwargs):
+    def __init__(
+        self, recording_service, cdr_service, api, auth_client, *args, **kwargs
+    ):
         super().__init__(recording_service, cdr_service, *args, **kwargs)
         self.api = api
         self.auth_client = auth_client
@@ -311,7 +313,9 @@ class RecordingMediaItemResource(RecordingMediaAuthResource):
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
 
-        recording = self.recording_service.find_by(uuid=recording_uuid, call_log_id=cdr_id)
+        recording = self.recording_service.find_by(
+            uuid=recording_uuid, call_log_id=cdr_id
+        )
         if not recording:
             raise RecordingNotFoundException(recording_uuid)
 
@@ -339,7 +343,9 @@ class RecordingMediaItemResource(RecordingMediaAuthResource):
         if not cdr:
             raise CDRNotFoundException(details={'cdr_id': cdr_id})
 
-        recording = self.recording_service.find_by(uuid=recording_uuid, call_log_id=cdr_id)
+        recording = self.recording_service.find_by(
+            uuid=recording_uuid, call_log_id=cdr_id
+        )
         if not recording:
             raise RecordingNotFoundException(recording_uuid)
 

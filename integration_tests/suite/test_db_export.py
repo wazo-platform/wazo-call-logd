@@ -36,9 +36,7 @@ class TestDBExport(DBIntegrationTest):
         assert_that(result, has_properties(uuid=export1['uuid']))
 
         assert_that(
-            calling(self.dao.export.get).with_args(
-                export1['uuid'], [other_tenant]
-            ),
+            calling(self.dao.export.get).with_args(export1['uuid'], [other_tenant]),
             raises(ExportNotFoundException),
         )
 
@@ -50,7 +48,9 @@ class TestDBExport(DBIntegrationTest):
         offset = export['date'].utcoffset() or td(seconds=0)
         date_utc = (export['date'] - offset).replace(tzinfo=tz.utc)
         export_date_utc = date_utc.strftime('%Y-%m-%dT%H_%M_%SUTC')
-        assert_that(result, has_properties(filename=f'{export_date_utc}-{export_uuid}.zip'))
+        assert_that(
+            result, has_properties(filename=f'{export_date_utc}-{export_uuid}.zip')
+        )
 
     def test_create(self):
         body = {

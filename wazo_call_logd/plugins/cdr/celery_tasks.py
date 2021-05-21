@@ -11,7 +11,10 @@ from email import utils as email_utils
 from email.message import EmailMessage
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from .exceptions import RecordingMediaFSPermissionException, RecordingMediaFSNotFoundException
+from .exceptions import (
+    RecordingMediaFSPermissionException,
+    RecordingMediaFSNotFoundException,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -67,8 +67,10 @@ class TestExports(IntegrationTest):
     @export()
     def test_get_export_multitenant(self, export):
         assert_that(
-            calling(self.call_logd.export.get).with_args(export['uuid'], tenant_uuid=OTHER_TENANT),
-            raises(CallLogdError).matching(has_properties(status_code=404))
+            calling(self.call_logd.export.get).with_args(
+                export['uuid'], tenant_uuid=OTHER_TENANT
+            ),
+            raises(CallLogdError).matching(has_properties(status_code=404)),
         )
 
     # Downloading
@@ -82,7 +84,7 @@ class TestExports(IntegrationTest):
                     status_code=202,
                     error_id='export-not-done-yet',
                 )
-            )
+            ),
         )
 
     @export(status='finished', path='/tmp/foobar.zip')
@@ -96,7 +98,7 @@ class TestExports(IntegrationTest):
         assert_that(result.text, equal_to('zipfile'))
         assert_that(
             result.headers['Content-Disposition'],
-            equal_to(f'attachment; filename={expected_filename}')
+            equal_to(f'attachment; filename={expected_filename}'),
         )
 
     @export(status='finished', path='/tmp/foobar2.zip')
@@ -107,11 +109,8 @@ class TestExports(IntegrationTest):
         assert_that(
             calling(self.call_logd.export.download).with_args(export['uuid']),
             raises(CallLogdError).matching(
-                has_properties(
-                    status_code=500,
-                    error_id='export-filesystem-not-found'
-                )
-            )
+                has_properties(status_code=500, error_id='export-filesystem-not-found')
+            ),
         )
 
     @export(status='finished', path='/tmp/foobar3.zip')
@@ -123,11 +122,8 @@ class TestExports(IntegrationTest):
         assert_that(
             calling(self.call_logd.export.download).with_args(export['uuid']),
             raises(CallLogdError).matching(
-                has_properties(
-                    status_code=500,
-                    error_id='export-permission-denied'
-                )
-            )
+                has_properties(status_code=500, error_id='export-permission-denied')
+            ),
         )
 
     @export(status='finished', path='/tmp/foobar4.zip')

@@ -51,13 +51,16 @@ class RecordingService:
         if recording_path:
             os.remove(recording_path)
 
-    def start_recording_export(self, recordings, user_uuid, tenant_uuid, destination_email):
+    def start_recording_export(
+        self, recordings, user_uuid, tenant_uuid, destination_email
+    ):
         recording_files = [
             {
                 'uuid': recording.uuid,
                 'filename': recording.filename,
                 'path': recording.path,
-            } for recording in recordings
+            }
+            for recording in recordings
         ]
 
         destination = self._config.get('directory')
