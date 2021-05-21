@@ -65,6 +65,7 @@ class RecordingService:
             user_uuid=user_uuid,
             tenant_uuid=tenant_uuid,
             date=datetime.now(),
+            status='in_progress',
         )
         export_uuid = self._dao.export.create(export).uuid
         export_recording_task.apply_async(
