@@ -66,3 +66,4 @@ definitions:
           - in_progress
           - finished
           - deleted
+          - error

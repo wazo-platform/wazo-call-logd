@@ -13,6 +13,7 @@ from wazo_call_logd.exceptions import ExportNotFoundException
 from wazo_call_logd.http import AuthResource
 
 from .exceptions import (
+    ExportErrorException,
     ExportNotDoneYetException,
     ExportFSNotFoundException,
     ExportFSPermissionException,
@@ -72,11 +73,14 @@ class ExportDownloadResource(ExportAuthResource):
         if not export:
             raise ExportNotFoundException(export_uuid)
 
+        if export.status == 'in_progress':
+            raise ExportNotDoneYetException(export_uuid)
+
         if not export.path:
             raise ExportNotFoundException(export_uuid)
 
-        if not export.done:
-            raise ExportNotDoneYetException(export_uuid)
+        if export.status == 'error':
+            raise ExportErrorException(export_uuid)
 
         try:
             return send_file(

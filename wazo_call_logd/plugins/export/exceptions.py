@@ -40,3 +40,15 @@ class ExportNotDoneYetException(APIException):
                 'export_uuid': str(export_uuid),
             },
         )
+
+
+class ExportErrorException(APIException):
+    def __init__(self, export_uuid):
+        super().__init__(
+            status_code=500,
+            message='Error while creating the export',
+            error_id='export-error',
+            details={
+                'export_uuid': str(export_uuid),
+            },
+        )
