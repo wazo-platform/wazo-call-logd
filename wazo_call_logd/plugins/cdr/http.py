@@ -246,7 +246,9 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         recordings_to_download = []
         call_logs = self.cdr_service.list(args)['items']
         for cdr in call_logs:
-            recordings_to_download.extend(cdr.recordings)
+            for recording in cdr.recordings:
+                if recording.path:
+                    recordings_to_download.append(recording)
 
         if not recordings_to_download:
             raise NoRecordingToExportException()

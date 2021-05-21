@@ -51,8 +51,6 @@ class RecordingExportTask(Task):
         fullpath = os.path.join(output_dir, filename)
         with ZipFile(fullpath, mode='w', compression=ZIP_DEFLATED) as zip_file:
             for recording in recordings:
-                if not recording['path']:
-                    continue
                 try:
                     zip_file.write(recording['path'], arcname=recording['filename'])
                 except PermissionError:
