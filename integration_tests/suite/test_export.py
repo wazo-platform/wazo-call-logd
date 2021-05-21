@@ -36,7 +36,7 @@ class TestExports(IntegrationTest):
             ),
         )
 
-    @export(done=True, path='file-test')
+    @export(status='finished', path='file-test')
     def test_get_finished_export(self, export):
         result = self.call_logd.export.get(export['uuid'], tenant_uuid=MASTER_TENANT)
         assert_that(
@@ -49,7 +49,7 @@ class TestExports(IntegrationTest):
             ),
         )
 
-    @export(done=True, path=None)
+    @export(status='deleted', path=None)
     def test_get_deleted_export(self, export):
         result = self.call_logd.export.get(export['uuid'], tenant_uuid=MASTER_TENANT)
         assert_that(
@@ -62,7 +62,16 @@ class TestExports(IntegrationTest):
             ),
         )
 
-    @export(done=False, path=None)
+    @export()
+    def test_get_export_multitenant(self, export):
+        assert_that(
+            calling(self.call_logd.export.get).with_args(export['uuid'], tenant_uuid=OTHER_TENANT),
+            raises(CallLogdError).matching(has_properties(status_code=404))
+        )
+
+    # Downloading
+
+    @export(status='in_progress', path=None)
     def test_download_not_finished_export(self, export):
         assert_that(
             calling(self.call_logd.export.download).with_args(export['uuid']),
@@ -74,7 +83,7 @@ class TestExports(IntegrationTest):
             )
         )
 
-    @export(path='/tmp/foobar.zip', done=True)
+    @export(status='finished', path='/tmp/foobar.zip')
     def test_download_finished_export(self, export):
         self.filesystem.create_file('/tmp/foobar.zip', content='zipfile')
         export_from_api = self.call_logd.export.get(export['uuid'])
@@ -88,7 +97,7 @@ class TestExports(IntegrationTest):
             equal_to(f'attachment; filename={expected_filename}')
         )
 
-    @export(path='/tmp/foobar2.zip', done=True)
+    @export(status='finished', path='/tmp/foobar2.zip')
     def test_download_finished_export_but_file_deleted_on_filesystem(self, export):
         export_from_api = self.call_logd.export.get(export['uuid'])
         assert_that(export_from_api, has_entries(status='finished'))
@@ -103,7 +112,7 @@ class TestExports(IntegrationTest):
             )
         )
 
-    @export(path='/tmp/foobar3.zip', done=True)
+    @export(status='finished', path='/tmp/foobar3.zip')
     def test_download_finished_export_but_file_has_wrong_permissions(self, export):
         self.filesystem.create_file('/tmp/foobar3.zip', content='zipfile', mode='000')
         export_from_api = self.call_logd.export.get(export['uuid'])

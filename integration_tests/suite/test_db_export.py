@@ -52,21 +52,12 @@ class TestDBExport(DBIntegrationTest):
         export_date_utc = date_utc.strftime('%Y-%m-%dT%H_%M_%SUTC')
         assert_that(result, has_properties(filename=f'{export_date_utc}-{export_uuid}.zip'))
 
-    @export()
-    def test_status(self, export):
-        export_uuid = export['uuid']
-        result = self.dao.export.get(export_uuid)
-        assert_that(result, has_properties(status='in_progress'))
-        result.done = True
-        assert_that(result, has_properties(status='deleted'))
-        result.path = 'test-path'
-        assert_that(result, has_properties(status='finished'))
-
     def test_create(self):
         body = {
             'tenant_uuid': uuid.UUID(MASTER_TENANT),
             'user_uuid': uuid.uuid4(),
             'date': dt.now(),
+            'status': 'in_progress',
         }
         result = self.dao.export.create(Export(**body))
         assert_that(result, has_properties(uuid=not_none(), **body))

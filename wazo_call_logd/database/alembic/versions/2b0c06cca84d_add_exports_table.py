@@ -26,7 +26,7 @@ def upgrade():
         sa.Column('tenant_uuid', UUID, nullable=False),
         sa.Column('user_uuid', UUID, nullable=False),
         sa.Column('date', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('done', sa.Boolean, nullable=False, server_default=sa.text('false')),
+        sa.Column('status', sa.String(32), nullable=False),
         sa.Column('path', sa.Text),
     )
     op.create_foreign_key(
@@ -41,6 +41,12 @@ def upgrade():
         index_name='call_logd_export__idx__user_uuid',
         table_name='call_logd_export',
         columns=['user_uuid'],
+    )
+
+    op.create_check_constraint(
+        'call_logd_export_status_check',
+        'call_logd_export',
+        "status IN ('in_progress','finished','deleted', 'error')",
     )
 
 

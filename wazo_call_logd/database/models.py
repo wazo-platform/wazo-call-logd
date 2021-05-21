@@ -252,9 +252,6 @@ class Config(Base):
 class Export(Base):
 
     __tablename__ = 'call_logd_export'
-    __table_args__ = (
-        Index('call_logd_export__idx__user_uuid', 'user_uuid'),
-    )
 
     uuid = Column(
         UUIDType,
@@ -272,7 +269,7 @@ class Export(Base):
     )
     user_uuid = Column(UUIDType, nullable=False)
     date = Column(DateTime(timezone=True), nullable=False)
-    done = Column(Boolean, nullable=False, server_default='false')
+    status = Column(String(32), nullable=False)
     path = Column(Text)
 
     @property
@@ -285,10 +282,10 @@ class Export(Base):
             uuid=self.uuid,
         )
 
-    @property
-    def status(self):
-        if not self.path and self.done:
-            return 'deleted'
-        if not self.done and not self.path:
-            return 'in_progress'
-        return 'finished'
+    __table_args__ = (
+        Index('call_logd_export__idx__user_uuid', 'user_uuid'),
+        CheckConstraint(
+            status.in_(['in_progress', 'finished', 'deleted', 'error']),
+            name='call_logd_export_status_check',
+        ),
+    )
