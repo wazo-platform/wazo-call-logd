@@ -245,6 +245,7 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         user_uuid = get_token_user_uuid_from_request(self.auth_client)
         tenant_uuids = self.visible_tenants(recurse=True)
         args['cdr_ids'] = body_args['cdr_ids']
+
         recordings_to_download = []
         call_logs = self.cdr_service.list(args)['items']
         for cdr in call_logs:
