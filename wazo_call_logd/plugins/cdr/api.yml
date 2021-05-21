@@ -75,9 +75,11 @@ paths:
         - $ref: '#/parameters/call_direction'
         - $ref: '#/parameters/number'
         - $ref: '#/parameters/tags'
+        - $ref: '#/parameters/user_uuid'
         - $ref: '#/parameters/from_id'
         - $ref: '#/parameters/recurse'
         - $ref: '#/parameters/tenantuuid'
+        - $ref: '#/parameters/email'
         - name: body
           in: body
           description: The CDR IDs list from which to create an export
