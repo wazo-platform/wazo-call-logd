@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
+import requests
 
 from hamcrest import (
     assert_that,
@@ -17,6 +18,7 @@ from xivo_test_helpers.hamcrest.raises import raises
 from .helpers.base import IntegrationTest
 from .helpers.constants import (
     MASTER_TENANT,
+    MASTER_TOKEN,
     OTHER_TENANT,
 )
 from .helpers.database import export
@@ -128,9 +130,18 @@ class TestExports(IntegrationTest):
             )
         )
 
-    @export()
-    def test_get_export_multitenant(self, export):
-        assert_that(
-            calling(self.call_logd.export.get).with_args(export['uuid'], tenant_uuid=OTHER_TENANT),
-            raises(CallLogdError).matching(has_properties(status_code=404))
-        )
+    @export(status='finished', path='/tmp/foobar4.zip')
+    def test_download_export_with_token_tenant_in_query_string(self, export):
+        self.filesystem.create_file('/tmp/foobar4.zip', content='zipfile')
+
+        port = self.service_port(9298, 'call-logd')
+        base_url = f'http://127.0.0.1:{port}/1.0'
+        api_url = f"{base_url}/exports/{export['uuid']}/download"
+
+        params = {'tenant': MASTER_TENANT, 'token': MASTER_TOKEN}
+        response = requests.get(api_url, params=params)
+        assert_that(response.text, equal_to('zipfile'))
+
+        params = {'tenant': OTHER_TENANT, 'token': MASTER_TOKEN}
+        response = requests.get(api_url, params=params)
+        assert_that(response.status_code, equal_to(404))
