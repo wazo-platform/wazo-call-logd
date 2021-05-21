@@ -9,7 +9,7 @@ from celery import Task
 from collections import namedtuple
 from email import utils as email_utils
 from email.message import EmailMessage
-from zipfile import ZipFile, ZIP_BZIP2
+from zipfile import ZipFile, ZIP_DEFLATED
 
 from .exceptions import RecordingMediaFSPermissionException, RecordingMediaFSNotFoundException
 
@@ -49,7 +49,7 @@ class RecordingExportTask(Task):
         export = dao.export.get(task_uuid, [tenant_uuid])
         filename = f'{task_uuid}.zip'
         fullpath = os.path.join(output_dir, filename)
-        with ZipFile(fullpath, mode='w', compression=ZIP_BZIP2) as zip_file:
+        with ZipFile(fullpath, mode='w', compression=ZIP_DEFLATED) as zip_file:
             for recording in recordings:
                 if not recording['path']:
                     continue
