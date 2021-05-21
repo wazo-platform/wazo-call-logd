@@ -26,7 +26,7 @@ class RecordingMediaDeleteRequestSchema(Schema):
     cdr_ids = fields.List(fields.Integer(), validate=Length(min=1), required=True)
 
 
-class RecordingMediaExportRequestSchema(Schema):
+class CDRListingBase(Schema):
     from_ = fields.DateTime(data_key='from', attribute='start', missing=None)
     until = fields.DateTime(attribute='end', missing=None)
     search = fields.String(missing=None)
@@ -35,8 +35,21 @@ class RecordingMediaExportRequestSchema(Schema):
     )
     number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
     tags = fields.List(fields.String(), missing=[])
+    user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
     from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
     recurse = fields.Boolean(missing=False)
+
+    @pre_load
+    def convert_tags_and_user_uuid_to_list(self, data):
+        result = data.to_dict()
+        if data.get('tags'):
+            result['tags'] = data['tags'].split(',')
+        if data.get('user_uuid'):
+            result['user_uuid'] = data['user_uuid'].split(',')
+        return result
+
+
+class RecordingMediaExportRequestSchema(CDRListingBase):
     email = fields.Email(missing=None)
 
 
@@ -100,9 +113,7 @@ class CDRSchema(Schema):
         return data
 
 
-class CDRListRequestSchema(Schema):
-    from_ = fields.DateTime(data_key='from', attribute='start', missing=None)
-    until = fields.DateTime(attribute='end', missing=None)
+class CDRListRequestSchema(CDRListingBase):
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
     order = fields.String(
         validate=OneOf(set(CDRSchema().fields) - {'end', 'tags', 'recordings'}),
@@ -110,27 +121,9 @@ class CDRListRequestSchema(Schema):
     )
     limit = fields.Integer(validate=Range(min=0), missing=1000)
     offset = fields.Integer(validate=Range(min=0), missing=None)
-    search = fields.String(missing=None)
-    call_direction = fields.String(
-        validate=OneOf(['internal', 'inbound', 'outbound']), missing=None
-    )
-    number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
-    tags = fields.List(fields.String(), missing=[])
-    user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
-    from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
-    recurse = fields.Boolean(missing=False)
     distinct = fields.String(validate=OneOf(['peer_exten']), missing=None)
     recorded = fields.Boolean(missing=None)
     format = fields.String(validate=OneOf(['csv', 'json']), missing=None)
-
-    @pre_load
-    def convert_tags_and_user_uuid_to_list(self, data):
-        result = data.to_dict()
-        if data.get('tags'):
-            result['tags'] = data['tags'].split(',')
-        if data.get('user_uuid'):
-            result['user_uuid'] = data['user_uuid'].split(',')
-        return result
 
     @post_load
     def map_order_field(self, in_data):
