@@ -58,7 +58,7 @@ class RecordingExportTask(Task):
                 except PermissionError:
                     logger.error('Permission denied: "%s"', recording['path'])
                     export.status = 'error'
-                    self._dao.export.update(export)
+                    dao.export.update(export)
                     raise RecordingMediaFSPermissionException(
                         recording['uuid'],
                         recording['path'],
@@ -66,7 +66,7 @@ class RecordingExportTask(Task):
                 except FileNotFoundError:
                     logger.error('Recording file not found: "%s"', recording['path'])
                     export.status = 'error'
-                    self._dao.export.update(export)
+                    dao.export.update(export)
                     raise RecordingMediaFSNotFoundException(
                         recording['uuid'],
                         recording['path'],
@@ -74,7 +74,7 @@ class RecordingExportTask(Task):
 
         export.path = fullpath
         export.status = 'finished'
-        self._dao.export.update(export)
+        dao.export.update(export)
         if email:
             self._send_email(task_uuid, 'Wazo user', email)
 
