@@ -24,47 +24,8 @@ from .helpers.constants import (
 from .helpers.database import export
 
 
-class TestExports(IntegrationTest):
-    @export()
-    def test_get_in_progress_export(self, export):
-        result = self.call_logd.export.get(export['uuid'], tenant_uuid=MASTER_TENANT)
-        assert_that(
-            result,
-            has_entries(
-                uuid=str(export['uuid']),
-                tenant_uuid=MASTER_TENANT,
-                date=pytz.utc.localize(export['date']).isoformat(),
-                status='in_progress',
-            ),
-        )
-
-    @export(status='finished', path='file-test')
-    def test_get_finished_export(self, export):
-        result = self.call_logd.export.get(export['uuid'], tenant_uuid=MASTER_TENANT)
-        assert_that(
-            result,
-            has_entries(
-                uuid=str(export['uuid']),
-                tenant_uuid=MASTER_TENANT,
-                date=pytz.utc.localize(export['date']).isoformat(),
-                status='finished',
-            ),
-        )
-
-    @export(status='deleted', path=None)
-    def test_get_deleted_export(self, export):
-        result = self.call_logd.export.get(export['uuid'], tenant_uuid=MASTER_TENANT)
-        assert_that(
-            result,
-            has_entries(
-                uuid=str(export['uuid']),
-                tenant_uuid=MASTER_TENANT,
-                date=pytz.utc.localize(export['date']).isoformat(),
-                status='deleted',
-            ),
-        )
-
-    @export()
+class TestExportAPI(IntegrationTest):
+    @export(tenant_uuid=MASTER_TENANT)
     def test_get_export_multitenant(self, export):
         assert_that(
             calling(self.call_logd.export.get).with_args(
