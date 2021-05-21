@@ -55,7 +55,10 @@ class RecordingExportTask(Task):
         with ZipFile(fullpath, mode='w', compression=ZIP_DEFLATED) as zip_file:
             for recording in recordings:
                 try:
-                    zip_file.write(recording['path'], arcname=recording['filename'])
+                    archive_name = os.path.join(
+                        str(recording['call_log_id']), recording['filename']
+                    )
+                    zip_file.write(recording['path'], arcname=archive_name)
                 except PermissionError:
                     logger.error('Permission denied: "%s"', recording['path'])
                     export.status = 'error'

@@ -59,6 +59,7 @@ class RecordingService:
                 'uuid': recording.uuid,
                 'filename': recording.filename,
                 'path': recording.path,
+                'call_log_id': recording.call_log_id,
             }
             for recording in recordings
         ]
