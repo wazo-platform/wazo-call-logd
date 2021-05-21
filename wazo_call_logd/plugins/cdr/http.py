@@ -260,10 +260,10 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
             destination_email,
         )
         export_body = RecordingMediaExportSchema().dump(export)
-        response = make_response(export_body, 202)
         location = url_for('export_resource', export_uuid=export['uuid'])
-        response.headers.extend({'Location': location})
-        return response
+        headers = {'Location': location}
+
+        return export_body, 202, headers
 
 
 class RecordingsMediaResource(RecordingMediaAuthResource):
