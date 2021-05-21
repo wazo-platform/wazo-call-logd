@@ -8,5 +8,9 @@ auth:
   master_tenant_uuid: 4eb57648-b914-446b-a69f-58643ae08dd4
 bus:
   host: rabbitmq
+celery:
+  broker: amqp://guest:guest@rabbitmq:5672
 confd:
   host: confd
+exports:
+  directory: /tmp
