@@ -239,3 +239,28 @@ class TestRecordingMediaExport(IntegrationTest):
         until.assert_(export_error, timeout=5)
         result = self.call_logd.export.get(export_uuid)
         assert_that(result, has_entries(status='error'))
+
+    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    @recording(
+        call_log_id=10,
+        path='/tmp/10-recording.wav',
+        start_time=datetime.now() - timedelta(hours=1),
+        end_time=datetime.now(),
+    )
+    def test_create_export_from_cdr_ids_after_previous_export_failure(self, rec1):
+        export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
+
+        def export_error():
+            status = self.call_logd.export.get(export_uuid)['status']
+            assert_that(status, equal_to('error'))
+
+        until.assert_(export_error, timeout=5)
+
+        self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
+        export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
+
+        def export_is_finished():
+            status = self.call_logd.export.get(export_uuid)['status']
+            assert_that(status, equal_to('finished'))
+
+        until.assert_(export_is_finished, timeout=5)

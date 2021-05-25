@@ -10,6 +10,8 @@ bus:
   host: rabbitmq
 celery:
   broker: amqp://guest:guest@rabbitmq:5672
+  worker_min: 1
+  worker_max: 1
 confd:
   host: confd
 exports:
