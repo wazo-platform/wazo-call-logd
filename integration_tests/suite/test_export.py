@@ -29,7 +29,10 @@ from .helpers.database import call_log, export, recording
 
 
 class TestExportAPI(IntegrationTest):
-    @export(tenant_uuid=MASTER_TENANT, requested_at=datetime.fromisoformat('2021-05-25T15:00:00'))
+    @export(
+        tenant_uuid=MASTER_TENANT,
+        requested_at=datetime.fromisoformat('2021-05-25T15:00:00'),
+    )
     def test_get_export_multitenant(self, export):
         assert_that(
             calling(self.call_logd.export.get).with_args(
@@ -44,7 +47,7 @@ class TestExportAPI(IntegrationTest):
                 uuid=str(export['uuid']),
                 tenant_uuid=MASTER_TENANT,
                 status='pending',
-                requested_at='2021-05-25T15:00:00+00:00'
+                requested_at='2021-05-25T15:00:00+00:00',
             ),
         )
 
@@ -156,7 +159,9 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
         self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
 
-        export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10, 11])['uuid']
+        export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10, 11])[
+            'uuid'
+        ]
 
         def export_is_finished():
             status = self.call_logd.export.get(export_uuid)['status']
@@ -174,5 +179,66 @@ class TestRecordingMediaExport(IntegrationTest):
                 has_items(
                     has_properties(filename=f'10/{self._recording_filename(rec1)}'),
                     has_properties(filename=f'11/{self._recording_filename(rec2)}'),
-                )
+                ),
             )
+
+    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    def test_create_export_from_cdr_ids_when_no_recording(self):
+        assert_that(
+            calling(self.call_logd.cdr.export_recording_media).with_args(cdr_ids=[10]),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='no-recording-to-export')
+            ),
+        )
+
+    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    @recording(
+        call_log_id=10,
+        path='/tmp/10-recording.wav',
+        start_time=datetime.now() - timedelta(hours=1),
+        end_time=datetime.now(),
+    )
+    def test_create_export_from_cdr_ids_but_recording_file_permissions_are_wrong(
+        self, rec1
+    ):
+        self.filesystem.create_file(
+            '/tmp/10-recording.wav', content='10-recording', mode='000'
+        )
+
+        export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
+
+        def export_error():
+            status = self.call_logd.export.get(export_uuid)['status']
+            assert_that(status, equal_to('error'))
+
+        until.assert_(export_error, timeout=5)
+        result = self.call_logd.export.get(export_uuid)
+        assert_that(
+            result,
+            has_entries(
+                status='error',
+            ),
+        )
+
+    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    @recording(
+        call_log_id=10,
+        path='/tmp/10-recording.wav',
+        start_time=datetime.now() - timedelta(hours=1),
+        end_time=datetime.now(),
+    )
+    def test_create_export_from_cdr_ids_but_recording_file_does_not_exist(self, rec1):
+        export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
+
+        def export_error():
+            status = self.call_logd.export.get(export_uuid)['status']
+            assert_that(status, equal_to('error'))
+
+        until.assert_(export_error, timeout=5)
+        result = self.call_logd.export.get(export_uuid)
+        assert_that(
+            result,
+            has_entries(
+                status='error',
+            ),
+        )
