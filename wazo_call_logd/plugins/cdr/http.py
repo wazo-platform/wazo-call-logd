@@ -215,26 +215,10 @@ class CDRUserMeResource(CDRAuthResource):
         return format_cdr_result(CDRSchemaList(exclude=['items.tags']).dump(cdrs))
 
 
-class RecordingMediaAuthResource(CDRAuthResource):
-    def __init__(self, recording_service, cdr_service):
+class RecordingsMediaExportResource(CDRAuthResource):
+    def __init__(self, recording_service, cdr_service, api, auth_client):
         super().__init__(cdr_service)
         self.recording_service = recording_service
-
-    def get_token_user_email(self):
-        user_infos = auth_client.users.get(token.user_uuid)
-        for email in user_infos.get('emails'):
-            if email.get('main'):
-                return email
-
-    def create_token_for_export(self):
-        return auth_client.token.create()
-
-
-class RecordingsMediaExportResource(RecordingMediaAuthResource):
-    def __init__(
-        self, recording_service, cdr_service, api, auth_client, *args, **kwargs
-    ):
-        super().__init__(recording_service, cdr_service, *args, **kwargs)
         self.api = api
         self.auth_client = auth_client
 
@@ -269,7 +253,11 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         return export_body, 202, headers
 
 
-class RecordingsMediaResource(RecordingMediaAuthResource):
+class RecordingsMediaResource(CDRAuthResource):
+    def __init__(self, recording_service, cdr_service):
+        super().__init__(cdr_service)
+        self.recording_service = recording_service
+
     @required_acl('call-logd.cdr.recordings.media.delete')
     def delete(self):
         args = RecordingMediaDeleteRequestSchema().load(request.get_json(force=True))
@@ -301,7 +289,11 @@ class RecordingsMediaResource(RecordingMediaAuthResource):
         return '', 204
 
 
-class RecordingMediaItemResource(RecordingMediaAuthResource):
+class RecordingMediaItemResource(CDRAuthResource):
+    def __init__(self, recording_service, cdr_service):
+        super().__init__(cdr_service)
+        self.recording_service = recording_service
+
     @required_acl(
         'call-logd.cdr.{cdr_id}.recordings.{recording_uuid}.media.read',
         extract_token_id=extract_token_id_from_query_or_header,
