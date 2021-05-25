@@ -29,13 +29,23 @@ from .helpers.database import call_log, export, recording
 
 
 class TestExportAPI(IntegrationTest):
-    @export(tenant_uuid=MASTER_TENANT)
+    @export(tenant_uuid=MASTER_TENANT, requested_at=datetime.fromisoformat('2021-05-25T15:00:00'))
     def test_get_export_multitenant(self, export):
         assert_that(
             calling(self.call_logd.export.get).with_args(
                 export['uuid'], tenant_uuid=OTHER_TENANT
             ),
             raises(CallLogdError).matching(has_properties(status_code=404)),
+        )
+        result = self.call_logd.export.get(export['uuid'])
+        assert_that(
+            result,
+            has_entries(
+                uuid=str(export['uuid']),
+                tenant_uuid=MASTER_TENANT,
+                status='pending',
+                requested_at='2021-05-25T15:00:00+00:00'
+            ),
         )
 
     # Downloading
