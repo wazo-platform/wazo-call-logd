@@ -41,7 +41,7 @@ class CDRService:
 class RecordingService:
     def __init__(self, dao, config):
         self._dao = dao
-        self._config = config
+        self._export_config = config
 
     def find_by(self, **kwargs):
         return self._dao.recording.find_by(**kwargs)
@@ -64,7 +64,7 @@ class RecordingService:
             for recording in recordings
         ]
 
-        destination = self._config.get('directory')
+        destination = self._export_config['directory']
         export = Export(
             user_uuid=user_uuid,
             tenant_uuid=tenant_uuid,
