@@ -242,7 +242,7 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
     def post(self):
         args = RecordingMediaExportRequestSchema().load(request.args)
         body_args = RecordingMediaExportBodySchema().load(request.get_json(force=True))
-        tenant_uuids = self.visible_tenants(recurse=True)
+        args['tenant_uuids'] = self.visible_tenants(recurse=True)
         args['cdr_ids'] = body_args['cdr_ids']
 
         recordings_to_download = []
@@ -259,7 +259,7 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
         export = self.recording_service.start_recording_export(
             recordings_to_download,
             token.user_uuid,
-            tenant_uuids[0],
+            token.tenant_uuid,
             destination_email,
         )
         export_body = RecordingMediaExportSchema().dump(export)
