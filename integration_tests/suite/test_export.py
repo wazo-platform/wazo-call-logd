@@ -1,6 +1,7 @@
 # Copyright 2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import os
 import requests
 import zipfile
 
@@ -8,6 +9,7 @@ from datetime import datetime, timedelta
 from hamcrest import (
     assert_that,
     calling,
+    contains_exactly,
     equal_to,
     has_entries,
     has_items,
@@ -219,12 +221,22 @@ class TestRecordingMediaExport(IntegrationTest):
 
         with zipfile.ZipFile(zipped_export_bytes, 'r') as zipped_export:
             files = zipped_export.infolist()
+            filename_1 = os.path.join('10', self._recording_filename(rec1))
+            filename_2 = os.path.join('11', self._recording_filename(rec2))
             assert_that(
                 files,
-                has_items(
-                    has_properties(filename=f'10/{self._recording_filename(rec1)}'),
-                    has_properties(filename=f'11/{self._recording_filename(rec2)}'),
+                contains_exactly(
+                    has_properties(filename=filename_1),
+                    has_properties(filename=filename_2),
                 ),
+            )
+            assert_that(
+                zipped_export.read(filename_1).decode('utf-8'),
+                equal_to('10-recording'),
+            )
+            assert_that(
+                zipped_export.read(filename_2).decode('utf-8'),
+                equal_to('11-recording'),
             )
         self.filesystem.remove_file('/tmp/10-recording.wav')
         self.filesystem.remove_file('/tmp/11-recording.wav')
