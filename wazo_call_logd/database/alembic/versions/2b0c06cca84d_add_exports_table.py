@@ -46,7 +46,7 @@ def upgrade():
     op.create_check_constraint(
         'call_logd_export_status_check',
         'call_logd_export',
-        "status IN ('processing','finished','deleted', 'error')",
+        "status IN ('pending','processing','finished','deleted', 'error')",
     )
 
 

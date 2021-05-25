@@ -56,7 +56,7 @@ class TestDBExport(DBIntegrationTest):
             'tenant_uuid': uuid.UUID(MASTER_TENANT),
             'user_uuid': uuid.uuid4(),
             'requested_at': dt.now(),
-            'status': 'processing',
+            'status': 'pending',
         }
         result = self.dao.export.create(Export(**body))
         assert_that(result, has_properties(uuid=not_none(), **body))

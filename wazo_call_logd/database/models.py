@@ -285,7 +285,7 @@ class Export(Base):
     __table_args__ = (
         Index('call_logd_export__idx__user_uuid', 'user_uuid'),
         CheckConstraint(
-            status.in_(['processing', 'finished', 'deleted', 'error']),
+            status.in_(['pending', 'processing', 'finished', 'deleted', 'error']),
             name='call_logd_export_status_check',
         ),
     )

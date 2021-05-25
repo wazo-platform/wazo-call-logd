@@ -69,7 +69,7 @@ class RecordingService:
             user_uuid=user_uuid,
             tenant_uuid=tenant_uuid,
             requested_at=datetime.now(),
-            status='processing',
+            status='pending',
         )
         export_uuid = self._dao.export.create(export).uuid
         export_recording_task.apply_async(

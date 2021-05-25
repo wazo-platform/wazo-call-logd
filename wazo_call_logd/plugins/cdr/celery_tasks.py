@@ -50,6 +50,8 @@ class Plugin:
 class RecordingExportTask(Task):
     def _run(self, config, dao, task_uuid, recordings, output_dir, tenant_uuid, email):
         export = dao.export.get(task_uuid, [tenant_uuid])
+        export.status = 'processing'
+        dao.export.update(export)
         filename = f'{task_uuid}.zip'
         fullpath = os.path.join(output_dir, filename)
         with ZipFile(fullpath, mode='w', compression=ZIP_DEFLATED) as zip_file:
