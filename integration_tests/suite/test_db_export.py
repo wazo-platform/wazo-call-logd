@@ -42,14 +42,13 @@ class TestDBExport(DBIntegrationTest):
 
     @export()
     def test_export_filename(self, export):
-        export_uuid = export['uuid']
-        master_tenant = uuid.UUID(MASTER_TENANT)
-        result = self.dao.export.get(export_uuid, [master_tenant])
-        offset = export['date'].utcoffset() or td(seconds=0)
-        date_utc = (export['date'] - offset).replace(tzinfo=tz.utc)
+        export = self.dao.export.get(export['uuid'])
+        offset = export.date.utcoffset() or td(seconds=0)
+        date_utc = (export.date - offset).replace(tzinfo=tz.utc)
         export_date_utc = date_utc.strftime('%Y-%m-%dT%H_%M_%SUTC')
         assert_that(
-            result, has_properties(filename=f'{export_date_utc}-{export_uuid}.zip')
+            export,
+            has_properties(filename=f'{export_date_utc}-{export.uuid}.zip'),
         )
 
     def test_create(self):
@@ -64,3 +63,13 @@ class TestDBExport(DBIntegrationTest):
 
         self.session.query(Export).delete()
         self.session.commit()
+
+    @export(status='in_progress', path=None)
+    def test_update(self, export):
+        export = self.dao.export.get(export['uuid'])
+        export.status = 'error'
+        export.path = '/tmp/test.zip'
+        self.dao.export.update(export)
+
+        result = self.dao.export.get(export.uuid)
+        assert_that(result, has_properties(status='error', path='/tmp/test.zip'))
