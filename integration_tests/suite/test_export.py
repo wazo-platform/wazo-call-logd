@@ -50,8 +50,20 @@ class TestExportAPI(IntegrationTest):
 
     # Downloading
 
+    @export(status='pending', path=None)
+    def test_download_pending_export(self, export):
+        assert_that(
+            calling(self.call_logd.export.download).with_args(export['uuid']),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=202,
+                    error_id='export-not-done-yet',
+                )
+            ),
+        )
+
     @export(status='processing', path=None)
-    def test_download_not_finished_export(self, export):
+    def test_download_processing_export(self, export):
         assert_that(
             calling(self.call_logd.export.download).with_args(export['uuid']),
             raises(CallLogdError).matching(
