@@ -56,7 +56,7 @@ class TestDBExport(DBIntegrationTest):
             'tenant_uuid': uuid.UUID(MASTER_TENANT),
             'user_uuid': uuid.uuid4(),
             'requested_at': dt.now(),
-            'status': 'in_progress',
+            'status': 'processing',
         }
         result = self.dao.export.create(Export(**body))
         assert_that(result, has_properties(uuid=not_none(), **body))
@@ -64,7 +64,7 @@ class TestDBExport(DBIntegrationTest):
         self.session.query(Export).delete()
         self.session.commit()
 
-    @export(status='in_progress', path=None)
+    @export(status='processing', path=None)
     def test_update(self, export):
         export = self.dao.export.get(export['uuid'])
         export.status = 'error'

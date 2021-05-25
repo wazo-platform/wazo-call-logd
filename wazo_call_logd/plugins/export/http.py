@@ -73,7 +73,7 @@ class ExportDownloadResource(ExportAuthResource):
         if not export:
             raise ExportNotFoundException(export_uuid)
 
-        if export.status == 'in_progress':
+        if export.status == 'processing':
             raise ExportNotDoneYetException(export_uuid)
 
         if not export.path:

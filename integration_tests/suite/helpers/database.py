@@ -96,7 +96,7 @@ def export(**export):
             export.setdefault('requested_at', dt.utcnow())
             export.setdefault('tenant_uuid', MASTER_TENANT)
             export.setdefault('user_uuid', USER_1_UUID)
-            export.setdefault('status', 'in_progress')
+            export.setdefault('status', 'processing')
             with self.database.queries() as queries:
                 export['uuid'] = queries.insert_export(**export)
             try:

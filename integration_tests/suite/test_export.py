@@ -40,7 +40,7 @@ class TestExportAPI(IntegrationTest):
 
     # Downloading
 
-    @export(status='in_progress', path=None)
+    @export(status='processing', path=None)
     def test_download_not_finished_export(self, export):
         assert_that(
             calling(self.call_logd.export.download).with_args(export['uuid']),
