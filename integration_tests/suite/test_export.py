@@ -380,3 +380,64 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/2-recording.wav')
         self.filesystem.remove_file('/tmp/3-recording.wav')
         self.filesystem.remove_file('/tmp/4-recording.wav')
+
+    @call_log(**{'id': 1}, date='2021-05-20T15:00:00')
+    @call_log(**{'id': 2}, date='2021-05-21T15:00:00')
+    @call_log(**{'id': 3}, date='2021-05-22T15:00:00')
+    @call_log(**{'id': 4}, date='2021-05-23T15:00:00')
+    @recording(
+        call_log_id=1,
+        path='/tmp/1-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-20T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-20T16:00:00'),
+    )
+    @recording(
+        call_log_id=2,
+        path='/tmp/2-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-21T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-21T16:00:00'),
+    )
+    @recording(
+        call_log_id=3,
+        path='/tmp/3-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
+    )
+    def test_create_export_using_from_id_param(self, _, rec2, rec3):
+        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
+        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
+        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
+
+        export_uuid = self.call_logd.cdr.export_recording_media(from_id=2)['uuid']
+
+        def export_is_finished():
+            status = self.call_logd.export.get(export_uuid)['status']
+            assert_that(status, equal_to('finished'))
+
+        until.assert_(export_is_finished, timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        zipped_export_bytes = BytesIO(export_zip.content)
+
+        with zipfile.ZipFile(zipped_export_bytes, 'r') as zipped_export:
+            files = zipped_export.infolist()
+            filename_1 = os.path.join('2', self._recording_filename(rec2))
+            filename_2 = os.path.join('3', self._recording_filename(rec3))
+            assert_that(
+                files,
+                contains_exactly(
+                    has_properties(filename=filename_1),
+                    has_properties(filename=filename_2),
+                ),
+            )
+            assert_that(
+                zipped_export.read(filename_1).decode('utf-8'),
+                equal_to('2-recording'),
+            )
+            assert_that(
+                zipped_export.read(filename_2).decode('utf-8'),
+                equal_to('3-recording'),
+            )
+        self.filesystem.remove_file('/tmp/1-recording.wav')
+        self.filesystem.remove_file('/tmp/2-recording.wav')
+        self.filesystem.remove_file('/tmp/3-recording.wav')
