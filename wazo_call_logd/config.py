@@ -23,6 +23,9 @@ DEFAULT_CONFIG = {
     'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'exports': {
         'directory': '/var/lib/wazo-call-logd/exports',
+        'from_name': 'Wazo',
+        'from_address': 'no-reply@wazo.community',
+        'subject': 'Your export is ready',
     },
     'bus': {
         'username': 'guest',
@@ -72,15 +75,12 @@ DEFAULT_CONFIG = {
         'status': True,
         'support_center': True,
     },
-    'email': {
-        'host': 'smtp.gmail.com',
-        'port': 587,
+    'smtp': {
+        'host': 'localhost',
+        'port': 25,
         'timeout': 10,
-        'from_name': 'Wazo',
-        'from_address': 'no-reply@wazo.community',
-        'username': 'user@example.com',
+        'username': None,
         'password': None,
-        'subject': 'Your export is ready',
     },
     'retention': {
         'cdr_days': None,

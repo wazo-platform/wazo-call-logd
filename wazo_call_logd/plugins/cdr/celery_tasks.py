@@ -85,18 +85,19 @@ class RecordingExportTask(Task):
             self._send_email(task_uuid, 'Wazo user', email)
 
     def _send_email(self, task_uuid, destination_name, destination_address, config):
-        email_config = config['email']
-        host = email_config.get('host')
-        port = email_config.get('port')
-        timeout = email_config.get('timeout')
-        email_from_name = email_config.get('from_name')
-        email_from_address = email_config.get('from_address')
+        smtp_config = config['smtp']
+        export_config = config['exports']
+        host = smtp_config.get('host')
+        port = smtp_config.get('port')
+        timeout = smtp_config.get('timeout')
+        email_from_name = export_config.get('from_name')
+        email_from_address = export_config.get('from_address')
         email_from = EmailDestination(email_from_name, email_from_address)
         email_destination = EmailDestination(destination_name, destination_address)
-        smtp_username = email_config.get('username')
-        smtp_password = email_config.get('password')
+        smtp_username = smtp_config.get('username')
+        smtp_password = smtp_config.get('password')
 
-        subject = email_config.get('subject')
+        subject = export_config.get('subject')
 
         message = EmailMessage()
         message['From'] = email_utils.formataddr(email_from)
