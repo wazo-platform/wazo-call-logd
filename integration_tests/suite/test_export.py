@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from hamcrest import (
     assert_that,
     calling,
-    contains_exactly,
+    contains_inanyorder,
     equal_to,
     has_entries,
     has_items,
@@ -147,6 +147,22 @@ class TestRecordingMediaExport(IntegrationTest):
     def _recording_filename(self, rec):
         start = rec['start_time'].strftime('%Y-%m-%dT%H_%M_%SUTC')
         return f"{start}-{rec['call_log_id']}-{rec['uuid']}.wav"
+
+    def assert_zip_content(self, zip_bytes, expected):
+        zipped_export_bytes = BytesIO(zip_bytes)
+
+        with zipfile.ZipFile(zipped_export_bytes, 'r') as zipped_export:
+            files = zipped_export.infolist()
+            properties_matchers = []
+
+            for file in expected:
+                assert_that(
+                    zipped_export.read(file['name']).decode('utf-8'),
+                    equal_to(file['content']),
+                )
+                properties_matchers.append(has_properties(filename=file['name']))
+
+            assert_that(files, contains_inanyorder(*properties_matchers))
 
     def test_given_wrong_params_then_400(self):
         wrong_params = {'abcd', '12:345', '2017-042-10', '-1'}
