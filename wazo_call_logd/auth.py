@@ -44,7 +44,7 @@ def _get_master_tenant_uuid():
     return tenant_uuid
 
 
-def get_token_user_uuid_from_request(auth_client):
+def get_token_pbx_user_uuid_from_request(auth_client):
     token = request.headers.get('X-Auth-Token') or request.args.get('token')
     try:
         token_infos = auth_client.token.get(token)

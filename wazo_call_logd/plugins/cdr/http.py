@@ -12,7 +12,7 @@ from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import auth_client, token, Tenant
 from wazo_call_logd.auth import (
     extract_token_id_from_query_or_header,
-    get_token_user_uuid_from_request,
+    get_token_pbx_user_uuid_from_request,
 )
 from wazo_call_logd.http import AuthResource
 
@@ -208,7 +208,7 @@ class CDRUserMeResource(CDRAuthResource):
     )
     def get(self):
         args = CDRListRequestSchema().load(request.args)
-        user_uuid = get_token_user_uuid_from_request(self.auth_client)
+        user_uuid = get_token_pbx_user_uuid_from_request(self.auth_client)
         args['me_user_uuid'] = user_uuid
         args['tenant_uuids'] = self.query_or_header_visible_tenants(recurse=False)
         cdrs = self.cdr_service.list(args)
@@ -242,7 +242,7 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
     def post(self):
         args = RecordingMediaExportRequestSchema().load(request.args)
         body_args = RecordingMediaExportBodySchema().load(request.get_json(force=True))
-        user_uuid = get_token_user_uuid_from_request(self.auth_client)
+        user_uuid = get_token_pbx_user_uuid_from_request(self.auth_client)
         tenant_uuids = self.visible_tenants(recurse=True)
         args['cdr_ids'] = body_args['cdr_ids']
 
