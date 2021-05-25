@@ -90,6 +90,7 @@ class TestExportAPI(IntegrationTest):
             result.headers['Content-Disposition'],
             equal_to(f'attachment; filename={expected_filename}'),
         )
+        self.filesystem.remove_file('/tmp/foobar.zip')
 
     @export(status='finished', path='/tmp/foobar2.zip')
     def test_download_finished_export_but_file_deleted_on_filesystem(self, export):
@@ -115,6 +116,7 @@ class TestExportAPI(IntegrationTest):
                 has_properties(status_code=500, error_id='export-permission-denied')
             ),
         )
+        self.filesystem.remove_file('/tmp/foobar3.zip')
 
     @export(status='finished', path='/tmp/foobar4.zip')
     def test_download_export_with_token_tenant_in_query_string(self, export):
@@ -131,6 +133,8 @@ class TestExportAPI(IntegrationTest):
         params = {'tenant': OTHER_TENANT, 'token': MASTER_TOKEN}
         response = requests.get(api_url, params=params)
         assert_that(response.status_code, equal_to(404))
+
+        self.filesystem.remove_file('/tmp/foobar4.zip')
 
 
 class TestRecordingMediaExport(IntegrationTest):
@@ -181,6 +185,8 @@ class TestRecordingMediaExport(IntegrationTest):
                     has_properties(filename=f'11/{self._recording_filename(rec2)}'),
                 ),
             )
+        self.filesystem.remove_file('/tmp/10-recording.wav')
+        self.filesystem.remove_file('/tmp/11-recording.wav')
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
     def test_create_export_from_cdr_ids_when_no_recording(self):
@@ -213,12 +219,8 @@ class TestRecordingMediaExport(IntegrationTest):
 
         until.assert_(export_error, timeout=5)
         result = self.call_logd.export.get(export_uuid)
-        assert_that(
-            result,
-            has_entries(
-                status='error',
-            ),
-        )
+        assert_that(result, has_entries(status='error'))
+        self.filesystem.remove_file('/tmp/10-recording.wav')
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
     @recording(
@@ -236,9 +238,4 @@ class TestRecordingMediaExport(IntegrationTest):
 
         until.assert_(export_error, timeout=5)
         result = self.call_logd.export.get(export_uuid)
-        assert_that(
-            result,
-            has_entries(
-                status='error',
-            ),
-        )
+        assert_that(result, has_entries(status='error'))
