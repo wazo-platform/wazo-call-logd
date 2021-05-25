@@ -68,7 +68,7 @@ class RecordingService:
         export = Export(
             user_uuid=user_uuid,
             tenant_uuid=tenant_uuid,
-            date=datetime.now(),
+            requested_at=datetime.now(),
             status='in_progress',
         )
         export_uuid = self._dao.export.create(export).uuid

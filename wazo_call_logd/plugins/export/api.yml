@@ -55,7 +55,7 @@ definitions:
         type: string
       user_uuid:
         type: string
-      date:
+      requested_at:
         type: string
         format: date-time
       filename:

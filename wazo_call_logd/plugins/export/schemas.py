@@ -9,6 +9,6 @@ class ExportSchema(Schema):
     uuid = fields.UUID()
     tenant_uuid = fields.UUID()
     user_uuid = fields.UUID()
-    date = fields.DateTime()
+    requested_at = fields.DateTime()
     filename = fields.String()
     status = fields.String()

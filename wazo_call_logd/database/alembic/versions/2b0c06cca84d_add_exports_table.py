@@ -25,7 +25,7 @@ def upgrade():
         ),
         sa.Column('tenant_uuid', UUID, nullable=False),
         sa.Column('user_uuid', UUID, nullable=False),
-        sa.Column('date', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('requested_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('status', sa.String(32), nullable=False),
         sa.Column('path', sa.Text),
     )

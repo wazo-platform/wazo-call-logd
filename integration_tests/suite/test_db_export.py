@@ -43,8 +43,8 @@ class TestDBExport(DBIntegrationTest):
     @export()
     def test_export_filename(self, export):
         export = self.dao.export.get(export['uuid'])
-        offset = export.date.utcoffset() or td(seconds=0)
-        date_utc = (export.date - offset).replace(tzinfo=tz.utc)
+        offset = export.requested_at.utcoffset() or td(seconds=0)
+        date_utc = (export.requested_at - offset).replace(tzinfo=tz.utc)
         export_date_utc = date_utc.strftime('%Y-%m-%dT%H_%M_%SUTC')
         assert_that(
             export,
@@ -55,7 +55,7 @@ class TestDBExport(DBIntegrationTest):
         body = {
             'tenant_uuid': uuid.UUID(MASTER_TENANT),
             'user_uuid': uuid.uuid4(),
-            'date': dt.now(),
+            'requested_at': dt.now(),
             'status': 'in_progress',
         }
         result = self.dao.export.create(Export(**body))

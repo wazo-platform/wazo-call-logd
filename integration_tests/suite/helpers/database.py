@@ -93,7 +93,7 @@ def export(**export):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            export.setdefault('date', dt.utcnow())
+            export.setdefault('requested_at', dt.utcnow())
             export.setdefault('tenant_uuid', MASTER_TENANT)
             export.setdefault('user_uuid', USER_1_UUID)
             export.setdefault('status', 'in_progress')
@@ -352,8 +352,6 @@ class DatabaseQueries:
 
     def insert_export(self, **kwargs):
         session = self.Session()
-        kwargs.setdefault('date', dt.now())
-        kwargs.setdefault('tenant_uuid', MASTER_TENANT)
         export = Export(**kwargs)
         session.add(export)
         session.flush()
