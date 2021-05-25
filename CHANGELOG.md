@@ -2,6 +2,15 @@
 
 ## 21.07
 
+* New endpoint to bulk export CDR recording media:
+
+  * `POST /cdr/recordings/media/export`
+
+* New endpoints to retrieve exports
+
+  * `GET /exports/{export_uuid}`
+  * `GET /exports/{export_uuid}/download`
+
 * `GET /retention` has new attributes:
 
   * `default_cdr_days`
