@@ -11,6 +11,7 @@ from hamcrest import (
     equal_to,
     has_entries,
     has_items,
+    has_key,
     has_properties,
 )
 from io import BytesIO
@@ -144,6 +145,46 @@ class TestRecordingMediaExport(IntegrationTest):
     def _recording_filename(self, rec):
         start = rec['start_time'].strftime('%Y-%m-%dT%H_%M_%SUTC')
         return f"{start}-{rec['call_log_id']}-{rec['uuid']}.wav"
+
+    def test_given_wrong_params_then_400(self):
+        wrong_params = {'abcd', '12:345', '2017-042-10', '-1'}
+        for wrong_param in wrong_params:
+            assert_that(
+                calling(self.call_logd.cdr.export_recording_media).with_args(from_=wrong_param),
+                raises(CallLogdError).matching(
+                    has_properties(status_code=400, details=has_key('from'))
+                ),
+            )
+            assert_that(
+                calling(self.call_logd.cdr.export_recording_media).with_args(until=wrong_param),
+                raises(CallLogdError).matching(
+                    has_properties(status_code=400, details=has_key('until'))
+                ),
+            )
+            assert_that(
+                calling(self.call_logd.cdr.export_recording_media).with_args(call_direction=wrong_param),
+                raises(CallLogdError).matching(
+                    has_properties(status_code=400, details=has_key('call_direction'))
+                ),
+            )
+            assert_that(
+                calling(self.call_logd.cdr.export_recording_media).with_args(email=wrong_param),
+                raises(CallLogdError).matching(
+                    has_properties(status_code=400, details=has_key('email'))
+                ),
+            )
+            assert_that(
+                calling(self.call_logd.cdr.export_recording_media).with_args(from_id=wrong_param),
+                raises(CallLogdError).matching(
+                    has_properties(status_code=400, details=has_key('from_id'))
+                ),
+            )
+            assert_that(
+                calling(self.call_logd.cdr.export_recording_media).with_args(recurse=wrong_param),
+                raises(CallLogdError).matching(
+                    has_properties(status_code=400, details=has_key('recurse'))
+                ),
+            )
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
     @call_log(**{'id': 11}, tenant_uuid=OTHER_TENANT)
