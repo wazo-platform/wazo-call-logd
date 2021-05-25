@@ -469,3 +469,88 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/1-recording.wav')
         self.filesystem.remove_file('/tmp/2-recording.wav')
         self.filesystem.remove_file('/tmp/3-recording.wav')
+
+    @call_log(**{'id': 1}, date='2021-05-20T15:00:00', direction='inbound')
+    @call_log(**{'id': 2}, date='2021-05-21T15:00:00', direction='internal')
+    @call_log(**{'id': 3}, date='2021-05-22T15:00:00', direction='internal')
+    @recording(
+        call_log_id=1,
+        path='/tmp/1-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-20T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-20T16:00:00'),
+    )
+    @recording(
+        call_log_id=2,
+        path='/tmp/2-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-21T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-21T16:00:00'),
+    )
+    @recording(
+        call_log_id=3,
+        path='/tmp/3-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
+    )
+    def test_create_export_using_call_direction_param(self, rec1, rec2, rec3):
+        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
+        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
+        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
+
+        export_uuid = self.call_logd.cdr.export_recording_media(
+            call_direction='inbound'
+        )['uuid']
+
+        def export_is_finished():
+            status = self.call_logd.export.get(export_uuid)['status']
+            assert_that(status, equal_to('finished'))
+
+        until.assert_(export_is_finished, timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('1', self._recording_filename(rec1)),
+                    'content': '1-recording',
+                }
+            ],
+        )
+
+        export_uuid = self.call_logd.cdr.export_recording_media(
+            call_direction='internal'
+        )['uuid']
+
+        def export_is_finished():
+            status = self.call_logd.export.get(export_uuid)['status']
+            assert_that(status, equal_to('finished'))
+
+        until.assert_(export_is_finished, timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('2', self._recording_filename(rec2)),
+                    'content': '2-recording',
+                },
+                {
+                    'name': os.path.join('3', self._recording_filename(rec3)),
+                    'content': '3-recording',
+                },
+            ],
+        )
+
+        assert_that(
+            calling(self.call_logd.cdr.export_recording_media).with_args(
+                call_direction='outbound'
+            ),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='no-recording-to-export')
+            ),
+        )
+
+        self.filesystem.remove_file('/tmp/1-recording.wav')
+        self.filesystem.remove_file('/tmp/2-recording.wav')
+        self.filesystem.remove_file('/tmp/3-recording.wav')
