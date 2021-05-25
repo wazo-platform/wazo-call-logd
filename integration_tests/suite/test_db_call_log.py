@@ -110,7 +110,7 @@ class TestCallLog(DBIntegrationTest):
             contains_inanyorder(
                 has_properties(id=1),
                 has_properties(id=2),
-            )
+            ),
         )
 
         params = {'cdr_ids': [1, 42, 3]}
@@ -120,7 +120,7 @@ class TestCallLog(DBIntegrationTest):
             contains_inanyorder(
                 has_properties(id=1),
                 has_properties(id=3),
-            )
+            ),
         )
 
         params = {'cdr_ids': [42]}
@@ -136,7 +136,7 @@ class TestCallLog(DBIntegrationTest):
                 has_properties(id=2),
                 has_properties(id=3),
                 has_properties(id=4),
-            )
+            ),
         )
 
     def test_create_from_list(self):

@@ -152,37 +152,49 @@ class TestRecordingMediaExport(IntegrationTest):
         wrong_params = {'abcd', '12:345', '2017-042-10', '-1'}
         for wrong_param in wrong_params:
             assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(from_=wrong_param),
+                calling(self.call_logd.cdr.export_recording_media).with_args(
+                    from_=wrong_param
+                ),
                 raises(CallLogdError).matching(
                     has_properties(status_code=400, details=has_key('from'))
                 ),
             )
             assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(until=wrong_param),
+                calling(self.call_logd.cdr.export_recording_media).with_args(
+                    until=wrong_param
+                ),
                 raises(CallLogdError).matching(
                     has_properties(status_code=400, details=has_key('until'))
                 ),
             )
             assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(call_direction=wrong_param),
+                calling(self.call_logd.cdr.export_recording_media).with_args(
+                    call_direction=wrong_param
+                ),
                 raises(CallLogdError).matching(
                     has_properties(status_code=400, details=has_key('call_direction'))
                 ),
             )
             assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(email=wrong_param),
+                calling(self.call_logd.cdr.export_recording_media).with_args(
+                    email=wrong_param
+                ),
                 raises(CallLogdError).matching(
                     has_properties(status_code=400, details=has_key('email'))
                 ),
             )
             assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(from_id=wrong_param),
+                calling(self.call_logd.cdr.export_recording_media).with_args(
+                    from_id=wrong_param
+                ),
                 raises(CallLogdError).matching(
                     has_properties(status_code=400, details=has_key('from_id'))
                 ),
             )
             assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(recurse=wrong_param),
+                calling(self.call_logd.cdr.export_recording_media).with_args(
+                    recurse=wrong_param
+                ),
                 raises(CallLogdError).matching(
                     has_properties(status_code=400, details=has_key('recurse'))
                 ),
