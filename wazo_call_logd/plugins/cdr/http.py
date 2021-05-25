@@ -242,7 +242,6 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
     def post(self):
         args = RecordingMediaExportRequestSchema().load(request.args)
         body_args = RecordingMediaExportBodySchema().load(request.get_json(force=True))
-        user_uuid = get_token_pbx_user_uuid_from_request(self.auth_client)
         tenant_uuids = self.visible_tenants(recurse=True)
         args['cdr_ids'] = body_args['cdr_ids']
 
@@ -257,10 +256,9 @@ class RecordingsMediaExportResource(RecordingMediaAuthResource):
             raise NoRecordingToExportException()
 
         destination_email = args['email']
-
         export = self.recording_service.start_recording_export(
             recordings_to_download,
-            user_uuid,
+            token.user_uuid,
             tenant_uuids[0],
             destination_email,
         )
