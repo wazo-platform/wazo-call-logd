@@ -163,57 +163,30 @@ class TestRecordingMediaExport(IntegrationTest):
 
             assert_that(files, contains_inanyorder(*properties_matchers))
 
+    def _export_status_is(self, export_uuid, status):
+        export = self.call_logd.export.get(export_uuid)
+        assert_that(export['status'], equal_to(status))
+
     def test_given_wrong_params_then_400(self):
         wrong_params = {'abcd', '12:345', '2017-042-10', '-1'}
+
+        def _assert_400(key, value, python_key=None):
+            python_key = python_key or key
+            kwargs = {python_key: value}
+            assert_that(
+                calling(self.call_logd.cdr.export_recording_media).with_args(**kwargs),
+                raises(CallLogdError).matching(
+                    has_properties(status_code=400, details=has_key(key))
+                ),
+            )
+
         for wrong_param in wrong_params:
-            assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(
-                    from_=wrong_param
-                ),
-                raises(CallLogdError).matching(
-                    has_properties(status_code=400, details=has_key('from'))
-                ),
-            )
-            assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(
-                    until=wrong_param
-                ),
-                raises(CallLogdError).matching(
-                    has_properties(status_code=400, details=has_key('until'))
-                ),
-            )
-            assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(
-                    call_direction=wrong_param
-                ),
-                raises(CallLogdError).matching(
-                    has_properties(status_code=400, details=has_key('call_direction'))
-                ),
-            )
-            assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(
-                    email=wrong_param
-                ),
-                raises(CallLogdError).matching(
-                    has_properties(status_code=400, details=has_key('email'))
-                ),
-            )
-            assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(
-                    from_id=wrong_param
-                ),
-                raises(CallLogdError).matching(
-                    has_properties(status_code=400, details=has_key('from_id'))
-                ),
-            )
-            assert_that(
-                calling(self.call_logd.cdr.export_recording_media).with_args(
-                    recurse=wrong_param
-                ),
-                raises(CallLogdError).matching(
-                    has_properties(status_code=400, details=has_key('recurse'))
-                ),
-            )
+            _assert_400('from', wrong_param, python_key='from_')
+            _assert_400('until', wrong_param)
+            _assert_400('call_direction', wrong_param)
+            _assert_400('email', wrong_param)
+            _assert_400('from_id', wrong_param)
+            _assert_400('recurse', wrong_param)
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
     @call_log(**{'id': 11}, tenant_uuid=OTHER_TENANT)
@@ -233,15 +206,10 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
         self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
 
-        export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10, 11])[
-            'uuid'
-        ]
+        export = self.call_logd.cdr.export_recording_media(cdr_ids=[10, 11])
+        export_uuid = export['uuid']
 
-        def export_is_finished():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('finished'))
-
-        until.assert_(export_is_finished, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
 
         export_zip = self.call_logd.export.download(export_uuid)
         self.assert_zip_content(
@@ -283,11 +251,7 @@ class TestRecordingMediaExport(IntegrationTest):
 
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
-        def export_error():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('error'))
-
-        until.assert_(export_error, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'error', timeout=5)
         result = self.call_logd.export.get(export_uuid)
         assert_that(result, has_entries(status='error'))
         self.filesystem.remove_file('/tmp/10-recording.wav')
@@ -302,11 +266,7 @@ class TestRecordingMediaExport(IntegrationTest):
     def test_create_from_cdr_ids_when_recording_file_does_not_exist(self, rec1):
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
-        def export_error():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('error'))
-
-        until.assert_(export_error, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'error', timeout=5)
         result = self.call_logd.export.get(export_uuid)
         assert_that(result, has_entries(status='error'))
 
@@ -320,20 +280,12 @@ class TestRecordingMediaExport(IntegrationTest):
     def test_create_from_cdr_ids_when_previous_export_failure(self, rec1):
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
-        def export_error():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('error'))
-
-        until.assert_(export_error, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'error', timeout=5)
 
         self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
-        def export_is_finished():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('finished'))
-
-        until.assert_(export_is_finished, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
         self.filesystem.remove_file('/tmp/10-recording.wav')
 
     @call_log(**{'id': 1}, date='2021-05-20T15:00:00')
@@ -366,11 +318,7 @@ class TestRecordingMediaExport(IntegrationTest):
             from_='2021-05-20T00:00:00', until='2021-05-23T00:00:00'
         )['uuid']
 
-        def export_is_finished():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('finished'))
-
-        until.assert_(export_is_finished, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
 
         export_zip = self.call_logd.export.download(export_uuid)
         self.assert_zip_content(
@@ -419,11 +367,7 @@ class TestRecordingMediaExport(IntegrationTest):
 
         export_uuid = self.call_logd.cdr.export_recording_media(from_id=2)['uuid']
 
-        def export_is_finished():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('finished'))
-
-        until.assert_(export_is_finished, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
 
         export_zip = self.call_logd.export.download(export_uuid)
 
@@ -470,15 +414,10 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
         self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
 
-        export_uuid = self.call_logd.cdr.export_recording_media(
-            call_direction='inbound'
-        )['uuid']
+        export = self.call_logd.cdr.export_recording_media(call_direction='inbound')
+        export_uuid = export['uuid']
 
-        def export_is_finished():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('finished'))
-
-        until.assert_(export_is_finished, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
 
         export_zip = self.call_logd.export.download(export_uuid)
         self.assert_zip_content(
@@ -491,15 +430,10 @@ class TestRecordingMediaExport(IntegrationTest):
             ],
         )
 
-        export_uuid = self.call_logd.cdr.export_recording_media(
-            call_direction='internal'
-        )['uuid']
+        export = self.call_logd.cdr.export_recording_media(call_direction='internal')
+        export_uuid = export['uuid']
 
-        def export_is_finished():
-            status = self.call_logd.export.get(export_uuid)['status']
-            assert_that(status, equal_to('finished'))
-
-        until.assert_(export_is_finished, timeout=5)
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
 
         export_zip = self.call_logd.export.download(export_uuid)
         self.assert_zip_content(
