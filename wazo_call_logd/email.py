@@ -9,9 +9,7 @@ from jinja2 import BaseLoader, Environment, TemplateNotFound
 class TemplateLoader(BaseLoader):
 
     _templates = {
-        'email_export': 'email_export_template',
-        'email_export_get_body': 'email_export_get_response_body_template',
-        'email_export_subject': 'email_export_subject_template',
+        'email_export_body': 'email_export_body_template',
     }
 
     def __init__(self, config):
@@ -38,14 +36,5 @@ class TemplateFormatter:
         self.environment = Environment(loader=TemplateLoader(config))
 
     def format_export_email(self, context):
-        template = self.environment.get_template('email_export')
-        return template.render(**context)
-
-    def get_export_email_get_body(self, context=None):
-        context = context or {}
-        template = self.environment.get_template('email_export_get_body')
-        return template.render(**context)
-
-    def format_export_subject(self, context):
-        template = self.environment.get_template('email_export_subject')
+        template = self.environment.get_template('email_export_body')
         return template.render(**context)

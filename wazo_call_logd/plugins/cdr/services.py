@@ -52,7 +52,7 @@ class RecordingService:
             os.remove(recording_path)
 
     def start_recording_export(
-        self, recordings, user_uuid, tenant_uuid, destination_email
+        self, recordings, user_uuid, tenant_uuid, destination_email, connection_info, token_uuid
     ):
         recording_files = [
             {
@@ -79,6 +79,8 @@ class RecordingService:
                 destination,
                 tenant_uuid,
                 destination_email,
+                connection_info,
+                token_uuid,
             ),
             task_id=str(export_uuid),
         )

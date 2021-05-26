@@ -15,6 +15,7 @@ from wazo_call_logd.auth import (
     get_token_pbx_user_uuid_from_request,
 )
 from wazo_call_logd.http import AuthResource
+from wazo_call_logd.plugin_helpers.flask import extract_connection_params
 
 from .exceptions import (
     CDRNotFoundException,
@@ -240,11 +241,14 @@ class RecordingsMediaExportResource(CDRAuthResource):
             raise NoRecordingToExportException()
 
         destination_email = args['email']
+        connection_info = extract_connection_params(request.headers)
         export = self.recording_service.start_recording_export(
             recordings_to_download,
             token.user_uuid,
             token.tenant_uuid,
             destination_email,
+            connection_info,
+            extract_token_id_from_query_or_header(),
         )
         export_body = RecordingMediaExportSchema().dump(export)
         location = url_for('export_resource', export_uuid=export['uuid'])

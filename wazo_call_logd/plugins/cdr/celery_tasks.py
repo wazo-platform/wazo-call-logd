@@ -9,7 +9,10 @@ from celery import Task
 from collections import namedtuple
 from email import utils as email_utils
 from email.message import EmailMessage
+from wazo_auth_client import Client as AuthClient
 from zipfile import ZipFile, ZIP_DEFLATED
+
+from wazo_call_logd.email import TemplateFormatter
 
 from .exceptions import (
     RecordingMediaFSPermissionException,
@@ -32,7 +35,7 @@ class Plugin:
 
         @app.task(base=RecordingExportTask, bind=True)
         def _export_recording_task(
-            task, task_uuid, recordings, output_dir, tenant_uuid, email
+            task, task_uuid, recordings, output_dir, tenant_uuid, email, connection_info, token_uuid
         ):
             task._run(
                 config,
@@ -42,13 +45,15 @@ class Plugin:
                 output_dir,
                 tenant_uuid,
                 email,
+                connection_info,
+                token_uuid
             )
 
         export_recording_task = _export_recording_task
 
 
 class RecordingExportTask(Task):
-    def _run(self, config, dao, task_uuid, recordings, output_dir, tenant_uuid, email):
+    def _run(self, config, dao, task_uuid, recordings, output_dir, tenant_uuid, email, connection_info, token_uuid):
         export = dao.export.get(task_uuid, [tenant_uuid])
         export.status = 'processing'
         dao.export.update(export)
@@ -82,9 +87,9 @@ class RecordingExportTask(Task):
         export.status = 'finished'
         dao.export.update(export)
         if email:
-            self._send_email(task_uuid, 'Wazo user', email)
+            self._send_email(task_uuid, 'Wazo user', email, config, connection_info, token_uuid)
 
-    def _send_email(self, task_uuid, destination_name, destination_address, config):
+    def _send_email(self, task_uuid, destination_name, destination_address, config, connection_info, token_uuid):
         smtp_config = config['smtp']
         export_config = config['exports']
         host = smtp_config.get('host')
@@ -105,7 +110,16 @@ class RecordingExportTask(Task):
         message['To'] = email_utils.formataddr(email_destination)
 
         # Get auth token for user
-        message.set_content('test')
+        auth_client = AuthClient(**config['auth'])
+        auth_client.set_token(token_uuid)
+        email_token_uuid = auth_client.token.new(expiration=export_config.get('email_token_expiration'))['token']
+        template_formatter = TemplateFormatter(config)
+        context = {
+            'export_uuid': task_uuid,
+            'token': email_token_uuid,
+            **connection_info,
+        }
+        message.set_content(template_formatter.format_export_email(context))
 
         with smtplib.SMTP(host, port=port, timeout=timeout) as smtp_server:
             smtp_server.starttls()
