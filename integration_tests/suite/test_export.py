@@ -191,18 +191,8 @@ class TestRecordingMediaExport(IntegrationTest):
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
     @call_log(**{'id': 11}, tenant_uuid=OTHER_TENANT)
-    @recording(
-        call_log_id=10,
-        path='/tmp/10-recording.wav',
-        start_time=datetime.now() - timedelta(hours=1),
-        end_time=datetime.now(),
-    )
-    @recording(
-        call_log_id=11,
-        path='/tmp/11-recording.wav',
-        start_time=datetime.now() - timedelta(hours=2),
-        end_time=datetime.now() - timedelta(hours=1),
-    )
+    @recording(call_log_id=10, path='/tmp/10-recording.wav')
+    @recording(call_log_id=11, path='/tmp/11-recording.wav')
     def test_create_when_no_params(self, rec1, rec2):
         self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
         self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
@@ -231,18 +221,8 @@ class TestRecordingMediaExport(IntegrationTest):
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
     @call_log(**{'id': 11}, tenant_uuid=OTHER_TENANT)
-    @recording(
-        call_log_id=10,
-        path='/tmp/10-recording.wav',
-        start_time=datetime.now() - timedelta(hours=1),
-        end_time=datetime.now(),
-    )
-    @recording(
-        call_log_id=11,
-        path='/tmp/11-recording.wav',
-        start_time=datetime.now() - timedelta(hours=2),
-        end_time=datetime.now() - timedelta(hours=1),
-    )
+    @recording(call_log_id=10, path='/tmp/10-recording.wav')
+    @recording(call_log_id=11, path='/tmp/11-recording.wav')
     def test_create_from_cdr_ids(self, rec1, rec2):
         self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
         self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
@@ -298,12 +278,7 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/10-recording.wav')
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
-    @recording(
-        call_log_id=10,
-        path='/tmp/10-recording.wav',
-        start_time=datetime.now() - timedelta(hours=1),
-        end_time=datetime.now(),
-    )
+    @recording(call_log_id=10, path='/tmp/10-recording.wav')
     def test_create_from_cdr_ids_when_recording_file_does_not_exist(self, rec1):
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
@@ -312,12 +287,7 @@ class TestRecordingMediaExport(IntegrationTest):
         assert_that(result, has_entries(status='error'))
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
-    @recording(
-        call_log_id=10,
-        path='/tmp/10-recording.wav',
-        start_time=datetime.now() - timedelta(hours=1),
-        end_time=datetime.now(),
-    )
+    @recording(call_log_id=10, path='/tmp/10-recording.wav')
     def test_create_from_cdr_ids_when_previous_export_failure(self, rec1):
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
@@ -333,31 +303,18 @@ class TestRecordingMediaExport(IntegrationTest):
     @call_log(**{'id': 2}, date='2021-05-21T15:00:00')
     @call_log(**{'id': 3}, date='2021-05-22T15:00:00')
     @call_log(**{'id': 4}, date='2021-05-23T15:00:00')
-    @recording(
-        call_log_id=2,
-        path='/tmp/2-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-21T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-21T16:00:00'),
-    )
-    @recording(
-        call_log_id=3,
-        path='/tmp/3-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
-    )
-    @recording(
-        call_log_id=4,
-        path='/tmp/4-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-23T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-23T16:00:00'),
-    )
+    @recording(call_log_id=2, path='/tmp/2-recording.wav')
+    @recording(call_log_id=3, path='/tmp/3-recording.wav')
+    @recording(call_log_id=4, path='/tmp/4-recording.wav')
     def test_create_from_time_range(self, rec1, rec2, _):
         self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
         self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
         self.filesystem.create_file('/tmp/4-recording.wav', content='4-recording')
-        export_uuid = self.call_logd.cdr.export_recording_media(
-            from_='2021-05-20T00:00:00', until='2021-05-23T00:00:00'
-        )['uuid']
+        export = self.call_logd.cdr.export_recording_media(
+            from_='2021-05-20T00:00:00',
+            until='2021-05-23T00:00:00',
+        )
+        export_uuid = export['uuid']
 
         until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
 
@@ -383,24 +340,9 @@ class TestRecordingMediaExport(IntegrationTest):
     @call_log(**{'id': 2}, date='2021-05-21T15:00:00')
     @call_log(**{'id': 3}, date='2021-05-22T15:00:00')
     @call_log(**{'id': 4}, date='2021-05-23T15:00:00')
-    @recording(
-        call_log_id=1,
-        path='/tmp/1-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-20T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-20T16:00:00'),
-    )
-    @recording(
-        call_log_id=2,
-        path='/tmp/2-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-21T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-21T16:00:00'),
-    )
-    @recording(
-        call_log_id=3,
-        path='/tmp/3-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
-    )
+    @recording(call_log_id=1, path='/tmp/1-recording.wav')
+    @recording(call_log_id=2, path='/tmp/2-recording.wav')
+    @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_using_from_id_param(self, _, rec2, rec3):
         self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
         self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
@@ -432,24 +374,9 @@ class TestRecordingMediaExport(IntegrationTest):
     @call_log(**{'id': 1}, date='2021-05-20T15:00:00', direction='inbound')
     @call_log(**{'id': 2}, date='2021-05-21T15:00:00', direction='internal')
     @call_log(**{'id': 3}, date='2021-05-22T15:00:00', direction='internal')
-    @recording(
-        call_log_id=1,
-        path='/tmp/1-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-20T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-20T16:00:00'),
-    )
-    @recording(
-        call_log_id=2,
-        path='/tmp/2-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-21T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-21T16:00:00'),
-    )
-    @recording(
-        call_log_id=3,
-        path='/tmp/3-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
-    )
+    @recording(call_log_id=1, path='/tmp/1-recording.wav')
+    @recording(call_log_id=2, path='/tmp/2-recording.wav')
+    @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_from_call_direction_param(self, rec1, rec2, rec3):
         self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
         self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
@@ -525,24 +452,9 @@ class TestRecordingMediaExport(IntegrationTest):
             {'user_uuid': USER_1_UUID, 'tags': ['quebec']},
         ],
     )
-    @recording(
-        call_log_id=1,
-        path='/tmp/1-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-20T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-20T16:00:00'),
-    )
-    @recording(
-        call_log_id=2,
-        path='/tmp/2-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-21T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-21T16:00:00'),
-    )
-    @recording(
-        call_log_id=3,
-        path='/tmp/3-recording.wav',
-        start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
-        end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
-    )
+    @recording(call_log_id=1, path='/tmp/1-recording.wav')
+    @recording(call_log_id=2, path='/tmp/2-recording.wav')
+    @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_from_tags(self, rec1, rec2, rec3):
         self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
         self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
