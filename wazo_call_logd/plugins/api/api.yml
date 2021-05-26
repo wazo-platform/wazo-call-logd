@@ -30,10 +30,6 @@ responses:
     description: Invalid request
     schema:
       $ref: '#/definitions/Error'
-  NotDoneYetError:
-    description: Not done yet
-    schema:
-      $ref: '#/definitions/Error'
 definitions:
   Error:
     title: Error

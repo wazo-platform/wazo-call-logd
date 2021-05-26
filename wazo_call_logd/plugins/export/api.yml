@@ -29,9 +29,7 @@ paths:
         '200':
           description: Download an export by UUID
         '202':
-          description: Export not done yet
-          schema:
-            $ref: '#/responses/NotDoneYetError'
+          $ref: '#/responses/NotDoneYetError'
         '404':
           $ref: '#/responses/NotFoundError'
       produces:
@@ -44,7 +42,11 @@ parameters:
     required: true
     type: string
     in: path
-
+responses:
+  NotDoneYetError:
+    description: Not done yet
+    schema:
+      $ref: '#/definitions/Error'
 definitions:
   Export:
     type: object
