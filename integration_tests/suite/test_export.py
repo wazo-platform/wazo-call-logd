@@ -26,6 +26,7 @@ from .helpers.constants import (
     MASTER_TENANT,
     MASTER_TOKEN,
     OTHER_TENANT,
+    USER_1_UUID,
 )
 from .helpers.database import call_log, export, recording
 
@@ -497,6 +498,110 @@ class TestRecordingMediaExport(IntegrationTest):
             raises(CallLogdError).matching(
                 has_properties(status_code=400, error_id='no-recording-to-export')
             ),
+        )
+
+        self.filesystem.remove_file('/tmp/1-recording.wav')
+        self.filesystem.remove_file('/tmp/2-recording.wav')
+        self.filesystem.remove_file('/tmp/3-recording.wav')
+
+    @call_log(
+        **{'id': 1},
+        date='2021-05-20T15:00:00',
+        participants=[
+            {'user_uuid': USER_1_UUID, 'tags': ['chicoutimi']},
+        ],
+    )
+    @call_log(
+        **{'id': 2},
+        date='2021-05-21T15:00:00',
+        participants=[
+            {'user_uuid': USER_1_UUID, 'tags': ['chicoutimi', 'quebec']},
+        ],
+    )
+    @call_log(
+        **{'id': 3},
+        date='2021-05-22T15:00:00',
+        participants=[
+            {'user_uuid': USER_1_UUID, 'tags': ['quebec']},
+        ],
+    )
+    @recording(
+        call_log_id=1,
+        path='/tmp/1-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-20T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-20T16:00:00'),
+    )
+    @recording(
+        call_log_id=2,
+        path='/tmp/2-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-21T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-21T16:00:00'),
+    )
+    @recording(
+        call_log_id=3,
+        path='/tmp/3-recording.wav',
+        start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
+        end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
+    )
+    def test_create_from_tags(self, rec1, rec2, rec3):
+        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
+        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
+        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
+
+        export = self.call_logd.cdr.export_recording_media(tags='chicoutimi')
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('1', self._recording_filename(rec1)),
+                    'content': '1-recording',
+                },
+                {
+                    'name': os.path.join('2', self._recording_filename(rec2)),
+                    'content': '2-recording',
+                }
+            ],
+        )
+
+        export = self.call_logd.cdr.export_recording_media(tags='quebec')
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('2', self._recording_filename(rec2)),
+                    'content': '2-recording',
+                },
+                {
+                    'name': os.path.join('3', self._recording_filename(rec3)),
+                    'content': '3-recording',
+                },
+            ],
+        )
+
+        export = self.call_logd.cdr.export_recording_media(tags='chicoutimi,quebec')
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('2', self._recording_filename(rec2)),
+                    'content': '2-recording',
+                }
+            ],
         )
 
         self.filesystem.remove_file('/tmp/1-recording.wav')
