@@ -64,7 +64,7 @@ class TestCallLog(DBIntegrationTest):
     @call_log(**{'id': 1})
     @call_log(**{'id': 2})
     @recording(call_log_id=1)
-    def test_that_recordings_filter_shows_only_filtered_calls(self, rec1):
+    def test_find_all_in_period_when_recorded(self, rec1):
         params = {'recorded': True}
         result = self.dao.call_log.find_all_in_period(params)
         assert_that(
@@ -102,7 +102,7 @@ class TestCallLog(DBIntegrationTest):
     @call_log(**cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES))
     @call_log(**cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES))
     @call_log(**cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES))
-    def test_find_from_cdr_ids_list(self):
+    def test_find_all_in_period_when_cdr_ids(self):
         params = {'cdr_ids': [1, 2]}
         results = self.dao.call_log.find_all_in_period(params)
         assert_that(

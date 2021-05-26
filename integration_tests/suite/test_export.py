@@ -36,7 +36,7 @@ class TestExportAPI(IntegrationTest):
         tenant_uuid=MASTER_TENANT,
         requested_at=datetime.fromisoformat('2021-05-25T15:00:00'),
     )
-    def test_get_export_multitenant(self, export):
+    def test_get_multitenant(self, export):
         assert_that(
             calling(self.call_logd.export.get).with_args(
                 export['uuid'], tenant_uuid=OTHER_TENANT
@@ -57,7 +57,7 @@ class TestExportAPI(IntegrationTest):
     # Downloading
 
     @export(status='pending', path=None)
-    def test_download_pending_export(self, export):
+    def test_download_pending(self, export):
         assert_that(
             calling(self.call_logd.export.download).with_args(export['uuid']),
             raises(CallLogdError).matching(
@@ -69,7 +69,7 @@ class TestExportAPI(IntegrationTest):
         )
 
     @export(status='processing', path=None)
-    def test_download_processing_export(self, export):
+    def test_download_processing(self, export):
         assert_that(
             calling(self.call_logd.export.download).with_args(export['uuid']),
             raises(CallLogdError).matching(
@@ -81,7 +81,7 @@ class TestExportAPI(IntegrationTest):
         )
 
     @export(status='finished', path='/tmp/foobar.zip')
-    def test_download_finished_export(self, export):
+    def test_download_finished(self, export):
         self.filesystem.create_file('/tmp/foobar.zip', content='zipfile')
         export_from_api = self.call_logd.export.get(export['uuid'])
         assert_that(export_from_api, has_entries(status='finished'))
@@ -96,7 +96,7 @@ class TestExportAPI(IntegrationTest):
         self.filesystem.remove_file('/tmp/foobar.zip')
 
     @export(status='finished', path='/tmp/foobar2.zip')
-    def test_download_finished_export_but_file_deleted_on_filesystem(self, export):
+    def test_download_finished_when_file_deleted_on_filesystem(self, export):
         export_from_api = self.call_logd.export.get(export['uuid'])
         assert_that(export_from_api, has_entries(status='finished'))
 
@@ -108,7 +108,7 @@ class TestExportAPI(IntegrationTest):
         )
 
     @export(status='finished', path='/tmp/foobar3.zip')
-    def test_download_finished_export_but_file_has_wrong_permissions(self, export):
+    def test_download_finished_when_file_has_wrong_permissions(self, export):
         self.filesystem.create_file('/tmp/foobar3.zip', content='zipfile', mode='000')
         export_from_api = self.call_logd.export.get(export['uuid'])
         assert_that(export_from_api, has_entries(status='finished'))
@@ -122,7 +122,7 @@ class TestExportAPI(IntegrationTest):
         self.filesystem.remove_file('/tmp/foobar3.zip')
 
     @export(status='finished', path='/tmp/foobar4.zip')
-    def test_download_export_with_token_tenant_in_query_string(self, export):
+    def test_download_when_token_tenant_in_query_string(self, export):
         self.filesystem.create_file('/tmp/foobar4.zip', content='zipfile')
 
         port = self.service_port(9298, 'call-logd')
@@ -230,7 +230,7 @@ class TestRecordingMediaExport(IntegrationTest):
         start_time=datetime.now() - timedelta(hours=2),
         end_time=datetime.now() - timedelta(hours=1),
     )
-    def test_create_export_from_cdr_ids(self, rec1, rec2):
+    def test_create_from_cdr_ids(self, rec1, rec2):
         self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
         self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
 
@@ -262,7 +262,7 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/11-recording.wav')
 
     @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
-    def test_create_export_from_cdr_ids_when_no_recording(self):
+    def test_create_from_cdr_ids_when_no_recording(self):
         assert_that(
             calling(self.call_logd.cdr.export_recording_media).with_args(cdr_ids=[10]),
             raises(CallLogdError).matching(
@@ -277,9 +277,7 @@ class TestRecordingMediaExport(IntegrationTest):
         start_time=datetime.now() - timedelta(hours=1),
         end_time=datetime.now(),
     )
-    def test_create_export_from_cdr_ids_but_recording_file_permissions_are_wrong(
-        self, rec1
-    ):
+    def test_create_from_cdr_ids_when_recording_file_permissions_are_wrong(self, rec1):
         self.filesystem.create_file(
             '/tmp/10-recording.wav', content='10-recording', mode='000'
         )
@@ -302,7 +300,7 @@ class TestRecordingMediaExport(IntegrationTest):
         start_time=datetime.now() - timedelta(hours=1),
         end_time=datetime.now(),
     )
-    def test_create_export_from_cdr_ids_but_recording_file_does_not_exist(self, rec1):
+    def test_create_from_cdr_ids_when_recording_file_does_not_exist(self, rec1):
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
         def export_error():
@@ -320,7 +318,7 @@ class TestRecordingMediaExport(IntegrationTest):
         start_time=datetime.now() - timedelta(hours=1),
         end_time=datetime.now(),
     )
-    def test_create_export_from_cdr_ids_after_previous_export_failure(self, rec1):
+    def test_create_from_cdr_ids_when_previous_export_failure(self, rec1):
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
         def export_error():
@@ -361,7 +359,7 @@ class TestRecordingMediaExport(IntegrationTest):
         start_time=datetime.fromisoformat('2021-05-23T15:00:00'),
         end_time=datetime.fromisoformat('2021-05-23T16:00:00'),
     )
-    def test_create_export_from_time_range(self, rec1, rec2, _):
+    def test_create_from_time_range(self, rec1, rec2, _):
         self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
         self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
         self.filesystem.create_file('/tmp/4-recording.wav', content='4-recording')
@@ -415,7 +413,7 @@ class TestRecordingMediaExport(IntegrationTest):
         start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
         end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
     )
-    def test_create_export_using_from_id_param(self, _, rec2, rec3):
+    def test_create_using_from_id_param(self, _, rec2, rec3):
         self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
         self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
         self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
@@ -468,7 +466,7 @@ class TestRecordingMediaExport(IntegrationTest):
         start_time=datetime.fromisoformat('2021-05-22T15:00:00'),
         end_time=datetime.fromisoformat('2021-05-22T16:00:00'),
     )
-    def test_create_export_using_call_direction_param(self, rec1, rec2, rec3):
+    def test_create_from_call_direction_param(self, rec1, rec2, rec3):
         self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
         self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
         self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
