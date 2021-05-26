@@ -662,3 +662,109 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/1-recording.wav')
         self.filesystem.remove_file('/tmp/2-recording.wav')
         self.filesystem.remove_file('/tmp/3-recording.wav')
+
+    @call_log(
+        **{'id': 1},
+        date='2021-05-20T15:00:00',
+        source_exten='12345',
+    )
+    @call_log(
+        **{'id': 2},
+        date='2021-05-21T15:00:00',
+        source_exten='123',
+    )
+    @call_log(
+        **{'id': 3},
+        date='2021-05-22T15:00:00',
+        destination_exten='45',
+    )
+    @recording(call_log_id=1, path='/tmp/1-recording.wav')
+    @recording(call_log_id=2, path='/tmp/2-recording.wav')
+    @recording(call_log_id=3, path='/tmp/3-recording.wav')
+    def test_create_from_number(self, rec1, rec2, rec3):
+        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
+        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
+        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
+
+        export = self.call_logd.cdr.export_recording_media(number='_45')
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('1', self._recording_filename(rec1)),
+                    'content': '1-recording',
+                },
+                {
+                    'name': os.path.join('3', self._recording_filename(rec3)),
+                    'content': '3-recording',
+                },
+            ],
+        )
+
+        export = self.call_logd.cdr.export_recording_media(number='45')
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('3', self._recording_filename(rec3)),
+                    'content': '3-recording',
+                },
+            ],
+        )
+
+        export = self.call_logd.cdr.export_recording_media(number='_23_')
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('1', self._recording_filename(rec1)),
+                    'content': '1-recording',
+                },
+                {
+                    'name': os.path.join('2', self._recording_filename(rec2)),
+                    'content': '2-recording',
+                },
+            ],
+        )
+
+        export = self.call_logd.cdr.export_recording_media(number='4_')
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('3', self._recording_filename(rec3)),
+                    'content': '3-recording',
+                },
+            ],
+        )
+
+        assert_that(
+            calling(self.call_logd.cdr.export_recording_media).with_args(number='0123456789'),
+            raises(CallLogdError).matching(
+                has_properties(status_code=400, error_id='no-recording-to-export')
+            ),
+        )
+
+        self.filesystem.remove_file('/tmp/1-recording.wav')
+        self.filesystem.remove_file('/tmp/2-recording.wav')
+        self.filesystem.remove_file('/tmp/3-recording.wav')
