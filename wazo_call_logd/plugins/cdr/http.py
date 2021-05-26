@@ -227,7 +227,7 @@ class RecordingsMediaExportResource(CDRAuthResource):
     def post(self):
         args = RecordingMediaExportRequestSchema().load(request.args)
         body_args = RecordingMediaExportBodySchema().load(request.get_json(force=True))
-        args['tenant_uuids'] = self.visible_tenants(recurse=True)
+        args['tenant_uuids'] = self.visible_tenants(args['recurse'])
         args['cdr_ids'] = body_args['cdr_ids']
 
         recordings_to_download = []
