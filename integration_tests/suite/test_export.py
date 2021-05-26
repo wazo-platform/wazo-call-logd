@@ -12,7 +12,6 @@ from hamcrest import (
     contains_inanyorder,
     equal_to,
     has_entries,
-    has_items,
     has_key,
     has_properties,
 )
