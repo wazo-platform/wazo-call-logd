@@ -202,6 +202,46 @@ class TestRecordingMediaExport(IntegrationTest):
         start_time=datetime.now() - timedelta(hours=2),
         end_time=datetime.now() - timedelta(hours=1),
     )
+    def test_create_when_no_params(self, rec1, rec2):
+        self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
+        self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
+
+        export = self.call_logd.cdr.export_recording_media()
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        export_zip = self.call_logd.export.download(export_uuid)
+        self.assert_zip_content(
+            export_zip.content,
+            [
+                {
+                    'name': os.path.join('10', self._recording_filename(rec1)),
+                    'content': '10-recording',
+                },
+                {
+                    'name': os.path.join('11', self._recording_filename(rec2)),
+                    'content': '11-recording',
+                },
+            ],
+        )
+        self.filesystem.remove_file('/tmp/10-recording.wav')
+        self.filesystem.remove_file('/tmp/11-recording.wav')
+
+    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 11}, tenant_uuid=OTHER_TENANT)
+    @recording(
+        call_log_id=10,
+        path='/tmp/10-recording.wav',
+        start_time=datetime.now() - timedelta(hours=1),
+        end_time=datetime.now(),
+    )
+    @recording(
+        call_log_id=11,
+        path='/tmp/11-recording.wav',
+        start_time=datetime.now() - timedelta(hours=2),
+        end_time=datetime.now() - timedelta(hours=1),
+    )
     def test_create_from_cdr_ids(self, rec1, rec2):
         self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
         self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
