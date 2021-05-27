@@ -155,5 +155,6 @@ class RecordingExportTask(Task):
         with smtplib.SMTP(host, port=port, timeout=timeout) as smtp_server:
             if smtp_starttls:
                 smtp_server.starttls()
-            smtp_server.login(smtp_username, smtp_password)
+            if smtp_username and smtp_password:
+                smtp_server.login(smtp_username, smtp_password)
             smtp_server.send_message(message)
