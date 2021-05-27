@@ -5,7 +5,6 @@ import os
 import re
 from datetime import datetime
 
-from wazo_auth_client import Client as AuthClient
 from wazo_call_logd.database.models import Export
 
 from .celery_tasks import export_recording_task
