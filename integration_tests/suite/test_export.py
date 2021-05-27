@@ -190,8 +190,8 @@ class TestRecordingMediaExport(IntegrationTest):
             _assert_400('from_id', wrong_param)
             _assert_400('recurse', wrong_param)
 
-    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
-    @call_log(**{'id': 11}, tenant_uuid=OTHER_TENANT)
+    @call_log(**{'id': 10})
+    @call_log(**{'id': 11})
     @recording(call_log_id=10, path='/tmp/10-recording.wav')
     @recording(call_log_id=11, path='/tmp/11-recording.wav')
     def test_create_when_no_params(self, rec1, rec2):
@@ -220,8 +220,8 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/10-recording.wav')
         self.filesystem.remove_file('/tmp/11-recording.wav')
 
-    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
-    @call_log(**{'id': 11}, tenant_uuid=OTHER_TENANT)
+    @call_log(**{'id': 10})
+    @call_log(**{'id': 11})
     @recording(call_log_id=10, path='/tmp/10-recording.wav')
     @recording(call_log_id=11, path='/tmp/11-recording.wav')
     def test_create_from_cdr_ids(self, rec1, rec2):
@@ -250,7 +250,7 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/10-recording.wav')
         self.filesystem.remove_file('/tmp/11-recording.wav')
 
-    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 10})
     def test_create_from_cdr_ids_when_no_recording(self):
         assert_that(
             calling(self.call_logd.cdr.export_recording_media).with_args(cdr_ids=[10]),
@@ -259,7 +259,7 @@ class TestRecordingMediaExport(IntegrationTest):
             ),
         )
 
-    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 10})
     @recording(
         call_log_id=10,
         path='/tmp/10-recording.wav',
@@ -278,7 +278,7 @@ class TestRecordingMediaExport(IntegrationTest):
         assert_that(result, has_entries(status='error'))
         self.filesystem.remove_file('/tmp/10-recording.wav')
 
-    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 10})
     @recording(call_log_id=10, path='/tmp/10-recording.wav')
     def test_create_from_cdr_ids_when_recording_file_does_not_exist(self, rec1):
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
@@ -287,7 +287,7 @@ class TestRecordingMediaExport(IntegrationTest):
         result = self.call_logd.export.get(export_uuid)
         assert_that(result, has_entries(status='error'))
 
-    @call_log(**{'id': 10}, tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 10})
     @recording(call_log_id=10, path='/tmp/10-recording.wav')
     def test_create_from_cdr_ids_when_previous_export_failure(self, rec1):
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
