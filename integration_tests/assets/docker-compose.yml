@@ -14,7 +14,6 @@ services:
     image: wazo-call-logd-test
     volumes:
       - "../..:/usr/src/wazo-call-logd"
-      - "./etc/wazo-call-logd/key.yml:/etc/wazo-call-logd/key.yml"
       - "./etc/wazo-call-logd/conf.d/50-default.yml:/etc/wazo-call-logd/conf.d/50-default.yml"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/opt/venv/lib/python3.7/site-packages/xivo"
       # - "${LOCAL_GIT_REPOS}/xivo-dao/xivo_dao:/opt/venv/lib/python3.7/site-packages/xivo_dao"
