@@ -74,7 +74,7 @@ email_export_subject: Your export is ready
 smtp:
   host: localhost
   port: 25
-  starttls: True
+  starttls: false
   timeout: 10
-  username: None
-  password: None
+  username: null
+  password: null
