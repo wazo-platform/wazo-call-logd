@@ -102,9 +102,7 @@ class RecordingExportTask(Task):
         export.status = 'finished'
         dao.export.update(export)
         if email:
-            self._send_email(
-                task_uuid, 'Wazo user', email, config, connection_info
-            )
+            self._send_email(task_uuid, 'Wazo user', email, config, connection_info)
 
     def _send_email(
         self,

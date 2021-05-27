@@ -155,11 +155,9 @@ def _parse_cli_args(argv):
 def _load_key_file(config):
 
     updated_config = {}
-    export_creds_configured = (
-        config['exports'].get('service_id')
-        and config['exports'].get('service_key')
-    )
-    if not export_creds_configured:
+    export_id = config['exports'].get('service_id')
+    export_key = config['exports'].get('service_key')
+    if not (export_id and export_key):
         export_key_file = parse_config_file(config['exports']['key_file'])
         if export_key_file:
             updated_config.update(
@@ -171,11 +169,9 @@ def _load_key_file(config):
                 }
             )
 
-    creds_configured = (
-        config['auth'].get('username')
-        and config['auth'].get('password')
-    )
-    if not creds_configured:
+    auth_username = config['auth'].get('username')
+    auth_password = config['auth'].get('password')
+    if not (auth_username and auth_password):
         key_file = parse_config_file(config['auth']['key_file'])
         if key_file:
             updated_config.update(

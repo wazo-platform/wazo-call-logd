@@ -759,7 +759,7 @@ class TestRecordingMediaExport(IntegrationTest):
         )
 
         assert_that(
-            calling(self.call_logd.cdr.export_recording_media).with_args(number='0123456789'),
+            calling(self.call_logd.cdr.export_recording_media).with_args(number='0123'),
             raises(CallLogdError).matching(
                 has_properties(status_code=400, error_id='no-recording-to-export')
             ),
