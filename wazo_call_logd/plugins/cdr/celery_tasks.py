@@ -119,15 +119,16 @@ class RecordingExportTask(Task):
         host = smtp_config.get('host')
         port = smtp_config.get('port')
         timeout = smtp_config.get('timeout')
-        email_from_name = export_config.get('from_name')
-        email_from_address = export_config.get('from_address')
+        email_from_name = config.get('email_export_from_name')
+        email_from_address = config.get('email_export_from_address')
         email_from = EmailDestination(email_from_name, email_from_address)
         email_destination = EmailDestination(destination_name, destination_address)
+        email_token_expiration = config.get('email_export_token_expiration')
         smtp_username = smtp_config.get('username')
         smtp_password = smtp_config.get('password')
         smtp_starttls = smtp_config.get('starttls')
 
-        subject = export_config.get('subject')
+        subject = config.get('email_export_subject')
 
         message = EmailMessage()
         message['From'] = email_utils.formataddr(email_from)
@@ -142,7 +143,7 @@ class RecordingExportTask(Task):
             }
         )
         auth_client = AuthClient(**auth_config)
-        token_uuid = auth_client.token.new(expiration=config['email_token_expiration'])['token']
+        token_uuid = auth_client.token.new(expiration=email_token_expiration)['token']
 
         template_formatter = TemplateFormatter(config)
         context = {

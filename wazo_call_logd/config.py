@@ -22,12 +22,12 @@ DEFAULT_CONFIG = {
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'email_export_body_template': '/var/lib/wazo-call-logd/templates/email_export_body.j2',
-    'email_token_expiration': 48 * 3600,  # 48 hours
+    'email_export_token_expiration': 48 * 3600,  # 48 hours
+    'email_export_from_name': 'Wazo',
+    'email_export_from_address': 'no-reply@wazo.community',
+    'email_export_subject': 'Your export is ready',
     'exports': {
         'directory': '/var/lib/wazo-call-logd/exports',
-        'from_name': 'Wazo',
-        'from_address': 'no-reply@wazo.community',
-        'subject': 'Your export is ready',
         'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-export-key.yml',
     },
     'bus': {
