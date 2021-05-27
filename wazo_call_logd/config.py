@@ -81,6 +81,7 @@ DEFAULT_CONFIG = {
     'smtp': {
         'host': 'localhost',
         'port': 25,
+        'starttls': True,
         'timeout': 10,
         'username': None,
         'password': None,

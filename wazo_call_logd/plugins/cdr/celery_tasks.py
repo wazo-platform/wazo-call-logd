@@ -125,6 +125,7 @@ class RecordingExportTask(Task):
         email_destination = EmailDestination(destination_name, destination_address)
         smtp_username = smtp_config.get('username')
         smtp_password = smtp_config.get('password')
+        smtp_starttls = smtp_config.get('starttls')
 
         subject = export_config.get('subject')
 
@@ -152,6 +153,7 @@ class RecordingExportTask(Task):
         message.set_content(template_formatter.format_export_email(context))
 
         with smtplib.SMTP(host, port=port, timeout=timeout) as smtp_server:
-            smtp_server.starttls()
+            if smtp_starttls:
+                smtp_server.starttls()
             smtp_server.login(smtp_username, smtp_password)
             smtp_server.send_message(message)
