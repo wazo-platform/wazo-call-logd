@@ -21,6 +21,15 @@ DEFAULT_CONFIG = {
     'db_upgrade_on_startup': False,
     'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
     'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
+    'email_export_body_template': '/var/lib/wazo-call-logd/templates/email_export_body.j2',
+    'email_export_token_expiration': 48 * 3600,  # 48 hours
+    'email_export_from_name': 'Wazo',
+    'email_export_from_address': 'no-reply@wazo.community',
+    'email_export_subject': 'Your export is ready',
+    'exports': {
+        'directory': '/var/lib/wazo-call-logd/exports',
+        'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-export-key.yml',
+    },
     'bus': {
         'username': 'guest',
         'password': 'guest',
@@ -38,7 +47,9 @@ DEFAULT_CONFIG = {
         'worker_min': 3,
         'worker_max': 5,
     },
-    'enabled_celery_tasks': {},
+    'enabled_celery_tasks': {
+        'recording_export': True,
+    },
     'rest_api': {
         'listen': '127.0.0.1',
         'port': 9298,
@@ -62,9 +73,18 @@ DEFAULT_CONFIG = {
         'api': True,
         'cdr': True,
         'config': True,
+        'export': True,
         'retention': True,
-        'support_center': True,
         'status': True,
+        'support_center': True,
+    },
+    'smtp': {
+        'host': 'localhost',
+        'port': 25,
+        'starttls': True,
+        'timeout': 10,
+        'username': None,
+        'password': None,
     },
     'retention': {
         'cdr_days': None,
@@ -133,15 +153,36 @@ def _parse_cli_args(argv):
 
 
 def _load_key_file(config):
-    key_file = parse_config_file(config['auth']['key_file'])
-    if not key_file:
-        return {}
-    return {
-        'auth': {
-            'username': key_file['service_id'],
-            'password': key_file['service_key'],
-        }
-    }
+
+    updated_config = {}
+    export_id = config['exports'].get('service_id')
+    export_key = config['exports'].get('service_key')
+    if not (export_id and export_key):
+        export_key_file = parse_config_file(config['exports']['key_file'])
+        if export_key_file:
+            updated_config.update(
+                {
+                    'exports': {
+                        'service_id': export_key_file['service_id'],
+                        'service_key': export_key_file['service_key'],
+                    }
+                }
+            )
+
+    auth_username = config['auth'].get('username')
+    auth_password = config['auth'].get('password')
+    if not (auth_username and auth_password):
+        key_file = parse_config_file(config['auth']['key_file'])
+        if key_file:
+            updated_config.update(
+                {
+                    'auth': {
+                        'username': key_file['service_id'],
+                        'password': key_file['service_key'],
+                    }
+                }
+            )
+    return updated_config
 
 
 def _get_reinterpreted_raw_values(config):

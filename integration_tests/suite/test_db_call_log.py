@@ -64,7 +64,7 @@ class TestCallLog(DBIntegrationTest):
     @call_log(**{'id': 1})
     @call_log(**{'id': 2})
     @recording(call_log_id=1)
-    def test_that_recordings_filter_shows_only_filtered_calls(self, rec1):
+    def test_find_all_in_period_when_recorded(self, rec1):
         params = {'recorded': True}
         result = self.dao.call_log.find_all_in_period(params)
         assert_that(
@@ -97,6 +97,47 @@ class TestCallLog(DBIntegrationTest):
 
         result = self.dao.call_log.count_in_period(params)
         assert_that(result, has_entries(total=4, filtered=2))
+
+    @call_log(**cdr(id_=1, caller=ALICE, callee=BOB, start_time=NOW))
+    @call_log(**cdr(id_=2, caller=ALICE, callee=BOB, start_time=NOW + 1 * MINUTES))
+    @call_log(**cdr(id_=3, caller=BOB, callee=ALICE, start_time=NOW + 2 * MINUTES))
+    @call_log(**cdr(id_=4, caller=ALICE, callee=CHARLES, start_time=NOW - 5 * MINUTES))
+    def test_find_all_in_period_when_cdr_ids(self):
+        params = {'cdr_ids': [1, 2]}
+        results = self.dao.call_log.find_all_in_period(params)
+        assert_that(
+            results,
+            contains_inanyorder(
+                has_properties(id=1),
+                has_properties(id=2),
+            ),
+        )
+
+        params = {'cdr_ids': [1, 42, 3]}
+        results = self.dao.call_log.find_all_in_period(params)
+        assert_that(
+            results,
+            contains_inanyorder(
+                has_properties(id=1),
+                has_properties(id=3),
+            ),
+        )
+
+        params = {'cdr_ids': [42]}
+        results = self.dao.call_log.find_all_in_period(params)
+        assert_that(results, empty())
+
+        params = {'cdr_ids': []}
+        results = self.dao.call_log.find_all_in_period(params)
+        assert_that(
+            results,
+            contains_inanyorder(
+                has_properties(id=1),
+                has_properties(id=2),
+                has_properties(id=3),
+                has_properties(id=4),
+            ),
+        )
 
     def test_create_from_list(self):
         end_time = dt.now()

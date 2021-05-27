@@ -131,6 +131,9 @@ class CallLogDAO(BaseDAO):
         if params.get('call_direction'):
             query = query.filter(CallLog.direction == params['call_direction'])
 
+        if params.get('cdr_ids'):
+            query = query.filter(CallLog.id.in_(params['cdr_ids']))
+
         if params.get('id'):
             query = query.filter(CallLog.id == params['id'])
 

@@ -9,6 +9,7 @@ from .http import (
     CDRUserResource,
     CDRUserMeResource,
     RecordingMediaItemResource,
+    RecordingsMediaExportResource,
     RecordingsMediaResource,
 )
 from .services import CDRService, RecordingService
@@ -22,7 +23,7 @@ class Plugin:
 
         auth_client = AuthClient(**config['auth'])
         cdr_service = CDRService(dao)
-        recording_service = RecordingService(dao)
+        recording_service = RecordingService(dao, config)
 
         api.add_resource(
             CDRResource,
@@ -32,7 +33,12 @@ class Plugin:
         api.add_resource(
             RecordingsMediaResource,
             '/cdr/recordings/media',
-            resource_class_args=[recording_service],
+            resource_class_args=[recording_service, cdr_service],
+        )
+        api.add_resource(
+            RecordingsMediaExportResource,
+            '/cdr/recordings/media/export',
+            resource_class_args=[recording_service, cdr_service, api],
         )
         api.add_resource(
             CDRIdResource,
@@ -42,7 +48,7 @@ class Plugin:
         api.add_resource(
             RecordingMediaItemResource,
             '/cdr/<int:cdr_id>/recordings/<uuid:recording_uuid>/media',
-            resource_class_args=[recording_service],
+            resource_class_args=[recording_service, cdr_service],
         )
         api.add_resource(
             CDRUserResource,

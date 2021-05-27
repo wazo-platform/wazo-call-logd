@@ -24,11 +24,14 @@ setup(
             'wazo-call-logd-migrate-db=wazo_call_logd.main_migrate_db:main',
             'wazo-call-logs=wazo_call_logd.main_sweep:main',
         ],
-        'wazo_call_logd.celery_tasks': [],
+        'wazo_call_logd.celery_tasks': [
+            'recording_export = wazo_call_logd.plugins.cdr.celery_tasks:Plugin',
+        ],
         'wazo_call_logd.plugins': [
             'api = wazo_call_logd.plugins.api.plugin:Plugin',
             'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
             'config = wazo_call_logd.plugins.config.plugin:Plugin',
+            'export = wazo_call_logd.plugins.export.plugin:Plugin',
             'retention = wazo_call_logd.plugins.retention.plugin:Plugin',
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
             'support_center = wazo_call_logd.plugins.support_center.plugin:Plugin',

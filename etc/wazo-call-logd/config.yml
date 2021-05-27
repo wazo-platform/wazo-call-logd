@@ -64,3 +64,17 @@ bus:
   port: 5672
   exchange_name: xivo
   exchange_type: topic
+
+email_export_body_template: /var/lib/wazo-call-logd/templates/email_export_body.j2
+email_export_from_name: Wazo
+email_export_from_address: no-reply@wazo.community
+email_export_subject: Your export is ready
+
+# SMTP (e-mail) configuration for exports
+smtp:
+  host: localhost
+  port: 25
+  starttls: false
+  timeout: 10
+  username: null
+  password: null

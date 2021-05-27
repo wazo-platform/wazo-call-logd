@@ -8,5 +8,6 @@ services:
       - confd
       - postgres
       - rabbitmq
+      - smtp
     environment:
-      TARGETS: "cel-postgres:5432 postgres:5432 rabbitmq:5672 call-logd:9298 confd:9486 auth:9497"
+      TARGETS: "cel-postgres:5432 postgres:5432 rabbitmq:5672 call-logd:9298 confd:9486 auth:9497 smtp:25"

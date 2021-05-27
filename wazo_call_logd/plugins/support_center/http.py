@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
@@ -37,7 +37,7 @@ class AgentsStatisticsResource(AgentsStatisticsAuthResource):
     @required_acl('call-logd.agents.statistics.read')
     def get(self):
         args = AgentStatisticsListRequestSchema().load(request.args)
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         queue_stats = self.agent_statistics_service.list(tenant_uuids, **args)
         return AgentStatisticsSchemaList().dump(queue_stats)
 
@@ -46,7 +46,7 @@ class AgentStatisticsResource(AgentsStatisticsAuthResource):
     @required_acl('call-logd.agents.{agent_id}.statistics.read')
     def get(self, agent_id):
         args = AgentStatisticsRequestSchema().load(request.args)
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         agent_stats = self.agent_statistics_service.get(tenant_uuids, agent_id, **args)
         return AgentStatisticsSchemaList().dump(agent_stats)
 
@@ -61,7 +61,7 @@ class QueuesStatisticsResource(QueuesStatisticsAuthResource):
     @required_acl('call-logd.queues.statistics.read')
     def get(self):
         args = QueueStatisticsListRequestSchema().load(request.args)
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         queue_stats = self.queue_statistics_service.list(tenant_uuids, **args)
         return QueueStatisticsSchemaList().dump(queue_stats)
 
@@ -70,7 +70,7 @@ class QueueStatisticsResource(QueuesStatisticsAuthResource):
     @required_acl('call-logd.queues.{queue_id}.statistics.read')
     def get(self, queue_id):
         args = QueueStatisticsRequestSchema().load(request.args)
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         queue_stats = self.queue_statistics_service.get(tenant_uuids, queue_id, **args)
         return QueueStatisticsSchemaList().dump(queue_stats)
 
@@ -79,7 +79,7 @@ class QueueStatisticsQoSResource(QueuesStatisticsAuthResource):
     @required_acl('call-logd.queues.{queue_id}.statistics.qos.read')
     def get(self, queue_id):
         args = QueueStatisticsQoSRequestSchema().load(request.args)
-        tenant_uuids = self.visible_tenants(True)
+        tenant_uuids = self.visible_tenants(recurse=True)
         queue_stats = self.queue_statistics_service.get_qos(
             tenant_uuids, queue_id, **args
         )

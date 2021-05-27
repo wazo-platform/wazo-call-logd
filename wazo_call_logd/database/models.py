@@ -246,3 +246,46 @@ class Config(Base):
     retention_cdr_days_from_file = Column(Boolean)
     retention_recording_days = Column(Integer)
     retention_recording_days_from_file = Column(Boolean)
+
+
+@generic_repr
+class Export(Base):
+
+    __tablename__ = 'call_logd_export'
+
+    uuid = Column(
+        UUIDType,
+        server_default=text('uuid_generate_v4()'),
+        primary_key=True,
+    )
+    tenant_uuid = Column(
+        UUIDType,
+        ForeignKey(
+            'call_logd_tenant.uuid',
+            name='call_logd_call_log_tenant_uuid_fkey',
+            ondelete='CASCADE',
+        ),
+        nullable=False,
+    )
+    user_uuid = Column(UUIDType, nullable=False)
+    requested_at = Column(DateTime(timezone=True), nullable=False)
+    status = Column(String(32), nullable=False)
+    path = Column(Text)
+
+    @property
+    def filename(self):
+        offset = self.requested_at.utcoffset() or td(seconds=0)
+        date_utc = (self.requested_at - offset).replace(tzinfo=tz.utc)
+        formatted_date_utc = date_utc.strftime('%Y-%m-%dT%H_%M_%SUTC')
+        return '{formatted_date_utc}-{uuid}.zip'.format(
+            formatted_date_utc=formatted_date_utc,
+            uuid=self.uuid,
+        )
+
+    __table_args__ = (
+        Index('call_logd_export__idx__user_uuid', 'user_uuid'),
+        CheckConstraint(
+            status.in_(['pending', 'processing', 'finished', 'deleted', 'error']),
+            name='call_logd_export_status_check',
+        ),
+    )

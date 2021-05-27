@@ -47,6 +47,15 @@ class RecordingMediaFSNotFoundException(APIException):
         )
 
 
+class NoRecordingToExportException(APIException):
+    def __init__(self):
+        super().__init__(
+            status_code=400,
+            message='No recording to export',
+            error_id='no-recording-to-export',
+        )
+
+
 class RecordingMediaFSPermissionException(APIException):
     def __init__(self, recording_uuid, recording_path):
         super().__init__(

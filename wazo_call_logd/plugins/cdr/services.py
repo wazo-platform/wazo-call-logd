@@ -3,6 +3,11 @@
 
 import os
 import re
+from datetime import datetime
+
+from wazo_call_logd.database.models import Export
+
+from .celery_tasks import export_recording_task
 
 RECORDING_FILENAME_RE = re.compile(r'^.+-(\d+)-([a-z0-9-]{36})(.*)?$')
 
@@ -34,16 +39,53 @@ class CDRService:
 
 
 class RecordingService:
-    def __init__(self, dao):
+    def __init__(self, dao, config):
         self._dao = dao
+        self._config = config
 
     def find_by(self, **kwargs):
         return self._dao.recording.find_by(**kwargs)
-
-    def find_cdr(self, cdr_id, tenant_uuids):
-        return self._dao.call_log.get_by_id(cdr_id, tenant_uuids)
 
     def delete_media(self, cdr_id, recording_uuid, recording_path):
         self._dao.recording.delete_media_by(call_log_id=cdr_id, uuid=recording_uuid)
         if recording_path:
             os.remove(recording_path)
+
+    def start_recording_export(
+        self,
+        recordings,
+        user_uuid,
+        tenant_uuid,
+        destination_email,
+        connection_info,
+    ):
+        recording_files = [
+            {
+                'uuid': recording.uuid,
+                'filename': recording.filename,
+                'path': recording.path,
+                'call_log_id': recording.call_log_id,
+            }
+            for recording in recordings
+        ]
+
+        destination = self._config['exports']['directory']
+        export = Export(
+            user_uuid=user_uuid,
+            tenant_uuid=tenant_uuid,
+            requested_at=datetime.now(),
+            status='pending',
+        )
+        export_uuid = self._dao.export.create(export).uuid
+        export_recording_task.apply_async(
+            args=(
+                export_uuid,
+                recording_files,
+                destination,
+                tenant_uuid,
+                destination_email,
+                connection_info,
+            ),
+            task_id=str(export_uuid),
+        )
+        return {'uuid': export_uuid}

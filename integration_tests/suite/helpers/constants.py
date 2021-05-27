@@ -3,6 +3,9 @@
 
 import datetime
 
+EXPORT_SERVICE_ID = 'export-service-id'
+EXPORT_SERVICE_KEY = 'export-service-key'
+
 UNKNOWN_UUID = '00000000-0000-4000-8000-000000000000'
 NON_USER_TOKEN = 'non-user-token'
 

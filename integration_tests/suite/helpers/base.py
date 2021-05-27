@@ -13,7 +13,11 @@ from requests.packages import urllib3
 from hamcrest import assert_that
 from wazo_call_logd_client.client import Client as CallLogdClient
 from xivo_test_helpers import until
-from xivo_test_helpers.auth import AuthClient, MockUserToken
+from xivo_test_helpers.auth import (
+    AuthClient,
+    MockUserToken,
+    MockCredentials,
+)
 from xivo_test_helpers.wait_strategy import NoWaitStrategy
 from xivo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
@@ -30,6 +34,8 @@ from .confd import ConfdClient
 from .constants import (
     ALICE,
     BOB,
+    EXPORT_SERVICE_ID,
+    EXPORT_SERVICE_KEY,
     MASTER_TENANT,
     MASTER_TOKEN,
     MASTER_USER_UUID,
@@ -47,6 +53,7 @@ from .constants import (
     WAZO_UUID,
 )
 from .database import DbHelper
+from .email import EmailClient
 from .filesystem import FileSystemClient
 
 urllib3.disable_warnings()
@@ -140,6 +147,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         cls.database = cls.make_database()
         cls.cel_database = cls.make_cel_database()
         cls.filesystem = cls.make_filesystem()
+        cls.email = cls.make_email()
         cls.auth = cls.make_auth()
         if not isinstance(cls.auth, WrongClient):
             cls.configure_wazo_auth_for_multitenants()
@@ -214,6 +222,10 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
     def make_filesystem(cls):
         return FileSystemClient(execute=cls.docker_exec)
 
+    @classmethod
+    def make_email(cls):
+        return EmailClient('smtp', execute=cls.docker_exec)
+
     @contextmanager
     def auth_stopped(self):
         self.stop_service('auth')
@@ -257,6 +269,11 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
                 {"tenant_uuid": OTHER_TENANT, "uuid": OTHER_USER_UUID},
             )
         )
+        cls.auth.set_valid_credentials(
+            MockCredentials(EXPORT_SERVICE_ID, EXPORT_SERVICE_KEY),
+            MASTER_TOKEN,
+        )
+
         cls.auth.set_tenants(
             {
                 'uuid': MASTER_TENANT,

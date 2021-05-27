@@ -8,32 +8,34 @@ DAEMONNAME='wazo-call-logd'
 USER=$DAEMONNAME
 GROUP=$USER
 LOG_FILENAME="/var/log/${DAEMONNAME}.log"
+HOME="/var/lib/${DAEMONNAME}"
 
 case "$1" in
     configure)
         previous_version="$2"
-  
+
         # add/update user
         if ! getent passwd $USER > /dev/null ; then
             echo "Adding system user $USER" 1>&2
             adduser --quiet --system --group --no-create-home \
-                --home /var/lib/wazo-call-logd \
+                --home "$HOME" \
                 $USER
         fi
         # Allow to manage recording files
         adduser --quiet $USER www-data
-  
+
         #setup permissions for log file
         if [ ! -e "$LOG_FILENAME" ]; then
             touch "$LOG_FILENAME"
         fi
         chown $USER:$GROUP "$LOG_FILENAME"
-  
+        chown --recursive $USER:$GROUP "$HOME"
+
         if [[ -z "${previous_version}" ]]; then
             ln -nsf /etc/nginx/locations/https-available/${DAEMONNAME} \
               /etc/nginx/locations/https-enabled/${DAEMONNAME}
         fi
-  
+
         db_get wazo-call-logd/db-host
         db_host="$RET"
         db_get wazo-call-logd/db-admin-username

@@ -56,7 +56,11 @@ def _generate_call_logs():
         for key, value in read_config_file_hierarchy(DEFAULT_CONFIG).items()
         if key in ('confd', 'bus', 'auth', 'db_uri', 'cel_db_uri')
     }
-    key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
+    key_config = {}
+    auth_username = file_config['auth'].get('username')
+    auth_password = file_config['auth'].get('password')
+    if not (auth_username and auth_password):
+        key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
     config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
     init_db_from_config({'db_uri': config['cel_db_uri']})
     DBSession = new_db_session(config['db_uri'])
