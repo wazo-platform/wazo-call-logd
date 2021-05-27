@@ -40,9 +40,8 @@ class CDRService:
 
 
 class RecordingService:
-    def __init__(self, dao, export_auth_client, config):
+    def __init__(self, dao, config):
         self._dao = dao
-        self._export_auth_client = export_auth_client
         self._config = config
 
     def find_by(self, **kwargs):
@@ -79,7 +78,6 @@ class RecordingService:
             status='pending',
         )
         export_uuid = self._dao.export.create(export).uuid
-        token_uuid = self._export_auth_client.token.new(expiration=self._config['email_token_expiration'])['token']
         export_recording_task.apply_async(
             args=(
                 export_uuid,
@@ -88,7 +86,6 @@ class RecordingService:
                 tenant_uuid,
                 destination_email,
                 connection_info,
-                token_uuid,
             ),
             task_id=str(export_uuid),
         )

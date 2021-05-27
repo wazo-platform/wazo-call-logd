@@ -22,16 +22,8 @@ class Plugin:
         dao = dependencies['dao']
 
         auth_client = AuthClient(**config['auth'])
-        export_auth_config = dict(config['auth'])
-        export_auth_config.update(
-            {
-                'username': config['exports']['service_id'],
-                'password': config['exports']['service_key'],
-            }
-        )
-        export_auth_client = AuthClient(**export_auth_config)
         cdr_service = CDRService(dao)
-        recording_service = RecordingService(dao, export_auth_client, config)
+        recording_service = RecordingService(dao, config)
 
         api.add_resource(
             CDRResource,

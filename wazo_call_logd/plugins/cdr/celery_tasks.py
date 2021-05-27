@@ -42,7 +42,6 @@ class Plugin:
             tenant_uuid,
             email,
             connection_info,
-            token_uuid,
         ):
             task._run(
                 config,
@@ -53,7 +52,6 @@ class Plugin:
                 tenant_uuid,
                 email,
                 connection_info,
-                token_uuid,
             )
 
         export_recording_task = _export_recording_task
@@ -70,7 +68,6 @@ class RecordingExportTask(Task):
         tenant_uuid,
         email,
         connection_info,
-        token_uuid,
     ):
         export = dao.export.get(task_uuid, [tenant_uuid])
         export.status = 'processing'
@@ -106,7 +103,7 @@ class RecordingExportTask(Task):
         dao.export.update(export)
         if email:
             self._send_email(
-                task_uuid, 'Wazo user', email, config, connection_info, token_uuid
+                task_uuid, 'Wazo user', email, config, connection_info
             )
 
     def _send_email(
@@ -116,7 +113,6 @@ class RecordingExportTask(Task):
         destination_address,
         config,
         connection_info,
-        token_uuid,
     ):
         smtp_config = config['smtp']
         export_config = config['exports']
@@ -136,6 +132,16 @@ class RecordingExportTask(Task):
         message['From'] = email_utils.formataddr(email_from)
         message['Subject'] = subject
         message['To'] = email_utils.formataddr(email_destination)
+
+        auth_config = dict(config['auth'])
+        auth_config.update(
+            {
+                'username': export_config['service_id'],
+                'password': export_config['service_key'],
+            }
+        )
+        auth_client = AuthClient(**auth_config)
+        token_uuid = auth_client.token.new(expiration=config['email_token_expiration'])['token']
 
         template_formatter = TemplateFormatter(config)
         context = {
