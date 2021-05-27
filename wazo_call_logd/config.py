@@ -153,27 +153,39 @@ def _parse_cli_args(argv):
 
 
 def _load_key_file(config):
+
     updated_config = {}
-    key_file = parse_config_file(config['auth']['key_file'])
-    export_key_file = parse_config_file(config['exports']['key_file'])
-    if export_key_file:
-        updated_config.update(
-            {
-                'exports': {
-                    'service_id': export_key_file['service_id'],
-                    'service_key': export_key_file['service_key'],
+    export_creds_configured = (
+        config['exports'].get('service_id')
+        and config['exports'].get('service_key')
+    )
+    if not export_creds_configured:
+        export_key_file = parse_config_file(config['exports']['key_file'])
+        if export_key_file:
+            updated_config.update(
+                {
+                    'exports': {
+                        'service_id': export_key_file['service_id'],
+                        'service_key': export_key_file['service_key'],
+                    }
                 }
-            }
-        )
-    if key_file:
-        updated_config.update(
-            {
-                'auth': {
-                    'username': key_file['service_id'],
-                    'password': key_file['service_key'],
+            )
+
+    creds_configured = (
+        config['auth'].get('username')
+        and config['auth'].get('password')
+    )
+    if not creds_configured:
+        key_file = parse_config_file(config['auth']['key_file'])
+        if key_file:
+            updated_config.update(
+                {
+                    'auth': {
+                        'username': key_file['service_id'],
+                        'password': key_file['service_key'],
+                    }
                 }
-            }
-        )
+            )
     return updated_config
 
 
