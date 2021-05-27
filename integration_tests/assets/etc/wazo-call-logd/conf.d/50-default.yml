@@ -18,3 +18,9 @@ confd:
   host: confd
 exports:
   directory: /tmp
+  service_id: export-service-id
+  service_key: export-service-key
+  key_file: null
+smtp:
+  host: smtp
+  starttls: false

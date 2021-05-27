@@ -834,3 +834,29 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/1-recording.wav')
         self.filesystem.remove_file('/tmp/2-recording.wav')
         self.filesystem.remove_file('/tmp/3-recording.wav')
+
+    @call_log(**{'id': 1})
+    @recording(call_log_id=1, path='/tmp/1-recording.wav')
+    def test_email_workflow(self, recording):
+        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
+
+        export = self.call_logd.cdr.export_recording_media(email='test@example.com')
+        export_uuid = export['uuid']
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+
+        url = self.email.get_last_email_url()
+
+        url = url.replace('https://', 'http://')
+        result = requests.get(url)
+        self.assert_zip_content(
+            result.content,
+            [
+                {
+                    'name': os.path.join('1', self._recording_filename(recording)),
+                    'content': '1-recording',
+                },
+            ],
+        )
+
+        self.filesystem.remove_file('/tmp/1-recording.wav')

@@ -51,3 +51,8 @@ services:
     volumes:
       - "../..:/usr/src/wazo-call-logd"
       - "./etc/wazo-purge-db/conf.d/50-default.yml:/etc/wazo-purge-db/conf.d/50-default.yml"
+
+  smtp:
+    image: munkyboy/fakesmtp
+    ports:
+      - "25"
