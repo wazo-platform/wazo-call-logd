@@ -5,6 +5,7 @@ import os
 import re
 from datetime import datetime
 
+from wazo_auth_client import Client as AuthClient
 from wazo_call_logd.database.models import Export
 
 from .celery_tasks import export_recording_task
@@ -39,9 +40,10 @@ class CDRService:
 
 
 class RecordingService:
-    def __init__(self, dao, config):
+    def __init__(self, dao, export_auth_client, config):
         self._dao = dao
-        self._export_config = config
+        self._export_auth_client = export_auth_client
+        self._config = config
 
     def find_by(self, **kwargs):
         return self._dao.recording.find_by(**kwargs)
@@ -52,7 +54,12 @@ class RecordingService:
             os.remove(recording_path)
 
     def start_recording_export(
-        self, recordings, user_uuid, tenant_uuid, destination_email, connection_info, token_uuid
+        self,
+        recordings,
+        user_uuid,
+        tenant_uuid,
+        destination_email,
+        connection_info,
     ):
         recording_files = [
             {
@@ -64,7 +71,7 @@ class RecordingService:
             for recording in recordings
         ]
 
-        destination = self._export_config['directory']
+        destination = self._config['exports']['directory']
         export = Export(
             user_uuid=user_uuid,
             tenant_uuid=tenant_uuid,
@@ -72,6 +79,7 @@ class RecordingService:
             status='pending',
         )
         export_uuid = self._dao.export.create(export).uuid
+        token_uuid = self._export_auth_client.token.new(expiration=self._config['email_token_expiration'])['token']
         export_recording_task.apply_async(
             args=(
                 export_uuid,

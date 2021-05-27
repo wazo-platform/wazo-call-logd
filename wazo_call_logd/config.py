@@ -28,6 +28,7 @@ DEFAULT_CONFIG = {
         'from_name': 'Wazo',
         'from_address': 'no-reply@wazo.community',
         'subject': 'Your export is ready',
+        'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-export-key.yml',
     },
     'bus': {
         'username': 'guest',
@@ -151,15 +152,28 @@ def _parse_cli_args(argv):
 
 
 def _load_key_file(config):
+    updated_config = {}
     key_file = parse_config_file(config['auth']['key_file'])
-    if not key_file:
-        return {}
-    return {
-        'auth': {
-            'username': key_file['service_id'],
-            'password': key_file['service_key'],
-        }
-    }
+    export_key_file = parse_config_file(config['exports']['key_file'])
+    if export_key_file:
+        updated_config.update(
+            {
+                'exports': {
+                    'service_id': export_key_file['service_id'],
+                    'service_key': export_key_file['service_key'],
+                }
+            }
+        )
+    if key_file:
+        updated_config.update(
+            {
+                'auth': {
+                    'username': key_file['service_id'],
+                    'password': key_file['service_key'],
+                }
+            }
+        )
+    return updated_config
 
 
 def _get_reinterpreted_raw_values(config):

@@ -217,11 +217,10 @@ class CDRUserMeResource(CDRAuthResource):
 
 
 class RecordingsMediaExportResource(CDRAuthResource):
-    def __init__(self, recording_service, cdr_service, api, auth_client):
+    def __init__(self, recording_service, cdr_service, api):
         super().__init__(cdr_service)
         self.recording_service = recording_service
         self.api = api
-        self.auth_client = auth_client
 
     @required_acl('call-logd.cdr.recordings.media.export.create')
     def post(self):
@@ -248,7 +247,6 @@ class RecordingsMediaExportResource(CDRAuthResource):
             token.tenant_uuid,
             destination_email,
             connection_info,
-            extract_token_id_from_query_or_header(),
         )
         export_body = RecordingMediaExportSchema().dump(export)
         location = url_for('export_resource', export_uuid=export['uuid'])

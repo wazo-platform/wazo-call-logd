@@ -35,7 +35,14 @@ class Plugin:
 
         @app.task(base=RecordingExportTask, bind=True)
         def _export_recording_task(
-            task, task_uuid, recordings, output_dir, tenant_uuid, email, connection_info, token_uuid
+            task,
+            task_uuid,
+            recordings,
+            output_dir,
+            tenant_uuid,
+            email,
+            connection_info,
+            token_uuid,
         ):
             task._run(
                 config,
@@ -46,14 +53,25 @@ class Plugin:
                 tenant_uuid,
                 email,
                 connection_info,
-                token_uuid
+                token_uuid,
             )
 
         export_recording_task = _export_recording_task
 
 
 class RecordingExportTask(Task):
-    def _run(self, config, dao, task_uuid, recordings, output_dir, tenant_uuid, email, connection_info, token_uuid):
+    def _run(
+        self,
+        config,
+        dao,
+        task_uuid,
+        recordings,
+        output_dir,
+        tenant_uuid,
+        email,
+        connection_info,
+        token_uuid,
+    ):
         export = dao.export.get(task_uuid, [tenant_uuid])
         export.status = 'processing'
         dao.export.update(export)
@@ -87,9 +105,19 @@ class RecordingExportTask(Task):
         export.status = 'finished'
         dao.export.update(export)
         if email:
-            self._send_email(task_uuid, 'Wazo user', email, config, connection_info, token_uuid)
+            self._send_email(
+                task_uuid, 'Wazo user', email, config, connection_info, token_uuid
+            )
 
-    def _send_email(self, task_uuid, destination_name, destination_address, config, connection_info, token_uuid):
+    def _send_email(
+        self,
+        task_uuid,
+        destination_name,
+        destination_address,
+        config,
+        connection_info,
+        token_uuid,
+    ):
         smtp_config = config['smtp']
         export_config = config['exports']
         host = smtp_config.get('host')
@@ -109,14 +137,10 @@ class RecordingExportTask(Task):
         message['Subject'] = subject
         message['To'] = email_utils.formataddr(email_destination)
 
-        # Get auth token for user
-        auth_client = AuthClient(**config['auth'])
-        auth_client.set_token(token_uuid)
-        email_token_uuid = auth_client.token.new(expiration=export_config.get('email_token_expiration'))['token']
         template_formatter = TemplateFormatter(config)
         context = {
             'export_uuid': task_uuid,
-            'token': email_token_uuid,
+            'token': token_uuid,
             **connection_info,
         }
         message.set_content(template_formatter.format_export_email(context))
