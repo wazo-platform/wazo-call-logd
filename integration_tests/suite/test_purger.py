@@ -7,11 +7,11 @@ from datetime import (
 )
 from hamcrest import assert_that, has_length, equal_to
 
-from wazo_call_logd.database.models import CallLog, Recording
+from wazo_call_logd.database.models import CallLog, Export, Recording
 
 from .helpers.base import DBIntegrationTest
 from .helpers.constants import MASTER_TENANT, OTHER_TENANT
-from .helpers.database import call_log, recording, retention
+from .helpers.database import call_log, export, recording, retention
 from .helpers.filesystem import FileSystemClient
 
 
@@ -37,6 +37,7 @@ class _BasePurger(DBIntegrationTest):
     def _reset_default_config(self):
         config = self.dao.config.find_or_create()
         config.retention_cdr_days = 365
+        config.retention_export_days = 2
         config.retention_recording_days = 365
         self.dao.config.update(config)
 
@@ -139,6 +140,106 @@ class TestCallLogPurger(_BasePurger):
 
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(1))
+
+
+class TestExportPurger(_BasePurger):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.filesystem.create_file(
+            cls.config_file,
+            content='enabled_plugins: {purgers: {exports: true}}',
+        )
+
+    @export(requested_at=dt.utcnow() - td(days=1), path='/tmp/1')
+    @export(requested_at=dt.utcnow() - td(days=2), path='/tmp/2')
+    @export(requested_at=dt.utcnow() - td(days=3), path='/tmp/3')
+    def test_purger(self, *_):
+        self.filesystem.create_file('/tmp/1')
+        self.filesystem.create_file('/tmp/2')
+        self.filesystem.create_file('/tmp/3')
+        self._assert_len_export(3)
+
+        days_to_keep = 42
+        self._purge(days_to_keep)
+        self._assert_len_export(3)
+        assert_that(self.filesystem.path_exists('/tmp/1'))
+        assert_that(self.filesystem.path_exists('/tmp/2'))
+        assert_that(self.filesystem.path_exists('/tmp/3'))
+
+        days_to_keep = 2
+        self._purge(days_to_keep)
+        self._assert_len_export(1)
+        assert_that(self.filesystem.path_exists('/tmp/1'))
+        assert_that(not self.filesystem.path_exists('/tmp/2'))
+        assert_that(not self.filesystem.path_exists('/tmp/3'))
+
+        days_to_keep = 0
+        self._purge(days_to_keep)
+        self._assert_len_export(0)
+        assert_that(not self.filesystem.path_exists('/tmp/1'))
+        assert_that(not self.filesystem.path_exists('/tmp/2'))
+        assert_that(not self.filesystem.path_exists('/tmp/3'))
+
+    @export(requested_at=dt.utcnow() - td(days=1), path='/tmp/1', tenant_uuid=MASTER_TENANT)
+    @export(requested_at=dt.utcnow() - td(days=3), path='/tmp/2', tenant_uuid=MASTER_TENANT)
+    @export(requested_at=dt.utcnow() - td(days=1), path='/tmp/3', tenant_uuid=OTHER_TENANT)
+    @retention(tenant_uuid=MASTER_TENANT, export_days=3)
+    def test_purger_by_retention(self, *_):
+        self.filesystem.create_file('/tmp/1')
+        self.filesystem.create_file('/tmp/2')
+        self.filesystem.create_file('/tmp/3')
+        self._assert_len_export(3)
+
+        # When retention < default
+        days_to_keep = 365
+        self._purge(days_to_keep)
+        self._assert_len_export(2)
+        assert_that(self.filesystem.path_exists('/tmp/1'))
+        assert_that(not self.filesystem.path_exists('/tmp/2'))
+        assert_that(self.filesystem.path_exists('/tmp/3'))
+
+        # When retention > default
+        days_to_keep = 1
+        self._purge(days_to_keep)
+        self._assert_len_export(1)
+        assert_that(self.filesystem.path_exists('/tmp/1'))
+        assert_that(not self.filesystem.path_exists('/tmp/2'))
+        assert_that(not self.filesystem.path_exists('/tmp/3'))
+
+    @export(requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT)
+    @retention(tenant_uuid=MASTER_TENANT, export_days=0)
+    def test_purger_when_retention_is_zero(self, *_):
+        self.filesystem.create_file('/tmp/1')
+        days_to_keep = 365
+        self._purge(days_to_keep)
+        self._assert_len_export(0)
+        assert_that(not self.filesystem.path_exists('/tmp/1'))
+
+    @export(requested_at=dt.utcnow() - td(days=2), path='/tmp/42')
+    def test_purger_when_file_not_on_filesystem(self, *_):
+        assert_that(not self.filesystem.path_exists('/tmp/42'))
+        days_to_keep = 0
+        self._purge(days_to_keep)
+        self._assert_len_export(0)
+        assert_that(not self.filesystem.path_exists('/tmp/42'))
+
+    @export(requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT)
+    def test_purger_when_default_days_is_customized(self, *_):
+        self.filesystem.create_file('/tmp/1')
+        config = self.dao.config.find_or_create()
+        config.retention_export_days = 42
+        self.dao.config.update(config)
+        days_to_keep = 0
+
+        self._purge(days_to_keep)
+
+        self._assert_len_export(1)
+        assert_that(self.filesystem.path_exists('/tmp/1'))
+
+    def _assert_len_export(self, number):
+        result = self.session.query(Export).all()
+        assert_that(result, has_length(number))
 
 
 class TestRecordingPurger(_BasePurger):
