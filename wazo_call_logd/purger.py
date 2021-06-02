@@ -19,7 +19,8 @@ from .database.models import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_PURGE_DB_DAYS = 365
-DEFAULT_CALL_LOGD_DAYS = 365
+DEFAULT_CALL_LOGD_CDR_DAYS = 365
+DEFAULT_CALL_LOGD_RECORDING_DAYS = 365
 DEFAULT_CALL_LOGD_EXPORT_DAYS = 2
 
 
@@ -46,7 +47,7 @@ def _remove_recording_files(call_logs):
                     )
 
 
-def _extract_days_to_keep(tenant_days, default_days, purge_db_days, default=DEFAULT_CALL_LOGD_DAYS):
+def _extract_days_to_keep(tenant_days, default_days, purge_db_days, default):
     if tenant_days is not None:
         return tenant_days
 
@@ -56,10 +57,6 @@ def _extract_days_to_keep(tenant_days, default_days, purge_db_days, default=DEFA
         return purge_db_days
 
     return default_days
-
-
-def _extract_days_to_keep_for_exports(*args):
-    return _extract_days_to_keep(*args, default=DEFAULT_CALL_LOGD_EXPORT_DAYS)
 
 
 class CallLogsPurger:
@@ -74,7 +71,12 @@ class CallLogsPurger:
         for tenant in tenants:
             retention = retentions.get(tenant.uuid)
             tenant_days = retention.cdr_days if retention else None
-            days = _extract_days_to_keep(tenant_days, default_days, days_to_keep)
+            days = _extract_days_to_keep(
+                tenant_days,
+                default_days,
+                days_to_keep,
+                DEFAULT_CALL_LOGD_CDR_DAYS,
+            )
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
@@ -107,7 +109,12 @@ class ExportsPurger:
             days = days_to_keep
             retention = retentions.get(tenant.uuid)
             tenant_days = retention.export_days if retention else None
-            days = _extract_days_to_keep_for_exports(tenant_days, default_days, days_to_keep)
+            days = _extract_days_to_keep(
+                tenant_days,
+                default_days,
+                days_to_keep,
+                DEFAULT_CALL_LOGD_EXPORT_DAYS,
+            )
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
@@ -134,7 +141,12 @@ class RecordingsPurger:
             days = days_to_keep
             retention = retentions.get(tenant.uuid)
             tenant_days = retention.recording_days if retention else None
-            days = _extract_days_to_keep(tenant_days, default_days, days_to_keep)
+            days = _extract_days_to_keep(
+                tenant_days,
+                default_days,
+                days_to_keep,
+                DEFAULT_CALL_LOGD_RECORDING_DAYS,
+            )
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
