@@ -181,9 +181,15 @@ class TestExportPurger(_BasePurger):
         assert_that(not self.filesystem.path_exists('/tmp/2'))
         assert_that(not self.filesystem.path_exists('/tmp/3'))
 
-    @export(requested_at=dt.utcnow() - td(days=1), path='/tmp/1', tenant_uuid=MASTER_TENANT)
-    @export(requested_at=dt.utcnow() - td(days=3), path='/tmp/2', tenant_uuid=MASTER_TENANT)
-    @export(requested_at=dt.utcnow() - td(days=1), path='/tmp/3', tenant_uuid=OTHER_TENANT)
+    @export(
+        requested_at=dt.utcnow() - td(days=1), path='/tmp/1', tenant_uuid=MASTER_TENANT
+    )
+    @export(
+        requested_at=dt.utcnow() - td(days=3), path='/tmp/2', tenant_uuid=MASTER_TENANT
+    )
+    @export(
+        requested_at=dt.utcnow() - td(days=1), path='/tmp/3', tenant_uuid=OTHER_TENANT
+    )
     @retention(tenant_uuid=MASTER_TENANT, export_days=3)
     def test_purger_by_retention(self, *_):
         self.filesystem.create_file('/tmp/1')
@@ -207,7 +213,9 @@ class TestExportPurger(_BasePurger):
         assert_that(not self.filesystem.path_exists('/tmp/2'))
         assert_that(not self.filesystem.path_exists('/tmp/3'))
 
-    @export(requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT)
+    @export(
+        requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT
+    )
     @retention(tenant_uuid=MASTER_TENANT, export_days=0)
     def test_purger_when_retention_is_zero(self, *_):
         self.filesystem.create_file('/tmp/1')
@@ -224,7 +232,9 @@ class TestExportPurger(_BasePurger):
         self._assert_len_export(0)
         assert_that(not self.filesystem.path_exists('/tmp/42'))
 
-    @export(requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT)
+    @export(
+        requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT
+    )
     def test_purger_when_default_days_is_customized(self, *_):
         self.filesystem.create_file('/tmp/1')
         config = self.dao.config.find_or_create()

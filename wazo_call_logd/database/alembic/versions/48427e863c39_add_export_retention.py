@@ -27,7 +27,7 @@ def upgrade():
     )
     op.add_column(
         CONFIG_TABLE_NAME,
-        sa.Column('retention_export_days_from_file', sa.Boolean, nullable=False)
+        sa.Column('retention_export_days_from_file', sa.Boolean, nullable=False),
     )
 
 
