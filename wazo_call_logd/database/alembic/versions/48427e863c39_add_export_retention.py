@@ -23,11 +23,26 @@ def upgrade():
     )
     op.add_column(
         CONFIG_TABLE_NAME,
-        sa.Column('retention_export_days', sa.Integer),
+        sa.Column('retention_export_days', sa.Integer, server_default='2'),
     )
     op.add_column(
         CONFIG_TABLE_NAME,
-        sa.Column('retention_export_days_from_file', sa.Boolean, nullable=False),
+        sa.Column(
+            'retention_export_days_from_file',
+            sa.Boolean,
+            server_default='false',
+            nullable=False,
+        ),
+    )
+    op.alter_column(
+        CONFIG_TABLE_NAME,
+        'retention_export_days',
+        server_default=None,
+    )
+    op.alter_column(
+        CONFIG_TABLE_NAME,
+        'retention_export_days_from_file',
+        server_default=None,
     )
 
 
