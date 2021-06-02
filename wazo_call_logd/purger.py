@@ -29,7 +29,7 @@ def _remove_export_files(exports):
         try:
             os.remove(export.path)
         except FileNotFoundError:
-            logger.info('Export file already deleted: "%s"')
+            logger.info('Export file already deleted: "%s"', export.path)
 
 
 def _remove_recording_files(call_logs):
@@ -41,10 +41,7 @@ def _remove_recording_files(call_logs):
                     # on the same filesystem than wazo-call-logd
                     os.remove(recording.path)
                 except FileNotFoundError:
-                    logger.info(
-                        'Recording file already deleted: "%s". Marking as such.',
-                        recording.path,
-                    )
+                    logger.info('Recording file already deleted: "%s"', recording.path)
 
 
 def _extract_days_to_keep(tenant_days, default_days, purge_db_days, default):
