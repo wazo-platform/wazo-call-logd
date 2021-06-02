@@ -19,6 +19,7 @@ class TestRecording(DBIntegrationTest):
             result,
             has_properties(
                 retention_cdr_days=365,
+                retention_export_days=2,
                 retention_recording_days=365,
             ),
         )
@@ -34,6 +35,7 @@ class TestRecording(DBIntegrationTest):
     def test_update(self):
         config = self.dao.config.find_or_create()
         config.retention_cdr_days = 42
+        config.retention_export_days = 10
         config.retention_recording_days = 0
         self.dao.config.update(config)
 
@@ -42,6 +44,7 @@ class TestRecording(DBIntegrationTest):
             result,
             has_properties(
                 retention_cdr_days=42,
+                retention_export_days=10,
                 retention_recording_days=0,
             ),
         )

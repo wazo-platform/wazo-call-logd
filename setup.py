@@ -38,6 +38,7 @@ setup(
         ],
         'wazo_purge_db.purgers': [
             'call-logs = wazo_call_logd.purger:CallLogsPurger',
+            'exports = wazo_call_logd.purger:ExportsPurger',
             'recordings = wazo_call_logd.purger:RecordingsPurger',
         ],
     },
