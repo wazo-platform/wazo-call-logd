@@ -26,6 +26,10 @@ DEFAULT_CALL_LOGD_EXPORT_DAYS = 2
 
 def _remove_export_files(exports):
     for export in exports:
+        if not export.path:
+            logger.debug('Export file never created: "%s"', export.uuid)
+            continue
+
         try:
             os.remove(export.path)
         except FileNotFoundError:

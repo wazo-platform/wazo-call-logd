@@ -232,6 +232,12 @@ class TestExportPurger(_BasePurger):
         self._assert_len_export(0)
         assert_that(not self.filesystem.path_exists('/tmp/42'))
 
+    @export(requested_at=dt.utcnow() - td(days=2), path=None)
+    def test_purger_when_path_not_set(self, *_):
+        days_to_keep = 0
+        self._purge(days_to_keep)
+        self._assert_len_export(0)
+
     @export(
         requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT
     )
