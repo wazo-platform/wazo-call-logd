@@ -22,7 +22,7 @@ from .helpers.database import retention
 
 
 class TestRetention(IntegrationTest):
-    @retention(cdr_days=2, recording_days=2)
+    @retention(cdr_days=2, export_days=4, recording_days=2)
     def test_get(self, retention):
         result = self.call_logd.retention.get(tenant_uuid=MASTER_TENANT)
         assert_that(
@@ -30,8 +30,10 @@ class TestRetention(IntegrationTest):
             has_entries(
                 tenant_uuid=MASTER_TENANT,
                 cdr_days=2,
+                export_days=4,
                 recording_days=2,
                 default_cdr_days=365,
+                default_export_days=2,
                 default_recording_days=365,
             ),
         )
@@ -43,8 +45,10 @@ class TestRetention(IntegrationTest):
             has_entries(
                 tenant_uuid=OTHER_TENANT,
                 cdr_days=None,
+                export_days=None,
                 recording_days=None,
                 default_cdr_days=365,
+                default_export_days=2,
                 default_recording_days=365,
             ),
         )
@@ -59,7 +63,7 @@ class TestRetention(IntegrationTest):
 
     @retention()
     def test_update(self, retention):
-        args = {'cdr_days': 2, 'recording_days': 2}
+        args = {'cdr_days': 2, 'export_days': 3, 'recording_days': 2}
         tenant = retention['tenant_uuid']
         self.call_logd.retention.update(**args, tenant_uuid=tenant)
 
@@ -67,7 +71,7 @@ class TestRetention(IntegrationTest):
         assert_that(result, has_entries(**args))
 
     def test_update_not_configured(self):
-        args = {'cdr_days': 2, 'recording_days': 2}
+        args = {'cdr_days': 2, 'export_days': 3, 'recording_days': 2}
         self.call_logd.retention.update(**args, tenant_uuid=OTHER_TENANT)
 
         result = self.call_logd.retention.get(tenant_uuid=OTHER_TENANT)
@@ -97,7 +101,7 @@ class TestRetention(IntegrationTest):
 
     @retention()
     def test_update_events(self, retention):
-        args = {'cdr_days': 2, 'recording_days': 2}
+        args = {'cdr_days': 2, 'export_days': 3, 'recording_days': 2}
         routing_key = 'call_logd.retention.updated'
         event_accumulator = self.bus.accumulator(routing_key)
 

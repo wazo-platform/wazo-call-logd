@@ -42,9 +42,14 @@ definitions:
     properties:
       cdr_days:
         type: integer
+      export_days:
+        type: integer
       recording_days:
         type: integer
       default_cdr_days:
+        type: integer
+        readOnly: true
+      default_export_days:
         type: integer
         readOnly: true
       default_recording_days:
