@@ -31,6 +31,12 @@ class TestConfig(IntegrationTest):
                 raises(CallLogdError, has_properties(status_code=401)),
             )
 
+        with self.set_token(TOKEN_SUB_TENANT):
+            assert_that(
+                calling(self.call_logd.config.patch).with_args({}),
+                raises(CallLogdError, has_properties(status_code=401)),
+            )
+
     def test_restrict_on_with_slow_wazo_auth(self):
         config_file = '/etc/wazo-call-logd/conf.d/01-master-tenant.yml'
 

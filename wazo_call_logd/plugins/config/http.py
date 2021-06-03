@@ -19,6 +19,7 @@ class ConfigResource(AuthResource):
     def get(self):
         return self._config_service.get(), 200
 
+    @required_master_tenant()
     @required_acl('call_logd.config.update')
     def patch(self):
         config_patch = config_patch_schema.load(request.get_json(), many=True)
