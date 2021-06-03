@@ -1,5 +1,12 @@
 # Changelog
 
+## 21.08
+
+* The `/retention` resource now includes:
+
+  * `export_days`
+  * `default_export_days`
+
 ## 21.07
 
 * New endpoint to bulk export CDR recording media:

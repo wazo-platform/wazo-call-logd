@@ -136,6 +136,12 @@ class Controller:
                 config.retention_cdr_days_from_file = True
             else:
                 config.retention_cdr_days_from_file = False
+            export_days = self.config['retention']['export_days']
+            if export_days is not None:
+                config.retention_export_days = export_days
+                config.retention_export_days_from_file = True
+            else:
+                config.retention_export_days_from_file = False
             recording_days = self.config['retention']['recording_days']
             if recording_days is not None:
                 config.retention_recording_days = recording_days

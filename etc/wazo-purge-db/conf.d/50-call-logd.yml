@@ -1,4 +1,5 @@
 enabled_plugins:
     purgers:
         call-logs: true
+        exports: true
         recordings: true

@@ -10,6 +10,7 @@ from sqlalchemy import func
 from .database.models import (
     CallLog,
     Config,
+    Export,
     Recording,
     Retention,
     Tenant,
@@ -18,7 +19,21 @@ from .database.models import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_PURGE_DB_DAYS = 365
-DEFAULT_CALL_LOGD_DAYS = 365
+DEFAULT_CALL_LOGD_CDR_DAYS = 365
+DEFAULT_CALL_LOGD_RECORDING_DAYS = 365
+DEFAULT_CALL_LOGD_EXPORT_DAYS = 2
+
+
+def _remove_export_files(exports):
+    for export in exports:
+        if not export.path:
+            logger.debug('Export file never created: "%s"', export.uuid)
+            continue
+
+        try:
+            os.remove(export.path)
+        except FileNotFoundError:
+            logger.info('Export file already deleted: "%s"', export.path)
 
 
 def _remove_recording_files(call_logs):
@@ -30,18 +45,15 @@ def _remove_recording_files(call_logs):
                     # on the same filesystem than wazo-call-logd
                     os.remove(recording.path)
                 except FileNotFoundError:
-                    logger.info(
-                        'Recording file already deleted: "%s". Marking as such.',
-                        recording.path,
-                    )
+                    logger.info('Recording file already deleted: "%s"', recording.path)
 
 
-def _extract_days_to_keep(tenant_days, default_days, purge_db_days):
+def _extract_days_to_keep(tenant_days, default_days, purge_db_days, default):
     if tenant_days is not None:
         return tenant_days
 
     purge_db_days_customized = purge_db_days != DEFAULT_PURGE_DB_DAYS
-    default_days_customized = default_days != DEFAULT_CALL_LOGD_DAYS
+    default_days_customized = default_days != default
     if purge_db_days_customized and not default_days_customized:
         return purge_db_days
 
@@ -60,7 +72,12 @@ class CallLogsPurger:
         for tenant in tenants:
             retention = retentions.get(tenant.uuid)
             tenant_days = retention.cdr_days if retention else None
-            days = _extract_days_to_keep(tenant_days, default_days, days_to_keep)
+            days = _extract_days_to_keep(
+                tenant_days,
+                default_days,
+                days_to_keep,
+                DEFAULT_CALL_LOGD_CDR_DAYS,
+            )
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
@@ -80,6 +97,38 @@ class CallLogsPurger:
             query.delete(synchronize_session=False)
 
 
+class ExportsPurger:
+    def purge(self, days_to_keep, session):
+        config = session.query(Config).first()
+        if not config:
+            raise Exception('No default config found')
+        default_days = config.retention_export_days
+
+        retentions = {r.tenant_uuid: r for r in session.query(Retention).all()}
+        tenants = session.query(Tenant).all()
+        for tenant in tenants:
+            days = days_to_keep
+            retention = retentions.get(tenant.uuid)
+            tenant_days = retention.export_days if retention else None
+            days = _extract_days_to_keep(
+                tenant_days,
+                default_days,
+                days_to_keep,
+                DEFAULT_CALL_LOGD_EXPORT_DAYS,
+            )
+
+            max_date = func.now() - datetime.timedelta(days=days)
+            query = (
+                session.query(Export)
+                .filter(Export.requested_at < max_date)
+                .filter(Export.tenant_uuid == tenant.uuid)
+            )
+            exports = query.all()
+            _remove_export_files(exports)
+
+            query.delete(synchronize_session=False)
+
+
 class RecordingsPurger:
     def purge(self, days_to_keep, session):
         config = session.query(Config).first()
@@ -93,7 +142,12 @@ class RecordingsPurger:
             days = days_to_keep
             retention = retentions.get(tenant.uuid)
             tenant_days = retention.recording_days if retention else None
-            days = _extract_days_to_keep(tenant_days, default_days, days_to_keep)
+            days = _extract_days_to_keep(
+                tenant_days,
+                default_days,
+                days_to_keep,
+                DEFAULT_CALL_LOGD_RECORDING_DAYS,
+            )
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (

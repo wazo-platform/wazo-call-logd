@@ -88,6 +88,7 @@ DEFAULT_CONFIG = {
     },
     'retention': {
         'cdr_days': None,
+        'export_days': None,
         'recording_days': None,
     },
 }

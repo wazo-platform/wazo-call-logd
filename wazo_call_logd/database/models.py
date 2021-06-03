@@ -227,6 +227,7 @@ class Retention(Base):
         primary_key=True,
     )
     cdr_days = Column(Integer)
+    export_days = Column(Integer)
     recording_days = Column(Integer)
 
     def __init__(self, *args, **kwargs):
@@ -244,6 +245,8 @@ class Config(Base):
     id = Column(Integer, primary_key=True)
     retention_cdr_days = Column(Integer)
     retention_cdr_days_from_file = Column(Boolean)
+    retention_export_days = Column(Integer)
+    retention_export_days_from_file = Column(Boolean)
     retention_recording_days = Column(Integer)
     retention_recording_days_from_file = Column(Boolean)
 

@@ -18,6 +18,7 @@ class RetentionDAO(BaseDAO):
                 session.expunge(retention)
             config = session.query(Config).first()
             retention.default_cdr_days = config.retention_cdr_days
+            retention.default_export_days = config.retention_export_days
             retention.default_recording_days = config.retention_recording_days
         return retention
 
@@ -32,6 +33,7 @@ class RetentionDAO(BaseDAO):
                 session.add(retention)
             config = session.query(Config).first()
             retention.default_cdr_days = config.retention_cdr_days
+            retention.default_export_days = config.retention_export_days
             retention.default_recording_days = config.retention_recording_days
             session.flush()
             session.expunge(retention)
