@@ -4,6 +4,8 @@
 from hamcrest import (
     assert_that,
     calling,
+    equal_to,
+    has_entry,
     has_key,
     has_properties,
     not_,
@@ -26,6 +28,12 @@ class TestConfig(IntegrationTest):
         with self.set_token(TOKEN_SUB_TENANT):
             assert_that(
                 calling(self.call_logd.config.get),
+                raises(CallLogdError, has_properties(status_code=401)),
+            )
+
+        with self.set_token(TOKEN_SUB_TENANT):
+            assert_that(
+                calling(self.call_logd.config.patch).with_args({}),
                 raises(CallLogdError, has_properties(status_code=401)),
             )
 
@@ -69,3 +77,29 @@ class TestConfig(IntegrationTest):
             )
 
         until.assert_(_does_not_return_503, tries=10)
+
+    def test_update_config(self):
+        debug_true_config = [
+            {
+                'op': 'replace',
+                'path': '/debug',
+                'value': True,
+            }
+        ]
+        debug_false_config = [
+            {
+                'op': 'replace',
+                'path': '/debug',
+                'value': False,
+            }
+        ]
+
+        debug_true_patched_config = self.call_logd.config.patch(debug_true_config)
+        debug_true_config = self.call_logd.config.get()
+        assert_that(debug_true_config, has_entry('debug', True))
+        assert_that(debug_true_patched_config, equal_to(debug_true_config))
+
+        debug_false_patched_config = self.call_logd.config.patch(debug_false_config)
+        debug_false_config = self.call_logd.config.get()
+        assert_that(debug_false_config, has_entry('debug', False))
+        assert_that(debug_false_patched_config, equal_to(debug_false_config))

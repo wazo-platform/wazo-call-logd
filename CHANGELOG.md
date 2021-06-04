@@ -7,6 +7,11 @@
   * `export_days`
   * `default_export_days`
 
+* New endpoint to update configuration of `wazo-call-logd`:
+
+  * `PATCH /config`
+    * Only the `debug` attribute may be modified.
+
 ## 21.07
 
 * New endpoint to bulk export CDR recording media:
