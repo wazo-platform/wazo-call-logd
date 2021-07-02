@@ -10,8 +10,8 @@ extra_config_files: /etc/wazo-call-logd/conf.d/
 debug: false
 
 # Database connection informations.
-db_uri: postgresql://asterisk:proformatique@localhost/asterisk
-cel_db_uri: postgresql://asterisk:proformatique@localhost/asterisk
+db_uri: postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-call-logd
+cel_db_uri: postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-call-logd
 
 # Event bus (AMQP) connection informations
 bus:

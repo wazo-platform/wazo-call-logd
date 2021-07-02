@@ -19,8 +19,8 @@ DEFAULT_CONFIG = {
     'debug': False,
     'user': 'wazo-call-logd',
     'db_upgrade_on_startup': False,
-    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
-    'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk',
+    'db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-call-logd',
+    'cel_db_uri': 'postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-call-logd',
     'email_export_body_template': '/var/lib/wazo-call-logd/templates/email_export_body.j2',
     'email_export_token_expiration': 48 * 3600,  # 48 hours
     'email_export_from_name': 'Wazo',
