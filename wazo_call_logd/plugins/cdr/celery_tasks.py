@@ -119,7 +119,7 @@ class RecordingExportTask(Task):
         if email:
             self._send_email(task_uuid, 'Wazo user', email, config, connection_info)
 
-        bus_publisher.stop()
+        bus_publisher.flush_and_stop()
         bus_publisher_thread.join()
 
     def _send_email(
