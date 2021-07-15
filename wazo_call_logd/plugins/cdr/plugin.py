@@ -3,6 +3,8 @@
 
 from wazo_auth_client import Client as AuthClient
 
+from wazo_call_logd.plugins.export.notifier import ExportNotifier
+
 from .http import (
     CDRResource,
     CDRIdResource,
@@ -20,10 +22,12 @@ class Plugin:
         api = dependencies['api']
         config = dependencies['config']
         dao = dependencies['dao']
+        bus_publisher = dependencies['bus_publisher']
+        export_notifier = ExportNotifier(bus_publisher)
 
         auth_client = AuthClient(**config['auth'])
         cdr_service = CDRService(dao)
-        recording_service = RecordingService(dao, config)
+        recording_service = RecordingService(dao, config, export_notifier)
 
         api.add_resource(
             CDRResource,

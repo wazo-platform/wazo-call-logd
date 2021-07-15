@@ -39,9 +39,10 @@ class CDRService:
 
 
 class RecordingService:
-    def __init__(self, dao, config):
+    def __init__(self, dao, config, notifier):
         self._dao = dao
         self._config = config
+        self._notifier = notifier
 
     def find_by(self, **kwargs):
         return self._dao.recording.find_by(**kwargs)
@@ -70,22 +71,23 @@ class RecordingService:
         ]
 
         destination = self._config['exports']['directory']
-        export = Export(
+        export_data = Export(
             user_uuid=user_uuid,
             tenant_uuid=tenant_uuid,
             requested_at=datetime.now(),
             status='pending',
         )
-        export_uuid = self._dao.export.create(export).uuid
+        export = self._dao.export.create(export_data)
+        self._notifier.created(export)
         export_recording_task.apply_async(
             args=(
-                export_uuid,
+                export.uuid,
                 recording_files,
                 destination,
                 tenant_uuid,
                 destination_email,
                 connection_info,
             ),
-            task_id=str(export_uuid),
+            task_id=str(export.uuid),
         )
-        return {'uuid': export_uuid}
+        return {'uuid': export.uuid}
