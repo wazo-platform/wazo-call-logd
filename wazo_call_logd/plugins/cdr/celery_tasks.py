@@ -74,53 +74,56 @@ class RecordingExportTask(Task):
     ):
         # NOTE(afournier): it is necessary to create a Thread inside the Task, because
         # it is running in a different process
-        bus_publisher = BusPublisher(config)
-        bus_publisher_thread = Thread(target=bus_publisher.run)
-        bus_publisher_thread.start()
+        try:
+            bus_publisher = BusPublisher(config)
+            bus_publisher_thread = Thread(target=bus_publisher.run)
+            bus_publisher_thread.start()
 
-        export = dao.export.get(task_uuid, [tenant_uuid])
-        export.status = 'processing'
-        dao.export.update(export)
-        notifier = ExportNotifier(bus_publisher)
-        notifier.updated(export)
+            export = dao.export.get(task_uuid, [tenant_uuid])
+            export.status = 'processing'
+            dao.export.update(export)
+            notifier = ExportNotifier(bus_publisher)
+            notifier.updated(export)
 
-        filename = f'{task_uuid}.zip'
-        fullpath = os.path.join(output_dir, filename)
-        with ZipFile(fullpath, mode='w', compression=ZIP_DEFLATED) as zip_file:
-            for recording in recordings:
-                try:
-                    archive_name = os.path.join(
-                        str(recording['call_log_id']), recording['filename']
-                    )
-                    zip_file.write(recording['path'], arcname=archive_name)
-                except PermissionError:
-                    logger.error('Permission denied: "%s"', recording['path'])
-                    export.status = 'error'
-                    dao.export.update(export)
-                    notifier.updated(export)
-                    raise RecordingMediaFSPermissionException(
-                        recording['uuid'],
-                        recording['path'],
-                    )
-                except FileNotFoundError:
-                    logger.error('Recording file not found: "%s"', recording['path'])
-                    export.status = 'error'
-                    dao.export.update(export)
-                    notifier.updated(export)
-                    raise RecordingMediaFSNotFoundException(
-                        recording['uuid'],
-                        recording['path'],
-                    )
+            filename = f'{task_uuid}.zip'
+            fullpath = os.path.join(output_dir, filename)
+            with ZipFile(fullpath, mode='w', compression=ZIP_DEFLATED) as zip_file:
+                for recording in recordings:
+                    try:
+                        archive_name = os.path.join(
+                            str(recording['call_log_id']), recording['filename']
+                        )
+                        zip_file.write(recording['path'], arcname=archive_name)
+                    except PermissionError:
+                        logger.error('Permission denied: "%s"', recording['path'])
+                        export.status = 'error'
+                        dao.export.update(export)
+                        notifier.updated(export)
+                        raise RecordingMediaFSPermissionException(
+                            recording['uuid'],
+                            recording['path'],
+                        )
+                    except FileNotFoundError:
+                        logger.error(
+                            'Recording file not found: "%s"', recording['path']
+                        )
+                        export.status = 'error'
+                        dao.export.update(export)
+                        notifier.updated(export)
+                        raise RecordingMediaFSNotFoundException(
+                            recording['uuid'],
+                            recording['path'],
+                        )
 
-        export.path = fullpath
-        export.status = 'finished'
-        dao.export.update(export)
-        notifier.updated(export)
-        if email:
-            self._send_email(task_uuid, 'Wazo user', email, config, connection_info)
-
-        bus_publisher.flush_and_stop()
-        bus_publisher_thread.join()
+            export.path = fullpath
+            export.status = 'finished'
+            dao.export.update(export)
+            notifier.updated(export)
+            if email:
+                self._send_email(task_uuid, 'Wazo user', email, config, connection_info)
+        finally:
+            bus_publisher.flush_and_stop()
+            bus_publisher_thread.join()
 
     def _send_email(
         self,
