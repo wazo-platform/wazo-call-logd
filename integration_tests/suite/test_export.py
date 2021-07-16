@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from hamcrest import (
     assert_that,
     calling,
+    contains,
     contains_inanyorder,
     equal_to,
     has_entries,
@@ -834,6 +835,135 @@ class TestRecordingMediaExport(IntegrationTest):
         self.filesystem.remove_file('/tmp/1-recording.wav')
         self.filesystem.remove_file('/tmp/2-recording.wav')
         self.filesystem.remove_file('/tmp/3-recording.wav')
+
+    @call_log(
+        **{'id': 1},
+        date='2021-05-22T15:00:00',
+    )
+    @recording(call_log_id=1, path='/tmp/1-recording.wav')
+    def test_events_when_success(self, rec1):
+        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
+        routing_key_created = 'call_logd.export.created'
+        routing_key_updated = 'call_logd.export.updated'
+        event_created_accumulator = self.bus.accumulator(routing_key_created)
+        event_updated_accumulator = self.bus.accumulator(routing_key_updated)
+        export_uuid = self.call_logd.cdr.export_recording_media(recurse=False)['uuid']
+
+        def events_received():
+            events_created = event_created_accumulator.accumulate()
+            events_updated = event_updated_accumulator.accumulate()
+            print(f'events_created = {events_created}')
+            print(f'events_updated = {events_updated}')
+            assert_that(
+                events_created,
+                contains(
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='pending'),
+                        required_acl=f'events.{routing_key_created}',
+                    ),
+                ),
+            )
+            assert_that(
+                events_updated,
+                contains(
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='processing'),
+                        required_acl=f'events.{routing_key_updated}',
+                    ),
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='finished'),
+                        required_acl=f'events.{routing_key_updated}',
+                    ),
+                ),
+            )
+
+        until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
+        until.assert_(events_received, timeout=5)
+
+    @call_log(
+        **{'id': 1},
+        date='2021-05-22T15:00:00',
+    )
+    @recording(call_log_id=1, path='/tmp/1-recording.wav')
+    def test_events_when_file_does_not_exist(self, rec1):
+        routing_key_created = 'call_logd.export.created'
+        routing_key_updated = 'call_logd.export.updated'
+        event_created_accumulator = self.bus.accumulator(routing_key_created)
+        event_updated_accumulator = self.bus.accumulator(routing_key_updated)
+        export_uuid = self.call_logd.cdr.export_recording_media(recurse=False)['uuid']
+
+        def events_received():
+            events_created = event_created_accumulator.accumulate()
+            events_updated = event_updated_accumulator.accumulate()
+            assert_that(
+                events_created,
+                contains(
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='pending'),
+                        required_acl=f'events.{routing_key_created}',
+                    ),
+                ),
+            )
+            assert_that(
+                events_updated,
+                contains(
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='processing'),
+                        required_acl=f'events.{routing_key_updated}',
+                    ),
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='error'),
+                        required_acl=f'events.{routing_key_updated}',
+                    ),
+                ),
+            )
+
+        until.assert_(self._export_status_is, export_uuid, 'error', timeout=5)
+        until.assert_(events_received, timeout=5)
+
+    @call_log(
+        **{'id': 1},
+        date='2021-05-22T15:00:00',
+    )
+    @recording(call_log_id=1, path='/tmp/1-recording.wav')
+    def test_events_when_permission_error(self, rec1):
+        self.filesystem.create_file(
+            '/tmp/1-recording.wav', content='1-recording', mode='000'
+        )
+        routing_key_created = 'call_logd.export.created'
+        routing_key_updated = 'call_logd.export.updated'
+        event_created_accumulator = self.bus.accumulator(routing_key_created)
+        event_updated_accumulator = self.bus.accumulator(routing_key_updated)
+        export_uuid = self.call_logd.cdr.export_recording_media(recurse=False)['uuid']
+
+        def events_received():
+            events_created = event_created_accumulator.accumulate()
+            events_updated = event_updated_accumulator.accumulate()
+            assert_that(
+                events_created,
+                contains(
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='pending'),
+                        required_acl=f'events.{routing_key_created}',
+                    ),
+                ),
+            )
+            assert_that(
+                events_updated,
+                contains(
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='processing'),
+                        required_acl=f'events.{routing_key_updated}',
+                    ),
+                    has_entries(
+                        data=has_entries(uuid=export_uuid, status='error'),
+                        required_acl=f'events.{routing_key_updated}',
+                    ),
+                ),
+            )
+
+        until.assert_(self._export_status_is, export_uuid, 'error', timeout=5)
+        until.assert_(events_received, timeout=5)
 
     @call_log(**{'id': 1})
     @recording(call_log_id=1, path='/tmp/1-recording.wav')

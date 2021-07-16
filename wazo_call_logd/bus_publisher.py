@@ -55,6 +55,10 @@ class BusPublisher:
         logger.info('status publisher stoping')
         self._publisher.stop()
 
+    def flush_and_stop(self):
+        logger.info('publisher flushing and stopping')
+        self._publisher.flush_and_stop()
+
     def _new_publisher(self, uuid, url, exchange_name, exchange_type):
         bus_connection = kombu.Connection(url)
         bus_exchange = kombu.Exchange(exchange_name, type=exchange_type)
