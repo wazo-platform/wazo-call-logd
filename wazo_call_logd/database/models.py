@@ -48,6 +48,7 @@ class CallLog(Base):
     )
     source_name = Column(String(255))
     source_exten = Column(String(255))
+    source_internal_name = Column(Text)
     source_internal_exten = Column(Text)
     source_internal_context = Column(Text)
     source_line_identity = Column(String(255))

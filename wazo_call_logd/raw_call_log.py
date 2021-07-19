@@ -19,6 +19,7 @@ class RawCallLog:
         self.source_exten = None
         self.source_internal_exten = None
         self.source_internal_context = None
+        self.source_internal_name = None
         self.requested_name = None
         self.requested_exten = None
         self.requested_context = None
@@ -71,6 +72,7 @@ class RawCallLog:
             source_exten=self.source_exten,
             source_internal_exten=self.source_internal_exten,
             source_internal_context=self.source_internal_context,
+            source_internal_name=self.source_internal_name,
             requested_exten=self.requested_exten,
             requested_context=self.requested_context,
             requested_internal_exten=self.requested_internal_exten,

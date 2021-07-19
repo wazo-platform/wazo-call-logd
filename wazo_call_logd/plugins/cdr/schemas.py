@@ -85,6 +85,7 @@ class CDRSchema(Schema):
     requested_internal_extension = fields.String(attribute='requested_internal_exten')
     source_extension = fields.String(attribute='source_exten')
     source_internal_context = fields.String()
+    source_internal_name = fields.String()
     source_internal_extension = fields.String(attribute='source_internal_exten')
     source_line_id = fields.Integer()
     source_name = fields.String()

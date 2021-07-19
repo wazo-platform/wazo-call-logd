@@ -1,5 +1,9 @@
 # Changelog
 
+## 21.10
+
+* The `/cdr` resource now includes the `source_internal_name` field
+
 ## 21.08
 
 * The `/retention` resource now includes:
