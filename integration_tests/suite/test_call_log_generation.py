@@ -758,6 +758,39 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
     @raw_cels(
         '''\
+    eventtype     |           eventtime           |   cid_name   |  cid_num   |   exten    |   context   |                                channame                                |   uniqueid   |   linkedid
+
+ CHAN_START       | 2021-07-19 11:12:54.23216-04  | Olga Romanov | 1015       | 5551112222 | inside      | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ MIXMONITOR_START | 2021-07-19 11:12:54.764512-04 | O Romanov    | 5550001234 | s          | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ XIVO_OUTCALL     | 2021-07-19 11:12:54.776572-04 | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ APP_START        | 2021-07-19 11:12:54.805195-04 | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ CHAN_START       | 2021-07-19 11:12:54.806786-04 | wazo         |            | s          | from-extern | PJSIP/voipms_trunk_2c34c282-433e-4bb8-8d56-fec14ff7e1e9_39756-00000008 | 1626707574.8 | 1626707574.7
+ ANSWER           | 2021-07-19 11:13:04.25334-04  |              | 5551112222 | dial       | from-extern | PJSIP/voipms_trunk_2c34c282-433e-4bb8-8d56-fec14ff7e1e9_39756-00000008 | 1626707574.8 | 1626707574.7
+ ANSWER           | 2021-07-19 11:13:04.254462-04 | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ BRIDGE_ENTER     | 2021-07-19 11:13:04.258807-04 |              | 5551112222 |            | from-extern | PJSIP/voipms_trunk_2c34c282-433e-4bb8-8d56-fec14ff7e1e9_39756-00000008 | 1626707574.8 | 1626707574.7
+ BRIDGE_ENTER     | 2021-07-19 11:13:04.259302-04 | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ BRIDGE_EXIT      | 2021-07-19 11:13:06.99904-04  |              | 5551112222 |            | from-extern | PJSIP/voipms_trunk_2c34c282-433e-4bb8-8d56-fec14ff7e1e9_39756-00000008 | 1626707574.8 | 1626707574.7
+ BRIDGE_EXIT      | 2021-07-19 11:13:07.000866-04 | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ HANGUP           | 2021-07-19 11:13:07.002422-04 |              | 5551112222 |            | from-extern | PJSIP/voipms_trunk_2c34c282-433e-4bb8-8d56-fec14ff7e1e9_39756-00000008 | 1626707574.8 | 1626707574.7
+ CHAN_END         | 2021-07-19 11:13:07.002422-04 |              | 5551112222 |            | from-extern | PJSIP/voipms_trunk_2c34c282-433e-4bb8-8d56-fec14ff7e1e9_39756-00000008 | 1626707574.8 | 1626707574.7
+ HANGUP           | 2021-07-19 11:13:07.00682-04  | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ CHAN_END         | 2021-07-19 11:13:07.00682-04  | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+ LINKEDID_END     | 2021-07-19 11:13:07.00682-04  | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
+        '''
+    )
+    def test_answered_outgoing_call_with_custom_caller_id(self):
+        self._assert_last_call_log_matches(
+            '1626707574.7',
+            has_properties(
+                source_name='O Romanov',
+                source_exten='5550001234',
+                source_internal_name='Olga Romanov',
+                requested_exten='5551112222',
+            ),
+        )
+
+    @raw_cels(
+        '''\
  eventtype    | eventtime                  | cid_name | cid_num   | exten     | context     | channame              |      uniqueid |     linkedid  | userfield
 
  CHAN_START   | 2015-06-18 14:13:18.176182 | Elès 01  | 1001      | **9642301 | default     | SIP/je5qtq-00000027   | 1434651198.39 | 1434651198.39 |

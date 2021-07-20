@@ -122,6 +122,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_chan_start(self, cel, call):
         call.date = cel.eventtime
         call.source_name = cel.cid_name
+        call.source_internal_name = cel.cid_name
         call.source_exten = cel.cid_num
         call.requested_exten = cel.exten if cel.exten != 's' else ''
         call.requested_context = cel.context

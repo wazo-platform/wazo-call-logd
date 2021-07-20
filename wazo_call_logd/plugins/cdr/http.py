@@ -59,6 +59,7 @@ CSV_HEADERS = [
     'requested_internal_context',
     'source_extension',
     'source_name',
+    'source_internal_name',
     'source_internal_extension',
     'source_internal_context',
     'source_user_uuid',
