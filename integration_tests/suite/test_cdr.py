@@ -394,7 +394,7 @@ class TestListCDR(IntegrationTest):
         direction='outbound',
         source_exten='7867',
         source_name='.rùos',
-        source_internal_name='FôoBàr'
+        source_internal_name='FôoBàr',
     )
     def test_given_call_logs_when_list_cdr_then_list_cdr(self):
         result = self.call_logd.cdr.list()
