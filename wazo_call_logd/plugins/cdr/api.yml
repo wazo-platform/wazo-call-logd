@@ -384,6 +384,8 @@ definitions:
         description: the internal extension of the line that placed the call
       source_internal_context:
         type: string
+      source_internal_name:
+        type: string
       source_internal_tenant_uuid:
         type: string
       source_user_uuid:
