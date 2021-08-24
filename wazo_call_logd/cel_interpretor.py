@@ -282,6 +282,10 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             call.raw_participants[cel.channame].update(answered=True)
 
             call.interpret_callee_bridge_enter = False
+
+        if cel.peer:
+            call.raw_participants[cel.peer].update(answered=True)
+
         return call
 
     def interpret_mixmonitor_start(self, cel, call):

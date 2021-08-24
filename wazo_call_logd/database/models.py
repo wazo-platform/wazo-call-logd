@@ -108,6 +108,7 @@ class CallLog(Base):
     )
 
 
+@generic_repr
 class CallLogParticipant(Base):
 
     # NOTE: Until bullseye upgrade, this schema must match the one migrated from manage-db and the

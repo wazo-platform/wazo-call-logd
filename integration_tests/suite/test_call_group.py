@@ -3,7 +3,9 @@
 
 from hamcrest import has_properties
 
+from .helpers.confd import MockContext, MockLine, MockUser
 from .helpers.base import raw_cels, RawCelIntegrationTest
+from .helpers.constants import USERS_TENANT
 
 
 class TestCallToGroup(RawCelIntegrationTest):
@@ -91,6 +93,41 @@ LINKEDID_END | 2021-08-23 15:07:08.342721-04 |                   | 3925098f-c504
         '''
     )
     def test_call_to_group_answered_by_a_pushed_mobile(self):
+        user_1_uuid = '3925098f-c504-4b7d-bf8a-499bb7cc4d92'  # Olga
+        user_2_uuid = 'a545ea83-595d-4142-a40c-9012acd3068d'  # Nikolai
+        user_3_uuid = '10288506-4ad6-4052-8218-2aa133727e93'  # Anastasia
+        self.confd.set_users(
+            MockUser(user_1_uuid, USERS_TENANT, line_ids=[1]),
+            MockUser(user_2_uuid, USERS_TENANT, line_ids=[2]),
+            MockUser(user_3_uuid, USERS_TENANT, line_ids=[3]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='TokxAXWb',
+                users=[{'uuid': user_1_uuid}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '1015', 'context': 'inside'}],
+            ),
+            MockLine(
+                id=2,
+                name='fkwk2z0g',
+                users=[{'uuid': user_2_uuid}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '1014', 'context': 'inside'}],
+            ),
+            MockLine(
+                id=3,
+                name='Ogrp1Zgu',
+                users=[{'uuid': user_3_uuid}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '1011', 'context': 'inside'}],
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='inside', tenant_uuid=USERS_TENANT)
+        )
+
         self._assert_last_call_log_matches(
             '1629745601.28',
             has_properties(
@@ -100,5 +137,8 @@ LINKEDID_END | 2021-08-23 15:07:08.342721-04 |                   | 3925098f-c504
                 destination_internal_exten='1015',
                 destination_exten='1015',
                 destination_name='Olga Romanov',
+                destination_participant=has_properties(
+                    user_uuid='3925098f-c504-4b7d-bf8a-499bb7cc4d92',
+                )
             )
         )
