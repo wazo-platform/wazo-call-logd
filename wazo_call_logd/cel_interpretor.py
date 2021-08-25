@@ -231,6 +231,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
+        call.caller_id_by_channels[cel.channame] = (cel.cid_name, cel.cid_num)
 
         if call.direction == 'outbound':
             call.destination_name = ''
@@ -285,6 +286,13 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         if cel.peer:
             call.raw_participants[cel.peer].update(answered=True)
+            cid_name, cid_number = call.caller_id_by_channels[cel.channame]
+            if cid_name:
+                call.destination_name = cid_name
+                call.destination_internal_name = cid_name
+            if cid_number:
+                call.destination_exten = cid_number
+                call.destination_internal_exten = cid_number
 
         return call
 
