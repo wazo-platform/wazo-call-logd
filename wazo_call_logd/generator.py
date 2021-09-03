@@ -46,6 +46,7 @@ class CallLogsGenerator:
             call_log.cel_ids = [cel.id for cel in cels_by_call]
 
             interpretor = self._get_interpretor(cels_by_call)
+            logger.debug('interpreting cels using %s', interpretor.__class__.__name__)
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
 
             self._remove_duplicate_participants(call_log)

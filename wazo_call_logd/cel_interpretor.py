@@ -14,6 +14,8 @@ from .database.models import Recording
 logger = logging.getLogger(__name__)
 
 EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?:,|"})'
+WAIT_FOR_MOBILE_REGEX = re.compile(r'^Local/(\S+)@wazo_wait_for_registration-\S+;2$')
+MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 
 
 def extract_mixmonitor_extra(extra):
@@ -229,19 +231,43 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
     def interpret_chan_start(self, cel, call):
         call.destination_line_identity = identity_from_channel(cel.channame)
+        call.caller_id_by_channels[cel.channame] = (cel.cid_name, cel.cid_num)
 
         if call.direction == 'outbound':
             call.destination_name = ''
             call.requested_name = ''
         else:
-            call.destination_exten = cel.cid_num
-            call.destination_name = cel.cid_name
-            if not call.requested_name:
-                call.requested_name = cel.cid_name
+            matches = WAIT_FOR_MOBILE_REGEX.match(cel.channame)
+            if matches:
+                call.pending_wait_for_mobile_peers.add(matches.group(1))
+            elif self._is_a_pending_wait_for_mobile_cel(cel, call):
+                call.interpret_callee_bridge_enter = False
+                call.destination_exten = cel.cid_num
+                call.destination_name = cel.cid_name
+                call.destination_internal_exten = cel.cid_num
+                call.destination_internal_context = cel.context
+            else:
+                call.destination_exten = cel.cid_num
+                call.destination_name = cel.cid_name
+                if not call.requested_name:
+                    call.requested_name = cel.cid_name
 
         call.raw_participants[cel.channame].update(role='destination')
 
         return call
+
+    def _is_a_pending_wait_for_mobile_cel(self, cel, call):
+        if not call.pending_wait_for_mobile_peers:
+            return False
+
+        matches = MATCHING_MOBILE_PEER_REGEX.match(cel.channame)
+        if not matches:
+            return False
+
+        peer = matches.group(1)
+        if peer in call.pending_wait_for_mobile_peers:
+            call.pending_wait_for_mobile_peers.remove(peer)
+            return True
 
     def interpret_chan_end(self, cel, call):
         for recording in call.recordings:
@@ -257,6 +283,17 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             call.raw_participants[cel.channame].update(answered=True)
 
             call.interpret_callee_bridge_enter = False
+
+        if cel.peer:
+            call.raw_participants[cel.peer].update(answered=True)
+            cid_name, cid_number = call.caller_id_by_channels[cel.channame]
+            if cid_name:
+                call.destination_name = cid_name
+                call.destination_internal_name = cid_name
+            if cid_number:
+                call.destination_exten = cid_number
+                call.destination_internal_exten = cid_number
+
         return call
 
     def interpret_mixmonitor_start(self, cel, call):

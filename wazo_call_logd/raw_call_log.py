@@ -42,6 +42,8 @@ class RawCallLog:
         self.interpret_callee_bridge_enter = True
         self.interpret_caller_xivo_user_fwd = True
         self._tenant_uuid = None
+        self.pending_wait_for_mobile_peers = set()
+        self.caller_id_by_channels = {}
 
     @property
     def tenant_uuid(self):
