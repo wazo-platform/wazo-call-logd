@@ -16,17 +16,22 @@ logger = logging.getLogger(__name__)
 EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?:,|"})'
 WAIT_FOR_MOBILE_REGEX = re.compile(r'^Local/(\S+)@wazo_wait_for_registration-\S+;2$')
 MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
+MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
 
 
 def extract_mixmonitor_extra(extra):
+    return extract_cel_extra(extra)
+
+
+def extract_cel_extra(extra):
     if not extra:
-        logger.debug('missing mixmonitor extra')
+        logger.debug('missing CEL extra')
         return
 
     try:
         extra = json.loads(extra)
     except json.decoder.JSONDecodeError:
-        logger.debug('invalid mixmonitor extra: "%s"', extra)
+        logger.debug('invalid CEL extra: "%s"', extra)
         return
 
     return extra
@@ -115,20 +120,22 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.bridge_enter: self.interpret_bridge_start_or_enter,
             CELEventType.mixmonitor_start: self.interpret_mixmonitor_start,
             CELEventType.mixmonitor_stop: self.interpret_mixmonitor_stop,
+            # CELGenUserEvent
             CELEventType.xivo_from_s: self.interpret_xivo_from_s,
             CELEventType.xivo_incall: self.interpret_xivo_incall,
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
             CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
+            CELEventType.wazo_meeting_name: self.interpret_wazo_meeting_name,
         }
 
     def interpret_chan_start(self, cel, call):
         call.date = cel.eventtime
         call.source_name = cel.cid_name
         call.source_internal_name = cel.cid_name
-        call.source_exten = cel.cid_num
-        call.requested_exten = cel.exten if cel.exten != 's' else ''
+        call.source_exten = call.extension_filter.filter(cel.cid_num)
+        call.requested_exten = call.extension_filter.filter(cel.exten)
         call.requested_context = cel.context
-        call.destination_exten = cel.exten if cel.exten != 's' else ''
+        call.destination_exten = call.extension_filter.filter(cel.exten)
         call.source_line_identity = identity_from_channel(cel.channame)
         call.raw_participants[cel.channame].update(role='source')
 
@@ -139,6 +146,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         for recording in call.recordings:
             if not recording.end_time:
                 recording.end_time = cel.eventtime
+
+        # Remove unwanted extensions
+        call.extension_filter.filter_call(call)
+
         return call
 
     def interpret_app_start(self, cel, call):
@@ -146,7 +157,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if cel.cid_name != '':
             call.source_name = cel.cid_name
         if cel.cid_num != '':
-            call.source_exten = cel.cid_num
+            call.source_exten = call.extension_filter.filter(cel.cid_num)
 
         return call
 
@@ -154,7 +165,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.destination_exten:
             call.destination_exten = cel.cid_num
         if not call.requested_exten:
-            call.requested_exten = cel.cid_num
+            call.requested_exten = call.extension_filter.filter(cel.cid_num)
 
         return call
 
@@ -162,7 +173,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.source_name:
             call.source_name = cel.cid_name
         if not call.source_exten:
-            call.source_exten = cel.cid_num
+            call.source_exten = call.extension_filter.filter(cel.cid_num)
 
         call.date_answer = cel.eventtime
 
@@ -192,9 +203,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_xivo_from_s(self, cel, call):
-        call.requested_exten = cel.exten
+        call.requested_exten = call.extension_filter.filter(cel.exten)
         call.requested_context = cel.context
-        call.destination_exten = cel.exten
+        call.destination_exten = call.extension_filter.filter(cel.exten)
         return call
 
     def interpret_xivo_incall(self, cel, call):
@@ -211,10 +222,24 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if call.interpret_caller_xivo_user_fwd:
             match = re.match(EXTRA_USER_FWD_REGEX, cel.extra)
             if match:
-                call.requested_internal_exten = match.group(1)
+                call.requested_internal_exten = call.extension_filter.filter(
+                    match.group(1)
+                )
                 call.requested_internal_context = match.group(2)
                 call.requested_name = match.group(3)
             call.interpret_caller_xivo_user_fwd = False
+        return call
+
+    def interpret_wazo_meeting_name(self, cel, call):
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return
+        call.destination_name = extra['extra']
+        if MEETING_EXTENSION_REGEX.match(call.destination_exten):
+            call.extension_filter.add_exten(call.destination_exten)
+            # Don't call filter.filter_call() yet, to avoid empty exten during interpret.
+            # Let interpret_chan_end do it instead.
+
         return call
 
 

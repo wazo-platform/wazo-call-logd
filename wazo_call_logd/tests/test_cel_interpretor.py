@@ -198,6 +198,11 @@ class TestAbstractCELInterpretor(TestCase):
 class TestCallerCELInterpretor(TestCase):
     def setUp(self):
         self.caller_cel_interpretor = CallerCELInterpretor()
+        self.call = Mock(
+            RawCallLog,
+            interpret_caller_xivo_user_fwd=True,
+            extension_filter=Mock(filter=lambda x: x),
+        )
 
     def test_interpret_cel_unknown_or_ignored_event(self):
         cel = Mock(eventtype='unknown_or_ignored_eventtype')
@@ -212,9 +217,8 @@ class TestCallerCELInterpretor(TestCase):
             eventtype='XIVO_USER_FWD',
             extra='{"extra":"NUM:100,CONTEXT:internal,NAME:Bob Marley"}',
         )
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, self.call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))
@@ -225,9 +229,8 @@ class TestCallerCELInterpretor(TestCase):
             eventtype='XIVO_USER_FWD',
             extra='{"extra":" NUM: 100 , CONTEXT: internal , NAME: Bob Marley "}',
         )
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, self.call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))
@@ -238,9 +241,8 @@ class TestCallerCELInterpretor(TestCase):
             eventtype='XIVO_USER_FWD',
             extra='{"extra":"BEFORE:value,NUM:100,CONTEXT:internal,NAME:Bob Marley"}',
         )
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, self.call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))
@@ -251,9 +253,8 @@ class TestCallerCELInterpretor(TestCase):
             eventtype='XIVO_USER_FWD',
             extra='{"extra":"NUM:100,CONTEXT:internal,NAME:Bob Marley,AFTER:value"}',
         )
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, self.call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))

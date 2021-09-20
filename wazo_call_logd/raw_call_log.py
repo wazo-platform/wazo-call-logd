@@ -7,6 +7,10 @@ from collections import defaultdict
 from wazo_call_logd.database.models import CallLog
 
 from wazo_call_logd.exceptions import InvalidCallLogException
+from wazo_call_logd.extension_filter import (
+    ExtensionFilter,
+    DEFAULT_HIDDEN_EXTENSIONS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +48,7 @@ class RawCallLog:
         self._tenant_uuid = None
         self.pending_wait_for_mobile_peers = set()
         self.caller_id_by_channels = {}
+        self.extension_filter = ExtensionFilter(DEFAULT_HIDDEN_EXTENSIONS)
 
     @property
     def tenant_uuid(self):
