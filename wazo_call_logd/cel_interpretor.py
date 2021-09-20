@@ -19,10 +19,6 @@ MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
 
 
-def extract_mixmonitor_extra(extra):
-    return extract_cel_extra(extra)
-
-
 def extract_cel_extra(extra):
     if not extra:
         logger.debug('missing CEL extra')
@@ -180,7 +176,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_mixmonitor_start(self, cel, call):
-        extra = extract_mixmonitor_extra(cel.extra)
+        extra = extract_cel_extra(cel.extra)
         if not is_valid_mixmonitor_start_extra(extra):
             return call
 
@@ -193,7 +189,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_mixmonitor_stop(self, cel, call):
-        extra = extract_mixmonitor_extra(cel.extra)
+        extra = extract_cel_extra(cel.extra)
         if not is_valid_mixmonitor_stop_extra(extra):
             return call
 
@@ -322,7 +318,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_mixmonitor_start(self, cel, call):
-        extra = extract_mixmonitor_extra(cel.extra)
+        extra = extract_cel_extra(cel.extra)
         if not is_valid_mixmonitor_start_extra(extra):
             return call
 
@@ -335,7 +331,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_mixmonitor_stop(self, cel, call):
-        extra = extract_mixmonitor_extra(cel.extra)
+        extra = extract_cel_extra(cel.extra)
         if not is_valid_mixmonitor_stop_extra(extra):
             return call
 

@@ -17,7 +17,7 @@ from ..cel_interpretor import (
     AbstractCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
-    extract_mixmonitor_extra,
+    extract_cel_extra,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
 )
@@ -25,20 +25,20 @@ from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog
 
 
-class TestExtractMixmonitorExtra:
+class TestExtractCELExtra:
     def test_valid_extra(self):
         extra = '{"key": "value", "key2": "value2"}'
-        result = extract_mixmonitor_extra(extra)
+        result = extract_cel_extra(extra)
         assert_that(result, has_entries(key='value', key2='value2'))
 
     def test_invalid_json(self):
         extra = '{"key": "value"'
-        result = extract_mixmonitor_extra(extra)
+        result = extract_cel_extra(extra)
         assert_that(result, none())
 
     def test_missing_extra(self):
         extra = None
-        result = extract_mixmonitor_extra(extra)
+        result = extract_cel_extra(extra)
         assert_that(result, none())
 
 
