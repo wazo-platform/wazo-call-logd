@@ -21,7 +21,10 @@ class CELEventType(object):
     mixmonitor_stop = 'MIXMONITOR_STOP'
     pickup = 'PICKUP'
     transfer = 'TRANSFER'  # removed in asterisk 12
-    xivo_user_fwd = 'XIVO_USER_FWD'
+
+    # CELGenUserEvent
+    wazo_meeting_name = 'WAZO_MEETING_NAME'
     xivo_from_s = 'XIVO_FROM_S'
     xivo_incall = 'XIVO_INCALL'
     xivo_outcall = 'XIVO_OUTCALL'
+    xivo_user_fwd = 'XIVO_USER_FWD'

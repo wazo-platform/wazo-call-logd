@@ -1230,3 +1230,26 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 )
             ),
         )
+
+    @raw_cels(
+        '''\
+     eventtype     |           eventtime           |                       exten                       |     cid_name     | cid_num |        channame         |    uniqueid     |    linkedid     |                                       extra
+-------------------+-------------------------------+---------------------------------------------------+------------------+---------+-------------------------+-----------------+-----------------+------------------------------------------------------------------------------------
+ CHAN_START        | 2021-09-20 19:54:34.688108+00 | wazo-meeting-07ae2b47-7da6-4c89-8b7c-283b6f457fc5 | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 |
+ WAZO_MEETING_NAME | 2021-09-20 19:54:34.691618+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 | {"extra":"Meeting with Shevek"}
+ ANSWER            | 2021-09-20 19:54:34.693609+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 |
+ BRIDGE_ENTER      | 2021-09-20 19:54:35.496867+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 | {"bridge_id":"d12017b8-0697-439e-a372-d02130481bce","bridge_technology":"softmix"}
+ BRIDGE_EXIT       | 2021-09-20 19:54:38.689367+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 | {"bridge_id":"d12017b8-0697-439e-a372-d02130481bce","bridge_technology":"softmix"}
+ HANGUP            | 2021-09-20 19:54:39.075497+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 | {"hangupcause":16,"hangupsource":"PJSIP/9lh0igq4-00000b11","dialstatus":""}
+ CHAN_END          | 2021-09-20 19:54:39.075497+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 |
+ LINKEDID_END      | 2021-09-20 19:54:39.075497+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 |
+'''
+    )
+    def test_meeting_call_has_no_weird_exten(self):
+        self._assert_last_call_log_matches(
+            '1632167674.4076',
+            has_properties(
+                destination_exten='',
+                requested_exten='',
+            ),
+        )

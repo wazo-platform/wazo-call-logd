@@ -17,7 +17,7 @@ from ..cel_interpretor import (
     AbstractCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
-    extract_mixmonitor_extra,
+    extract_cel_extra,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
 )
@@ -25,20 +25,20 @@ from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog
 
 
-class TestExtractMixmonitorExtra:
+class TestExtractCELExtra:
     def test_valid_extra(self):
         extra = '{"key": "value", "key2": "value2"}'
-        result = extract_mixmonitor_extra(extra)
+        result = extract_cel_extra(extra)
         assert_that(result, has_entries(key='value', key2='value2'))
 
     def test_invalid_json(self):
         extra = '{"key": "value"'
-        result = extract_mixmonitor_extra(extra)
+        result = extract_cel_extra(extra)
         assert_that(result, none())
 
     def test_missing_extra(self):
         extra = None
-        result = extract_mixmonitor_extra(extra)
+        result = extract_cel_extra(extra)
         assert_that(result, none())
 
 
@@ -198,6 +198,11 @@ class TestAbstractCELInterpretor(TestCase):
 class TestCallerCELInterpretor(TestCase):
     def setUp(self):
         self.caller_cel_interpretor = CallerCELInterpretor()
+        self.call = Mock(
+            RawCallLog,
+            interpret_caller_xivo_user_fwd=True,
+            extension_filter=Mock(filter=lambda x: x),
+        )
 
     def test_interpret_cel_unknown_or_ignored_event(self):
         cel = Mock(eventtype='unknown_or_ignored_eventtype')
@@ -212,9 +217,8 @@ class TestCallerCELInterpretor(TestCase):
             eventtype='XIVO_USER_FWD',
             extra='{"extra":"NUM:100,CONTEXT:internal,NAME:Bob Marley"}',
         )
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, self.call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))
@@ -225,9 +229,8 @@ class TestCallerCELInterpretor(TestCase):
             eventtype='XIVO_USER_FWD',
             extra='{"extra":" NUM: 100 , CONTEXT: internal , NAME: Bob Marley "}',
         )
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, self.call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))
@@ -238,9 +241,8 @@ class TestCallerCELInterpretor(TestCase):
             eventtype='XIVO_USER_FWD',
             extra='{"extra":"BEFORE:value,NUM:100,CONTEXT:internal,NAME:Bob Marley"}',
         )
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, self.call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))
@@ -251,9 +253,8 @@ class TestCallerCELInterpretor(TestCase):
             eventtype='XIVO_USER_FWD',
             extra='{"extra":"NUM:100,CONTEXT:internal,NAME:Bob Marley,AFTER:value"}',
         )
-        call = Mock(RawCallLog, interpret_caller_xivo_user_fwd=True)
 
-        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, call)
+        result = self.caller_cel_interpretor.interpret_xivo_user_fwd(cel, self.call)
 
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))
