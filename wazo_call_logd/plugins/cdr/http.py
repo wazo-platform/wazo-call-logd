@@ -92,10 +92,11 @@ def _output_csv(data, code, http_headers=None):
             if 'tags' in cdr:
                 cdr['tags'] = ';'.join(cdr['tags'])
 
-            for x, recording in enumerate(cdr.pop('recordings')):
+            for x, recording in enumerate(cdr.pop('recordings'), start=1):
                 for key in recording.keys():
-                    csv_key = f'recording_{x+1}_{key}'
-                    csv_headers.append(csv_key)
+                    csv_key = f'recording_{x}_{key}'
+                    if csv_key not in csv_headers:
+                        csv_headers.append(csv_key)
                     cdr[csv_key] = recording[key]
 
             csv_body.append(cdr)

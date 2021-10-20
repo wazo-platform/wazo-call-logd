@@ -532,6 +532,55 @@ class TestListCDR(IntegrationTest):
             'CSV received: {}'.format(result_raw),
         )
 
+    @call_log(
+        **{'id': 12},
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:27',
+        destination_exten='3378',
+        destination_name='dést,ination',
+        direction='internal',
+        source_exten='7687',
+        source_name='soùr.',
+        participants=[
+            {
+                'user_uuid': USER_1_UUID,
+                'line_id': '1',
+                'tags': ['rh', 'Poudlard'],
+                'role': 'source',
+            }
+        ],
+        recordings=[
+            {
+                'start_time': '2017-03-23 00:01:01',
+                'end_time': '2017-03-23 00:01:26',
+                'path': '/tmp/foobar.wav',
+            },
+        ],
+    )
+    @call_log(
+        **{'id': 34},
+        date='2017-03-23 11:11:11',
+        date_answer=None,
+        date_end='2017-03-23 11:13:29',
+        destination_exten='8733',
+        destination_name='noitani,tsèd',
+        direction='outbound',
+        source_exten='7867',
+        source_name='.rùos',
+        recordings=[
+            {
+                'start_time': '2017-03-23 11:11:11',
+                'end_time': '2017-03-23 11:13:29',
+                'path': '/tmp/foobar2.wav',
+            },
+        ],
+    )
+    def test_that_the_recording_columns_are_not_duplicated(self):
+        result_raw = self.call_logd.cdr.list_csv()
+        number_of_recording_column = result_raw.count('recording_1_uuid')
+        assert_that(number_of_recording_column, equal_to(1))
+
     def test_given_wrong_params_when_list_cdr_then_400(self):
         wrong_params = {'abcd', '12:345', '2017-042-10'}
         for wrong_param in wrong_params:
