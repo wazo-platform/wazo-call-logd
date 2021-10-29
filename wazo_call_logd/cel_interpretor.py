@@ -206,7 +206,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_xivo_incall(self, cel, call):
         call.direction = 'inbound'
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return call
 
+        call.set_tenant_uuid(extra['extra'])
         return call
 
     def interpret_xivo_outcall(self, cel, call):
