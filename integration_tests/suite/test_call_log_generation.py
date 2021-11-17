@@ -1254,3 +1254,23 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 requested_exten='',
             ),
         )
+
+    @raw_cels(
+        '''\
+    eventtype    |           eventtime           |   cid_name   | cid_num | cid_dnid | exten  |   context   |        channame         |     appname     |                  appdata                   |   uniqueid   |   linkedid   |                                       extra
+-----------------+-------------------------------+--------------+---------+----------+--------+-------------+-------------------------+-----------------+--------------------------------------------+--------------+--------------+------------------------------------------------------------------------------------
+ CHAN_START      | 2021-11-17 11:10:30.972173-05 | Alice WebRTC | 1101    |          | 4001   | inside      | PJSIP/ycetqvtr-00000000 |                 |                                            | 1637165430.0 | 1637165430.0 |
+ WAZO_CONFERENCE | 2021-11-17 11:10:31.931269-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 | CELGenUserEvent | WAZO_CONFERENCE,NAME:test                  | 1637165430.0 | 1637165430.0 | {"extra":"NAME: test"}
+ ANSWER          | 2021-11-17 11:10:31.934801-05 | Alice WebRTC | 1101    | 4001     | pickup | xivo-pickup | PJSIP/ycetqvtr-00000000 | Answer          |                                            | 1637165430.0 | 1637165430.0 |
+ BRIDGE_ENTER    | 2021-11-17 11:10:37.201038-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 | ConfBridge      | wazo-conference-1,,,xivo-default-user-menu | 1637165430.0 | 1637165430.0 | {"bridge_id":"e2b45e4c-10ba-4561-a59a-9ac28efd454d","bridge_technology":"softmix"}
+ BRIDGE_EXIT     | 2021-11-17 11:10:38.206207-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 | ConfBridge      | wazo-conference-1,,,xivo-default-user-menu | 1637165430.0 | 1637165430.0 | {"bridge_id":"e2b45e4c-10ba-4561-a59a-9ac28efd454d","bridge_technology":"softmix"}
+ HANGUP          | 2021-11-17 11:10:38.615574-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 |                 |                                            | 1637165430.0 | 1637165430.0 | {"hangupcause":16,"hangupsource":"PJSIP/ycetqvtr-00000000","dialstatus":""}
+ CHAN_END        | 2021-11-17 11:10:38.615574-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 |                 |                                            | 1637165430.0 | 1637165430.0 |
+ LINKEDID_END    | 2021-11-17 11:10:38.615574-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 |                 |                                            | 1637165430.0 | 1637165430.0 |
+'''
+    )
+    def test_conference_has_a_destination_name(self):
+        self._assert_last_call_log_matches(
+            '1637165430.0',
+            has_properties(destination_exten='4001', destination_name='test'),
+        )

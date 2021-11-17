@@ -122,6 +122,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
             CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
             CELEventType.wazo_meeting_name: self.interpret_wazo_meeting_name,
+            CELEventType.wazo_conference: self.interpret_wazo_conference,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -228,6 +229,15 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 call.requested_internal_context = match.group(2)
                 call.requested_name = match.group(3)
             call.interpret_caller_xivo_user_fwd = False
+        return call
+
+    def interpret_wazo_conference(self, cel, call):
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return
+
+        _, name = extra['extra'].split('NAME: ', 1)
+        call.destination_name = name
         return call
 
     def interpret_wazo_meeting_name(self, cel, call):
