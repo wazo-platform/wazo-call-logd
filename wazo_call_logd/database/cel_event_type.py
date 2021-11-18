@@ -24,6 +24,7 @@ class CELEventType(object):
 
     # CELGenUserEvent
     wazo_meeting_name = 'WAZO_MEETING_NAME'
+    wazo_conference = 'WAZO_CONFERENCE'
     xivo_from_s = 'XIVO_FROM_S'
     xivo_incall = 'XIVO_INCALL'
     xivo_outcall = 'XIVO_OUTCALL'
