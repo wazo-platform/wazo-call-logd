@@ -22,9 +22,9 @@ from hamcrest import (
     has_properties,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
-from xivo_test_helpers.auth import MockUserToken
-from xivo_test_helpers.hamcrest.raises import raises
-from xivo_test_helpers.hamcrest.uuid_ import uuid_
+from wazo_test_helpers.auth import MockUserToken
+from wazo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.base import cdr, IntegrationTest
 from .helpers.constants import (

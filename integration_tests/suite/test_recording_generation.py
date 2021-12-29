@@ -7,7 +7,7 @@ from hamcrest import (
     contains_inanyorder,
     has_properties,
 )
-from xivo_test_helpers import until
+from wazo_test_helpers import until
 
 from .helpers.base import raw_cels, RawCelIntegrationTest
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy

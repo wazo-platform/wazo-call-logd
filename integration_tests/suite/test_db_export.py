@@ -14,7 +14,7 @@ from hamcrest import (
     has_properties,
     not_none,
 )
-from xivo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.hamcrest.raises import raises
 from wazo_call_logd.database.models import Export
 from wazo_call_logd.exceptions import ExportNotFoundException
 

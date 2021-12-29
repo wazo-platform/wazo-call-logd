@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, equal_to, has_entries, has_entry
-from xivo_test_helpers import until
+from wazo_test_helpers import until
 
 from .helpers.base import IntegrationTest
 

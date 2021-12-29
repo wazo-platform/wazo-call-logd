@@ -16,7 +16,7 @@ from hamcrest import (
     not_,
     none,
 )
-from xivo_test_helpers import until
+from wazo_test_helpers import until
 
 from .helpers.base import raw_cels, RawCelIntegrationTest
 from .helpers.confd import MockContext, MockLine, MockUser

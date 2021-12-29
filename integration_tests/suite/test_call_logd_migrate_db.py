@@ -3,7 +3,7 @@
 
 import uuid
 from hamcrest import assert_that, equal_to
-from xivo_test_helpers import until
+from wazo_test_helpers import until
 
 from .helpers.base import RawCelIntegrationTest
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy

@@ -11,8 +11,8 @@ from hamcrest import (
     not_,
     raises as hraises,
 )
-from xivo_test_helpers import until
-from xivo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers import until
+from wazo_test_helpers.hamcrest.raises import raises
 from wazo_call_logd_client.exceptions import CallLogdError
 
 from .helpers.base import IntegrationTest

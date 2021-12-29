@@ -17,7 +17,7 @@ from hamcrest import (
 )
 
 from wazo_call_logd_client.exceptions import CallLogdError
-from xivo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.constants import MASTER_TENANT
 from .helpers.database import stat_agent_periodic, stat_agent, stat_call_on_queue
