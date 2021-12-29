@@ -12,14 +12,14 @@ from contextlib import contextmanager, wraps
 from requests.packages import urllib3
 from hamcrest import assert_that
 from wazo_call_logd_client.client import Client as CallLogdClient
-from xivo_test_helpers import until
-from xivo_test_helpers.auth import (
+from wazo_test_helpers import until
+from wazo_test_helpers.auth import (
     AuthClient,
     MockUserToken,
     MockCredentials,
 )
-from xivo_test_helpers.wait_strategy import NoWaitStrategy
-from xivo_test_helpers.asset_launching_test_case import (
+from wazo_test_helpers.wait_strategy import NoWaitStrategy
+from wazo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
     NoSuchService,
     NoSuchPort,

@@ -19,8 +19,8 @@ from hamcrest import (
 from io import BytesIO
 
 from wazo_call_logd_client.exceptions import CallLogdError
-from xivo_test_helpers import until
-from xivo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers import until
+from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import (

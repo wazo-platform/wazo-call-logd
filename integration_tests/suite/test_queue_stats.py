@@ -12,7 +12,7 @@ from hamcrest import (
     has_items,
     has_properties,
 )
-from xivo_test_helpers.hamcrest.raises import raises
+from wazo_test_helpers.hamcrest.raises import raises
 
 from wazo_call_logd_client.exceptions import CallLogdError
 

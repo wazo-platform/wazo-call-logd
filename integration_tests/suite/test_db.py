@@ -6,7 +6,7 @@ from hamcrest import (
     empty,
     has_entry,
 )
-from xivo_test_helpers import until
+from wazo_test_helpers import until
 
 from .helpers.base import IntegrationTest
 
