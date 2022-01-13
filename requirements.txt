@@ -5,7 +5,7 @@ https://github.com/wazo-platform/xivo-dao/archive/master.zip
 https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 https://github.com/wazo-platform/wazo-lib-rest-client/archive/master.zip  # from xivo-*-client
 alembic==1.0.0
-celery==4.4.6
+celery==5.2.2
 cheroot==6.5.4
 flask==1.0.2
 flask-restful==0.3.7
