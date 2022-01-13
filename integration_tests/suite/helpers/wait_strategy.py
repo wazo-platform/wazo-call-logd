@@ -1,5 +1,7 @@
-# Copyright 2016-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+import requests
 
 from hamcrest import assert_that, has_entries, has_entry, only_contains
 from wazo_test_helpers import until
@@ -12,7 +14,11 @@ class ComponentsWaitStrategy(WaitStrategy):
 
     def wait(self, integration_test):
         def components_are_ok(components):
-            status = integration_test.call_logd.status.get()
+            try:
+                status = integration_test.call_logd.status.get()
+            except requests.RequestException:
+                status = {}
+
             assert_that(
                 status,
                 has_entries(
@@ -26,7 +32,11 @@ class ComponentsWaitStrategy(WaitStrategy):
 class CallLogdEverythingUpWaitStrategy(WaitStrategy):
     def wait(self, integration_test):
         def everything_is_up():
-            status = integration_test.call_logd.status.get()
+            try:
+                status = integration_test.call_logd.status.get()
+            except requests.RequestException:
+                status = {}
+
             component_statuses = [
                 component['status']
                 for component in status.values()

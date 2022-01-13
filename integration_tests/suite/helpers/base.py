@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -150,6 +150,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         cls.email = cls.make_email()
         cls.auth = cls.make_auth()
         if not isinstance(cls.auth, WrongClient):
+            until.true(cls.auth.is_up, tries=5)
             cls.configure_wazo_auth_for_multitenants()
 
     @classmethod
