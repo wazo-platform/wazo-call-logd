@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -852,8 +852,6 @@ class TestRecordingMediaExport(IntegrationTest):
         def events_received():
             events_created = event_created_accumulator.accumulate()
             events_updated = event_updated_accumulator.accumulate()
-            print(f'events_created = {events_created}')
-            print(f'events_updated = {events_updated}')
             assert_that(
                 events_created,
                 contains(

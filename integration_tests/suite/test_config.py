@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -8,8 +8,6 @@ from hamcrest import (
     has_entry,
     has_key,
     has_properties,
-    not_,
-    raises as hraises,
 )
 from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises
@@ -17,6 +15,7 @@ from wazo_call_logd_client.exceptions import CallLogdError
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import USER_1_TOKEN as TOKEN_SUB_TENANT
+from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
 class TestConfig(IntegrationTest):
@@ -69,14 +68,7 @@ class TestConfig(IntegrationTest):
         self.start_service('auth')
         self.restart_service('call-logd')
         self.reset_clients()
-
-        def _does_not_return_503():
-            assert_that(
-                calling(self.call_logd.config.get),
-                not_(hraises(CallLogdError)),
-            )
-
-        until.assert_(_does_not_return_503, tries=10)
+        CallLogdEverythingUpWaitStrategy().wait(self)
 
     def test_update_config(self):
         debug_true_config = [
