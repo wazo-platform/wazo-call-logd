@@ -31,6 +31,7 @@ from .helpers.constants import (
     USER_2_UUID,
 )
 from .helpers.database import call_log, export, recording
+from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
 class TestExportAPI(IntegrationTest):
@@ -145,6 +146,7 @@ class TestExportAPI(IntegrationTest):
 class TestRecordingMediaExport(IntegrationTest):
 
     asset = 'base'
+    wait_strategy = CallLogdEverythingUpWaitStrategy()
 
     def _recording_filename(self, rec):
         start = rec['start_time'].strftime('%Y-%m-%dT%H_%M_%SUTC')
