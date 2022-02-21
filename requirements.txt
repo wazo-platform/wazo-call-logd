@@ -13,7 +13,7 @@ flask==1.0.2
 itsdangerous==0.24  # from flask
 jsonpatch==1.21
 kombu==4.6.11
-marshmallow==3.0.0b14
+marshmallow==3.10.0
 psycopg2==2.7.7
 python-dateutil==2.7.3  # from marshmallow, to accept more date formats
 pytz==2019.1

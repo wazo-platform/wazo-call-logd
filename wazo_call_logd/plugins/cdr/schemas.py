@@ -40,7 +40,7 @@ class CDRListingBase(Schema):
     recurse = fields.Boolean(missing=False)
 
     @pre_load
-    def convert_tags_and_user_uuid_to_list(self, data):
+    def convert_tags_and_user_uuid_to_list(self, data, **kwargs):
         result = data.to_dict()
         if data.get('tags'):
             result['tags'] = data['tags'].split(',')
@@ -94,20 +94,20 @@ class CDRSchema(Schema):
     recordings = fields.Nested('RecordingSchema', many=True, default=[])
 
     @pre_dump
-    def _compute_fields(self, data):
+    def _compute_fields(self, data, **kwargs):
         data.marshmallow_answered = True if data.date_answer else False
         if data.date_answer and data.date_end:
             data.marshmallow_duration = data.date_end - data.date_answer
         return data
 
     @post_dump
-    def fix_negative_duration(self, data):
+    def fix_negative_duration(self, data, **kwargs):
         if data['duration'] is not None:
             data['duration'] = max(data['duration'], 0)
         return data
 
     @pre_dump
-    def _populate_tags_field(self, data):
+    def _populate_tags_field(self, data, **kwargs):
         data.marshmallow_tags = set()
         for participant in data.participants:
             data.marshmallow_tags.update(participant.tags)
@@ -127,7 +127,7 @@ class CDRListRequestSchema(CDRListingBase):
     format = fields.String(validate=OneOf(['csv', 'json']), missing=None)
 
     @post_load
-    def map_order_field(self, in_data):
+    def map_order_field(self, in_data, **kwargs):
         mapped_order = CDRSchema().fields[in_data['order']].attribute
         if mapped_order:
             in_data['order'] = mapped_order

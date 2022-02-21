@@ -19,7 +19,7 @@ class RetentionSchema(Schema):
     default_recording_days = fields.Integer(dump_only=True)
 
     @validates_schema
-    def validate_days(self, data):
+    def validate_days(self, data, **kwargs):
         cdr_days = data.get('cdr_days')
         recording_days = data.get('recording_days')
         if cdr_days is None or recording_days is None:
