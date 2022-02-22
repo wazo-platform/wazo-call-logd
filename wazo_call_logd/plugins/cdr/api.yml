@@ -35,6 +35,33 @@ paths:
       produces:
         - application/json
         - text/csv; charset=utf-8
+  /cdr/statistics:
+    get:
+      summary: Statistics based on CDR
+      description: '**Required ACL:** `call-logd.cdr.read`'
+      tags:
+        - cdr
+      parameters:
+      - $ref: '#/parameters/tenantuuid'
+      - $ref: '#/parameters/from'
+      - $ref: '#/parameters/until'
+      - $ref: '#/parameters/interval'
+      - $ref: '#/parameters/call_direction'
+      - $ref: '#/parameters/number'
+      - $ref: '#/parameters/tags'
+      - $ref: '#/parameters/user_uuid'
+      - $ref: '#/parameters/recurse'
+      - $ref: '#/parameters/recorded'
+      produces:
+      - application/json
+      - text/csv; charset=utf-8
+      responses:
+        '200':
+          description: Summary CDR Statistics
+          schema:
+            $ref: '#/definitions/CDRStatistics'
+        '400':
+          $ref: '#/responses/InvalidRequest'
   /cdr/recordings/media:
     delete:
       summary: Delete multiple CDRs recording media
@@ -460,3 +487,44 @@ definitions:
         type: boolean
       filename:
         type: string
+  CDRStatistics:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/CDRStatistic'
+        type: array
+      total:
+        type: integer
+    type: object
+  CDRStatistic:
+    properties:
+      from:
+        description: Start of the statistic interval.
+        type: string
+      until:
+        description: End of the statistic interval.
+        type: string
+      tenant_uuid:
+        description: Tenant UUID of the corresponding call log.
+        format: uuid
+        type: string
+      received:
+        description: Total of calls received during the interval
+        type: integer
+      answered:
+        description: Total of answered calls during the interval
+        type: integer
+      not_answered:
+        description: Total of not answered calls during the interval
+        type: integer
+      answered_rate:
+        description: Ratio of answered versus not answered calls during the interval
+        format: float
+        type: number
+      duration:
+        description: Total duration of calls during the interval (seconds)
+        type: integer
+      average_duration:
+        description: Average duration of calls during the interval (seconds)
+        type: integer
+    type: object
