@@ -1,4 +1,4 @@
-# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
@@ -320,7 +320,11 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             call.interpret_callee_bridge_enter = False
 
         if cel.peer:
-            call.raw_participants[cel.peer].update(answered=True)
+            # peer contains multiple entries during adhoc conferences
+            for peer in cel.peer.split(','):
+                if peer not in call.raw_participants:
+                    continue
+                call.raw_participants[peer].update(answered=True)
             cid_name, cid_number = call.caller_id_by_channels[cel.channame]
             if cid_name:
                 call.destination_name = cid_name

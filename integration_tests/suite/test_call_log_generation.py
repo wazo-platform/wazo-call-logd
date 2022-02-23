@@ -1,10 +1,11 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime
 from hamcrest import (
     assert_that,
     all_of,
+    any_of,
     contains_inanyorder,
     empty,
     has_entries,
@@ -14,13 +15,20 @@ from hamcrest import (
     has_properties,
     is_,
     not_,
+    not_none,
     none,
 )
 from wazo_test_helpers import until
 
 from .helpers.base import raw_cels, RawCelIntegrationTest
 from .helpers.confd import MockContext, MockLine, MockUser
-from .helpers.constants import USER_1_UUID, USER_2_UUID, USERS_TENANT, SERVICE_TENANT
+from .helpers.constants import (
+    USER_1_UUID,
+    USER_2_UUID,
+    USER_3_UUID,
+    USERS_TENANT,
+    SERVICE_TENANT,
+)
 
 
 class TestCallLogGeneration(RawCelIntegrationTest):
@@ -1273,4 +1281,86 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self._assert_last_call_log_matches(
             '1637165430.0',
             has_properties(destination_exten='4001', destination_name='test'),
+        )
+
+    @raw_cels(
+        '''\
+    eventtype     |           eventtime           | cid_name  | cid_num | cid_ani |      exten       |      context      |        channame         |  appname   |                                                        appdata                                                        |   uniqueid    |   linkedid    |                      peer                       |                                                                               extra
+------------------+-------------------------------+-----------+---------+---------+------------------+-------------------+-------------------------+------------+-----------------------------------------------------------------------------------------------------------------------+---------------+---------------+-------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ CHAN_START       | 2021-10-06 13:53:54.410847-04 | fb user1  | 1801    |         | 1130             | internal          | PJSIP/pa9pkxh5-00000010 |            |                                                                                                                       | 1633542834.28 | 1633542834.28 |                                                 |
+ APP_START        | 2021-10-06 13:53:55.140581-04 | fb user1  | 1801    | 1801    | s                | user              | PJSIP/pa9pkxh5-00000010 | Dial       | PJSIP/Y4sSJpnV/sip:mjaasgm4@127.0.0.1:50240;transport=ws,30,HTXb(wazo-pre-dial-hooks^s^1)                             | 1633542834.28 | 1633542834.28 |                                                 |
+ CHAN_START       | 2021-10-06 13:53:55.141093-04 | Alice pcm | 1130    |         | s                | internal          | PJSIP/Y4sSJpnV-00000011 |            |                                                                                                                       | 1633542835.29 | 1633542834.28 |                                                 |
+ ANSWER           | 2021-10-06 13:53:59.536051-04 | Alice pcm | 1130    | 1130    | s                | internal          | PJSIP/Y4sSJpnV-00000011 | AppDial    | (Outgoing Line)                                                                                                       | 1633542835.29 | 1633542834.28 |                                                 |
+ ANSWER           | 2021-10-06 13:53:59.536318-04 | fb user1  | 1801    | 1801    | s                | user              | PJSIP/pa9pkxh5-00000010 | Dial       | PJSIP/Y4sSJpnV/sip:mjaasgm4@127.0.0.1:50240;transport=ws,30,HTXb(wazo-pre-dial-hooks^s^1)                             | 1633542834.28 | 1633542834.28 |                                                 |
+ BRIDGE_ENTER     | 2021-10-06 13:53:59.537795-04 | Alice pcm | 1130    | 1130    |                  | internal          | PJSIP/Y4sSJpnV-00000011 | AppDial    | (Outgoing Line)                                                                                                       | 1633542835.29 | 1633542834.28 |                                                 | {"bridge_id":"9389022b-efca-427c-875d-567ec4394358","bridge_technology":"simple_bridge"}
+ BRIDGE_ENTER     | 2021-10-06 13:53:59.538102-04 | fb user1  | 1801    | 1801    | s                | user              | PJSIP/pa9pkxh5-00000010 | Dial       | PJSIP/Y4sSJpnV/sip:mjaasgm4@127.0.0.1:50240;transport=ws,30,HTXb(wazo-pre-dial-hooks^s^1)                             | 1633542834.28 | 1633542834.28 | PJSIP/Y4sSJpnV-00000011                         | {"bridge_id":"9389022b-efca-427c-875d-567ec4394358","bridge_technology":"simple_bridge"}
+ BRIDGE_EXIT      | 2021-10-06 13:55:34.348449-04 | Alice pcm | 1130    | 1130    | adhoc_conference | convert_to_stasis | PJSIP/Y4sSJpnV-00000011 | AppDial    | (Outgoing Line)                                                                                                       | 1633542835.29 | 1633542834.28 |                                                 | {"bridge_id":"9389022b-efca-427c-875d-567ec4394358","bridge_technology":"simple_bridge"}
+ BRIDGE_EXIT      | 2021-10-06 13:55:34.348561-04 | fb user1  | 1801    | 1801    | h                | convert_to_stasis | PJSIP/pa9pkxh5-00000010 | Dial       | PJSIP/Y4sSJpnV/sip:mjaasgm4@127.0.0.1:50240;transport=ws,30,HTXb(wazo-pre-dial-hooks^s^1)                             | 1633542834.28 | 1633542834.28 |                                                 | {"bridge_id":"9389022b-efca-427c-875d-567ec4394358","bridge_technology":"simple_bridge"}
+ HANGUP           | 2021-10-06 13:55:34.350263-04 | fb user1  | 1801    | 1801    | h                | convert_to_stasis | PJSIP/pa9pkxh5-00000010 |            |                                                                                                                       | 1633542834.28 | 1633542834.28 |                                                 | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
+ CHAN_END         | 2021-10-06 13:55:34.350263-04 | fb user1  | 1801    | 1801    | h                | convert_to_stasis | PJSIP/pa9pkxh5-00000010 |            |                                                                                                                       | 1633542834.28 | 1633542834.28 |                                                 |
+ BRIDGE_ENTER     | 2021-10-06 13:55:34.639291-04 | Alice pcm | 1130    | 1130    | adhoc_conference | convert_to_stasis | PJSIP/Y4sSJpnV-00000011 | Stasis     | adhoc_conference,abc9c96e-2a96-43b6-9784-bb3e70c587e5                                                                 | 1633542835.29 | 1633542834.28 | PJSIP/pa9pkxh5-00000012,PJSIP/auc6927d-00000013 | {"bridge_id":"abc9c96e-2a96-43b6-9784-bb3e70c587e5","bridge_technology":"simple_bridge"}
+ BRIDGE_EXIT      | 2021-10-06 13:55:58.619722-04 | fb user1  | 1801    | 1801    | adhoc_conference | convert_to_stasis | PJSIP/pa9pkxh5-00000012 | Stasis     | adhoc_conference,abc9c96e-2a96-43b6-9784-bb3e70c587e5                                                                 | 1633542905.30 | 1633542834.28 | PJSIP/Y4sSJpnV-00000011,PJSIP/auc6927d-00000013 | {"bridge_id":"abc9c96e-2a96-43b6-9784-bb3e70c587e5","bridge_technology":"softmix"}
+ HANGUP           | 2021-10-06 13:55:58.622227-04 | fb user1  | 1801    | 1801    | adhoc_conference | convert_to_stasis | PJSIP/pa9pkxh5-00000012 |            |                                                                                                                       | 1633542905.30 | 1633542834.28 |                                                 | {"hangupcause":16,"hangupsource":"PJSIP/pa9pkxh5-00000012","dialstatus":"ANSWER"}
+ CHAN_END         | 2021-10-06 13:55:58.622227-04 | fb user1  | 1801    | 1801    | adhoc_conference | convert_to_stasis | PJSIP/pa9pkxh5-00000012 |            |                                                                                                                       | 1633542905.30 | 1633542834.28 |                                                 |
+ BRIDGE_EXIT      | 2021-10-06 13:55:58.692085-04 | Alice pcm | 1130    | 1130    | adhoc_conference | convert_to_stasis | PJSIP/Y4sSJpnV-00000011 | Stasis     | adhoc_conference,abc9c96e-2a96-43b6-9784-bb3e70c587e5                                                                 | 1633542835.29 | 1633542834.28 | PJSIP/auc6927d-00000013                         | {"bridge_id":"abc9c96e-2a96-43b6-9784-bb3e70c587e5","bridge_technology":"simple_bridge"}
+ HANGUP           | 2021-10-06 13:55:58.692876-04 | Alice pcm | 1130    | 1130    | adhoc_conference | convert_to_stasis | PJSIP/Y4sSJpnV-00000011 | AppDial    | (Outgoing Line)                                                                                                       | 1633542835.29 | 1633542834.28 |                                                 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+ CHAN_END         | 2021-10-06 13:55:58.692876-04 | Alice pcm | 1130    | 1130    | adhoc_conference | convert_to_stasis | PJSIP/Y4sSJpnV-00000011 | AppDial    | (Outgoing Line)                                                                                                       | 1633542835.29 | 1633542834.28 |                                                 |
+ BRIDGE_EXIT      | 2021-10-06 13:55:58.718222-04 | fb user2  | 1802    | 1802    | adhoc_conference | convert_to_stasis | PJSIP/auc6927d-00000013 | Stasis     | adhoc_conference,abc9c96e-2a96-43b6-9784-bb3e70c587e5                                                                 | 1633542906.31 | 1633542834.28 |                                                 | {"bridge_id":"abc9c96e-2a96-43b6-9784-bb3e70c587e5","bridge_technology":"simple_bridge"}
+ HANGUP           | 2021-10-06 13:55:58.718839-04 | fb user2  | 1802    | 1802    | adhoc_conference | convert_to_stasis | PJSIP/auc6927d-00000013 | AppDial    | (Outgoing Line)                                                                                                       | 1633542906.31 | 1633542834.28 |                                                 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+ CHAN_END         | 2021-10-06 13:55:58.718839-04 | fb user2  | 1802    | 1802    | adhoc_conference | convert_to_stasis | PJSIP/auc6927d-00000013 | AppDial    | (Outgoing Line)                                                                                                       | 1633542906.31 | 1633542834.28 |                                                 |
+ LINKEDID_END     | 2021-10-06 13:55:58.718839-04 | fb user2  | 1802    | 1802    | adhoc_conference | convert_to_stasis | PJSIP/auc6927d-00000013 | AppDial    | (Outgoing Line)                                                                                                       | 1633542906.31 | 1633542834.28 |                                                 |
+'''
+    )
+    def test_adhoc_conference(self):
+        self.confd.set_users(
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
+            MockUser(USER_3_UUID, USERS_TENANT, line_ids=[3]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='pa9pkxh5',
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '1801', 'context': 'internal'}],
+            ),
+            MockLine(
+                id=2,
+                name='auc6927d',
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '1802', 'context': 'internal'}],
+            ),
+            MockLine(
+                id=3,
+                name='Y4sSJpnV',
+                users=[{'uuid': USER_3_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '1130', 'context': 'internal'}],
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='internal', tenant_uuid=USERS_TENANT)
+        )
+
+        self._assert_last_call_log_matches(
+            '1633542834.28',
+            has_properties(
+                id=not_none(),
+                participants=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(), user_uuid=USER_1_UUID, role='source'
+                    ),
+                    any_of(
+                        # One of the participant is ignored
+                        has_properties(
+                            uuid=not_none(), user_uuid=USER_2_UUID, role='destination'
+                        ),
+                        has_properties(
+                            uuid=not_none(), user_uuid=USER_3_UUID, role='destination'
+                        ),
+                    ),
+                ),
+            ),
         )
