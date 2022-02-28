@@ -95,7 +95,7 @@ class _StatisticsListRequestSchema(Schema):
             return timezone.normalize(utc_dt)
 
     @pre_load
-    def convert_week_days_to_list(self, data):
+    def convert_week_days_to_list(self, data, **kwargs):
         result = data.copy()
         if not isinstance(data, dict):
             result = data.to_dict()
@@ -166,7 +166,7 @@ class QueueStatisticsQoSRequestSchema(_StatisticsListRequestSchema):
     qos_thresholds = fields.List(fields.Integer(validate=Range(min=0)), missing=[])
 
     @pre_load
-    def convert_qos_thresholds_to_list(self, data):
+    def convert_qos_thresholds_to_list(self, data, **kwargs):
         result = data.copy()
         if not isinstance(result, dict):
             result = result.to_dict()
@@ -175,7 +175,7 @@ class QueueStatisticsQoSRequestSchema(_StatisticsListRequestSchema):
         return result
 
     @post_load
-    def sort_qos_thresholds(self, data):
+    def sort_qos_thresholds(self, data, **kwargs):
         result = data.copy()
         if data.get('qos_thresholds'):
             result['qos_thresholds'] = sorted(data['qos_thresholds'])

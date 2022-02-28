@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import validates_schema
@@ -19,7 +19,7 @@ class RetentionSchema(Schema):
     default_recording_days = fields.Integer(dump_only=True)
 
     @validates_schema
-    def validate_days(self, data):
+    def validate_days(self, data, **kwargs):
         cdr_days = data.get('cdr_days')
         recording_days = data.get('recording_days')
         if cdr_days is None or recording_days is None:
@@ -28,5 +28,5 @@ class RetentionSchema(Schema):
         if recording_days > cdr_days:
             raise ValidationError(
                 '"recording_days" must be higher or equal than "cdr_days"',
-                'recording_days',
+                field_name='recording_days',
             )
