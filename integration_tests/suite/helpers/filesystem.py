@@ -1,5 +1,7 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+from functools import wraps
 
 FILE_USER = 'wazo-call-logd'
 FILE_GROUP = 'wazo-call-logd'
@@ -32,3 +34,19 @@ class FileSystemClient:
             return_attr='returncode',
         )
         return result == 0
+
+
+def file_(path, service_name=None, **file_kwargs):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            filesystem = FileSystemClient(self.docker_exec, service_name=service_name)
+            filesystem.create_file(path, **file_kwargs)
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                filesystem.remove_file(path)
+
+        return wrapped_function
+
+    return _decorate

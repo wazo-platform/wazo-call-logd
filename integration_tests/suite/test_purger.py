@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import (
@@ -12,7 +12,7 @@ from wazo_call_logd.database.models import CallLog, Export, Recording
 from .helpers.base import DBIntegrationTest
 from .helpers.constants import MASTER_TENANT, OTHER_TENANT
 from .helpers.database import call_log, export, recording, retention
-from .helpers.filesystem import FileSystemClient
+from .helpers.filesystem import FileSystemClient, file_
 
 
 class _BasePurger(DBIntegrationTest):
@@ -68,10 +68,10 @@ class TestCallLogPurger(_BasePurger):
     @recording(call_log_id=1, path='/tmp/1')
     @recording(call_log_id=2, path='/tmp/2')
     @recording(call_log_id=3, path='/tmp/3')
+    @file_('/tmp/1', service_name='purge-db')
+    @file_('/tmp/2', service_name='purge-db')
+    @file_('/tmp/3', service_name='purge-db')
     def test_purger(self, *_):
-        self.filesystem.create_file('/tmp/1')
-        self.filesystem.create_file('/tmp/2')
-        self.filesystem.create_file('/tmp/3')
         self._assert_len_call_logs(3)
 
         days_to_keep = 42
@@ -154,10 +154,10 @@ class TestExportPurger(_BasePurger):
     @export(requested_at=dt.utcnow() - td(days=1), path='/tmp/1')
     @export(requested_at=dt.utcnow() - td(days=2), path='/tmp/2')
     @export(requested_at=dt.utcnow() - td(days=3), path='/tmp/3')
+    @file_('/tmp/1', service_name='purge-db')
+    @file_('/tmp/2', service_name='purge-db')
+    @file_('/tmp/3', service_name='purge-db')
     def test_purger(self, *_):
-        self.filesystem.create_file('/tmp/1')
-        self.filesystem.create_file('/tmp/2')
-        self.filesystem.create_file('/tmp/3')
         self._assert_len_export(3)
 
         days_to_keep = 42
@@ -191,10 +191,10 @@ class TestExportPurger(_BasePurger):
         requested_at=dt.utcnow() - td(days=1), path='/tmp/3', tenant_uuid=OTHER_TENANT
     )
     @retention(tenant_uuid=MASTER_TENANT, export_days=3)
+    @file_('/tmp/1', service_name='purge-db')
+    @file_('/tmp/2', service_name='purge-db')
+    @file_('/tmp/3', service_name='purge-db')
     def test_purger_by_retention(self, *_):
-        self.filesystem.create_file('/tmp/1')
-        self.filesystem.create_file('/tmp/2')
-        self.filesystem.create_file('/tmp/3')
         self._assert_len_export(3)
 
         # When retention < default
@@ -217,8 +217,8 @@ class TestExportPurger(_BasePurger):
         requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT
     )
     @retention(tenant_uuid=MASTER_TENANT, export_days=0)
+    @file_('/tmp/1', service_name='purge-db')
     def test_purger_when_retention_is_zero(self, *_):
-        self.filesystem.create_file('/tmp/1')
         days_to_keep = 365
         self._purge(days_to_keep)
         self._assert_len_export(0)
@@ -241,8 +241,8 @@ class TestExportPurger(_BasePurger):
     @export(
         requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT
     )
+    @file_('/tmp/1', service_name='purge-db')
     def test_purger_when_default_days_is_customized(self, *_):
-        self.filesystem.create_file('/tmp/1')
         config = self.dao.config.find_or_create()
         config.retention_export_days = 42
         self.dao.config.update(config)
@@ -273,10 +273,10 @@ class TestRecordingPurger(_BasePurger):
     @recording(call_log_id=1, path='/tmp/1')
     @recording(call_log_id=2, path='/tmp/2')
     @recording(call_log_id=3, path='/tmp/3')
+    @file_('/tmp/1', service_name='purge-db')
+    @file_('/tmp/2', service_name='purge-db')
+    @file_('/tmp/3', service_name='purge-db')
     def test_purger(self, *_):
-        self.filesystem.create_file('/tmp/1')
-        self.filesystem.create_file('/tmp/2')
-        self.filesystem.create_file('/tmp/3')
         self._assert_len_recording_path(3)
 
         days_to_keep = 42
@@ -307,10 +307,10 @@ class TestRecordingPurger(_BasePurger):
     @recording(call_log_id=2, path='/tmp/2')
     @recording(call_log_id=3, path='/tmp/3')
     @retention(tenant_uuid=MASTER_TENANT, recording_days=3)
+    @file_('/tmp/1', service_name='purge-db')
+    @file_('/tmp/2', service_name='purge-db')
+    @file_('/tmp/3', service_name='purge-db')
     def test_purger_by_retention(self, *_):
-        self.filesystem.create_file('/tmp/1')
-        self.filesystem.create_file('/tmp/2')
-        self.filesystem.create_file('/tmp/3')
         self._assert_len_recording_path(3)
 
         # When retention < default
@@ -332,8 +332,8 @@ class TestRecordingPurger(_BasePurger):
     @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
     @recording(call_log_id=1, path='/tmp/1')
     @retention(tenant_uuid=MASTER_TENANT, recording_days=0)
+    @file_('/tmp/1', service_name='purge-db')
     def test_purger_when_retention_is_zero(self, *_):
-        self.filesystem.create_file('/tmp/1')
         days_to_keep = 365
         self._purge(days_to_keep)
         self._assert_len_recording_path(0)
@@ -350,8 +350,8 @@ class TestRecordingPurger(_BasePurger):
 
     @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
     @recording(call_log_id=1, path='/tmp/1')
+    @file_('/tmp/1', service_name='purge-db')
     def test_purger_when_default_days_is_customizedd(self, *_):
-        self.filesystem.create_file('/tmp/1')
         config = self.dao.config.find_or_create()
         config.retention_recording_days = 42
         self.dao.config.update(config)

@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -22,6 +22,7 @@ from .helpers.constants import (
     OTHER_TENANT as SUB_TENANT,
 )
 from .helpers.database import call_log
+from .helpers.filesystem import file_
 
 
 class TestRecording(IntegrationTest):
@@ -33,10 +34,10 @@ class TestRecording(IntegrationTest):
         date='2021-01-01T01:00:00+01:00',
         recordings=[{'path': '/tmp/foobar.wav'}, {'path': '/tmp/foobar2.wav'}],
     )
+    @file_('/tmp/foobar.wav', content='my-recording-content')
+    @file_('/tmp/foobar2.wav', content='hidden')
     def test_get_media(self):
         cdr_id = 1
-        self.filesystem.create_file('/tmp/foobar.wav', content='my-recording-content')
-        self.filesystem.create_file('/tmp/foobar2.wav', content='hidden')
         recording = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][0]
         response = self.call_logd.cdr.get_recording_media(cdr_id, recording['uuid'])
         expected_filename = recording['filename']
@@ -77,9 +78,9 @@ class TestRecording(IntegrationTest):
             ),
         )
 
+    @file_('/tmp/denied.wav', mode='000')
     @call_log(**{'id': 1}, recordings=[{'path': '/tmp/denied.wav'}])
     def test_get_media_when_file_has_wrong_permission(self):
-        self.filesystem.create_file('/tmp/denied.wav', mode='000')
         rec_uuid = self.call_logd.cdr.get_by_id(1)['recordings'][0]['uuid']
         assert_that(
             calling(self.call_logd.cdr.get_recording_media).with_args(1, rec_uuid),
@@ -112,9 +113,8 @@ class TestRecording(IntegrationTest):
         tenant_uuid=SUB_TENANT,
         recordings=[{'path': '/tmp/11-recording.wav'}],
     )
+    @file_('/tmp/11-recording.wav', content='11-recording')
     def test_get_media_mutli_tenant(self):
-        self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
-
         rec_uuid = self.call_logd.cdr.get_by_id(10)['recordings'][0]['uuid']
         assert_that(
             calling(self.call_logd.cdr.get_recording_media).with_args(
@@ -136,9 +136,9 @@ class TestRecording(IntegrationTest):
         tenant_uuid=MAIN_TENANT,
         recordings=[{'path': '/tmp/foobar.wav'}],
     )
+    @file_('/tmp/foobar.wav', content='my-recording-content')
     def test_get_media_using_token_tenant_query_string(self):
         cdr_id = 1
-        self.filesystem.create_file('/tmp/foobar.wav', content='my-recording-content')
         recording_uuid = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][0]['uuid']
         port = self.service_port(9298, 'call-logd')
         base_url = f'http://127.0.0.1:{port}/1.0'
@@ -159,10 +159,10 @@ class TestRecording(IntegrationTest):
         date='2021-01-01T01:00:00+01:00',
         recordings=[{'path': '/tmp/foobar.wav'}, {'path': '/tmp/foobar2.wav'}],
     )
+    @file_('/tmp/foobar.wav', content='deleted')
+    @file_('/tmp/foobar2.wav', content='visible')
     def test_delete_media(self):
         cdr_id = 1
-        self.filesystem.create_file('/tmp/foobar.wav', content='deleted')
-        self.filesystem.create_file('/tmp/foobar2.wav', content='visible')
         recording1 = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][0]
         recording2 = self.call_logd.cdr.get_by_id(cdr_id)['recordings'][1]
 
@@ -218,8 +218,8 @@ class TestRecording(IntegrationTest):
         assert_that(recording['deleted'], equal_to(True))
 
     @call_log(**{'id': 1}, recordings=[{'path': '/tmp/denied.wav'}])
+    @file_('/tmp/denied.wav', mode='000', root=True)
     def test_delete_media_when_file_has_wrong_permission(self):
-        self.filesystem.create_file('/tmp/denied.wav', mode='000', root=True)
         rec_uuid = self.call_logd.cdr.get_by_id(1)['recordings'][0]['uuid']
         assert_that(
             calling(self.call_logd.cdr.delete_recording_media).with_args(1, rec_uuid),
@@ -247,9 +247,8 @@ class TestRecording(IntegrationTest):
         tenant_uuid=SUB_TENANT,
         recordings=[{'path': '/tmp/11-recording.wav'}],
     )
+    @file_('/tmp/11-recording.wav', content='11-recording')
     def test_delete_media_mutli_tenant(self):
-        self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
-
         rec_uuid = self.call_logd.cdr.get_by_id(10)['recordings'][0]['uuid']
         assert_that(
             calling(self.call_logd.cdr.delete_recording_media).with_args(
@@ -298,12 +297,12 @@ class TestRecording(IntegrationTest):
         date='2021-01-01T03:00:00+01:00',
         recordings=[{'path': '/tmp/foobar4.wav'}],
     )
+    @file_('/tmp/foobar.wav', content='deleted')
+    @file_('/tmp/foobar2.wav', content='deleted')
+    @file_('/tmp/foobar3.wav', content='deleted')
+    @file_('/tmp/foobar4.wav', content='visible')
     def test_delete_media_multi_cdr(self):
         cdr_ids = [1, 2, 3]
-        self.filesystem.create_file('/tmp/foobar.wav', content='deleted')
-        self.filesystem.create_file('/tmp/foobar2.wav', content='deleted')
-        self.filesystem.create_file('/tmp/foobar3.wav', content='deleted')
-        self.filesystem.create_file('/tmp/foobar4.wav', content='visible')
         recording1 = self.call_logd.cdr.get_by_id(cdr_ids[0])['recordings'][0]
         recording2 = self.call_logd.cdr.get_by_id(cdr_ids[0])['recordings'][1]
         recording3 = self.call_logd.cdr.get_by_id(cdr_ids[1])['recordings'][0]
@@ -380,9 +379,9 @@ class TestRecording(IntegrationTest):
 
     @call_log(**{'id': 1}, recordings=[{'path': '/tmp/denied.wav'}])
     @call_log(**{'id': 2}, recordings=[{'path': '/tmp/ok.wav'}])
+    @file_('/tmp/denied.wav', mode='000', root=True)
+    @file_('/tmp/ok.wav')
     def test_delete_media_when_file_has_wrong_permission_multi_cdr(self):
-        self.filesystem.create_file('/tmp/denied.wav', mode='000', root=True)
-        self.filesystem.create_file('/tmp/ok.wav')
         assert_that(
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args([1, 2]),
             raises(CallLogdError).matching(
@@ -413,9 +412,9 @@ class TestRecording(IntegrationTest):
         tenant_uuid=MAIN_TENANT,
         recordings=[{'path': '/tmp/11-recording.wav'}],
     )
+    @file_('/tmp/10-recording.wav', content='10-recording')
+    @file_('/tmp/11-recording.wav', content='11-recording')
     def test_delete_media_mutli_tenant_multi_cdr(self):
-        self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
-        self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
 
         assert_that(
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args(
