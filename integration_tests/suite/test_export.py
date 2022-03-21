@@ -975,7 +975,7 @@ class TestRecordingMediaExport(IntegrationTest):
 
         until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
 
-        url = self.email.get_last_email_url()
+        url = until.true(self.email.get_last_email_url, timeout=5)
 
         url = url.replace('https://', 'http://')
         result = requests.get(url)
