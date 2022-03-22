@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -100,6 +100,7 @@ class Controller:
         )
         self.status_aggregator.add_provider(self.bus_client.provide_status)
         self.status_aggregator.add_provider(self.token_status.provide_status)
+        self.status_aggregator.add_provider(celery.provide_status)
         signal.signal(signal.SIGTERM, partial(_sigterm_handler, self))
 
         self._update_db_from_config_file()

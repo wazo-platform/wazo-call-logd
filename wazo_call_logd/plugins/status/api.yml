@@ -16,6 +16,8 @@ definitions:
     properties:
       bus_consumer:
         $ref: '#/definitions/ComponentWithStatus'
+      task_queue:
+        $ref: '#/definitions/ComponentWithStatus'
       service_token:
         $ref: '#/definitions/ComponentWithStatus'
   ComponentWithStatus:
