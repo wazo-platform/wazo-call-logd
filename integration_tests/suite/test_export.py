@@ -31,6 +31,7 @@ from .helpers.constants import (
     USER_2_UUID,
 )
 from .helpers.database import call_log, export, recording
+from .helpers.filesystem import file_
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 
@@ -83,9 +84,9 @@ class TestExportAPI(IntegrationTest):
             ),
         )
 
+    @file_('/tmp/foobar.zip', content='zipfile')
     @export(status='finished', path='/tmp/foobar.zip')
     def test_download_finished(self, export):
-        self.filesystem.create_file('/tmp/foobar.zip', content='zipfile')
         export_from_api = self.call_logd.export.get(export['uuid'])
         assert_that(export_from_api, has_entries(status='finished'))
 
@@ -96,7 +97,6 @@ class TestExportAPI(IntegrationTest):
             result.headers['Content-Disposition'],
             equal_to(f'attachment; filename={expected_filename}'),
         )
-        self.filesystem.remove_file('/tmp/foobar.zip')
 
     @export(status='finished', path='/tmp/foobar2.zip')
     def test_download_finished_when_file_deleted_on_filesystem(self, export):
@@ -110,9 +110,9 @@ class TestExportAPI(IntegrationTest):
             ),
         )
 
+    @file_('/tmp/foobar3.zip', content='zipfile', mode='000')
     @export(status='finished', path='/tmp/foobar3.zip')
     def test_download_finished_when_file_has_wrong_permissions(self, export):
-        self.filesystem.create_file('/tmp/foobar3.zip', content='zipfile', mode='000')
         export_from_api = self.call_logd.export.get(export['uuid'])
         assert_that(export_from_api, has_entries(status='finished'))
 
@@ -122,12 +122,10 @@ class TestExportAPI(IntegrationTest):
                 has_properties(status_code=500, error_id='export-permission-denied')
             ),
         )
-        self.filesystem.remove_file('/tmp/foobar3.zip')
 
+    @file_('/tmp/foobar4.zip', content='zipfile')
     @export(status='finished', path='/tmp/foobar4.zip')
     def test_download_when_token_tenant_in_query_string(self, export):
-        self.filesystem.create_file('/tmp/foobar4.zip', content='zipfile')
-
         port = self.service_port(9298, 'call-logd')
         base_url = f'http://127.0.0.1:{port}/1.0'
         api_url = f"{base_url}/exports/{export['uuid']}/download"
@@ -139,8 +137,6 @@ class TestExportAPI(IntegrationTest):
         params = {'tenant': OTHER_TENANT, 'token': MASTER_TOKEN}
         response = requests.get(api_url, params=params)
         assert_that(response.status_code, equal_to(404))
-
-        self.filesystem.remove_file('/tmp/foobar4.zip')
 
 
 class TestRecordingMediaExport(IntegrationTest):
@@ -195,12 +191,11 @@ class TestRecordingMediaExport(IntegrationTest):
 
     @call_log(**{'id': 10})
     @call_log(**{'id': 11})
+    @file_('/tmp/10-recording.wav', content='10-recording')
+    @file_('/tmp/11-recording.wav', content='11-recording')
     @recording(call_log_id=10, path='/tmp/10-recording.wav')
     @recording(call_log_id=11, path='/tmp/11-recording.wav')
     def test_create_when_no_params(self, rec1, rec2):
-        self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
-        self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
-
         export = self.call_logd.cdr.export_recording_media()
         export_uuid = export['uuid']
 
@@ -220,17 +215,14 @@ class TestRecordingMediaExport(IntegrationTest):
                 },
             ],
         )
-        self.filesystem.remove_file('/tmp/10-recording.wav')
-        self.filesystem.remove_file('/tmp/11-recording.wav')
 
     @call_log(**{'id': 10})
     @call_log(**{'id': 11})
+    @file_('/tmp/10-recording.wav', content='10-recording')
+    @file_('/tmp/11-recording.wav', content='11-recording')
     @recording(call_log_id=10, path='/tmp/10-recording.wav')
     @recording(call_log_id=11, path='/tmp/11-recording.wav')
     def test_create_from_cdr_ids(self, rec1, rec2):
-        self.filesystem.create_file('/tmp/10-recording.wav', content='10-recording')
-        self.filesystem.create_file('/tmp/11-recording.wav', content='11-recording')
-
         export = self.call_logd.cdr.export_recording_media(cdr_ids=[10, 11])
         export_uuid = export['uuid']
 
@@ -250,8 +242,6 @@ class TestRecordingMediaExport(IntegrationTest):
                 },
             ],
         )
-        self.filesystem.remove_file('/tmp/10-recording.wav')
-        self.filesystem.remove_file('/tmp/11-recording.wav')
 
     @call_log(**{'id': 10})
     def test_create_from_cdr_ids_when_no_recording(self):
@@ -263,6 +253,7 @@ class TestRecordingMediaExport(IntegrationTest):
         )
 
     @call_log(**{'id': 10})
+    @file_('/tmp/10-recording.wav', content='10-recording', mode='000')
     @recording(
         call_log_id=10,
         path='/tmp/10-recording.wav',
@@ -270,16 +261,11 @@ class TestRecordingMediaExport(IntegrationTest):
         end_time=datetime.now(),
     )
     def test_create_from_cdr_ids_when_recording_file_permissions_are_wrong(self, rec1):
-        self.filesystem.create_file(
-            '/tmp/10-recording.wav', content='10-recording', mode='000'
-        )
-
         export_uuid = self.call_logd.cdr.export_recording_media(cdr_ids=[10])['uuid']
 
         until.assert_(self._export_status_is, export_uuid, 'error', timeout=5)
         result = self.call_logd.export.get(export_uuid)
         assert_that(result, has_entries(status='error'))
-        self.filesystem.remove_file('/tmp/10-recording.wav')
 
     @call_log(**{'id': 10})
     @recording(call_log_id=10, path='/tmp/10-recording.wav')
@@ -307,13 +293,13 @@ class TestRecordingMediaExport(IntegrationTest):
     @call_log(**{'id': 2}, date='2021-05-21T15:00:00')
     @call_log(**{'id': 3}, date='2021-05-22T15:00:00')
     @call_log(**{'id': 4}, date='2021-05-23T15:00:00')
+    @file_(path='/tmp/2-recording.wav', content='2-recording')
+    @file_(path='/tmp/3-recording.wav', content='3-recording')
+    @file_(path='/tmp/4-recording.wav', content='4-recording')
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     @recording(call_log_id=4, path='/tmp/4-recording.wav')
     def test_create_from_time_range(self, rec1, rec2, _):
-        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
-        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
-        self.filesystem.create_file('/tmp/4-recording.wav', content='4-recording')
         export = self.call_logd.cdr.export_recording_media(
             from_='2021-05-20T00:00:00',
             until='2021-05-23T00:00:00',
@@ -336,22 +322,18 @@ class TestRecordingMediaExport(IntegrationTest):
                 },
             ],
         )
-        self.filesystem.remove_file('/tmp/2-recording.wav')
-        self.filesystem.remove_file('/tmp/3-recording.wav')
-        self.filesystem.remove_file('/tmp/4-recording.wav')
 
     @call_log(**{'id': 1}, date='2021-05-20T15:00:00')
     @call_log(**{'id': 2}, date='2021-05-21T15:00:00')
     @call_log(**{'id': 3}, date='2021-05-22T15:00:00')
     @call_log(**{'id': 4}, date='2021-05-23T15:00:00')
+    @file_(path='/tmp/1-recording.wav', content='1-recording')
+    @file_(path='/tmp/2-recording.wav', content='2-recording')
+    @file_(path='/tmp/3-recording.wav', content='3-recording')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_using_from_id_param(self, _, rec2, rec3):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
-        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
-        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
-
         export_uuid = self.call_logd.cdr.export_recording_media(from_id=2)['uuid']
 
         until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
@@ -371,21 +353,17 @@ class TestRecordingMediaExport(IntegrationTest):
                 },
             ],
         )
-        self.filesystem.remove_file('/tmp/1-recording.wav')
-        self.filesystem.remove_file('/tmp/2-recording.wav')
-        self.filesystem.remove_file('/tmp/3-recording.wav')
 
     @call_log(**{'id': 1}, date='2021-05-20T15:00:00', direction='inbound')
     @call_log(**{'id': 2}, date='2021-05-21T15:00:00', direction='internal')
     @call_log(**{'id': 3}, date='2021-05-22T15:00:00', direction='internal')
+    @file_(path='/tmp/1-recording.wav', content='1-recording')
+    @file_(path='/tmp/2-recording.wav', content='2-recording')
+    @file_(path='/tmp/3-recording.wav', content='3-recording')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_from_call_direction_param(self, rec1, rec2, rec3):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
-        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
-        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
-
         export = self.call_logd.cdr.export_recording_media(call_direction='inbound')
         export_uuid = export['uuid']
 
@@ -431,10 +409,6 @@ class TestRecordingMediaExport(IntegrationTest):
             ),
         )
 
-        self.filesystem.remove_file('/tmp/1-recording.wav')
-        self.filesystem.remove_file('/tmp/2-recording.wav')
-        self.filesystem.remove_file('/tmp/3-recording.wav')
-
     @call_log(
         **{'id': 1},
         date='2021-05-20T15:00:00',
@@ -457,14 +431,13 @@ class TestRecordingMediaExport(IntegrationTest):
             {'user_uuid': USER_2_UUID},
         ],
     )
+    @file_(path='/tmp/1-recording.wav', content='1-recording')
+    @file_(path='/tmp/2-recording.wav', content='2-recording')
+    @file_(path='/tmp/3-recording.wav', content='3-recording')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_from_user_uuid(self, rec1, rec2, rec3):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
-        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
-        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
-
         export = self.call_logd.cdr.export_recording_media(user_uuid=USER_1_UUID)
         export_uuid = export['uuid']
 
@@ -505,10 +478,6 @@ class TestRecordingMediaExport(IntegrationTest):
             ],
         )
 
-        self.filesystem.remove_file('/tmp/1-recording.wav')
-        self.filesystem.remove_file('/tmp/2-recording.wav')
-        self.filesystem.remove_file('/tmp/3-recording.wav')
-
     @call_log(
         **{'id': 1},
         date='2021-05-20T15:00:00',
@@ -530,14 +499,13 @@ class TestRecordingMediaExport(IntegrationTest):
             {'user_uuid': USER_1_UUID, 'tags': ['quebec']},
         ],
     )
+    @file_(path='/tmp/1-recording.wav', content='1-recording')
+    @file_(path='/tmp/2-recording.wav', content='2-recording')
+    @file_(path='/tmp/3-recording.wav', content='3-recording')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_from_tags(self, rec1, rec2, rec3):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
-        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
-        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
-
         export = self.call_logd.cdr.export_recording_media(tags='chicoutimi')
         export_uuid = export['uuid']
 
@@ -594,10 +562,6 @@ class TestRecordingMediaExport(IntegrationTest):
             ],
         )
 
-        self.filesystem.remove_file('/tmp/1-recording.wav')
-        self.filesystem.remove_file('/tmp/2-recording.wav')
-        self.filesystem.remove_file('/tmp/3-recording.wav')
-
     @call_log(
         **{'id': 1},
         date='2021-05-20T15:00:00',
@@ -614,14 +578,13 @@ class TestRecordingMediaExport(IntegrationTest):
         date='2021-05-22T15:00:00',
         destination_name='quebec',
     )
+    @file_(path='/tmp/1-recording.wav', content='1-recording')
+    @file_(path='/tmp/2-recording.wav', content='2-recording')
+    @file_(path='/tmp/3-recording.wav', content='3-recording')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_from_search(self, rec1, rec2, rec3):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
-        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
-        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
-
         export = self.call_logd.cdr.export_recording_media(search='chicoutimi')
         export_uuid = export['uuid']
 
@@ -662,10 +625,6 @@ class TestRecordingMediaExport(IntegrationTest):
             ],
         )
 
-        self.filesystem.remove_file('/tmp/1-recording.wav')
-        self.filesystem.remove_file('/tmp/2-recording.wav')
-        self.filesystem.remove_file('/tmp/3-recording.wav')
-
     @call_log(
         **{'id': 1},
         date='2021-05-20T15:00:00',
@@ -681,14 +640,13 @@ class TestRecordingMediaExport(IntegrationTest):
         date='2021-05-22T15:00:00',
         destination_exten='45',
     )
+    @file_(path='/tmp/1-recording.wav', content='1-recording')
+    @file_(path='/tmp/2-recording.wav', content='2-recording')
+    @file_(path='/tmp/3-recording.wav', content='3-recording')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_from_number(self, rec1, rec2, rec3):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
-        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
-        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
-
         export = self.call_logd.cdr.export_recording_media(number='_45')
         export_uuid = export['uuid']
 
@@ -768,10 +726,6 @@ class TestRecordingMediaExport(IntegrationTest):
             ),
         )
 
-        self.filesystem.remove_file('/tmp/1-recording.wav')
-        self.filesystem.remove_file('/tmp/2-recording.wav')
-        self.filesystem.remove_file('/tmp/3-recording.wav')
-
     @call_log(
         **{'id': 1},
         date='2021-05-20T15:00:00',
@@ -786,14 +740,13 @@ class TestRecordingMediaExport(IntegrationTest):
         date='2021-05-22T15:00:00',
         tenant_uuid=OTHER_TENANT,
     )
+    @file_(path='/tmp/1-recording.wav', content='1-recording')
+    @file_(path='/tmp/2-recording.wav', content='2-recording')
+    @file_(path='/tmp/3-recording.wav', content='3-recording')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_when_recurse(self, rec1, rec2, rec3):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
-        self.filesystem.create_file('/tmp/2-recording.wav', content='2-recording')
-        self.filesystem.create_file('/tmp/3-recording.wav', content='3-recording')
-
         export = self.call_logd.cdr.export_recording_media(recurse=False)
         export_uuid = export['uuid']
 
@@ -834,17 +787,13 @@ class TestRecordingMediaExport(IntegrationTest):
             ],
         )
 
-        self.filesystem.remove_file('/tmp/1-recording.wav')
-        self.filesystem.remove_file('/tmp/2-recording.wav')
-        self.filesystem.remove_file('/tmp/3-recording.wav')
-
     @call_log(
         **{'id': 1},
         date='2021-05-22T15:00:00',
     )
+    @file_(path='/tmp/1-recording.wav')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     def test_events_when_success(self, rec1):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
         routing_key_created = 'call_logd.export.created'
         routing_key_updated = 'call_logd.export.updated'
         event_created_accumulator = self.bus.accumulator(routing_key_created)
@@ -925,11 +874,9 @@ class TestRecordingMediaExport(IntegrationTest):
         **{'id': 1},
         date='2021-05-22T15:00:00',
     )
+    @file_(path='/tmp/1-recording.wav', content='1-recording', mode='000')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     def test_events_when_permission_error(self, rec1):
-        self.filesystem.create_file(
-            '/tmp/1-recording.wav', content='1-recording', mode='000'
-        )
         routing_key_created = 'call_logd.export.created'
         routing_key_updated = 'call_logd.export.updated'
         event_created_accumulator = self.bus.accumulator(routing_key_created)
@@ -966,16 +913,15 @@ class TestRecordingMediaExport(IntegrationTest):
         until.assert_(events_received, timeout=5)
 
     @call_log(**{'id': 1})
+    @file_(path='/tmp/1-recording.wav', content='1-recording')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     def test_email_workflow(self, recording):
-        self.filesystem.create_file('/tmp/1-recording.wav', content='1-recording')
-
         export = self.call_logd.cdr.export_recording_media(email='test@example.com')
         export_uuid = export['uuid']
 
         until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
 
-        url = self.email.get_last_email_url()
+        url = until.true(self.email.get_last_email_url, timeout=5)
 
         url = url.replace('https://', 'http://')
         result = requests.get(url)
@@ -988,5 +934,3 @@ class TestRecordingMediaExport(IntegrationTest):
                 },
             ],
         )
-
-        self.filesystem.remove_file('/tmp/1-recording.wav')
