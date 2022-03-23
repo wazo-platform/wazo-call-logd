@@ -1,10 +1,11 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import multiprocessing
 
 from celery import Celery
+from xivo.status import Status
 
 app = Celery()
 
@@ -45,3 +46,15 @@ def spawn_workers(config):
     process = multiprocessing.Process(target=app.worker_main, args=(argv,))
     process.start()
     return process
+
+
+def provide_status(status):
+    try:
+        app.broker_connection().ensure_connection(timeout=1).close()
+    except Exception as e:
+        logger.debug('Error while connecting to RabbitMQ: %s: %s', type(e).__name__, e)
+        ok = False
+    else:
+        ok = True
+
+    status['task_queue']['status'] = Status.ok if ok else Status.fail

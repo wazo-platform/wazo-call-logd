@@ -1,4 +1,4 @@
-# Copyright 2018-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, equal_to, has_entries, has_entry
@@ -15,6 +15,7 @@ class TestStatusNoRabbitMQ(IntegrationTest):
         result = self.call_logd.status.get()
 
         assert_that(result['bus_consumer']['status'], equal_to('fail'))
+        assert_that(result['task_queue']['status'], equal_to('fail'))
 
 
 class TestStatusRabbitMQStops(IntegrationTest):
@@ -29,6 +30,7 @@ class TestStatusRabbitMQStops(IntegrationTest):
         def rabbitmq_is_down():
             result = self.call_logd.status.get()
             assert_that(result['bus_consumer']['status'], equal_to('fail'))
+            assert_that(result['task_queue']['status'], equal_to('fail'))
 
         until.assert_(rabbitmq_is_down, timeout=5)
 
@@ -46,6 +48,7 @@ class TestStatusAllOK(IntegrationTest):
                 result,
                 has_entries(
                     bus_consumer=has_entry('status', 'ok'),
+                    task_queue=has_entry('status', 'ok'),
                     service_token=has_entry('status', 'ok'),
                 ),
             )
