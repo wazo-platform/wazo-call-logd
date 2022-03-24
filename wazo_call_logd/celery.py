@@ -11,6 +11,8 @@ app = Celery()
 
 logger = logging.getLogger(__name__)
 
+WORKER_NAME = 'call-logd'
+
 
 def configure(config):
     app.conf.accept_content = ['json']
@@ -37,7 +39,7 @@ def spawn_workers(config):
         '--loglevel',
         logging.getLevelName(config['log_level']).upper(),
         '--hostname',
-        'call-logd@%h',
+        f'{WORKER_NAME}@%h',
         '--autoscale',
         "{},{}".format(config['celery']['worker_max'], config['celery']['worker_min']),
         '--pidfile',
@@ -53,8 +55,24 @@ def provide_status(status):
         app.broker_connection().ensure_connection(timeout=1).close()
     except Exception as e:
         logger.debug('Error while connecting to RabbitMQ: %s: %s', type(e).__name__, e)
-        ok = False
-    else:
-        ok = True
+        status['task_queue']['status'] = Status.fail
+        return
 
+    try:
+        workers_status = app.control.inspect().ping()
+    except Exception as e:
+        logger.debug('Error while querying Celery workers: %s: %s', type(e).__name__, e)
+        status['task_queue']['status'] = Status.fail
+        return
+
+    if not workers_status:
+        status['task_queue']['status'] = Status.fail
+        return
+
+    logger.debug('Celery workers status: %s', workers_status)
+
+    ok = any(
+        worker_name.startswith(WORKER_NAME) and worker_status.get('ok') == 'pong'
+        for worker_name, worker_status in workers_status.items()
+    )
     status['task_queue']['status'] = Status.ok if ok else Status.fail
