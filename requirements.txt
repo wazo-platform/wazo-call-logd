@@ -11,8 +11,10 @@ flask-cors==3.0.7
 flask-restful==0.3.7
 flask==1.0.2
 itsdangerous==0.24  # from flask
+jinja2==2.10  # from flask
 jsonpatch==1.21
 kombu==4.6.11
+markupsafe==1.1.0 # from flask
 marshmallow==3.10.0
 psycopg2==2.7.7
 python-dateutil==2.7.3  # from marshmallow, to accept more date formats
