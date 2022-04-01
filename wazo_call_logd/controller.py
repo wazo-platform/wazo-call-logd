@@ -5,7 +5,6 @@ import logging
 import signal
 
 from functools import partial
-from threading import Thread
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
 from xivo import plugin_helpers
@@ -14,7 +13,6 @@ from xivo.token_renewer import TokenRenewer
 
 from wazo_call_logd import celery
 
-from wazo_call_logd.bus_client import BusClient
 from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
 from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
@@ -22,8 +20,9 @@ from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
+
 from .auth import init_master_tenant
-from .bus_publisher import BusPublisher
+from .bus import BusConsumer, BusPublisher
 from .database.queries import DAO
 from .database.helpers import new_db_session
 from .http_server import app, api, HTTPServer
@@ -69,9 +68,13 @@ class Controller:
         self.token_renewer.subscribe_to_next_token_details_change(
             generator.set_default_tenant_uuid
         )
-        self.bus_publisher = BusPublisher(config)
+
+        self.bus_publisher = BusPublisher(service_uuid=config['uuid'], **config['bus'])
+        self.bus_consumer = BusConsumer(**config['bus'])
         self.manager = CallLogsManager(self.dao, generator, writer, self.bus_publisher)
-        self.bus_client = BusClient(config)
+
+        self._bus_subscribe()
+
         self.http_server = HTTPServer(config)
         if not app.config['auth'].get('master_tenant_uuid'):
             self.token_renewer.subscribe_to_next_token_details_change(
@@ -98,30 +101,20 @@ class Controller:
         self.token_renewer.subscribe_to_token_change(
             self.token_status.token_change_callback
         )
-        self.status_aggregator.add_provider(self.bus_client.provide_status)
+        self.status_aggregator.add_provider(self.bus_consumer.provide_status)
         self.status_aggregator.add_provider(self.token_status.provide_status)
         self.status_aggregator.add_provider(celery.provide_status)
         signal.signal(signal.SIGTERM, partial(_sigterm_handler, self))
 
         self._update_db_from_config_file()
 
-        bus_publisher_thread = Thread(target=self.bus_publisher.run)
-        bus_publisher_thread.start()
-        bus_consumer_thread = Thread(
-            target=self.bus_client.run, args=[self.manager], name='bus_consumer_thread'
-        )
-        bus_consumer_thread.start()
-
         try:
-            with self.token_renewer:
-                self.http_server.run()
+            with self.bus_consumer:
+                with self.token_renewer:
+                    self.http_server.run()
         finally:
             logger.info('Stopping wazo-call-logd')
-            self.bus_client.stop()
-            self.bus_publisher.stop()
             self._celery_process.terminate()
-            bus_consumer_thread.join()
-            bus_publisher_thread.join()
             self._celery_process.join()
 
     def stop(self, reason):
@@ -150,6 +143,21 @@ class Controller:
             else:
                 config.retention_recording_days_from_file = False
             self.dao.config.update(config)
+
+    def _bus_subscribe(self):
+        self.bus_consumer.subscribe('CEL', self._handle_linked_id_end)
+
+    def _handle_linked_id_end(self, payload):
+        if payload['EventName'] != 'LINKEDID_END':
+            return
+
+        linked_id = payload['LinkedID']
+        try:
+            self.manager.generate_from_linked_id(linked_id)
+        except Exception:
+            logger.exception(
+                'Failed to genereate call log for linked id=\"%s\"', linked_id
+            )
 
 
 def _sigterm_handler(controller, signum, frame):
