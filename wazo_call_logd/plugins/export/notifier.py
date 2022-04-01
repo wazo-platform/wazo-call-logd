@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo_bus.resources.call_logd.events import (
@@ -15,9 +15,11 @@ class ExportNotifier:
     def created(self, export):
         export_json = ExportSchema().dump(export)
         event = ExportCreatedEvent(export_json)
-        self._bus.publish(event)
+        headers = {'tenant_uuid': str(export.tenant_uuid)}
+        self._bus.publish(event, headers)
 
     def updated(self, export):
         export_json = ExportSchema().dump(export)
         event = ExportUpdatedEvent(export_json)
-        self._bus.publish(event)
+        headers = {'tenant_uuid': str(export.tenant_uuid)}
+        self._bus.publish(event, headers)

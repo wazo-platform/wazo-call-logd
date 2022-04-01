@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo_bus.resources.call_logd.events import RetentionUpdatedEvent
@@ -12,4 +12,5 @@ class RetentionNotifier:
     def updated(self, retention):
         retention_json = RetentionSchema().dump(retention)
         event = RetentionUpdatedEvent(retention_json)
-        self._bus.publish(event)
+        headers = {'tenant_uuid': str(retention.tenant_uuid)}
+        self._bus.publish(event, headers)
