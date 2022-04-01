@@ -213,7 +213,9 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
             port = cls.service_port(5672, 'rabbitmq')
         except (NoSuchService, NoSuchPort):
             return WrongClient(name='bus')
-        return CallLogBusClient.from_connection_fields(port=port)
+        bus = CallLogBusClient.from_connection_fields(port=port)
+        bus.downstream_exchange_declare('wazo-headers', 'headers')
+        return bus
 
     @classmethod
     def make_confd(cls):
