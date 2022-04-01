@@ -1,4 +1,4 @@
-# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -8,7 +8,7 @@ from mock import Mock
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.writer import CallLogsWriter
-from wazo_call_logd.bus_publisher import BusPublisher
+from wazo_call_logd.bus import BusPublisher
 
 
 class TestCallLogsManager(TestCase):
