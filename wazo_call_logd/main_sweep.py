@@ -1,4 +1,4 @@
-# Copyright 2012-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2012-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -16,7 +16,7 @@ from xivo.xivo_logging import setup_logging
 from xivo.xivo_logging import silence_loggers
 from xivo_dao import init_db_from_config
 
-from wazo_call_logd.bus_publisher import BusPublisher
+from wazo_call_logd.bus import BusPublisher
 from wazo_call_logd.config import DEFAULT_CONFIG
 from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
 from wazo_call_logd.cel_interpretor import CallerCELInterpretor
@@ -83,7 +83,7 @@ def _generate_call_logs():
         generator.set_default_tenant_uuid
     )
     writer = CallLogsWriter(dao)
-    publisher = BusPublisher(config)
+    publisher = BusPublisher(service_uuid=config['uuid'], **config['bus'])
     manager = CallLogsManager(dao, generator, writer, publisher)
 
     options = vars(options)
