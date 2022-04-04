@@ -10,6 +10,7 @@ from wazo_confd_client import Client as ConfdClient
 from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_file
 from xivo.config_helper import read_config_file_hierarchy
+from xivo.config_helper import set_xivo_uuid
 from xivo.daemonize import pidfile_context
 from xivo.token_renewer import TokenRenewer
 from xivo.xivo_logging import setup_logging
@@ -30,6 +31,8 @@ from wazo_call_logd.writer import CallLogsWriter
 
 DEFAULT_CEL_COUNT = 20000
 PIDFILENAME = '/run/wazo-call-logs.pid'
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -62,6 +65,7 @@ def _generate_call_logs():
     if not (auth_username and auth_password):
         key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
     config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
+    set_xivo_uuid(config, logger)
     init_db_from_config({'db_uri': config['cel_db_uri']})
     DBSession = new_db_session(config['db_uri'])
     CELDBSession = new_db_session(config['cel_db_uri'])
