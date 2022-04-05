@@ -1,4 +1,4 @@
-# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -47,4 +47,4 @@ class CallLogsManager:
         call_logs = self.generator.from_cel(cels)
         logger.debug('Generated %s call logs', len(call_logs.new_call_logs))
         self.writer.write(call_logs)
-        self.publisher.publish_call_logs(call_logs.new_call_logs)
+        self.publisher.publish_call_log(*call_logs.new_call_logs)
