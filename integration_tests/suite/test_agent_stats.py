@@ -3,8 +3,7 @@
 
 import pytz
 
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
+from datetime import timedelta
 
 from hamcrest import (
     assert_that,
@@ -200,14 +199,6 @@ class TestInputParameters(IntegrationTest):
 
 
 class TestStatistics(IntegrationTest):
-    def _get_tomorrow(self, timezone=None):
-        timezone = timezone or pytz.utc
-        today = datetime.now(pytz.utc).astimezone(timezone)
-        return timezone.normalize(
-            timezone.localize(datetime(today.year, today.month, today.day))
-            + relativedelta(days=1)
-        ).isoformat(timespec='seconds')
-
     def test_list_agent_statistics_when_no_stats(self):
         results = self.call_logd.agent_statistics.list()
         assert_that(

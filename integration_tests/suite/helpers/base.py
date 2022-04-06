@@ -304,11 +304,10 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
 
     def _get_tomorrow(self, timezone=None):
         timezone = timezone or pytz.utc
-        today = timezone.normalize(timezone.localize(datetime.now()))
+        today = datetime.now(pytz.utc).astimezone(timezone)
         return timezone.normalize(
-            timezone.localize(
-                datetime(today.year, today.month, today.day) + relativedelta(days=1)
-            )
+            timezone.localize(datetime(today.year, today.month, today.day))
+            + relativedelta(days=1)
         ).isoformat(timespec='seconds')
 
     @property
