@@ -9,10 +9,14 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN apt-get -q update
 RUN apt-get -yq install gcc
 
+# Install wazo-call-logd requirements
+COPY requirements.txt /usr/src/wazo-call-logd/requirements.txt
+RUN pip install -r /usr/src/wazo-call-logd/requirements.txt
+
 # Install wazo-call-logd
-COPY . /usr/src/wazo-call-logd
+COPY setup.py /usr/src/wazo-call-logd/setup.py
+COPY wazo_call_logd /usr/src/wazo-call-logd/wazo_call_logd
 WORKDIR /usr/src/wazo-call-logd
-RUN pip install -r requirements.txt
 RUN python setup.py install
 
 FROM python:3.7-slim-buster AS build-image
