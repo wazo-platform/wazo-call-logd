@@ -1,4 +1,4 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
@@ -51,7 +51,7 @@ class _StatisticsService:
             yield from_, until
 
     def _get_tomorrow(self, timezone):
-        today = timezone.normalize(timezone.localize(datetime.now()))
+        today = datetime.now(pytz.utc).astimezone(timezone)
         return timezone.normalize(
             timezone.localize(
                 datetime(today.year, today.month, today.day) + relativedelta(days=1)
