@@ -1,3 +1,9 @@
+wazo-call-logd (22.06~20220421) wazo-dev; urgency=medium
+
+  * Add XIVO_UUID to cron job
+
+ -- Wazo Maintainers <dev+pkg@wazo.community>  Thu, 21 Apr 2022 10:18:03 -0400
+
 wazo-call-logd (17.15~20171011) wazo-dev; urgency=medium
 
   * Finalization of renaming {xivo,wazo}-call-logd
