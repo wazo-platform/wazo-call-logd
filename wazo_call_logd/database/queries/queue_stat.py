@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import func, text
@@ -218,7 +218,6 @@ class QueueStatDAO(BaseDAO):
             + stats['leaveempty']
             + stats['joinempty']
             + stats['timeout']
-            + stats['closed']
         )
         answered_rate = None
         if answered_rate_total > 0:
