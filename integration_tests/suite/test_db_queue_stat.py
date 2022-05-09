@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import (
@@ -226,7 +226,7 @@ class TestQueueStat(DBIntegrationTest):
     def test_get_interval_return_specific_answered_rate(self):
         tenant_uuids = None
         result = self.dao.queue_stat.get_interval(tenant_uuids)
-        expected = round(100.0 * 1 / 7, 2)
+        expected = round(100.0 * 1 / 6, 2)  # Closed calls are not counted
         assert_that(result[0], has_entries(answered_rate=expected))
 
     @stat_queue_periodic({'time': '2020-10-01 14:00:00', 'leaveempty': 1})
@@ -324,7 +324,7 @@ class TestQueueStat(DBIntegrationTest):
                 divert_waittime=2,
                 timeout=2,
                 qos=50.0,
-                answered_rate=14.29,
+                answered_rate=16.67,
                 average_waiting_time=1.25,
                 blocking=4,
                 saturated=6,

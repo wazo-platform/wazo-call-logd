@@ -1,4 +1,4 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
@@ -569,7 +569,7 @@ class TestStatistics(IntegrationTest):
 
     # fmt: off
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 4:00:00', 'total': 1, 'answered': 1})
-    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 5:00:00', 'total': 36, 'closed': 1, 'abandoned': 2, 'joinempty': 3, 'leaveempty': 4, 'timeout': 5, 'divert_ca_ratio': 6, 'divert_waittime': 7, 'full': 8})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 5:00:00', 'total': 36, 'closed': 1, 'abandoned': 3, 'joinempty': 3, 'leaveempty': 4, 'timeout': 5, 'divert_ca_ratio': 6, 'divert_waittime': 7, 'full': 8})
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-06 23:00:00', 'total': 1, 'answered': 1})
     @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-07 00:00:00', 'total': 1, 'answered': 1})
     # fmt: on
@@ -610,7 +610,7 @@ class TestStatistics(IntegrationTest):
                     queue_name='queue',
                     received=36,
                     answered=0,
-                    abandoned=2,
+                    abandoned=3,
                     closed=1,
                     not_answered=5,
                     saturated=6 + 7 + 8,
@@ -644,13 +644,13 @@ class TestStatistics(IntegrationTest):
                     queue_name='queue',
                     received=38,
                     answered=2,
-                    abandoned=2,
+                    abandoned=3,
                     closed=1,
                     not_answered=5,
                     saturated=6 + 7 + 8,
                     blocked=3 + 4,
                     average_waiting_time=0,
-                    answered_rate=8.0,
+                    answered_rate=8.0,  # closed are not included
                     quality_of_service=None,
                 ),
             ),
