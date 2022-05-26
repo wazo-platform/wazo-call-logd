@@ -1,7 +1,8 @@
-# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
+from unittest.mock import ANY, Mock, patch
 
 from hamcrest import all_of
 from hamcrest import assert_that
@@ -12,9 +13,6 @@ from hamcrest import equal_to
 from hamcrest import has_property
 from hamcrest import is_
 from hamcrest import raises
-from mock import ANY
-from mock import Mock
-from mock import patch
 
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.exceptions import InvalidCallLogException

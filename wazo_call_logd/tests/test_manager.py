@@ -2,8 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
-
-from mock import Mock
+from unittest.mock import Mock
 
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.generator import CallLogsGenerator
