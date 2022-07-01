@@ -29,3 +29,4 @@ class CELEventType(object):
     xivo_incall = 'XIVO_INCALL'
     xivo_outcall = 'XIVO_OUTCALL'
     xivo_user_fwd = 'XIVO_USER_FWD'
+    wazo_user_missed_call = 'WAZO_USER_MISSED_CALL'
