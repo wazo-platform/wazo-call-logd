@@ -83,9 +83,8 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
 ----------------------------+-------------------------------+-------------------+-----------+-----------------------+---------------+----------------------------+------------------+------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  CHAN_START                 | 2022-07-01 15:38:39.45938     | Harry Potter      | 1603      | 1604                  | mycontext     | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    |
  APP_START                  | 2022-07-01 15:38:39.631456    | Harry Potter      | 1603      | s                     | user          | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    |
- XIVO_INCALL                | 2022-07-01 15:38:39.633278    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    | {"extra":"006a72c4-eb68-481a-808f-33b28ec109c8"}
  XIVO_USER_FWD              | 2022-07-01 15:38:39.633302    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    | {"extra":"NUM:1604,CONTEXT:mycontext,NAME:Willy Wonka"}
- WAZO_USER_MISSED_CALL      | 2022-07-01 15:38:39.633329    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    | {"extra":"source_user_uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,destination_user_uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,destination_exten: 1604,source_name: Harry Potter,destination_name: Willy Wonka"}
+ WAZO_USER_MISSED_CALL      | 2022-07-01 15:38:39.633329    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    | {"extra":"wazo_tenant_uuid: 006a72c4-eb68-481a-808f-33b28ec109c8,source_user_uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,destination_user_uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,destination_exten: 1604,source_name: Harry Potter,destination_name: Willy Wonka"}
  ANSWER                     | 2022-07-01 15:38:39.635271    | Harry Potter      | 1603      | pickup                | xivo-pickup   | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    |
  HANGUP                     | 2022-07-01 15:38:45.872867    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    | {"hangupcause":3,"hangupsource":"dialplan/builtin","dialstatus":""}
  CHAN_END                   | 2022-07-01 15:38:45.872867    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-0000000b    | 1656704319.11    | 1656704319.11    |
@@ -106,7 +105,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
                 source_line_identity='pjsip/cul113qn',
                 destination_name='Willy Wonka',
                 destination_exten='1604',
-                direction='inbound',
+                direction='internal',
                 requested_name='Willy Wonka',
                 requested_exten='1604',
                 requested_context='mycontext',

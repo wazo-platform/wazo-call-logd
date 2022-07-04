@@ -260,11 +260,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             return
 
         extra_tokens = extra['extra'].split(',')
-        source_user_uuid = extra_tokens[0].split(': ')[1]
-        destination_user_uuid = extra_tokens[1].split(': ')[1]
-        destination_exten = extra_tokens[2].split(': ')[1]
-        source_name = extra_tokens[3].split(': ')[1]
-        destination_name = extra_tokens[4].split(': ')[1]
+        wazo_tenant_uuid = extra_tokens[0].split(': ')[1]
+        source_user_uuid = extra_tokens[1].split(': ')[1]
+        destination_user_uuid = extra_tokens[2].split(': ')[1]
+        destination_exten = extra_tokens[3].split(': ')[1]
+        source_name = extra_tokens[4].split(': ')[1]
+        destination_name = extra_tokens[5].split(': ')[1]
 
         source_participant = CallLogParticipant(
             role='source',
@@ -277,6 +278,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         )
         call.participants.append(destination_participant)
 
+        call.set_tenant_uuid(wazo_tenant_uuid)
         call.destination_exten = destination_exten
         call.source_name = source_name
         call.destination_name = destination_name
