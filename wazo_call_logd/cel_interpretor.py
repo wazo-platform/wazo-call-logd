@@ -8,7 +8,7 @@ import logging
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import Recording
+from .database.models import CallLogParticipant, Recording
 
 
 logger = logging.getLogger(__name__)
@@ -265,8 +265,18 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         destination_exten = extra_tokens[2].split(': ')[1]
         source_name = extra_tokens[3].split(': ')[1]
         destination_name = extra_tokens[4].split(': ')[1]
-        call.source_user_uuid = source_user_uuid
-        call.destination_user_uuid = destination_user_uuid
+
+        source_participant = CallLogParticipant(
+            role='source',
+            user_uuid=source_user_uuid,
+        )
+        call.participants.append(source_participant)
+        destination_participant = CallLogParticipant(
+            role='destination',
+            user_uuid=destination_user_uuid,
+        )
+        call.participants.append(destination_participant)
+
         call.destination_exten = destination_exten
         call.source_name = source_name
         call.destination_name = destination_name

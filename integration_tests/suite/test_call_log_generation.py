@@ -111,9 +111,9 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
                 requested_exten='1604',
                 requested_context='mycontext',
                 requested_internal_exten='1604',
-                requested_internal_context='mycontext'
-                # source_user_uuid='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
-                # destination_user_uuid='c3f297bd-93e1-46f6-a309-79b320acb7fb',
+                requested_internal_context='mycontext',
+                source_user_uuid='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
+                destination_user_uuid='c3f297bd-93e1-46f6-a309-79b320acb7fb',
             ),
         )
 

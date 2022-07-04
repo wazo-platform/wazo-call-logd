@@ -1,4 +1,4 @@
-# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -50,7 +50,8 @@ class CallLogsGenerator:
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
 
             self._remove_duplicate_participants(call_log)
-            self._fetch_participants(self.confd, call_log)
+            if not call_log.participants:
+                self._fetch_participants(self.confd, call_log)
             self._ensure_tenant_uuid_is_set(call_log)
             self._fill_extensions_from_participants(call_log)
             self._remove_incomplete_recordings(call_log)
