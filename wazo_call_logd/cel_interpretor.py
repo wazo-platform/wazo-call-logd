@@ -446,6 +446,38 @@ class LocalOriginateCELInterpretor:
 
         call.destination_exten = local_channel2_answer.cid_num
 
+        # Adding all recordings
+        for cel in cels:
+            if cel.eventtype != CELEventType.mixmonitor_start:
+                continue
+            extra = extract_cel_extra(cel.extra)
+            if not is_valid_mixmonitor_start_extra(extra):
+                return call
+
+            recording = Recording(
+                start_time=cel.eventtime,
+                path=extra['filename'],
+                mixmonitor_id=extra['mixmonitor_id'],
+            )
+            call.recordings.append(recording)
+
+        # Check if any recordings have been stopped manually
+        for cel in cels:
+            if cel.eventtype != CELEventType.mixmonitor_stop:
+                continue
+            extra = extract_cel_extra(cel.extra)
+            if not is_valid_mixmonitor_stop_extra(extra):
+                return call
+
+            for recording in call.recordings:
+                if recording.mixmonitor_id == extra['mixmonitor_id']:
+                    recording.end_time = cel.eventtime
+
+        # End of recording when not stopped manually
+        for recording in call.recordings:
+            if not recording.end_time:
+                recording.end_time = call.date_end
+
         local_channel1_app_start = next(
             (
                 cel
