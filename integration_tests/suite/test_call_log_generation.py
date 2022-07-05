@@ -98,6 +98,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
         self._assert_last_call_log_matches(
             linkedid,
             has_properties(
+                date_answer=None,
                 tenant_uuid='006a72c4-eb68-481a-808f-33b28ec109c8',
                 source_name='Harry Potter',
                 source_internal_name='Harry Potter',
@@ -113,6 +114,22 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
                 requested_internal_context='mycontext',
                 source_user_uuid='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
                 destination_user_uuid='c3f297bd-93e1-46f6-a309-79b320acb7fb',
+                participants=contains_inanyorder(
+                    has_properties(
+                        role='source',
+                        user_uuid='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
+                        line_id=14,
+                        tags=contains_inanyorder('Harry', 'Potter'),
+                        answered=False,
+                    ),
+                    has_properties(
+                        role='destination',
+                        user_uuid='c3f297bd-93e1-46f6-a309-79b320acb7fb',
+                        line_id=14,
+                        tags=contains_inanyorder('Willy', 'Wonka'),
+                        answered=False,
+                    ),
+                ),
             ),
         )
 

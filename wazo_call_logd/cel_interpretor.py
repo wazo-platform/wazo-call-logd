@@ -272,12 +272,16 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             role='source',
             user_uuid=source_user_uuid,
             line_id=line_id,
+            tags=source_name.split(' '),
+            answered=False,
         )
         call.participants.append(source_participant)
         destination_participant = CallLogParticipant(
             role='destination',
             user_uuid=destination_user_uuid,
             line_id=line_id,
+            tags=destination_name.split(' '),
+            answered=False,
         )
         call.participants.append(destination_participant)
 
