@@ -84,7 +84,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  CHAN_START                 | 2022-07-05 15:10:17.477554    | Harry Potter      | 1603      | 1604                  | mycontext     | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
  APP_START                  | 2022-07-05 15:10:17.676004    | Harry Potter      | 1603      | s                     | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
  XIVO_USER_FWD              | 2022-07-05 15:10:17.677551    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"extra":"NUM:1604,CONTEXT:mycontext,NAME:Willy Wonka"}
- WAZO_USER_MISSED_CALL      | 2022-07-05 15:10:17.677582    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"extra":"wazo_tenant_uuid: 006a72c4-eb68-481a-808f-33b28ec109c8,source_user_uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,destination_user_uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,destination_exten: 1604,source_name: Harry Potter,destination_name: Willy Wonka,line_id: 14"}
+ WAZO_USER_MISSED_CALL      | 2022-07-05 15:10:17.677582    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"extra":"wazo_tenant_uuid: 006a72c4-eb68-481a-808f-33b28ec109c8,source_user_uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,destination_user_uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,destination_exten: 1604,source_name: Harry Potter,destination_name: Willy Wonka"}
  ANSWER                     | 2022-07-05 15:10:17.679283    | Harry Potter      | 1603      | pickup                | xivo-pickup   | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
  HANGUP                     | 2022-07-05 15:10:23.918826    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"hangupcause":3,"hangupsource":"dialplan/builtin","dialstatus":""}
  CHAN_END                   | 2022-07-05 15:10:23.918826    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
@@ -95,43 +95,92 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
         self,
     ):
         linkedid = '1657048217.7'
-        self._assert_last_call_log_matches(
-            linkedid,
-            has_properties(
-                date_answer=None,
-                tenant_uuid='006a72c4-eb68-481a-808f-33b28ec109c8',
-                source_name='Harry Potter',
-                source_internal_name='Harry Potter',
-                source_exten='1603',
-                source_line_identity='pjsip/cul113qn',
-                destination_name='Willy Wonka',
-                destination_exten='1604',
-                direction='internal',
-                requested_name='Willy Wonka',
-                requested_exten='1604',
-                requested_context='mycontext',
-                requested_internal_exten='1604',
-                requested_internal_context='mycontext',
-                source_user_uuid='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
-                destination_user_uuid='c3f297bd-93e1-46f6-a309-79b320acb7fb',
-                participants=contains_inanyorder(
-                    has_properties(
-                        role='source',
-                        user_uuid='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
-                        line_id=14,
-                        tags=contains_inanyorder('Harry', 'Potter'),
-                        answered=False,
-                    ),
-                    has_properties(
-                        role='destination',
-                        user_uuid='c3f297bd-93e1-46f6-a309-79b320acb7fb',
-                        line_id=14,
-                        tags=contains_inanyorder('Willy', 'Wonka'),
-                        answered=False,
-                    ),
-                ),
+        wazo_tenant_uuid = '006a72c4-eb68-481a-808f-33b28ec109c8'
+        source_user_uuid = 'cb79f29b-f69a-4b93-85c2-49dcce119a9f'
+        destination_user_uuid = 'c3f297bd-93e1-46f6-a309-79b320acb7fb'
+        self.confd.set_users(
+            MockUser(
+                source_user_uuid,
+                wazo_tenant_uuid,
+                line_ids=[1],
+                userfield='Montreal,Quebec',
+            ),
+            MockUser(
+                destination_user_uuid,
+                wazo_tenant_uuid,
+                line_ids=[2],
+                userfield='Paris,France',
             ),
         )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='cul113qn',
+                users=[{'uuid': source_user_uuid}],
+                tenant_uuid=wazo_tenant_uuid,
+                extensions=[{'exten': '1603', 'context': 'mycontext'}],
+            ),
+            MockLine(
+                id=2,
+                name='xfloi61j',
+                users=[{'uuid': destination_user_uuid}],
+                tenant_uuid=wazo_tenant_uuid,
+                extensions=[{'exten': '1604', 'context': 'mycontext'}],
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='mycontext', tenant_uuid=wazo_tenant_uuid)
+        )
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_has_all_required_fields_set():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            date_answer=None,
+                            tenant_uuid=wazo_tenant_uuid,
+                            source_name='Harry Potter',
+                            source_internal_name='Harry Potter',
+                            source_exten='1603',
+                            source_line_identity='pjsip/cul113qn',
+                            destination_name='Willy Wonka',
+                            destination_exten='1604',
+                            direction='internal',
+                            requested_name='Willy Wonka',
+                            requested_exten='1604',
+                            requested_context='mycontext',
+                            requested_internal_exten='1604',
+                            requested_internal_context='mycontext',
+                            source_user_uuid=source_user_uuid,
+                            destination_user_uuid=destination_user_uuid,
+                            participants=contains_inanyorder(
+                                has_properties(
+                                    role='source',
+                                    user_uuid=source_user_uuid,
+                                    line_id=1,
+                                    tags=contains_inanyorder('Montreal', 'Quebec'),
+                                    answered=False,
+                                ),
+                                has_properties(
+                                    role='destination',
+                                    user_uuid=destination_user_uuid,
+                                    line_id=2,
+                                    tags=contains_inanyorder('Paris', 'France'),
+                                    answered=False,
+                                ),
+                            ),
+                        ),
+                    )
+                    user_uuids = queries.get_call_log_user_uuids(call_log.id)
+                    assert_that(
+                        user_uuids,
+                        contains_inanyorder(source_user_uuid, destination_user_uuid),
+                    )
+
+            until.assert_(call_log_has_all_required_fields_set, tries=5)
 
     @raw_cels(
         '''\

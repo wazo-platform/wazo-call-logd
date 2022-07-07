@@ -53,7 +53,7 @@ class TestCallLogsGenerator(TestCase):
     def test_call_logs_from_cel_one_call(self, raw_call_log_constructor):
         linkedid = '9328742934'
         cels = self._generate_cel_for_call([linkedid])
-        call = Mock(raw_participants={}, recordings=[])
+        call = Mock(raw_participants={}, recordings=[], participants=[])
         self.interpretor.interpret_cels.return_value = call
         raw_call_log_constructor.return_value = call
         expected_call = call.to_call_log.return_value
@@ -68,8 +68,8 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1 = Mock(raw_participants={}, recordings=[])
-        call_2 = Mock(raw_participants={}, recordings=[])
+        call_1 = Mock(raw_participants={}, recordings=[], participants=[])
+        call_2 = Mock(raw_participants={}, recordings=[], participants=[])
         self.interpretor.interpret_cels.side_effect = [call_1, call_2]
         raw_call_log_constructor.side_effect = [call_1, call_2]
         expected_call_1 = call_1.to_call_log.return_value
@@ -88,8 +88,8 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1 = Mock(raw_participants={}, recordings=[])
-        call_2 = Mock(raw_participants={}, recordings=[])
+        call_1 = Mock(raw_participants={}, recordings=[], participants=[])
+        call_2 = Mock(raw_participants={}, recordings=[], participants=[])
         self.interpretor.interpret_cels.side_effect = [call_1, call_2]
         raw_call_log_constructor.side_effect = [call_1, call_2]
         expected_call_1 = call_1.to_call_log.return_value
@@ -118,10 +118,10 @@ class TestCallLogsGenerator(TestCase):
         interpretor_true_2.can_interpret.return_value = True
         interpretor_false.can_interpret.return_value = False
         interpretor_true_1.interpret_cels.return_value = Mock(
-            raw_participants={}, recordings=[]
+            raw_participants={}, recordings=[], participants=[]
         )
         interpretor_true_2.interpret_cels.return_value = Mock(
-            raw_participants={}, recordings=[]
+            raw_participants={}, recordings=[], participants=[]
         )
         generator = CallLogsGenerator(
             self.confd_client,

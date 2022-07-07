@@ -52,6 +52,8 @@ class CallLogsGenerator:
             self._remove_duplicate_participants(call_log)
             if not call_log.participants:
                 self._fetch_participants(self.confd, call_log)
+            else:
+                self._update_call_participants_with_their_tags(self.confd, call_log)
             self._ensure_tenant_uuid_is_set(call_log)
             self._fill_extensions_from_participants(call_log)
             self._remove_incomplete_recordings(call_log)
@@ -107,6 +109,34 @@ class CallLogsGenerator:
                 **answered,
             )
             call_log.participants.append(participant_model)
+
+    def _update_call_participants_with_their_tags(self, confd, call_log):
+        source_user_uuid = call_log.source_user_uuid
+        destination_user_uuid = call_log.destination_user_uuid
+
+        source_user = confd.users.get(source_user_uuid)
+        source_user_tags = (
+            [tag.strip() for tag in source_user['userfield'].split(',')]
+            if source_user['userfield']
+            else []
+        )
+
+        destination_user = confd.users.get(destination_user_uuid)
+        destination_user_tags = (
+            [tag.strip() for tag in destination_user['userfield'].split(',')]
+            if destination_user['userfield']
+            else []
+        )
+        call_log_new_participants = []
+        for participant in call_log.participants:
+            if participant.user_uuid == source_user_uuid:
+                participant.tags = source_user_tags
+                participant.line_id = source_user['lines'][0]['id']
+            if participant.user_uuid == destination_user_uuid:
+                participant.tags = destination_user_tags
+                participant.line_id = destination_user['lines'][0]['id']
+            call_log_new_participants.append(participant)
+        call_log.participants = call_log_new_participants
 
     def _ensure_tenant_uuid_is_set(self, call_log):
         tenant_uuids = {

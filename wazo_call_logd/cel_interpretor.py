@@ -266,21 +266,16 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         destination_exten = extra_tokens[3].split(': ')[1]
         source_name = extra_tokens[4].split(': ')[1]
         destination_name = extra_tokens[5].split(': ')[1]
-        line_id = extra_tokens[6].split(': ')[1]
 
         source_participant = CallLogParticipant(
             role='source',
             user_uuid=source_user_uuid,
-            line_id=line_id,
-            tags=source_name.split(' '),
             answered=False,
         )
         call.participants.append(source_participant)
         destination_participant = CallLogParticipant(
             role='destination',
             user_uuid=destination_user_uuid,
-            line_id=line_id,
-            tags=destination_name.split(' '),
             answered=False,
         )
         call.participants.append(destination_participant)
@@ -291,6 +286,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.destination_name = destination_name
         call.source_exten = cel.cid_num
         call.source_line_identity = identity_from_channel(cel.channame)
+        call.source_user_uuid = source_user_uuid
+        call.destination_user_uuid = destination_user_uuid
         return call
 
 
