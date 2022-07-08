@@ -24,6 +24,7 @@ class RawCallLog:
         self.source_internal_exten = None
         self.source_internal_context = None
         self.source_internal_name = None
+        self.source_user_uuid = None
         self.requested_name = None
         self.requested_exten = None
         self.requested_context = None
@@ -31,6 +32,7 @@ class RawCallLog:
         self.requested_internal_context = None
         self.destination_name = None
         self.destination_exten = None
+        self.destination_user_uuid = None
         self.destination_internal_exten = None
         self.destination_internal_context = None
         self.destination_line_identity = None

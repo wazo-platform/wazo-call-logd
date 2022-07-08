@@ -1,4 +1,4 @@
-# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
@@ -8,7 +8,7 @@ import logging
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import Recording
+from .database.models import CallLogParticipant, Recording
 
 
 logger = logging.getLogger(__name__)
@@ -123,6 +123,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
             CELEventType.wazo_meeting_name: self.interpret_wazo_meeting_name,
             CELEventType.wazo_conference: self.interpret_wazo_conference,
+            # WAZO_USER_MISSED_CALL
+            CELEventType.wazo_user_missed_call: self.interpret_wazo_user_missed_call,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -250,6 +252,44 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             # Don't call filter.filter_call() yet, to avoid empty exten during interpret.
             # Let interpret_chan_end do it instead.
 
+        return call
+
+    def interpret_wazo_user_missed_call(self, cel, call):
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return
+
+        extra_tokens = extra['extra'].split(',')
+        wazo_tenant_uuid = extra_tokens[0].split(': ')[1]
+        source_user_uuid = extra_tokens[1].split(': ')[1]
+        destination_user_uuid = extra_tokens[2].split(': ')[1]
+        destination_exten = extra_tokens[3].split(': ')[1]
+        source_name = extra_tokens[4].split(': ')[1]
+        destination_name = extra_tokens[5].split(': ')[1]
+
+        if source_user_uuid:
+            source_participant = CallLogParticipant(
+                role='source',
+                user_uuid=source_user_uuid,
+                answered=False,
+            )
+            call.participants.append(source_participant)
+            call.source_user_uuid = source_user_uuid
+        if destination_user_uuid:
+            destination_participant = CallLogParticipant(
+                role='destination',
+                user_uuid=destination_user_uuid,
+                answered=False,
+            )
+            call.participants.append(destination_participant)
+            call.destination_user_uuid = destination_user_uuid
+
+        call.set_tenant_uuid(wazo_tenant_uuid)
+        call.destination_exten = destination_exten
+        call.source_name = source_name
+        call.destination_name = destination_name
+        call.source_exten = cel.cid_num
+        call.source_line_identity = identity_from_channel(cel.channame)
         return call
 
 
