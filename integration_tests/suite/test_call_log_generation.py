@@ -6,6 +6,7 @@ from hamcrest import (
     assert_that,
     all_of,
     any_of,
+    contains,
     contains_inanyorder,
     empty,
     has_entries,
@@ -181,6 +182,85 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
                     )
 
             until.assert_(call_log_has_all_required_fields_set, tries=5)
+
+    @raw_cels(
+        '''\
+  eventtype                 |  eventtime                    |  cid_name         |  cid_num  |  exten                |  context      |  channame                  |  uniqueid        |  linkedid        |  extra
+----------------------------+-------------------------------+-------------------+-----------+-----------------------+---------------+----------------------------+------------------+------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ CHAN_START                 | 2022-07-07 15:52:09.928395    | Harry Potter      | 1603      | 91800                 | mycontext     | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |
+ XIVO_INCALL                | 2022-07-07 15:52:09.964649    | Harry Potter      | 1603      | s                     | did           | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |{"extra":"006a72c4-eb68-481a-808f-33b28ec109c8"}
+ APP_START                  | 2022-07-07 15:52:10.117812    | Harry Potter      | 1603      | s                     | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |
+ CHAN_START                 | 2022-07-07 15:52:10.119383    | Harry Potter      | 1603      | s                     | mycontext     | PJSIP/cul113qn-0000000a    | 1657223530.10    | 1657223529.9     |
+ XIVO_USER_FWD              | 2022-07-07 15:52:13.7577      | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |{"extra":"NUM:1603,CONTEXT:mycontext,NAME:Harry Potter"}
+ WAZO_USER_MISSED_CALL      | 2022-07-07 15:52:13.757839    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |{"extra":"wazo_tenant_uuid: 006a72c4-eb68-481a-808f-33b28ec109c8,source_user_uuid: ,destination_user_uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,destination_exten: 1800,source_name: Harry Potter,destination_name: Harry Potter"}
+ ANSWER                     | 2022-07-07 15:52:13.765261    | Harry Potter      | 1603      | pickup                | xivo-pickup   | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |
+ HANGUP                     | 2022-07-07 15:52:13.775339    | Harry Potter      | 1603      | s                     | mycontext     | PJSIP/cul113qn-0000000a    | 1657223530.10    | 1657223529.9     |{"hangupcause":19,"hangupsource":"PJSIP/cul113qn-0000000a","dialstatus":""}
+ CHAN_END                   | 2022-07-07 15:52:13.775339    | Harry Potter      | 1603      | s                     | mycontext     | PJSIP/cul113qn-0000000a    | 1657223530.10    | 1657223529.9     |
+ HANGUP                     | 2022-07-07 15:52:20.041784    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |{"hangupcause":19,"hangupsource":"dialplan/builtin","dialstatus":"NOANSWER"}
+ CHAN_END                   | 2022-07-07 15:52:20.041784    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |
+ LINKEDID_END               | 2022-07-07 15:52:20.041784    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |
+'''
+    )
+    def test_when_incall_and_unreachable_phone_then_call_log_contains_no_source_user_uuid(
+        self,
+    ):
+        linkedid = '1657223529.9'
+        wazo_tenant_uuid = '006a72c4-eb68-481a-808f-33b28ec109c8'
+        destination_user_uuid = 'cb79f29b-f69a-4b93-85c2-49dcce119a9f'
+        self.confd.set_users(
+            MockUser(
+                destination_user_uuid,
+                wazo_tenant_uuid,
+                line_ids=[2],
+                userfield='Paris,France',
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='mycontext', tenant_uuid=wazo_tenant_uuid)
+        )
+
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_is_missing_source_user():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            date_answer=None,
+                            tenant_uuid='006a72c4-eb68-481a-808f-33b28ec109c8',
+                            source_name='Harry Potter',
+                            source_internal_name='Harry Potter',
+                            source_exten='1603',
+                            source_line_identity='pjsip/cul113qn',
+                            destination_name='Harry Potter',
+                            destination_exten='1603',
+                            direction='inbound',
+                            requested_name='Harry Potter',
+                            requested_exten='91800',
+                            requested_context='mycontext',
+                            requested_internal_exten='1603',
+                            requested_internal_context='mycontext',
+                            source_user_uuid=None,
+                            destination_user_uuid='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
+                            participants=contains_inanyorder(
+                                has_properties(
+                                    role='destination',
+                                    user_uuid='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
+                                    tags=contains_inanyorder('Paris', 'France'),
+                                    answered=False,
+                                ),
+                            ),
+                        ),
+                    )
+                    user_uuids = queries.get_call_log_user_uuids(call_log.id)
+                    assert_that(
+                        user_uuids,
+                        contains(destination_user_uuid),
+                    )
+
+            until.assert_(call_log_is_missing_source_user, tries=5)
 
     @raw_cels(
         '''\

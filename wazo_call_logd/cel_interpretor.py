@@ -267,18 +267,22 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         source_name = extra_tokens[4].split(': ')[1]
         destination_name = extra_tokens[5].split(': ')[1]
 
-        source_participant = CallLogParticipant(
-            role='source',
-            user_uuid=source_user_uuid,
-            answered=False,
-        )
-        call.participants.append(source_participant)
-        destination_participant = CallLogParticipant(
-            role='destination',
-            user_uuid=destination_user_uuid,
-            answered=False,
-        )
-        call.participants.append(destination_participant)
+        if source_user_uuid:
+            source_participant = CallLogParticipant(
+                role='source',
+                user_uuid=source_user_uuid,
+                answered=False,
+            )
+            call.participants.append(source_participant)
+            call.source_user_uuid = source_user_uuid
+        if destination_user_uuid:
+            destination_participant = CallLogParticipant(
+                role='destination',
+                user_uuid=destination_user_uuid,
+                answered=False,
+            )
+            call.participants.append(destination_participant)
+            call.destination_user_uuid = destination_user_uuid
 
         call.set_tenant_uuid(wazo_tenant_uuid)
         call.destination_exten = destination_exten
@@ -286,8 +290,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.destination_name = destination_name
         call.source_exten = cel.cid_num
         call.source_line_identity = identity_from_channel(cel.channame)
-        call.source_user_uuid = source_user_uuid
-        call.destination_user_uuid = destination_user_uuid
         return call
 
 

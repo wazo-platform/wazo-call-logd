@@ -114,27 +114,32 @@ class CallLogsGenerator:
         source_user_uuid = call_log.source_user_uuid
         destination_user_uuid = call_log.destination_user_uuid
 
-        source_user = confd.users.get(source_user_uuid)
-        source_user_tags = (
-            [tag.strip() for tag in source_user['userfield'].split(',')]
-            if source_user['userfield']
-            else []
-        )
+        if source_user_uuid:
+            source_user = confd.users.get(source_user_uuid)
+            source_user_tags = (
+                [tag.strip() for tag in source_user['userfield'].split(',')]
+                if source_user['userfield']
+                else []
+            )
 
-        destination_user = confd.users.get(destination_user_uuid)
-        destination_user_tags = (
-            [tag.strip() for tag in destination_user['userfield'].split(',')]
-            if destination_user['userfield']
-            else []
-        )
+        if destination_user_uuid:
+            destination_user = confd.users.get(destination_user_uuid)
+            destination_user_tags = (
+                [tag.strip() for tag in destination_user['userfield'].split(',')]
+                if destination_user['userfield']
+                else []
+            )
+
         call_log_new_participants = []
         for participant in call_log.participants:
-            if participant.user_uuid == source_user_uuid:
-                participant.tags = source_user_tags
-                participant.line_id = source_user['lines'][0]['id']
-            if participant.user_uuid == destination_user_uuid:
-                participant.tags = destination_user_tags
-                participant.line_id = destination_user['lines'][0]['id']
+            if source_user_uuid:
+                if participant.user_uuid == source_user_uuid:
+                    participant.tags = source_user_tags
+                    participant.line_id = source_user['lines'][0]['id']
+            if destination_user_uuid:
+                if participant.user_uuid == destination_user_uuid:
+                    participant.tags = destination_user_tags
+                    participant.line_id = destination_user['lines'][0]['id']
             call_log_new_participants.append(participant)
         call_log.participants = call_log_new_participants
 
