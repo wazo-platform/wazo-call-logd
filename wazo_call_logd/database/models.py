@@ -85,6 +85,15 @@ class CallLog(Base):
     source_user_uuid = association_proxy('source_participant', 'user_uuid')
     source_line_id = association_proxy('source_participant', 'line_id')
 
+    destination_details = relationship(
+        'Destination',
+        primaryjoin='''and_(
+            Destination.call_log_id == CallLog.id,
+        )''',
+        uselist=False,
+        lazy='subquery',
+    )
+
     destination_participant = relationship(
         'CallLogParticipant',
         primaryjoin='''and_(
@@ -104,6 +113,38 @@ class CallLog(Base):
         CheckConstraint(
             direction.in_(['inbound', 'internal', 'outbound']),
             name='call_logd_call_log_direction_check',
+        ),
+    )
+
+
+@generic_repr
+class Destination(Base):
+
+    __tablename__ = 'call_logd_call_log_destination'
+
+    uuid = Column(
+        UUIDType,
+        server_default=text('uuid_generate_v4()'),
+        primary_key=True,
+    )
+
+    call_log_id = Column(
+        Integer,
+        ForeignKey(
+            'call_logd_call_log.id',
+            name='call_logd_call_log_destination_call_log_id_fkey',
+            ondelete='CASCADE',
+        ),
+    )
+
+    destination_details_key = Column(String(10), nullable=False)
+    destination_details_value = Column(String(255))
+
+    __table_args__ = (
+        Index('call_logd_call_log_destination__idx__uuid', 'uuid'),
+        CheckConstraint(
+            destination_details_key.in_(['user', 'meeting', 'conference']),
+            name='call_logd_call_log_destination_details_key_check',
         ),
     )
 
