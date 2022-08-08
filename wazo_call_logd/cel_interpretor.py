@@ -8,7 +8,7 @@ import logging
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import CallLogParticipant, Recording
+from .database.models import CallLogParticipant, Destination, Recording
 
 
 logger = logging.getLogger(__name__)
@@ -125,6 +125,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.wazo_conference: self.interpret_wazo_conference,
             # WAZO_USER_MISSED_CALL
             CELEventType.wazo_user_missed_call: self.interpret_wazo_user_missed_call,
+            # WAZO_CALL_LOG_DESTINATION
+            CELEventType.wazo_call_log_destination: self.interpret_wazo_call_log_destination,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -290,6 +292,32 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.destination_name = destination_name
         call.source_exten = cel.cid_num
         call.source_line_identity = identity_from_channel(cel.channame)
+        return call
+
+    def interpret_wazo_call_log_destination(self, cel, call):
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return
+
+        extra_tokens = extra['extra'].split(',')
+        destination_type = extra_tokens[0].split(': ')[1]
+        destination_details = Destination(destination_details_key=destination_type)
+        if destination_type == 'user':
+            user_uuid = extra_tokens[1].split(': ')[1]
+            user_name = extra_tokens[2].split(': ')[1]
+            value = ','.join([user_uuid, user_name])
+            destination_details.destination_details_value = value
+        elif destination_type == 'conference':
+            conference_id = extra_tokens[1].split(': ')[1]
+            value = conference_id
+            destination_details.destination_details_value = value
+        elif destination_type == 'meeting':
+            meeting_uuid = extra_tokens[1].split(': ')[1]
+            meeting_name = extra_tokens[2].split(': ')[1]
+            value = ','.join([meeting_uuid, meeting_name])
+            destination_details.destination_details_value = value
+
+        call.destination_details = destination_details
         return call
 
 
