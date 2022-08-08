@@ -61,6 +61,15 @@ class RecordingMediaExportSchema(Schema):
     uuid = fields.UUID()
 
 
+class DestinationDetailsSchema(Schema):
+    type = fields.String(required=True)
+    user_uuid = fields.UUID()
+    meeting_uuid = fields.UUID()
+    user_name = fields.String()
+    meeting_name = fields.String()
+    conference_id = fields.String()
+
+
 class CDRSchema(Schema):
     id = fields.Integer()
     tenant_uuid = fields.UUID()
@@ -70,6 +79,7 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
+    destination_details = fields.Nested(DestinationDetailsSchema, many=False)
     destination_extension = fields.String(attribute='destination_exten')
     destination_internal_context = fields.String()
     destination_internal_extension = fields.String(
@@ -92,6 +102,41 @@ class CDRSchema(Schema):
     source_user_uuid = fields.UUID()
     tags = fields.List(fields.String(), attribute='marshmallow_tags')
     recordings = fields.Nested('RecordingSchema', many=True, default=[])
+
+    @pre_dump
+    def _convert_destination_details_to_appropriate_schema(self, data, **kwargs):
+        if data.destination_details:
+            destination_details_dict = dict()
+            destination_details_key = data.destination_details.destination_details_key
+            destination_details_value = (
+                data.destination_details.destination_details_value
+            )
+            if destination_details_key == 'user':
+                destination_details_dict['type'] = 'user'
+                destination_details_dict['user_uuid'] = destination_details_value.split(
+                    ','
+                )[0]
+                destination_details_dict['user_name'] = destination_details_value.split(
+                    ','
+                )[1]
+            elif destination_details_key == 'meeting':
+                destination_details_dict['type'] = 'meeting'
+                destination_details_dict[
+                    'meeting_uuid'
+                ] = destination_details_value.split(',')[0]
+                destination_details_dict[
+                    'meeting_name'
+                ] = destination_details_value.split(',')[0]
+            elif destination_details_key == 'conference':
+                destination_details_dict['type'] = 'conference'
+                destination_details_dict[
+                    'conference_id'
+                ] = destination_details_value.split(',')[0]
+            else:
+                # Set the default type to unknown
+                destination_details_dict['type'] = 'unknwon'
+            data.destination_details = destination_details_dict
+        return data
 
     @pre_dump
     def _compute_fields(self, data, **kwargs):
