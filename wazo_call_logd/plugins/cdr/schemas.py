@@ -62,7 +62,7 @@ class RecordingMediaExportSchema(Schema):
 
 
 class DestinationDetailsSchema(Schema):
-    type = fields.String(required=True)
+    type = fields.String(required=True, default='unknown')
     user_uuid = fields.UUID()
     meeting_uuid = fields.UUID()
     user_name = fields.String()
