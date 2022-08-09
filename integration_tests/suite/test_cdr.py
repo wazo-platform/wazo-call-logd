@@ -223,7 +223,7 @@ class TestGetCDRId(IntegrationTest):
         ),
         recordings=[],
     )
-    def test_given_id_of_meeting_call_then_remote_party_is_setup_correctly(self):
+    def test_given_id_of_meeting_call_then_destination_details_is_setup_correctly(self):
         result = self.call_logd.cdr.get_by_id(164)
         assert_that(
             result,
@@ -276,7 +276,9 @@ class TestGetCDRId(IntegrationTest):
         ),
         recordings=[],
     )
-    def test_given_id_of_conference_call_then_remote_party_is_setup_correctly(self):
+    def test_given_id_of_conference_call_then_destination_details_is_setup_correctly(
+        self,
+    ):
         result = self.call_logd.cdr.get_by_id(166)
         assert_that(
             result,
@@ -637,7 +639,7 @@ class TestListCDR(IntegrationTest):
         ),
         recordings=[],
     )
-    def test_given_call_logs_with_remote_party_when_list_cdr_then_list_cdr_has_remote_party(
+    def test_given_call_logs_with_destination_details_when_list_cdr_then_list_cdr_has_remote_party(
         self,
     ):
         result = self.call_logd.cdr.list()
