@@ -1,6 +1,6 @@
 # Changelog
 
-## 22.11
+## 22.12
 
 * The `/cdr` endpoint now contains a new field called `destination_details`
 

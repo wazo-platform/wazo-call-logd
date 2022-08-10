@@ -139,7 +139,7 @@ class Destination(Base):
         ),
     )
 
-    destination_details_key = Column(String(10), nullable=False)
+    destination_details_key = Column(String(32), nullable=False)
     destination_details_value = Column(String(255))
 
     __table_args__ = (
