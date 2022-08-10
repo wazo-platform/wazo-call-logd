@@ -90,7 +90,9 @@ class CallLog(Base):
         primaryjoin='''and_(
             Destination.call_log_id == CallLog.id,
         )''',
-        uselist=False,
+        uselist=True,
+        cascade='all,delete-orphan',
+        passive_deletes=True,
         lazy='subquery',
     )
 
@@ -143,7 +145,16 @@ class Destination(Base):
     __table_args__ = (
         Index('call_logd_call_log_destination__idx__uuid', 'uuid'),
         CheckConstraint(
-            destination_details_key.in_(['user', 'meeting', 'conference']),
+            destination_details_key.in_(
+                [
+                    'type',
+                    'user_uuid',
+                    'user_name',
+                    'meeting_uuid',
+                    'meeting_name',
+                    'conference_id',
+                ]
+            ),
             name='call_logd_call_log_destination_details_key_check',
         ),
     )

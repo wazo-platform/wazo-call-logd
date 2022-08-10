@@ -51,7 +51,7 @@ class RawCallLog:
         self.pending_wait_for_mobile_peers = set()
         self.caller_id_by_channels = {}
         self.extension_filter = ExtensionFilter(DEFAULT_HIDDEN_EXTENSIONS)
-        self.destination_details = None
+        self.destination_details = []
 
     @property
     def tenant_uuid(self):

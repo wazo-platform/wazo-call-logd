@@ -7,6 +7,7 @@ from unittest.mock import Mock, sentinel
 from hamcrest import (
     assert_that,
     contains_exactly,
+    contains_inanyorder,
     equal_to,
     has_entries,
     has_properties,
@@ -273,10 +274,18 @@ class TestCallerCELInterpretor(TestCase):
 
         assert_that(
             result.destination_details,
-            has_properties(
-                destination_details_key='user',
-                destination_details_value=','.join(
-                    ['c3f297bd-93e1-46f6-a309-79b320acb7fb', 'Willy Wonka']
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value='c3f297bd-93e1-46f6-a309-79b320acb7fb',
+                ),
+                has_properties(
+                    destination_details_key='user_name',
+                    destination_details_value='Willy Wonka',
                 ),
             ),
         )
@@ -293,10 +302,18 @@ class TestCallerCELInterpretor(TestCase):
 
         assert_that(
             result.destination_details,
-            has_properties(
-                destination_details_key='user',
-                destination_details_value=','.join(
-                    ['cb79f29b-f69a-4b93-85c2-49dcce119a9f', 'Harry Potter']
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
+                ),
+                has_properties(
+                    destination_details_key='user_name',
+                    destination_details_value='Harry Potter',
                 ),
             ),
         )
@@ -313,13 +330,18 @@ class TestCallerCELInterpretor(TestCase):
 
         assert_that(
             result.destination_details,
-            has_properties(
-                destination_details_key='meeting',
-                destination_details_value=','.join(
-                    [
-                        '9195757f-c381-4f38-b684-98fef848f48b',
-                        'Meeting with Harry Potter',
-                    ]
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='meeting',
+                ),
+                has_properties(
+                    destination_details_key='meeting_uuid',
+                    destination_details_value='9195757f-c381-4f38-b684-98fef848f48b',
+                ),
+                has_properties(
+                    destination_details_key='meeting_name',
+                    destination_details_value='Meeting with Harry Potter',
                 ),
             ),
         )
@@ -336,8 +358,14 @@ class TestCallerCELInterpretor(TestCase):
 
         assert_that(
             result.destination_details,
-            has_properties(
-                destination_details_key='conference',
-                destination_details_value='1',
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='conference',
+                ),
+                has_properties(
+                    destination_details_key='conference_id',
+                    destination_details_value='1',
+                ),
             ),
         )

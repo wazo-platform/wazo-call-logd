@@ -107,29 +107,24 @@ class CDRSchema(Schema):
     def _convert_destination_details_to_appropriate_schema(
         self, data, original, **kwargs
     ):
-        destination_details = original.destination_details
-        if destination_details:
-            destination_details_key = destination_details.destination_details_key
-            destination_details_value = destination_details.destination_details_value
+        original_destination_details = original.destination_details
+        if original_destination_details:
             destination_details_dict = dict()
-            destination_details_dict['type'] = destination_details_key
-            if destination_details_key == 'meeting':
-                destination_details_dict[
-                    'meeting_uuid'
-                ] = destination_details_value.split(',')[0]
-                destination_details_dict[
-                    'meeting_name'
-                ] = destination_details_value.split(',')[1]
-            elif destination_details_key == 'user':
-                destination_details_dict['user_uuid'] = destination_details_value.split(
-                    ','
-                )[0]
-                destination_details_dict['user_name'] = destination_details_value.split(
-                    ','
-                )[1]
-            elif destination_details_key == 'conference':
-                destination_details_dict['conference_id'] = destination_details_value
-
+            for detail in original_destination_details:
+                key = detail.destination_details_key
+                value = detail.destination_details_value
+                if key == 'type':
+                    destination_details_dict['type'] = value
+                elif key == 'user_uuid':
+                    destination_details_dict['user_uuid'] = value
+                elif key == 'user_name':
+                    destination_details_dict['user_name'] = value
+                elif key == 'meeting_uuid':
+                    destination_details_dict['meeting_uuid'] = value
+                elif key == 'meeting_name':
+                    destination_details_dict['meeting_name'] = value
+                elif key == 'conference_id':
+                    destination_details_dict['conference_id'] = value
             data['destination_details'] = destination_details_dict
         return data
 

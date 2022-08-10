@@ -132,10 +132,20 @@ class TestGetCDRId(IntegrationTest):
         source_name='Harry Potter',
         source_internal_exten='1603',
         source_internal_context='mycontext',
-        destination_details=Destination(
-            destination_details_key='user',
-            destination_details_value=','.join([USER_2_UUID, 'Willy Wonka']),
-        ),
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='user',
+            ),
+            Destination(
+                destination_details_key='user_uuid',
+                destination_details_value=USER_2_UUID,
+            ),
+            Destination(
+                destination_details_key='user_name',
+                destination_details_value='Willy Wonka',
+            ),
+        ],
         participants=[
             {
                 'user_uuid': USER_1_UUID,
@@ -215,12 +225,20 @@ class TestGetCDRId(IntegrationTest):
         source_name='Harry Potter',
         source_internal_exten='1603',
         source_internal_context='mycontext',
-        destination_details=Destination(
-            destination_details_key='meeting',
-            destination_details_value=','.join(
-                ['6648726e-8ed9-4e6e-8ea5-f63caf911ae9', 'Meeting with Harry Potter']
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='meeting',
             ),
-        ),
+            Destination(
+                destination_details_key='meeting_uuid',
+                destination_details_value='6648726e-8ed9-4e6e-8ea5-f63caf911ae9',
+            ),
+            Destination(
+                destination_details_key='meeting_name',
+                destination_details_value='Meeting with Harry Potter',
+            ),
+        ],
         recordings=[],
     )
     def test_given_id_of_meeting_call_then_destination_details_is_setup_correctly(self):
@@ -270,10 +288,16 @@ class TestGetCDRId(IntegrationTest):
         source_name='Harry Potter',
         source_internal_exten='1603',
         source_internal_context='mycontext',
-        destination_details=Destination(
-            destination_details_key='conference',
-            destination_details_value='1',
-        ),
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='conference',
+            ),
+            Destination(
+                destination_details_key='conference_id',
+                destination_details_value='1',
+            ),
+        ],
         recordings=[],
     )
     def test_given_id_of_conference_call_then_destination_details_is_setup_correctly(
@@ -571,10 +595,20 @@ class TestListCDR(IntegrationTest):
         source_name='Jack Sparrow',
         source_internal_exten='1602',
         source_internal_context='mycontext1',
-        destination_details=Destination(
-            destination_details_key='user',
-            destination_details_value=','.join([USER_2_UUID, 'Alice Wonderland']),
-        ),
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='user',
+            ),
+            Destination(
+                destination_details_key='user_uuid',
+                destination_details_value=USER_2_UUID,
+            ),
+            Destination(
+                destination_details_key='user_name',
+                destination_details_value='Alice Wonderland',
+            ),
+        ],
         participants=[
             {
                 'user_uuid': USER_1_UUID,
@@ -609,12 +643,20 @@ class TestListCDR(IntegrationTest):
         source_name='Jack Sparrow',
         source_internal_exten='1602',
         source_internal_context='mycontext1',
-        destination_details=Destination(
-            destination_details_key='meeting',
-            destination_details_value=','.join(
-                ['6648726e-8ed9-4e6e-8ea5-f63caf911ae9', 'Meeting with Jack Sparrow']
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='meeting',
             ),
-        ),
+            Destination(
+                destination_details_key='meeting_uuid',
+                destination_details_value='6648726e-8ed9-4e6e-8ea5-f63caf911ae9',
+            ),
+            Destination(
+                destination_details_key='meeting_name',
+                destination_details_value='Meeting with Jack Sparrow',
+            ),
+        ],
         recordings=[],
     )
     @call_log(
@@ -633,10 +675,16 @@ class TestListCDR(IntegrationTest):
         source_name='Jack Sparrow',
         source_internal_exten='1602',
         source_internal_context='mycontext2',
-        destination_details=Destination(
-            destination_details_key='conference',
-            destination_details_value='2',
-        ),
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='conference',
+            ),
+            Destination(
+                destination_details_key='conference_id',
+                destination_details_value='2',
+            ),
+        ],
         recordings=[],
     )
     def test_given_call_logs_with_destination_details_when_list_cdr_then_list_cdr_has_remote_party(

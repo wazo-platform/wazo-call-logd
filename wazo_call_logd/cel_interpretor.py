@@ -301,23 +301,56 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         extra_tokens = extra['extra'].split(',')
         destination_type = extra_tokens[0].split(': ')[1]
-        destination_details = Destination(destination_details_key=destination_type)
+
         if destination_type == 'user':
             user_uuid = extra_tokens[1].split(': ')[1]
             user_name = extra_tokens[2].split(': ')[1]
-            value = ','.join([user_uuid, user_name])
-            destination_details.destination_details_value = value
+            destination_details = [
+                Destination(
+                    destination_details_key='type', destination_details_value='user'
+                ),
+                Destination(
+                    destination_details_key='user_uuid',
+                    destination_details_value=user_uuid,
+                ),
+                Destination(
+                    destination_details_key='user_name',
+                    destination_details_value=user_name,
+                ),
+            ]
+            call.destination_details = destination_details
+
         elif destination_type == 'conference':
             conference_id = extra_tokens[1].split(': ')[1]
-            value = conference_id
-            destination_details.destination_details_value = value
+            destination_details = [
+                Destination(
+                    destination_details_key='type',
+                    destination_details_value='conference',
+                ),
+                Destination(
+                    destination_details_key='conference_id',
+                    destination_details_value=conference_id,
+                ),
+            ]
+            call.destination_details = destination_details
         elif destination_type == 'meeting':
             meeting_uuid = extra_tokens[1].split(': ')[1]
             meeting_name = extra_tokens[2].split(': ')[1]
-            value = ','.join([meeting_uuid, meeting_name])
-            destination_details.destination_details_value = value
-
-        call.destination_details = destination_details
+            destination_details = [
+                Destination(
+                    destination_details_key='type',
+                    destination_details_value='meeting',
+                ),
+                Destination(
+                    destination_details_key='meeting_uuid',
+                    destination_details_value=meeting_uuid,
+                ),
+                Destination(
+                    destination_details_key='meeting_name',
+                    destination_details_value=meeting_name,
+                ),
+            ]
+            call.destination_details = destination_details
         return call
 
 

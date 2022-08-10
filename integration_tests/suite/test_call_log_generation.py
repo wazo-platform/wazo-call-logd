@@ -290,9 +290,19 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
             '1658354172.12',
             has_properties(
                 direction='internal',
-                destination_details=has_properties(
-                    destination_details_key='user',
-                    destination_details_value=','.join([user_uuid, user_name]),
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='user',
+                    ),
+                    has_properties(
+                        destination_details_key='user_uuid',
+                        destination_details_value=user_uuid,
+                    ),
+                    has_properties(
+                        destination_details_key='user_name',
+                        destination_details_value=user_name,
+                    ),
                 ),
             ),
         )
@@ -327,9 +337,19 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
             has_properties(
                 tenant_uuid='006a72c4-eb68-481a-808f-33b28ec109c8',
                 direction='inbound',
-                destination_details=has_properties(
-                    destination_details_key='user',
-                    destination_details_value=','.join([user_uuid, user_name]),
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='user',
+                    ),
+                    has_properties(
+                        destination_details_key='user_uuid',
+                        destination_details_value=user_uuid,
+                    ),
+                    has_properties(
+                        destination_details_key='user_name',
+                        destination_details_value=user_name,
+                    ),
                 ),
             ),
         )
@@ -355,9 +375,19 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
         self._assert_last_call_log_matches(
             '1658530580.3',
             has_properties(
-                destination_details=has_properties(
-                    destination_details_key='meeting',
-                    destination_details_value=','.join([meeting_uuid, meeting_name]),
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='meeting',
+                    ),
+                    has_properties(
+                        destination_details_key='meeting_uuid',
+                        destination_details_value=meeting_uuid,
+                    ),
+                    has_properties(
+                        destination_details_key='meeting_name',
+                        destination_details_value=meeting_name,
+                    ),
                 ),
             ),
         )
@@ -382,9 +412,15 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
         self._assert_last_call_log_matches(
             '1658531927.10',
             has_properties(
-                destination_details=has_properties(
-                    destination_details_key='conference',
-                    destination_details_value=conference_id,
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='conference',
+                    ),
+                    has_properties(
+                        destination_details_key='conference_id',
+                        destination_details_value=conference_id,
+                    ),
                 ),
             ),
         )
