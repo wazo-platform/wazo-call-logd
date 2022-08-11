@@ -300,54 +300,53 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             return
 
         extra_tokens = extra['extra'].split(',')
-        destination_type = extra_tokens[0].split(': ')[1]
+        extra_dict = dict()
+        for token in extra_tokens:
+            key = token.split(': ')[0]
+            value = token.split(': ')[1]
+            extra_dict[key] = value
 
-        if destination_type == 'user':
-            user_uuid = extra_tokens[1].split(': ')[1]
-            user_name = extra_tokens[2].split(': ')[1]
-            destination_details = [
-                Destination(
-                    destination_details_key='type', destination_details_value='user'
-                ),
-                Destination(
-                    destination_details_key='user_uuid',
-                    destination_details_value=user_uuid,
-                ),
-                Destination(
-                    destination_details_key='user_name',
-                    destination_details_value=user_name,
-                ),
-            ]
-            call.destination_details = destination_details
-
-        elif destination_type == 'conference':
-            conference_id = extra_tokens[1].split(': ')[1]
+        if extra_dict['type'] == 'conference':
             destination_details = [
                 Destination(
                     destination_details_key='type',
-                    destination_details_value='conference',
+                    destination_details_value=extra_dict['type'],
                 ),
                 Destination(
                     destination_details_key='conference_id',
-                    destination_details_value=conference_id,
+                    destination_details_value=extra_dict['id'],
                 ),
             ]
             call.destination_details = destination_details
-        elif destination_type == 'meeting':
-            meeting_uuid = extra_tokens[1].split(': ')[1]
-            meeting_name = extra_tokens[2].split(': ')[1]
+        elif extra_dict['type'] == 'user':
             destination_details = [
                 Destination(
                     destination_details_key='type',
-                    destination_details_value='meeting',
+                    destination_details_value=extra_dict['type'],
+                ),
+                Destination(
+                    destination_details_key='user_uuid',
+                    destination_details_value=extra_dict['uuid'],
+                ),
+                Destination(
+                    destination_details_key='user_name',
+                    destination_details_value=extra_dict['name'],
+                ),
+            ]
+            call.destination_details = destination_details
+        elif extra_dict['type'] == 'meeting':
+            destination_details = [
+                Destination(
+                    destination_details_key='type',
+                    destination_details_value=extra_dict['type'],
                 ),
                 Destination(
                     destination_details_key='meeting_uuid',
-                    destination_details_value=meeting_uuid,
+                    destination_details_value=extra_dict['uuid'],
                 ),
                 Destination(
                     destination_details_key='meeting_name',
-                    destination_details_value=meeting_name,
+                    destination_details_value=extra_dict['name'],
                 ),
             ]
             call.destination_details = destination_details

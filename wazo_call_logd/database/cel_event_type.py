@@ -30,5 +30,4 @@ class CELEventType(object):
     xivo_outcall = 'XIVO_OUTCALL'
     xivo_user_fwd = 'XIVO_USER_FWD'
     wazo_user_missed_call = 'WAZO_USER_MISSED_CALL'
-    # WAZO_CALL_LOG_DESTINATION event
     wazo_call_log_destination = 'WAZO_CALL_LOG_DESTINATION'

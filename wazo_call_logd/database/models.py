@@ -140,7 +140,7 @@ class Destination(Base):
     )
 
     destination_details_key = Column(String(32), nullable=False)
-    destination_details_value = Column(String(255))
+    destination_details_value = Column(String(255), nullable=False)
 
     __table_args__ = (
         Index('call_logd_call_log_destination__idx__uuid', 'uuid'),

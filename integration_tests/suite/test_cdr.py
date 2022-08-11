@@ -326,7 +326,7 @@ class TestGetCDRId(IntegrationTest):
                 source_internal_context='mycontext',
                 destination_details=has_entries(
                     type='conference',
-                    conference_id='1',
+                    conference_id=1,
                 ),
                 recordings=[],
             ),
@@ -775,7 +775,7 @@ class TestListCDR(IntegrationTest):
                         source_internal_context='mycontext2',
                         destination_details=has_entries(
                             type='conference',
-                            conference_id='2',
+                            conference_id=2,
                         ),
                         recordings=[],
                     ),

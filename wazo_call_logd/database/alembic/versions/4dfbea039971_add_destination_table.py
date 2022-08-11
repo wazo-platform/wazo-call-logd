@@ -25,12 +25,13 @@ def upgrade():
         ),
         sa.Column(
             'destination_details_key',
-            sa.String(10),
+            sa.String(32),
             nullable=False,
         ),
         sa.Column(
             'destination_details_value',
             sa.String(255),
+            nullable=False,
         ),
         sa.Column(
             'call_log_id',
@@ -40,7 +41,7 @@ def upgrade():
     op.create_check_constraint(
         'call_logd_call_log_destination_details_key_check',
         'call_logd_call_log_destination',
-        "destination_details_key IN ('user','conference','meeting')",
+        "destination_details_key IN ('type','user_uuid','user_name', 'meeting_uuid', 'meeting_name', 'conference_id')",
     )
     op.create_foreign_key(
         constraint_name='call_logd_call_log_destination_call_log_id_fkey',

@@ -64,10 +64,10 @@ class RecordingMediaExportSchema(Schema):
 class DestinationDetailsSchema(Schema):
     type = fields.String(required=True, default='unknown')
     user_uuid = fields.UUID()
-    meeting_uuid = fields.UUID()
     user_name = fields.String()
+    meeting_uuid = fields.UUID()
     meeting_name = fields.String()
-    conference_id = fields.String()
+    conference_id = fields.Integer()
 
 
 class CDRSchema(Schema):
@@ -107,10 +107,9 @@ class CDRSchema(Schema):
     def _convert_destination_details_to_appropriate_schema(
         self, data, original, **kwargs
     ):
-        original_destination_details = original.destination_details
-        if original_destination_details:
+        if original.destination_details:
             destination_details_dict = dict()
-            for detail in original_destination_details:
+            for detail in original.destination_details:
                 key = detail.destination_details_key
                 value = detail.destination_details_value
                 if key == 'type':
@@ -124,7 +123,7 @@ class CDRSchema(Schema):
                 elif key == 'meeting_name':
                     destination_details_dict['meeting_name'] = value
                 elif key == 'conference_id':
-                    destination_details_dict['conference_id'] = value
+                    destination_details_dict['conference_id'] = int(value)
             data['destination_details'] = destination_details_dict
         return data
 
