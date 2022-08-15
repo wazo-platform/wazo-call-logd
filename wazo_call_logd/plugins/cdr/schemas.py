@@ -63,10 +63,19 @@ class RecordingMediaExportSchema(Schema):
 
 class DestinationDetailsSchema(Schema):
     type = fields.String(required=True, default='unknown')
+
+
+class DestinationUserDetails(DestinationDetailsSchema):
     user_uuid = fields.UUID()
     user_name = fields.String()
+
+
+class DestinationMeetingDetails(DestinationDetailsSchema):
     meeting_uuid = fields.UUID()
     meeting_name = fields.String()
+
+
+class DestinationConferenceDetails(DestinationDetailsSchema):
     conference_id = fields.Integer()
 
 
@@ -79,7 +88,7 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
-    destination_details = fields.Nested(DestinationDetailsSchema, many=False)
+    destination_details = fields.Nested(DestinationDetailsSchema)
     destination_extension = fields.String(attribute='destination_exten')
     destination_internal_context = fields.String()
     destination_internal_extension = fields.String(
@@ -112,18 +121,10 @@ class CDRSchema(Schema):
             for detail in original.destination_details:
                 key = detail.destination_details_key
                 value = detail.destination_details_value
-                if key == 'type':
-                    destination_details_dict['type'] = value
-                elif key == 'user_uuid':
-                    destination_details_dict['user_uuid'] = value
-                elif key == 'user_name':
-                    destination_details_dict['user_name'] = value
-                elif key == 'meeting_uuid':
-                    destination_details_dict['meeting_uuid'] = value
-                elif key == 'meeting_name':
-                    destination_details_dict['meeting_name'] = value
-                elif key == 'conference_id':
-                    destination_details_dict['conference_id'] = int(value)
+                if key == 'conference_id':
+                    destination_details_dict[key] = int(value)
+                else:
+                    destination_details_dict[key] = value
             data['destination_details'] = destination_details_dict
         return data
 

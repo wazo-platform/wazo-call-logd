@@ -687,7 +687,7 @@ class TestListCDR(IntegrationTest):
         ],
         recordings=[],
     )
-    def test_given_call_logs_with_destination_details_when_list_cdr_then_list_cdr_has_remote_party(
+    def test_given_call_logs_with_destination_details_when_list_cdr_then_list_cdr_has_destination_details(
         self,
     ):
         result = self.call_logd.cdr.list()

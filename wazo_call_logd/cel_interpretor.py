@@ -123,9 +123,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
             CELEventType.wazo_meeting_name: self.interpret_wazo_meeting_name,
             CELEventType.wazo_conference: self.interpret_wazo_conference,
-            # WAZO_USER_MISSED_CALL
             CELEventType.wazo_user_missed_call: self.interpret_wazo_user_missed_call,
-            # WAZO_CALL_LOG_DESTINATION
             CELEventType.wazo_call_log_destination: self.interpret_wazo_call_log_destination,
         }
 
@@ -302,9 +300,13 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         extra_tokens = extra['extra'].split(',')
         extra_dict = dict()
         for token in extra_tokens:
-            key = token.split(': ')[0]
-            value = token.split(': ')[1]
+            key = token.split(': ')[0].strip()
+            value = token.split(': ')[1].strip()
             extra_dict[key] = value
+
+        if 'type' not in extra_dict.keys():
+            logger.debug('required destination type is not found.')
+            return
 
         if extra_dict['type'] == 'conference':
             destination_details = [
