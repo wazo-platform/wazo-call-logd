@@ -794,34 +794,52 @@ class TestRecordingMediaExport(IntegrationTest):
     @file_(path='/tmp/1-recording.wav')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     def test_events_when_success(self, rec1):
-        routing_key_created = 'call_logd.export.created'
-        routing_key_updated = 'call_logd.export.updated'
-        event_created_accumulator = self.bus.accumulator(routing_key_created)
-        event_updated_accumulator = self.bus.accumulator(routing_key_updated)
+        created_events = self.bus.accumulator(
+            headers={'name': 'call_logd_export_created'}
+        )
+        updated_events = self.bus.accumulator(
+            headers={'name': 'call_logd_export_updated'}
+        )
         export_uuid = self.call_logd.cdr.export_recording_media(recurse=False)['uuid']
 
         def events_received():
-            events_created = event_created_accumulator.accumulate()
-            events_updated = event_updated_accumulator.accumulate()
             assert_that(
-                events_created,
+                created_events.accumulate(with_headers=True),
                 contains(
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='pending'),
-                        required_acl=f'events.{routing_key_created}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='pending'),
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_created',
+                            required_acl='events.call_logd.export.created',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                 ),
             )
             assert_that(
-                events_updated,
+                updated_events.accumulate(with_headers=True),
                 contains(
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='processing'),
-                        required_acl=f'events.{routing_key_updated}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='processing'),
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_updated',
+                            required_acl='events.call_logd.export.updated',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='finished'),
-                        required_acl=f'events.{routing_key_updated}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='finished'),
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_updated',
+                            required_acl='events.call_logd.export.updated',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                 ),
             )
@@ -835,34 +853,52 @@ class TestRecordingMediaExport(IntegrationTest):
     )
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     def test_events_when_file_does_not_exist(self, rec1):
-        routing_key_created = 'call_logd.export.created'
-        routing_key_updated = 'call_logd.export.updated'
-        event_created_accumulator = self.bus.accumulator(routing_key_created)
-        event_updated_accumulator = self.bus.accumulator(routing_key_updated)
+        created_accumulator = self.bus.accumulator(
+            headers={'name': 'call_logd_export_created'}
+        )
+        updated_accumulator = self.bus.accumulator(
+            headers={'name': 'call_logd_export_updated'}
+        )
         export_uuid = self.call_logd.cdr.export_recording_media(recurse=False)['uuid']
 
         def events_received():
-            events_created = event_created_accumulator.accumulate()
-            events_updated = event_updated_accumulator.accumulate()
             assert_that(
-                events_created,
+                created_accumulator.accumulate(with_headers=True),
                 contains(
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='pending'),
-                        required_acl=f'events.{routing_key_created}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='pending'),
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_created',
+                            required_acl='events.call_logd.export.created',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                 ),
             )
             assert_that(
-                events_updated,
+                updated_accumulator.accumulate(with_headers=True),
                 contains(
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='processing'),
-                        required_acl=f'events.{routing_key_updated}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='processing'),
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_updated',
+                            required_acl='events.call_logd.export.updated',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='error'),
-                        required_acl=f'events.{routing_key_updated}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='error')
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_updated',
+                            required_acl='events.call_logd.export.updated',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                 ),
             )
@@ -877,34 +913,52 @@ class TestRecordingMediaExport(IntegrationTest):
     @file_(path='/tmp/1-recording.wav', content='1-recording', mode='000')
     @recording(call_log_id=1, path='/tmp/1-recording.wav')
     def test_events_when_permission_error(self, rec1):
-        routing_key_created = 'call_logd.export.created'
-        routing_key_updated = 'call_logd.export.updated'
-        event_created_accumulator = self.bus.accumulator(routing_key_created)
-        event_updated_accumulator = self.bus.accumulator(routing_key_updated)
+        created_accumulator = self.bus.accumulator(
+            headers={'name': 'call_logd_export_created'}
+        )
+        updated_accumulator = self.bus.accumulator(
+            headers={'name': 'call_logd_export_updated'}
+        )
         export_uuid = self.call_logd.cdr.export_recording_media(recurse=False)['uuid']
 
         def events_received():
-            events_created = event_created_accumulator.accumulate()
-            events_updated = event_updated_accumulator.accumulate()
             assert_that(
-                events_created,
+                created_accumulator.accumulate(with_headers=True),
                 contains(
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='pending'),
-                        required_acl=f'events.{routing_key_created}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='pending'),
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_created',
+                            required_acl='events.call_logd.export.created',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                 ),
             )
             assert_that(
-                events_updated,
+                updated_accumulator.accumulate(with_headers=True),
                 contains(
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='processing'),
-                        required_acl=f'events.{routing_key_updated}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='processing'),
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_updated',
+                            required_acl='events.call_logd.export.updated',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                     has_entries(
-                        data=has_entries(uuid=export_uuid, status='error'),
-                        required_acl=f'events.{routing_key_updated}',
+                        message=has_entries(
+                            data=has_entries(uuid=export_uuid, status='error')
+                        ),
+                        headers=has_entries(
+                            name='call_logd_export_updated',
+                            required_acl='events.call_logd.export.updated',
+                            tenant_uuid=MASTER_TENANT,
+                        ),
                     ),
                 ),
             )

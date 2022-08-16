@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -102,8 +102,7 @@ class TestRetention(IntegrationTest):
     @retention()
     def test_update_events(self, retention):
         args = {'cdr_days': 2, 'export_days': 3, 'recording_days': 2}
-        routing_key = 'call_logd.retention.updated'
-        event_accumulator = self.bus.accumulator(routing_key)
+        events = self.bus.accumulator(headers={'name': 'call_logd_retention_updated'})
 
         tenant = retention['tenant_uuid']
         self.call_logd.retention.update(**args, tenant_uuid=tenant)
@@ -113,13 +112,18 @@ class TestRetention(IntegrationTest):
 
         # TODO(fblackburn) code should publish event BEFORE returning HTTP response
         def event_received():
-            events = event_accumulator.accumulate()
             assert_that(
-                events,
+                events.accumulate(with_headers=True),
                 contains(
                     has_entries(
-                        data=has_entries(**args),
-                        required_acl=f'events.{routing_key}',
+                        message=has_entries(
+                            data=has_entries(**args),
+                        ),
+                        headers=has_entries(
+                            name='call_logd_retention_updated',
+                            required_acl='events.call_logd.retention.updated',
+                            tenant_uuid=tenant,
+                        ),
                     ),
                 ),
             )
