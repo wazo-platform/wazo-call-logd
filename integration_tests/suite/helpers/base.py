@@ -9,8 +9,9 @@ import random
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from contextlib import contextmanager, wraps
-from requests.packages import urllib3
 from hamcrest import assert_that
+from kombu import Exchange
+from requests.packages import urllib3
 from wazo_call_logd_client.client import Client as CallLogdClient
 from wazo_test_helpers import until
 from wazo_test_helpers.auth import (
@@ -213,8 +214,11 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
             port = cls.service_port(5672, 'rabbitmq')
         except (NoSuchService, NoSuchPort):
             return WrongClient(name='bus')
-        bus = CallLogBusClient.from_connection_fields(port=port)
-        bus.downstream_exchange_declare('wazo-headers', 'headers')
+        upstream = Exchange('xivo', 'topic')
+        bus = CallLogBusClient.from_connection_fields(
+            port=port, exchange_name='wazo-headers', exchange_type='headers'
+        )
+        bus.downstream_exchange_declare('wazo-headers', 'headers', upstream)
         return bus
 
     @classmethod
