@@ -69,8 +69,8 @@ class Controller:
             generator.set_default_tenant_uuid
         )
 
-        self.bus_publisher = BusPublisher(service_uuid=config['uuid'], **config['bus'])
-        self.bus_consumer = BusConsumer(**config['bus'])
+        self.bus_publisher = BusPublisher.from_config(config['uuid'], config['bus'])
+        self.bus_consumer = BusConsumer.from_config(config['bus'])
         self.manager = CallLogsManager(self.dao, generator, writer, self.bus_publisher)
 
         self._bus_subscribe()
