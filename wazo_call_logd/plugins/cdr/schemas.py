@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
+    EXCLUDE,
     post_load,
     pre_dump,
     pre_load,
@@ -61,22 +62,48 @@ class RecordingMediaExportSchema(Schema):
     uuid = fields.UUID()
 
 
-class DestinationDetailsSchema(Schema):
+class BaseDestinationDetailsSchema(Schema):
     type = fields.String(required=True, default='unknown')
 
 
-class DestinationUserDetails(DestinationDetailsSchema):
+class DestinationUserDetails(BaseDestinationDetailsSchema):
     user_uuid = fields.UUID()
     user_name = fields.String()
 
 
-class DestinationMeetingDetails(DestinationDetailsSchema):
+class DestinationMeetingDetails(BaseDestinationDetailsSchema):
     meeting_uuid = fields.UUID()
     meeting_name = fields.String()
 
 
-class DestinationConferenceDetails(DestinationDetailsSchema):
+class DestinationConferenceDetails(BaseDestinationDetailsSchema):
     conference_id = fields.Integer()
+
+
+class FuncKeyDestinationField(fields.Nested):
+
+    destination_schemas = {
+        'user': DestinationUserDetails,
+        'meeting': DestinationMeetingDetails,
+        'conference': DestinationConferenceDetails,
+    }
+
+    def __init__(self, *args, **kwargs):
+        kwargs['unknown'] = EXCLUDE
+        super().__init__(*args, **kwargs)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        self.schema.context = self.context
+        base = super()._deserialize(value, attr, data, **kwargs)
+        return fields.Nested(
+            self.destination_schemas[base['type']], unknown=self.unknown
+        )._deserialize(value, attr, data, **kwargs)
+
+    def _serialize(self, nested_obj, attr, obj):
+        base = super()._serialize(nested_obj, attr, obj)
+        return fields.Nested(
+            self.destination_schemas[base['type']], unknown=self.unknown
+        )._serialize(nested_obj, attr, obj)
 
 
 class CDRSchema(Schema):
@@ -88,7 +115,7 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
-    destination_details = fields.Nested(DestinationDetailsSchema)
+    FuncKeyDestinationField(BaseDestinationDetailsSchema, required=True)
     destination_extension = fields.String(attribute='destination_exten')
     destination_internal_context = fields.String()
     destination_internal_extension = fields.String(

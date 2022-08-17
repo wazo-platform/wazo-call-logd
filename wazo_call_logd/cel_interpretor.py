@@ -305,53 +305,37 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             extra_dict[key] = value
 
         if 'type' not in extra_dict.keys():
-            logger.debug('required destination type is not found.')
+            logger.error('required destination type is not found.')
             return
 
         if extra_dict['type'] == 'conference':
-            destination_details = [
-                Destination(
-                    destination_details_key='type',
-                    destination_details_value=extra_dict['type'],
-                ),
-                Destination(
-                    destination_details_key='conference_id',
-                    destination_details_value=extra_dict['id'],
-                ),
-            ]
-            call.destination_details = destination_details
+            destination_details = {
+                'type': extra_dict['type'],
+                'conference_id': extra_dict['id'],
+            }
         elif extra_dict['type'] == 'user':
-            destination_details = [
-                Destination(
-                    destination_details_key='type',
-                    destination_details_value=extra_dict['type'],
-                ),
-                Destination(
-                    destination_details_key='user_uuid',
-                    destination_details_value=extra_dict['uuid'],
-                ),
-                Destination(
-                    destination_details_key='user_name',
-                    destination_details_value=extra_dict['name'],
-                ),
-            ]
-            call.destination_details = destination_details
+            destination_details = {
+                'type': extra_dict['type'],
+                'user_uuid': extra_dict['uuid'],
+                'user_name': extra_dict['name'],
+            }
         elif extra_dict['type'] == 'meeting':
-            destination_details = [
-                Destination(
-                    destination_details_key='type',
-                    destination_details_value=extra_dict['type'],
-                ),
-                Destination(
-                    destination_details_key='meeting_uuid',
-                    destination_details_value=extra_dict['uuid'],
-                ),
-                Destination(
-                    destination_details_key='meeting_name',
-                    destination_details_value=extra_dict['name'],
-                ),
-            ]
-            call.destination_details = destination_details
+            destination_details = {
+                'type': extra_dict['type'],
+                'meeting_uuid': extra_dict['uuid'],
+                'meeting_name': extra_dict['name'],
+            }
+        else:
+            logger.debug('unknown destination type')
+            return
+
+        call.destination_details = [
+            Destination(
+                destination_details_key=key,
+                destination_details_value=value,
+            )
+            for key, value in destination_details.items()
+        ]
         return call
 
 
