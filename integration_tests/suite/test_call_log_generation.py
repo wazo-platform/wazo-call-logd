@@ -512,14 +512,9 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 assert_that(accumulator.accumulate(), empty())
 
             until.assert_(call_log_has_no_user_uuid, tries=5)
+            until.assert_(bus_event_call_log_created, events, tries=10, interval=0.25)
             until.assert_(
-                bus_event_call_log_created, events, tries=10, interval=0.25
-            )
-            until.assert_(
-                bus_event_call_log_user_created,
-                user_events,
-                tries=10,
-                interval=0.25,
+                bus_event_call_log_user_created, user_events, tries=10, interval=0.25
             )
 
     @raw_cels(
@@ -601,9 +596,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     accumulator.accumulate(with_headers=True),
                     contains_inanyorder(
                         has_entries(
-                            message=has_entries(
-                                data=has_key('tags')
-                            ),
+                            message=has_entries(data=has_key('tags')),
                             headers=has_entries(
                                 name='call_log_created',
                                 tenant_uuid=USERS_TENANT,
@@ -625,7 +618,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                                 name='call_log_user_created',
                                 required_acl=f'events.call_log.user.{USER_1_UUID}.created',
                                 tenant_uuid=USERS_TENANT,
-                            )
+                            ),
                         ),
                         has_entries(
                             message=has_entries(
@@ -642,14 +635,9 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 )
 
             until.assert_(call_log_has_both_user_uuid_and_tenant_uuid, tries=5)
+            until.assert_(bus_event_call_log_created, events, tries=10, interval=0.25)
             until.assert_(
-                bus_event_call_log_created, events, tries=10, interval=0.25
-            )
-            until.assert_(
-                bus_event_call_log_user_created,
-                user_events,
-                tries=10,
-                interval=0.25,
+                bus_event_call_log_user_created, user_events, tries=10, interval=0.25
             )
 
     @raw_cels(
