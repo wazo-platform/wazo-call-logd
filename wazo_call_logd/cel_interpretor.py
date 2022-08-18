@@ -306,7 +306,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         if 'type' not in extra_dict.keys():
             logger.error('required destination type is not found.')
-            return
+            return call
 
         if extra_dict['type'] == 'conference':
             destination_details = {
@@ -326,8 +326,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'meeting_name': extra_dict['name'],
             }
         else:
-            logger.debug('unknown destination type')
-            return
+            logger.error('unknown destination type')
+            return call
 
         call.destination_details = [
             Destination(

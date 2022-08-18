@@ -80,9 +80,9 @@ class DestinationConferenceDetails(BaseDestinationDetailsSchema):
     conference_id = fields.Integer()
 
 
-class FuncKeyDestinationField(fields.Nested):
+class DestinationDetailsField(fields.Nested):
 
-    destination_schemas = {
+    destination_details_schemas = {
         'user': DestinationUserDetails,
         'meeting': DestinationMeetingDetails,
         'conference': DestinationConferenceDetails,
@@ -96,13 +96,13 @@ class FuncKeyDestinationField(fields.Nested):
         self.schema.context = self.context
         base = super()._deserialize(value, attr, data, **kwargs)
         return fields.Nested(
-            self.destination_schemas[base['type']], unknown=self.unknown
+            self.destination_details_schemas[base['type']], unknown=self.unknown
         )._deserialize(value, attr, data, **kwargs)
 
     def _serialize(self, nested_obj, attr, obj):
         base = super()._serialize(nested_obj, attr, obj)
         return fields.Nested(
-            self.destination_schemas[base['type']], unknown=self.unknown
+            self.destination_details_schemas[base['type']], unknown=self.unknown
         )._serialize(nested_obj, attr, obj)
 
 
@@ -115,7 +115,7 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
-    FuncKeyDestinationField(BaseDestinationDetailsSchema, required=True)
+    DestinationDetailsField(BaseDestinationDetailsSchema, required=True)
     destination_extension = fields.String(attribute='destination_exten')
     destination_internal_context = fields.String()
     destination_internal_extension = fields.String(
