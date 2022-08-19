@@ -66,9 +66,8 @@ class BaseDestinationDetailsSchema(Schema):
     type = fields.String(required=True, default='unknown')
 
 
-class DestinationUserDetails(BaseDestinationDetailsSchema):
-    user_uuid = fields.UUID()
-    user_name = fields.String()
+class DestinationConferenceDetails(BaseDestinationDetailsSchema):
+    conference_id = fields.Integer()
 
 
 class DestinationMeetingDetails(BaseDestinationDetailsSchema):
@@ -76,20 +75,22 @@ class DestinationMeetingDetails(BaseDestinationDetailsSchema):
     meeting_name = fields.String()
 
 
-class DestinationConferenceDetails(BaseDestinationDetailsSchema):
-    conference_id = fields.Integer()
-
-
 class DestinationUnknownDetails(BaseDestinationDetailsSchema):
     pass
+
+
+class DestinationUserDetails(BaseDestinationDetailsSchema):
+    user_uuid = fields.UUID()
+    user_name = fields.String()
 
 
 class DestinationDetailsField(fields.Nested):
 
     destination_details_schemas = {
-        'user': DestinationUserDetails,
-        'meeting': DestinationMeetingDetails,
         'conference': DestinationConferenceDetails,
+        'meeting': DestinationMeetingDetails,
+        'user': DestinationUserDetails,
+        'unknown': DestinationUnknownDetails,
     }
 
     def __init__(self, *args, **kwargs):
