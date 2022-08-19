@@ -295,7 +295,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_wazo_call_log_destination(self, cel, call):
         extra = extract_cel_extra(cel.extra)
         if not extra:
-            return
+            return call
 
         extra_tokens = extra['extra'].split(',')
         extra_dict = dict()
