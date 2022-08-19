@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import (
@@ -95,6 +95,13 @@ class CallLog(Base):
         passive_deletes=True,
         lazy='subquery',
     )
+
+    @property
+    def destination_details_dict(self):
+        return {
+            row.destination_details_key: row.destination_details_value
+            for row in self.destination_details
+        }
 
     destination_participant = relationship(
         'CallLogParticipant',

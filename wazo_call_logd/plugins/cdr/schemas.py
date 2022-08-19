@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
@@ -80,6 +80,10 @@ class DestinationConferenceDetails(BaseDestinationDetailsSchema):
     conference_id = fields.Integer()
 
 
+class DestinationUnknownDetails(BaseDestinationDetailsSchema):
+    pass
+
+
 class DestinationDetailsField(fields.Nested):
 
     destination_details_schemas = {
@@ -115,7 +119,11 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
-    DestinationDetailsField(BaseDestinationDetailsSchema, required=True)
+    destination_details = DestinationDetailsField(
+        BaseDestinationDetailsSchema,
+        attribute='destination_details_dict',
+        required=True,
+    )
     destination_extension = fields.String(attribute='destination_exten')
     destination_internal_context = fields.String()
     destination_internal_extension = fields.String(
@@ -138,22 +146,6 @@ class CDRSchema(Schema):
     source_user_uuid = fields.UUID()
     tags = fields.List(fields.String(), attribute='marshmallow_tags')
     recordings = fields.Nested('RecordingSchema', many=True, default=[])
-
-    @post_dump(pass_original=True)
-    def _convert_destination_details_to_appropriate_schema(
-        self, data, original, **kwargs
-    ):
-        if original.destination_details:
-            destination_details_dict = dict()
-            for detail in original.destination_details:
-                key = detail.destination_details_key
-                value = detail.destination_details_value
-                if key == 'conference_id':
-                    destination_details_dict[key] = int(value)
-                else:
-                    destination_details_dict[key] = value
-            data['destination_details'] = destination_details_dict
-        return data
 
     @pre_dump
     def _compute_fields(self, data, **kwargs):
