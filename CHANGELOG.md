@@ -1,5 +1,9 @@
 # Changelog
 
+## 22.12
+
+* The `/cdr` endpoint now contains a new field called `destination_details`
+
 ## 21.10
 
 * The `/cdr` resource now includes the `source_internal_name` field

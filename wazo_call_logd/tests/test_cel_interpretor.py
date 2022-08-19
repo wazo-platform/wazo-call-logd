@@ -7,8 +7,10 @@ from unittest.mock import Mock, sentinel
 from hamcrest import (
     assert_that,
     contains_exactly,
+    contains_inanyorder,
     equal_to,
     has_entries,
+    has_properties,
     none,
     same_instance,
 )
@@ -259,3 +261,111 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result.requested_name, equal_to('Bob Marley'))
         assert_that(result.requested_internal_exten, equal_to('100'))
         assert_that(result.requested_internal_context, equal_to('internal'))
+
+    def test_interpret_wazo_internal_call_has_destination_details(self):
+        cel = Mock(
+            eventtype='WAZO_CALL_LOG_DESTINATION',
+            extra='{"extra":"type: user,uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,name: Willy Wonka"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_wazo_call_log_destination(
+            cel, self.call
+        )
+
+        assert_that(
+            result.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value='c3f297bd-93e1-46f6-a309-79b320acb7fb',
+                ),
+                has_properties(
+                    destination_details_key='user_name',
+                    destination_details_value='Willy Wonka',
+                ),
+            ),
+        )
+
+    def test_interpret_wazo_incoming_call_has_destination_details(self):
+        cel = Mock(
+            eventtype='WAZO_CALL_LOG_DESTINATION',
+            extra='{"extra":"type: user,uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,name: Harry Potter"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_wazo_call_log_destination(
+            cel, self.call
+        )
+
+        assert_that(
+            result.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value='cb79f29b-f69a-4b93-85c2-49dcce119a9f',
+                ),
+                has_properties(
+                    destination_details_key='user_name',
+                    destination_details_value='Harry Potter',
+                ),
+            ),
+        )
+
+    def test_interpret_wazo_meeting_has_destination_details(self):
+        cel = Mock(
+            eventtype='WAZO_CALL_LOG_DESTINATION',
+            extra='{"extra":"type: meeting,uuid: 9195757f-c381-4f38-b684-98fef848f48b,name: Meeting with Harry Potter"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_wazo_call_log_destination(
+            cel, self.call
+        )
+
+        assert_that(
+            result.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='meeting',
+                ),
+                has_properties(
+                    destination_details_key='meeting_uuid',
+                    destination_details_value='9195757f-c381-4f38-b684-98fef848f48b',
+                ),
+                has_properties(
+                    destination_details_key='meeting_name',
+                    destination_details_value='Meeting with Harry Potter',
+                ),
+            ),
+        )
+
+    def test_interpret_wazo_conference_has_destination_details(self):
+        cel = Mock(
+            eventtype='WAZO_CALL_LOG_DESTINATION',
+            extra='{"extra":"type: conference,id: 1"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_wazo_call_log_destination(
+            cel, self.call
+        )
+
+        assert_that(
+            result.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='conference',
+                ),
+                has_properties(
+                    destination_details_key='conference_id',
+                    destination_details_value='1',
+                ),
+            ),
+        )

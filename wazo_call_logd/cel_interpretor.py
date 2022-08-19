@@ -8,7 +8,7 @@ import logging
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import CallLogParticipant, Recording
+from .database.models import CallLogParticipant, Destination, Recording
 
 
 logger = logging.getLogger(__name__)
@@ -123,8 +123,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
             CELEventType.wazo_meeting_name: self.interpret_wazo_meeting_name,
             CELEventType.wazo_conference: self.interpret_wazo_conference,
-            # WAZO_USER_MISSED_CALL
             CELEventType.wazo_user_missed_call: self.interpret_wazo_user_missed_call,
+            CELEventType.wazo_call_log_destination: self.interpret_wazo_call_log_destination,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -290,6 +290,52 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.destination_name = destination_name
         call.source_exten = cel.cid_num
         call.source_line_identity = identity_from_channel(cel.channame)
+        return call
+
+    def interpret_wazo_call_log_destination(self, cel, call):
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return call
+
+        extra_tokens = extra['extra'].split(',')
+        extra_dict = dict()
+        for token in extra_tokens:
+            key = token.split(': ')[0].strip()
+            value = token.split(': ')[1].strip()
+            extra_dict[key] = value
+
+        if 'type' not in extra_dict.keys():
+            logger.error('required destination type is not found.')
+            return call
+
+        if extra_dict['type'] == 'conference':
+            destination_details = {
+                'type': extra_dict['type'],
+                'conference_id': extra_dict['id'],
+            }
+        elif extra_dict['type'] == 'user':
+            destination_details = {
+                'type': extra_dict['type'],
+                'user_uuid': extra_dict['uuid'],
+                'user_name': extra_dict['name'],
+            }
+        elif extra_dict['type'] == 'meeting':
+            destination_details = {
+                'type': extra_dict['type'],
+                'meeting_uuid': extra_dict['uuid'],
+                'meeting_name': extra_dict['name'],
+            }
+        else:
+            logger.error('unknown destination type')
+            return call
+
+        call.destination_details = [
+            Destination(
+                destination_details_key=key,
+                destination_details_value=value,
+            )
+            for key, value in destination_details.items()
+        ]
         return call
 
 

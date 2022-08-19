@@ -102,7 +102,7 @@ def _output_csv(data, code, http_headers=None):
             csv_body.append(cdr)
 
         csv_text = StringIO()
-        writer = csv.DictWriter(csv_text, csv_headers)
+        writer = csv.DictWriter(csv_text, csv_headers, extrasaction='ignore')
         writer.writeheader()
         for csv_line in csv_body:
             writer.writerow(csv_line)

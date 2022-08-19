@@ -264,6 +264,169 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
 
     @raw_cels(
         '''\
+  eventtype                     | eventtime                         | cid_name          | cid_num   | cid_ani   | exten     | context    | channame                 | linkedid       | uniqueid       | extra
+--------------------------------+-----------------------------------+-------------------+-----------+-----------+-----------+------------+--------------------------+----------------+----------------+-----------------------------------------------------------------------------------------
+ CHAN_START                     | 2022-07-20 17:56:12.094533        | Harry Potter      | 1603      |           | 1604      | mycontext  | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  |
+ WAZO_CALL_LOG_DESTINATION      | 2022-07-20 17:56:12.285233        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  | {"extra":"type: user,uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,name: Willy Wonka"}
+ APP_START                      | 2022-07-20 17:56:12.303842        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  |
+ CHAN_START                     | 2022-07-20 17:56:12.305099        | Willy Wonka       | 1604      |           | s         | mycontext  | PJSIP/xfloi61j-0000000d  | 1658354172.12  | 1658354172.12  |
+ ANSWER                         | 2022-07-20 17:56:15.681486        | Willy Wonka       | 1604      | 1604      | s         | mycontext  | PJSIP/xfloi61j-0000000d  | 1658354172.12  | 1658354172.12  |
+ ANSWER                         | 2022-07-20 17:56:15.681914        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  |
+ BRIDGE_ENTER                   | 2022-07-20 17:56:15.685321        | Willy Wonka       | 1604      | 1604      |           | mycontext  | PJSIP/xfloi61j-0000000d  | 1658354172.12  | 1658354172.12  | {"bridge_id":"e2cfd944-9a3e-4885-9ee9-9d1b33886ecf","bridge_technology":"simple_bridge"}
+ BRIDGE_ENTER                   | 2022-07-20 17:56:15.687332        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  | {"bridge_id":"e2cfd944-9a3e-4885-9ee9-9d1b33886ecf","bridge_technology":""simple_bridge"}
+ BRIDGE_EXIT                    | 2022-07-20 17:56:18.109222        | Willy Wonka       | 1604      | 1604      |           | mycontext  | PJSIP/xfloi61j-0000000d  | 1658354172.12  | 1658354172.12  | {"bridge_id":"e2cfd944-9a3e-4885-9ee9-9d1b33886ecf","bridge_technology":"simple_bridge"}
+ HANGUP                         | 2022-07-20 17:56:18.11027         | Willy Wonka       | 1604      | 1604      |           | mycontext  | PJSIP/xfloi61j-0000000d  | 1658354172.12  | 1658354172.12  | {"hangupcause":16,"hangupsource":"PJSIP/xfloi61j-0000000d","dialstatus":""}
+ CHAN_END                       | 2022-07-20 17:56:18.11027         | Willy Wonka       | 1604      | 1604      |           | mycontext  | PJSIP/xfloi61j-0000000d  | 1658354172.12  | 1658354172.12  |
+ BRIDGE_EXIT                    | 2022-07-20 17:56:18.114121        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  | {"bridge_id":"e2cfd944-9a3e-4885-9ee9-9d1b33886ecf","bridge_technology":"simple_bridge"}
+ HANGUP                         | 2022-07-20 17:56:18.116943        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  | {"hangupcause":16,"hangupsource":"PJSIP/xfloi61j-0000000d","dialstatus":"ANSWER"}
+ CHAN_END                       | 2022-07-20 17:56:18.116943        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  |
+ LINKEDID_END                   | 2022-07-20 17:56:18.116943        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  |
+'''
+    )
+    def test_internal_call_has_destination_details_setup_correctly(self):
+        user_uuid = 'c3f297bd-93e1-46f6-a309-79b320acb7fb'
+        user_name = 'Willy Wonka'
+        self._assert_last_call_log_matches(
+            '1658354172.12',
+            has_properties(
+                direction='internal',
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='user',
+                    ),
+                    has_properties(
+                        destination_details_key='user_uuid',
+                        destination_details_value=user_uuid,
+                    ),
+                    has_properties(
+                        destination_details_key='user_name',
+                        destination_details_value=user_name,
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype                      | eventtime                         | cid_name              | cid_num       | cid_ani   | exten     | context       | channame                  | linkedid      | uniqueid          | extra
+--------------------------------+-----------------------------------+-----------------------+---------------+-----------+-----------+---------------+---------------------------+---------------+-------------------+-------------------------------------------------------------------------------------------------------------------------------------------------
+ CHAN_START                     | 2022-07-21 09:31:28.178728        | Harry Potter          | 1603          |           | 91800     | mycontext     | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+ XIVO_INCALL                    | 2022-07-21 09:31:28.236466        | Harry Potter          | 1603          | 1603      | s         | did           | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"extra":"006a72c4-eb68-481a-808f-33b28ec109c8"}
+ WAZO_CALL_LOG_DESTINATION      | 2022-07-21 09:31:28.73542         | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"extra":"type: user,uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,name: Harry Potter"}
+ APP_START                      | 2022-07-21 09:31:28.758777        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+ CHAN_START                     | 2022-07-21 09:31:28.764391        | Harry Potter          | 1603          |           | s         | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      |
+ ANSWER                         | 2022-07-21 09:31:31.637187        | Harry Potter          | 1603          | 1603      | s         | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      |
+ ANSWER                         | 2022-07-21 09:31:31.637723        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+ BRIDGE_ENTER                   | 2022-07-21 09:31:31.641326        | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+ BRIDGE_ENTER                   | 2022-07-21 09:31:31.643468        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+ BRIDGE_EXIT                    | 2022-07-21 09:31:36.363285        | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+ HANGUP                         | 2022-07-21 09:31:36.36417         | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000001","dialstatus":""}
+ CHAN_END                       | 2022-07-21 09:31:36.36417         | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      |
+ BRIDGE_EXIT                    | 2022-07-21 09:31:36.367518        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+ HANGUP                         | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000001","dialstatus":"ANSWER"}
+ CHAN_END                       | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+ LINKEDID_END                   | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+'''
+    )
+    def test_incoming_call_has_destination_details_setup_correctly(self):
+        user_uuid = 'cb79f29b-f69a-4b93-85c2-49dcce119a9f'
+        user_name = 'Harry Potter'
+        self._assert_last_call_log_matches(
+            '1658410288.0',
+            has_properties(
+                tenant_uuid='006a72c4-eb68-481a-808f-33b28ec109c8',
+                direction='inbound',
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='user',
+                    ),
+                    has_properties(
+                        destination_details_key='user_uuid',
+                        destination_details_value=user_uuid,
+                    ),
+                    has_properties(
+                        destination_details_key='user_name',
+                        destination_details_value=user_name,
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype                      | eventtime                         | cid_name              | cid_num       | cid_ani   | exten         | context       | channame                  | linkedid      | uniqueid          | extra
+--------------------------------+-----------------------------------+-----------------------+---------------+-----------+---------------+---------------+---------------------------+---------------+-------------------+--------------------------------------------------------------------------------------------------
+ CHAN_START                     | 2022-07-22 18:56:20.25982         | Harry Potter          | 1603          |           | *41250219     | mycontext     | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      |
+ WAZO_MEETING_NAME              | 2022-07-22 18:56:20.276538        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      | {"extra":"Meeting with Harry Potter"}
+ WAZO_CALL_LOG_DESTINATION      | 2022-07-22 18:56:20.276577        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      | {"extra":"type: meeting,uuid: 9195757f-c381-4f38-b684-98fef848f48b,name: Meeting with Harry Potter"}
+ ANSWER                         | 2022-07-22 18:56:20.276866        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      |
+ BRIDGE_ENTER                   | 2022-07-22 18:56:20.820304        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      | {"bridge_id":"14307928-6fa7-44f7-b121-f297d47863c4","bridge_technology":"softmix"}
+ BRIDGE_EXIT                    | 2022-07-22 18:56:52.836832        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      | {"bridge_id":"14307928-6fa7-44f7-b121-f297d47863c4","bridge_technology":"softmix"}
+ HANGUP                         | 2022-07-22 18:56:53.053578        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000001","dialstatus":""}
+ CHAN_END                       | 2022-07-22 18:56:53.053578        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      |
+ LINKEDID_END                   | 2022-07-22 18:56:53.053578        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      |
+'''
+    )
+    def test_meeting_has_destination_details_setup_correctly(self):
+        meeting_uuid = '9195757f-c381-4f38-b684-98fef848f48b'
+        meeting_name = 'Meeting with Harry Potter'
+        self._assert_last_call_log_matches(
+            '1658530580.3',
+            has_properties(
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='meeting',
+                    ),
+                    has_properties(
+                        destination_details_key='meeting_uuid',
+                        destination_details_value=meeting_uuid,
+                    ),
+                    has_properties(
+                        destination_details_key='meeting_name',
+                        destination_details_value=meeting_name,
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''\
+ eventtype                      | eventtime                         | cid_name              | cid_num       | cid_ani   | exten         | context       | channame                  | linkedid      | uniqueid          | extra
+--------------------------------+-----------------------------------+-----------------------+---------------+-----------+---------------+---------------+---------------------------+---------------+-------------------+--------------------------------------------------------------------------------------------------
+ CHAN_START                     | 2022-07-22 19:18:47.630038        | Harry Potter          | 1603          |           | 1900          | mycontext     | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     |
+ WAZO_CONFERENCE                | 2022-07-22 19:18:47.667896        | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     | {"extra":" NAME: myconference"}
+ ANSWER                         | 2022-07-22 19:18:47.671298        | Harry Potter          | 1603          | 1603      | pickup        | xivo-pickup   | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     |
+ WAZO_CALL_LOG_DESTINATION      | 2022-07-22 19:18:48.698413        | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     | {"extra":"type: conference,id: 1"}
+ BRIDGE_ENTER                   | 2022-07-22 19:18:52.804353        | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     | {"bridge_id":"1f633aec-e2f9-4910-a8bb-0601439fab15","bridge_technology":"softmix"}
+ BRIDGE_EXIT                    | 2022-07-22 19:18:53.150128        | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     | {"bridge_id":"1f633aec-e2f9-4910-a8bb-0601439fab15","bridge_technology":"softmix"}
+ HANGUP                         | 2022-07-22 19:18:53.54901         | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000004","dialstatus":""}
+ CHAN_END                       | 2022-07-22 19:18:53.54901         | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     |
+ LINKEDID_END                   | 2022-07-22 19:18:53.54901         | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     |
+'''
+    )
+    def test_conference_has_destination_details_setup_correctly(self):
+        conference_id = '1'
+        self._assert_last_call_log_matches(
+            '1658531927.10',
+            has_properties(
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='conference',
+                    ),
+                    has_properties(
+                        destination_details_key='conference_id',
+                        destination_details_value=conference_id,
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''\
   eventtype   |         eventtime          |       channame        |   uniqueid    |   linkedid    | cid_name | cid_num | extra
 --------------+----------------------------+-----------------------+---------------+---------------+----------+---------+-------------------------------------------------
  CHAN_START   | 2017-11-10 10:07:08.620283 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 042302  |

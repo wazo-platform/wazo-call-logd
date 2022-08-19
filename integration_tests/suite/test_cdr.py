@@ -21,6 +21,7 @@ from hamcrest import (
     has_length,
     has_properties,
 )
+from wazo_call_logd.database.models import Destination
 from wazo_call_logd_client.exceptions import CallLogdError
 from wazo_test_helpers.auth import MockUserToken
 from wazo_test_helpers.hamcrest.raises import raises
@@ -110,6 +111,224 @@ class TestGetCDRId(IntegrationTest):
                     message=contains_string_ignoring_case('no cdr found'),
                     details=has_key('cdr_id'),
                 )
+            ),
+        )
+
+    @call_log(
+        **{'id': 20},
+        date='2022-07-21 00:00:00',
+        date_answer='2022-07-21 00:01:00',
+        date_end='2022-07-21 00:02:27',
+        destination_exten='1604',
+        destination_name='Willy Wonka',
+        destination_internal_exten='1604',
+        destination_internal_context='mycontext',
+        direction='internal',
+        requested_name='Willy Wonka',
+        requested_exten='1604',
+        requested_internal_exten='1604',
+        requested_internal_context='mycontext',
+        source_exten='1603',
+        source_name='Harry Potter',
+        source_internal_exten='1603',
+        source_internal_context='mycontext',
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='user',
+            ),
+            Destination(
+                destination_details_key='user_uuid',
+                destination_details_value=USER_2_UUID,
+            ),
+            Destination(
+                destination_details_key='user_name',
+                destination_details_value='Willy Wonka',
+            ),
+        ],
+        participants=[
+            {
+                'user_uuid': USER_1_UUID,
+                'line_id': '1',
+                'tags': ['Hogwarts', 'Poudlard'],
+                'role': 'source',
+                'answered': True,
+            },
+            {
+                'user_uuid': USER_2_UUID,
+                'line_id': '2',
+                'tags': ['Chocolate', 'Factory'],
+                'role': 'destination',
+                'answered': True,
+            },
+        ],
+        recordings=[],
+    )
+    def test_given_id_of_internal_call_then_destination_details_is_setup_correctly(
+        self,
+    ):
+        result = self.call_logd.cdr.get_by_id(20)
+        assert_that(
+            result,
+            has_entries(
+                id=20,
+                tenant_uuid=MASTER_TENANT,
+                answered=True,
+                start='2022-07-21T00:00:00+00:00',
+                end='2022-07-21T00:02:27+00:00',
+                destination_extension='1604',
+                destination_name='Willy Wonka',
+                destination_user_uuid=USER_2_UUID,
+                destination_line_id=2,
+                destination_internal_extension='1604',
+                destination_internal_context='mycontext',
+                duration=87,
+                call_direction='internal',
+                requested_name='Willy Wonka',
+                requested_extension='1604',
+                requested_internal_extension='1604',
+                requested_internal_context='mycontext',
+                source_extension='1603',
+                source_name='Harry Potter',
+                source_internal_extension='1603',
+                source_internal_context='mycontext',
+                source_user_uuid=USER_1_UUID,
+                source_line_id=1,
+                destination_details=has_entries(
+                    type='user',
+                    user_uuid=USER_2_UUID,
+                    user_name='Willy Wonka',
+                ),
+                tags=contains_inanyorder(
+                    'Factory',
+                    'Chocolate',
+                    'Poudlard',
+                    'Hogwarts',
+                ),
+                recordings=[],
+            ),
+        )
+
+    @call_log(
+        **{'id': 164},
+        date='2022-07-23 00:00:00',
+        date_answer='2022-07-23 00:01:00',
+        date_end='2022-07-23 00:02:27',
+        destination_exten='*41610342',
+        destination_name='Meeting with Harry Potter',
+        direction='internal',
+        requested_exten='*41610342',
+        requested_context='mycontext',
+        requested_internal_context='mycontext',
+        source_internal_name='Harry Potter',
+        source_exten='1603',
+        source_name='Harry Potter',
+        source_internal_exten='1603',
+        source_internal_context='mycontext',
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='meeting',
+            ),
+            Destination(
+                destination_details_key='meeting_uuid',
+                destination_details_value='6648726e-8ed9-4e6e-8ea5-f63caf911ae9',
+            ),
+            Destination(
+                destination_details_key='meeting_name',
+                destination_details_value='Meeting with Harry Potter',
+            ),
+        ],
+        recordings=[],
+    )
+    def test_given_id_of_meeting_call_then_destination_details_is_setup_correctly(self):
+        result = self.call_logd.cdr.get_by_id(164)
+        assert_that(
+            result,
+            has_entries(
+                id=164,
+                tenant_uuid=MASTER_TENANT,
+                answered=True,
+                start='2022-07-23T00:00:00+00:00',
+                end='2022-07-23T00:02:27+00:00',
+                destination_extension='*41610342',
+                destination_name='Meeting with Harry Potter',
+                duration=87,
+                call_direction='internal',
+                requested_extension='*41610342',
+                requested_context='mycontext',
+                requested_internal_context='mycontext',
+                source_internal_name='Harry Potter',
+                source_extension='1603',
+                source_name='Harry Potter',
+                source_internal_extension='1603',
+                source_internal_context='mycontext',
+                destination_details=has_entries(
+                    type='meeting',
+                    meeting_uuid='6648726e-8ed9-4e6e-8ea5-f63caf911ae9',
+                    meeting_name='Meeting with Harry Potter',
+                ),
+                recordings=[],
+            ),
+        )
+
+    @call_log(
+        **{'id': 166},
+        date='2022-07-23 00:00:00',
+        date_answer='2022-07-23 00:01:00',
+        date_end='2022-07-23 00:02:27',
+        destination_exten='1900',
+        destination_name='myconference',
+        direction='internal',
+        requested_exten='1900',
+        requested_context='mycontext',
+        requested_internal_context='mycontext',
+        source_internal_name='Harry Potter',
+        source_exten='1603',
+        source_name='Harry Potter',
+        source_internal_exten='1603',
+        source_internal_context='mycontext',
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='conference',
+            ),
+            Destination(
+                destination_details_key='conference_id',
+                destination_details_value='1',
+            ),
+        ],
+        recordings=[],
+    )
+    def test_given_id_of_conference_call_then_destination_details_is_setup_correctly(
+        self,
+    ):
+        result = self.call_logd.cdr.get_by_id(166)
+        assert_that(
+            result,
+            has_entries(
+                id=166,
+                tenant_uuid=MASTER_TENANT,
+                answered=True,
+                start='2022-07-23T00:00:00+00:00',
+                end='2022-07-23T00:02:27+00:00',
+                destination_extension='1900',
+                destination_name='myconference',
+                duration=87,
+                call_direction='internal',
+                requested_extension='1900',
+                requested_context='mycontext',
+                requested_internal_context='mycontext',
+                source_internal_name='Harry Potter',
+                source_extension='1603',
+                source_name='Harry Potter',
+                source_internal_extension='1603',
+                source_internal_context='mycontext',
+                destination_details=has_entries(
+                    type='conference',
+                    conference_id=1,
+                ),
+                recordings=[],
             ),
         )
 
@@ -357,6 +576,214 @@ class TestListCDR(IntegrationTest):
         result = self.call_logd.cdr.list()
 
         assert_that(result, has_entries(items=empty(), filtered=0, total=0))
+
+    @call_log(
+        **{'id': 1},
+        date='2022-07-23 00:00:00',
+        date_answer='2022-07-23 00:01:00',
+        date_end='2022-07-23 00:02:27',
+        destination_exten='1605',
+        destination_name='Alice Wonderland',
+        destination_internal_exten='1605',
+        destination_internal_context='mycontext1',
+        direction='internal',
+        requested_name='Alice Wonderland',
+        requested_exten='1605',
+        requested_internal_exten='1605',
+        requested_internal_context='mycontext1',
+        source_exten='1602',
+        source_name='Jack Sparrow',
+        source_internal_exten='1602',
+        source_internal_context='mycontext1',
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='user',
+            ),
+            Destination(
+                destination_details_key='user_uuid',
+                destination_details_value=USER_2_UUID,
+            ),
+            Destination(
+                destination_details_key='user_name',
+                destination_details_value='Alice Wonderland',
+            ),
+        ],
+        participants=[
+            {
+                'user_uuid': USER_1_UUID,
+                'line_id': '100',
+                'tags': ['Davy Jones', 'Locker'],
+                'role': 'source',
+                'answered': True,
+            },
+            {
+                'user_uuid': USER_2_UUID,
+                'line_id': '200',
+                'tags': ['Wonderland'],
+                'role': 'destination',
+                'answered': True,
+            },
+        ],
+        recordings=[],
+    )
+    @call_log(
+        **{'id': 2},
+        date='2022-07-24 00:00:00',
+        date_answer='2022-07-24 00:01:00',
+        date_end='2022-07-24 00:02:27',
+        destination_exten='*41610342',
+        destination_name='Meeting with Jack Sparrow',
+        direction='internal',
+        requested_exten='*41610342',
+        requested_context='mycontext1',
+        requested_internal_context='mycontext1',
+        source_internal_name='Jack Sparrow',
+        source_exten='1602',
+        source_name='Jack Sparrow',
+        source_internal_exten='1602',
+        source_internal_context='mycontext1',
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='meeting',
+            ),
+            Destination(
+                destination_details_key='meeting_uuid',
+                destination_details_value='6648726e-8ed9-4e6e-8ea5-f63caf911ae9',
+            ),
+            Destination(
+                destination_details_key='meeting_name',
+                destination_details_value='Meeting with Jack Sparrow',
+            ),
+        ],
+        recordings=[],
+    )
+    @call_log(
+        **{'id': 3},
+        date='2022-07-24 00:00:00',
+        date_answer='2022-07-24 00:01:00',
+        date_end='2022-07-24 00:02:27',
+        destination_exten='1901',
+        destination_name='myconference1',
+        direction='internal',
+        requested_exten='1901',
+        requested_context='mycontext2',
+        requested_internal_context='mycontext2',
+        source_internal_name='Jack Sparrow',
+        source_exten='1602',
+        source_name='Jack Sparrow',
+        source_internal_exten='1602',
+        source_internal_context='mycontext2',
+        destination_details=[
+            Destination(
+                destination_details_key='type',
+                destination_details_value='conference',
+            ),
+            Destination(
+                destination_details_key='conference_id',
+                destination_details_value='2',
+            ),
+        ],
+        recordings=[],
+    )
+    def test_given_call_logs_with_destination_details_when_list_cdr_then_list_cdr_has_destination_details(
+        self,
+    ):
+        result = self.call_logd.cdr.list()
+
+        assert_that(
+            result,
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(
+                        id=1,
+                        tenant_uuid=MASTER_TENANT,
+                        answered=True,
+                        start='2022-07-23T00:00:00+00:00',
+                        end='2022-07-23T00:02:27+00:00',
+                        destination_extension='1605',
+                        destination_name='Alice Wonderland',
+                        destination_internal_extension='1605',
+                        destination_internal_context='mycontext1',
+                        destination_line_id=200,
+                        duration=87,
+                        call_direction='internal',
+                        requested_name='Alice Wonderland',
+                        requested_extension='1605',
+                        requested_internal_extension='1605',
+                        requested_internal_context='mycontext1',
+                        source_extension='1602',
+                        source_line_id=100,
+                        source_name='Jack Sparrow',
+                        source_internal_extension='1602',
+                        source_internal_context='mycontext1',
+                        destination_details=has_entries(
+                            type='user',
+                            user_uuid=USER_2_UUID,
+                            user_name='Alice Wonderland',
+                        ),
+                        tags=contains_inanyorder(
+                            'Davy Jones',
+                            'Locker',
+                            'Wonderland',
+                        ),
+                        recordings=[],
+                    ),
+                    has_entries(
+                        id=2,
+                        tenant_uuid=MASTER_TENANT,
+                        answered=True,
+                        start='2022-07-24T00:00:00+00:00',
+                        end='2022-07-24T00:02:27+00:00',
+                        destination_extension='*41610342',
+                        destination_name='Meeting with Jack Sparrow',
+                        duration=87,
+                        call_direction='internal',
+                        requested_extension='*41610342',
+                        requested_context='mycontext1',
+                        requested_internal_context='mycontext1',
+                        source_internal_name='Jack Sparrow',
+                        source_extension='1602',
+                        source_name='Jack Sparrow',
+                        source_internal_extension='1602',
+                        source_internal_context='mycontext1',
+                        destination_details=has_entries(
+                            type='meeting',
+                            meeting_uuid='6648726e-8ed9-4e6e-8ea5-f63caf911ae9',
+                            meeting_name='Meeting with Jack Sparrow',
+                        ),
+                        recordings=[],
+                    ),
+                    has_entries(
+                        id=3,
+                        tenant_uuid=MASTER_TENANT,
+                        answered=True,
+                        start='2022-07-24T00:00:00+00:00',
+                        end='2022-07-24T00:02:27+00:00',
+                        destination_extension='1901',
+                        destination_name='myconference1',
+                        duration=87,
+                        call_direction='internal',
+                        requested_extension='1901',
+                        requested_context='mycontext2',
+                        requested_internal_context='mycontext2',
+                        source_internal_name='Jack Sparrow',
+                        source_extension='1602',
+                        source_name='Jack Sparrow',
+                        source_internal_extension='1602',
+                        source_internal_context='mycontext2',
+                        destination_details=has_entries(
+                            type='conference',
+                            conference_id=2,
+                        ),
+                        recordings=[],
+                    ),
+                ),
+                filtered=3,
+                total=3,
+            ),
+        )
 
     @call_log(
         **{'id': 12},

@@ -1,7 +1,8 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import (
+    EXCLUDE,
     post_load,
     pre_dump,
     pre_load,
@@ -61,6 +62,55 @@ class RecordingMediaExportSchema(Schema):
     uuid = fields.UUID()
 
 
+class BaseDestinationDetailsSchema(Schema):
+    type = fields.String(required=True, default='unknown')
+
+
+class DestinationConferenceDetails(BaseDestinationDetailsSchema):
+    conference_id = fields.Integer()
+
+
+class DestinationMeetingDetails(BaseDestinationDetailsSchema):
+    meeting_uuid = fields.UUID()
+    meeting_name = fields.String()
+
+
+class DestinationUnknownDetails(BaseDestinationDetailsSchema):
+    pass
+
+
+class DestinationUserDetails(BaseDestinationDetailsSchema):
+    user_uuid = fields.UUID()
+    user_name = fields.String()
+
+
+class DestinationDetailsField(fields.Nested):
+
+    destination_details_schemas = {
+        'conference': DestinationConferenceDetails,
+        'meeting': DestinationMeetingDetails,
+        'user': DestinationUserDetails,
+        'unknown': DestinationUnknownDetails,
+    }
+
+    def __init__(self, *args, **kwargs):
+        kwargs['unknown'] = EXCLUDE
+        super().__init__(*args, **kwargs)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        self.schema.context = self.context
+        base = super()._deserialize(value, attr, data, **kwargs)
+        return fields.Nested(
+            self.destination_details_schemas[base['type']], unknown=self.unknown
+        )._deserialize(value, attr, data, **kwargs)
+
+    def _serialize(self, nested_obj, attr, obj):
+        base = super()._serialize(nested_obj, attr, obj)
+        return fields.Nested(
+            self.destination_details_schemas[base['type']], unknown=self.unknown
+        )._serialize(nested_obj, attr, obj)
+
+
 class CDRSchema(Schema):
     id = fields.Integer()
     tenant_uuid = fields.UUID()
@@ -70,6 +120,11 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
+    destination_details = DestinationDetailsField(
+        BaseDestinationDetailsSchema,
+        attribute='destination_details_dict',
+        required=True,
+    )
     destination_extension = fields.String(attribute='destination_exten')
     destination_internal_context = fields.String()
     destination_internal_extension = fields.String(
