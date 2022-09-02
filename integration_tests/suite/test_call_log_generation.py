@@ -480,8 +480,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self,
     ):
         linkedid = '123456789.1011'
-        msg_accumulator_1 = self.bus.accumulator('call_log.created')
-        msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
+        events = self.bus.accumulator(headers={'name': 'call_log_created'})
+        user_events = self.bus.accumulator(headers={'name': 'call_log_user_created'})
         with self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
@@ -494,11 +494,16 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
             def bus_event_call_log_created(accumulator):
                 assert_that(
-                    accumulator.accumulate(),
+                    accumulator.accumulate(with_headers=True),
                     contains_inanyorder(
                         has_entries(
-                            name='call_log_created',
-                            data=has_entries({'tenant_uuid': SERVICE_TENANT}),
+                            message=has_entries(
+                                data=has_entries(tenant_uuid=SERVICE_TENANT)
+                            ),
+                            headers=has_entries(
+                                name='call_log_created',
+                                tenant_uuid=SERVICE_TENANT,
+                            ),
                         )
                     ),
                 )
@@ -507,14 +512,9 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 assert_that(accumulator.accumulate(), empty())
 
             until.assert_(call_log_has_no_user_uuid, tries=5)
+            until.assert_(bus_event_call_log_created, events, tries=10, interval=0.25)
             until.assert_(
-                bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25
-            )
-            until.assert_(
-                bus_event_call_log_user_created,
-                msg_accumulator_2,
-                tries=10,
-                interval=0.25,
+                bus_event_call_log_user_created, user_events, tries=10, interval=0.25
             )
 
     @raw_cels(
@@ -564,8 +564,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self.confd.set_contexts(
             MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
-        msg_accumulator_1 = self.bus.accumulator('call_log.created')
-        msg_accumulator_2 = self.bus.accumulator('call_log.user.*.created')
+        events = self.bus.accumulator(headers={'name': 'call_log_created'})
+        user_events = self.bus.accumulator(headers={'name': 'call_log_user_created'})
         with self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
@@ -593,42 +593,51 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
             def bus_event_call_log_created(accumulator):
                 assert_that(
-                    accumulator.accumulate(),
+                    accumulator.accumulate(with_headers=True),
                     contains_inanyorder(
-                        has_entries(name='call_log_created', data=has_key('tags'))
+                        has_entries(
+                            message=has_entries(data=has_key('tags')),
+                            headers=has_entries(
+                                name='call_log_created',
+                                tenant_uuid=USERS_TENANT,
+                            ),
+                        )
                     ),
                 )
 
             def bus_event_call_log_user_created(accumulator):
                 assert_that(
-                    accumulator.accumulate(),
+                    accumulator.accumulate(with_headers=True),
                     contains_inanyorder(
                         has_entries(
-                            name='call_log_user_created',
-                            required_acl='events.call_log.user.{}.created'.format(
-                                USER_1_UUID
+                            message=has_entries(
+                                data=not_(has_key('tags')),
                             ),
-                            data=not_(has_key('tags')),
+                            headers=has_entries(
+                                {f'user_uuid:{USER_1_UUID}': True},
+                                name='call_log_user_created',
+                                required_acl=f'events.call_log.user.{USER_1_UUID}.created',
+                                tenant_uuid=USERS_TENANT,
+                            ),
                         ),
                         has_entries(
-                            name='call_log_user_created',
-                            required_acl='events.call_log.user.{}.created'.format(
-                                USER_2_UUID
+                            message=has_entries(
+                                data=not_(has_key('tags')),
                             ),
-                            data=not_(has_key('tags')),
+                            headers=has_entries(
+                                {f'user_uuid:{USER_2_UUID}': True},
+                                name='call_log_user_created',
+                                required_acl=f'events.call_log.user.{USER_2_UUID}.created',
+                                tenant_uuid=USERS_TENANT,
+                            ),
                         ),
                     ),
                 )
 
             until.assert_(call_log_has_both_user_uuid_and_tenant_uuid, tries=5)
+            until.assert_(bus_event_call_log_created, events, tries=10, interval=0.25)
             until.assert_(
-                bus_event_call_log_created, msg_accumulator_1, tries=10, interval=0.25
-            )
-            until.assert_(
-                bus_event_call_log_user_created,
-                msg_accumulator_2,
-                tries=10,
-                interval=0.25,
+                bus_event_call_log_user_created, user_events, tries=10, interval=0.25
             )
 
     @raw_cels(
