@@ -19,7 +19,9 @@ class BusConsumer(BaseConsumer):
         return cls(name=name, **config)
 
     def provide_status(self, status):
-        status['bus_consumer']['status'] = Status.ok if self.is_running else Status.fail
+        status['bus_consumer']['status'] = (
+            Status.ok if self.consumer_connected() else Status.fail
+        )
 
 
 class BusPublisher(BasePublisher):
