@@ -214,13 +214,13 @@ parameters:
     required: false
   day_start_time:
     name: day_start_time
-    description: The time at which a day starts, inclusively. Minutes are ignored.
+    description: The time at which a day starts, inclusively. Accepted format is `HH:MM`, minutes are ignored.
     in: query
     type: string
     required: false
   day_end_time:
     name: day_end_time
-    description: The time at which a day ends, inclusively. Minutes are ignored.
+    description: The time at which a day ends, inclusively. Accepted format is `HH:MM`, minutes are ignored.
     in: query
     type: string
     required: false
