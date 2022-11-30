@@ -174,6 +174,7 @@ class CallLogParticipant(Base):
     # one injected in integration tests
     __tablename__ = 'call_logd_call_log_participant'
     __table_args__ = (
+        Index('call_logd_call_log_participant__idx__call_log_id', 'call_log_id'),
         Index('call_logd_call_log_participant__idx__user_uuid', 'user_uuid'),
     )
 

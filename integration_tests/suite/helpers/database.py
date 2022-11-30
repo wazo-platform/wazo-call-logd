@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import (
@@ -83,6 +83,37 @@ def call_log(**call_log):
                 with self.database.queries() as queries:
                     queries.delete_call_log(call_log['id'])
                     queries.delete_recording_by_call_log_id(call_log['id'])
+
+        return wrapped_function
+
+    return _decorate
+
+
+def multiple_call_logs(list_of_call_logs):
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            for call_log in list_of_call_logs:
+                recordings = call_log.pop('recordings', [])
+                participants = call_log.pop('participants', [])
+                call_log.setdefault('tenant_uuid', MASTER_TENANT)
+                with self.database.queries() as queries:
+                    call_log['id'] = queries.insert_call_log(**call_log)
+                    call_log['participants'] = participants
+                    for participant in participants:
+                        participant['call_log_id'] = call_log['id']
+                        queries.insert_call_log_participant(**participant)
+                    for recording in recordings:
+                        recording.setdefault('start_time', dt.utcnow() - td(hours=1))
+                        recording.setdefault('end_time', dt.utcnow())
+                        recording['call_log_id'] = call_log['id']
+                        queries.insert_recording(**recording)
+                try:
+                    return func(self, *args, **kwargs)
+                finally:
+                    with self.database.queries() as queries:
+                        queries.delete_call_log(call_log['id'])
+                        queries.delete_recording_by_call_log_id(call_log['id'])
 
         return wrapped_function
 
