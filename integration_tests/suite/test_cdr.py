@@ -62,8 +62,8 @@ from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
 )
 
-TOTAL_NUMBER_OF_RANDOM_USERS = 100
-TOTAL_NUMBER_OF_CALLS_PER_USER = 100
+TOTAL_NUMBER_OF_RANDOM_USERS = 50
+TOTAL_NUMBER_OF_CALLS_PER_USER = 1000
 list_of_unique_random_users_uuids = _generate_list_of_unique_random_users_uuids(
     total=TOTAL_NUMBER_OF_RANDOM_USERS
 )
