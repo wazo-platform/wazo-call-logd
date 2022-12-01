@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import (
@@ -609,6 +609,43 @@ class TestListCDR(IntegrationTest):
         result = self.call_logd.cdr.list()
 
         assert_that(result, has_entries(items=empty(), filtered=0, total=0))
+
+    @multiple_call_logs(list_of_total_call_logs)
+    def test_list_call_logs_when_large_number_of_users_and_calls(self):
+
+        result = self.call_logd.cdr.list()
+        assert_that(
+            result,
+            has_entries(
+                total=TOTAL_NUMBER_OF_CALLS_PER_USER * TOTAL_NUMBER_OF_RANDOM_USERS,
+                filtered=TOTAL_NUMBER_OF_CALLS_PER_USER * TOTAL_NUMBER_OF_RANDOM_USERS,
+            ),
+        )
+
+        counter = 0
+        while counter <= len(list_of_unique_random_users_uuids) - 1:
+            if counter == 0:
+                random_user_uuid = list_of_unique_random_users_uuids[counter]
+                random_token = 'my-token-{}'.format(counter + 1)
+                self.auth.set_token(
+                    MockUserToken(
+                        random_token,
+                        user_uuid=random_user_uuid,
+                        metadata={"tenant_uuid": MASTER_TENANT},
+                    )
+                )
+
+                self.call_logd.set_token(random_token)
+                result = self.call_logd.cdr.list_from_user(user_uuid=random_user_uuid)
+
+                assert_that(
+                    result,
+                    has_entries(
+                        filtered=TOTAL_NUMBER_OF_CALLS_PER_USER,
+                        total=TOTAL_NUMBER_OF_CALLS_PER_USER,
+                    ),
+                )
+            counter += 1
 
     @call_log(
         **{'id': 1},
