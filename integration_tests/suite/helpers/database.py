@@ -93,27 +93,27 @@ def multiple_call_logs(list_of_call_logs):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            for call_log in list_of_call_logs:
-                recordings = call_log.pop('recordings', [])
-                participants = call_log.pop('participants', [])
-                call_log.setdefault('tenant_uuid', MASTER_TENANT)
-                with self.database.queries() as queries:
-                    call_log['id'] = queries.insert_call_log(**call_log)
-                    call_log['participants'] = participants
-                    for participant in participants:
+            list_of_call_logs_ids = []
+            list_of_participants = []
+            with self.database.queries() as queries:
+                list_of_call_logs_ids = queries.bulk_insert_multiple_call_logs(
+                    list_of_call_logs
+                )
+                for call_log in list_of_call_logs:
+                    call_log_participants = call_log['participants']
+                    for participant in call_log_participants:
                         participant['call_log_id'] = call_log['id']
-                        queries.insert_call_log_participant(**participant)
-                    for recording in recordings:
-                        recording.setdefault('start_time', dt.utcnow() - td(hours=1))
-                        recording.setdefault('end_time', dt.utcnow())
-                        recording['call_log_id'] = call_log['id']
-                        queries.insert_recording(**recording)
-                try:
-                    return func(self, *args, **kwargs)
-                finally:
-                    with self.database.queries() as queries:
-                        queries.delete_call_log(call_log['id'])
-                        queries.delete_recording_by_call_log_id(call_log['id'])
+                    list_of_participants.append(participant)
+                queries.bulk_insert_multiple_call_logs_participants(
+                    list_of_participants
+                )
+
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                with self.database.queries() as queries:
+                    for call_log_id in list_of_call_logs_ids:
+                        queries.delete_call_log(call_log_id)
 
         return wrapped_function
 

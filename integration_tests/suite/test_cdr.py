@@ -1,6 +1,11 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from datetime import (
+    datetime as dt,
+    timedelta as td,
+)
+
 import csv
 import requests
 
@@ -28,6 +33,11 @@ from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.base import cdr, IntegrationTest
+from .helpers.base import (
+    _generate_list_of_unique_random_call_logs_ids,
+    _generate_list_of_unique_random_users_uuids,
+    _generate_random_list_call_logs_for_user,
+)
 from .helpers.constants import (
     ALICE,
     BOB,
@@ -47,10 +57,33 @@ from .helpers.constants import (
     MINUTES,
     NOW,
 )
-from .helpers.database import call_log, call_logs
+from .helpers.database import call_log, call_logs, multiple_call_logs
 from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
 )
+
+TOTAL_NUMBER_OF_RANDOM_USERS = 100
+TOTAL_NUMBER_OF_CALLS_PER_USER = 100
+list_of_unique_random_users_uuids = _generate_list_of_unique_random_users_uuids(
+    total=TOTAL_NUMBER_OF_RANDOM_USERS
+)
+list_of_random_unique_call_logs_ids = _generate_list_of_unique_random_call_logs_ids(
+    total=TOTAL_NUMBER_OF_RANDOM_USERS * TOTAL_NUMBER_OF_CALLS_PER_USER
+)
+list_of_total_call_logs = []
+
+for random_user_uuid in list_of_unique_random_users_uuids:
+    current_random_user_call_logs_ids = list_of_random_unique_call_logs_ids[
+        :TOTAL_NUMBER_OF_CALLS_PER_USER
+    ]
+    del list_of_random_unique_call_logs_ids[:TOTAL_NUMBER_OF_CALLS_PER_USER]
+    list_of_total_call_logs += _generate_random_list_call_logs_for_user(
+        call_logs_ids=current_random_user_call_logs_ids,
+        user_uuid=random_user_uuid,
+        total_calls=TOTAL_NUMBER_OF_CALLS_PER_USER,
+        start_date=(dt.utcnow() - td(days=365)),
+        end_date=dt.utcnow(),
+    )
 
 
 class TestNoAuth(IntegrationTest):
