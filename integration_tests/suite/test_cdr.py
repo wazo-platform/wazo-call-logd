@@ -62,8 +62,9 @@ from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
 )
 
-TOTAL_NUMBER_OF_RANDOM_USERS = 50
-TOTAL_NUMBER_OF_CALLS_PER_USER = 1000
+BULK_BATCH_SIZE = 100
+TOTAL_NUMBER_OF_RANDOM_USERS = 10
+TOTAL_NUMBER_OF_CALLS_PER_USER = 5000
 list_of_unique_random_users_uuids = _generate_list_of_unique_random_users_uuids(
     total=TOTAL_NUMBER_OF_RANDOM_USERS
 )
@@ -77,6 +78,7 @@ for random_user_uuid in list_of_unique_random_users_uuids:
         :TOTAL_NUMBER_OF_CALLS_PER_USER
     ]
     del list_of_random_unique_call_logs_ids[:TOTAL_NUMBER_OF_CALLS_PER_USER]
+
     list_of_total_call_logs += _generate_random_list_call_logs_for_user(
         call_logs_ids=current_random_user_call_logs_ids,
         user_uuid=random_user_uuid,
@@ -610,7 +612,7 @@ class TestListCDR(IntegrationTest):
 
         assert_that(result, has_entries(items=empty(), filtered=0, total=0))
 
-    @multiple_call_logs(list_of_total_call_logs)
+    @multiple_call_logs(list_of_total_call_logs, batch_size=BULK_BATCH_SIZE)
     def test_list_call_logs_when_large_number_of_users_and_calls(self):
 
         result = self.call_logd.cdr.list()
@@ -624,27 +626,26 @@ class TestListCDR(IntegrationTest):
 
         counter = 0
         while counter <= len(list_of_unique_random_users_uuids) - 1:
-            if counter == 0:
-                random_user_uuid = list_of_unique_random_users_uuids[counter]
-                random_token = 'my-token-{}'.format(counter + 1)
-                self.auth.set_token(
-                    MockUserToken(
-                        random_token,
-                        user_uuid=random_user_uuid,
-                        metadata={"tenant_uuid": MASTER_TENANT},
-                    )
+            random_user_uuid = list_of_unique_random_users_uuids[counter]
+            random_token = 'my-token-{}'.format(counter + 1)
+            self.auth.set_token(
+                MockUserToken(
+                    random_token,
+                    user_uuid=random_user_uuid,
+                    metadata={"tenant_uuid": MASTER_TENANT},
                 )
+            )
 
-                self.call_logd.set_token(random_token)
-                result = self.call_logd.cdr.list_from_user(user_uuid=random_user_uuid)
+            self.call_logd.set_token(random_token)
+            result = self.call_logd.cdr.list_from_user(user_uuid=random_user_uuid)
 
-                assert_that(
-                    result,
-                    has_entries(
-                        filtered=TOTAL_NUMBER_OF_CALLS_PER_USER,
-                        total=TOTAL_NUMBER_OF_CALLS_PER_USER,
-                    ),
-                )
+            assert_that(
+                result,
+                has_entries(
+                    filtered=TOTAL_NUMBER_OF_CALLS_PER_USER,
+                    total=TOTAL_NUMBER_OF_CALLS_PER_USER,
+                ),
+            )
             counter += 1
 
     @call_log(
