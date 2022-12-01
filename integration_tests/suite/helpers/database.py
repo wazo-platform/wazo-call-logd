@@ -365,6 +365,24 @@ class DatabaseQueries:
         self.connection = connection
         self.Session = scoped_session(sessionmaker(bind=connection))
 
+    def bulk_insert_multiple_call_logs(self, list_of_call_logs):
+        session = self.Session()
+        list_of_calls_logs_objects = []
+        for call_log_dict in list_of_call_logs:
+            list_of_calls_logs_objects.append(
+                CallLog(
+                    id=call_log_dict['id'],
+                    tenant_uuid=MASTER_TENANT,
+                    date=call_log_dict['date'],
+                )
+            )
+        session.bulk_save_objects(list_of_calls_logs_objects)
+        session.commit()
+        list_of_call_logs_ids = []
+        for call_log in list_of_calls_logs_objects:
+            list_of_call_logs_ids.append(call_log.id)
+        return list_of_call_logs_ids
+
     def insert_call_log(self, **kwargs):
         session = self.Session()
         kwargs.setdefault('date', dt.now())
@@ -442,6 +460,22 @@ class DatabaseQueries:
         kwargs.setdefault('role', 'source')
         call_log_participant = CallLogParticipant(**kwargs)
         session.add(call_log_participant)
+        session.commit()
+
+    def bulk_insert_multiple_call_logs_participants(
+        self, list_of_call_logs_participants
+    ):
+        session = self.Session()
+        list_of_participants_objects = []
+        for participant_dict in list_of_call_logs_participants:
+            list_of_participants_objects.append(
+                CallLogParticipant(
+                    user_uuid=participant_dict['user_uuid'],
+                    role='source',
+                    call_log_id=participant_dict['call_log_id'],
+                )
+            )
+        session.bulk_save_objects(list_of_participants_objects)
         session.commit()
 
     def find_all_call_log(self):
