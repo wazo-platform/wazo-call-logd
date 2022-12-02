@@ -62,9 +62,9 @@ from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
 )
 
-BULK_BATCH_SIZE = 100
-TOTAL_NUMBER_OF_RANDOM_USERS = 10
-TOTAL_NUMBER_OF_CALLS_PER_USER = 5000
+BULK_BATCH_SIZE = 1000
+TOTAL_NUMBER_OF_RANDOM_USERS = 5
+TOTAL_NUMBER_OF_CALLS_PER_USER = 10000
 list_of_unique_random_users_uuids = _generate_list_of_unique_random_users_uuids(
     total=TOTAL_NUMBER_OF_RANDOM_USERS
 )
