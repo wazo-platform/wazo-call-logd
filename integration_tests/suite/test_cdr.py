@@ -1,11 +1,6 @@
 # Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import (
-    datetime as dt,
-    timedelta as td,
-)
-
 import csv
 import requests
 
@@ -33,11 +28,6 @@ from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from .helpers.base import cdr, IntegrationTest
-from .helpers.base import (
-    _generate_list_of_unique_random_call_logs_ids,
-    _generate_list_of_unique_random_users_uuids,
-    _generate_random_list_call_logs_for_user,
-)
 from .helpers.constants import (
     ALICE,
     BOB,
@@ -57,35 +47,10 @@ from .helpers.constants import (
     MINUTES,
     NOW,
 )
-from .helpers.database import call_log, call_logs, multiple_call_logs
+from .helpers.database import call_log, call_logs
 from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
 )
-
-BULK_BATCH_SIZE = 1000
-TOTAL_NUMBER_OF_RANDOM_USERS = 5
-TOTAL_NUMBER_OF_CALLS_PER_USER = 10000
-list_of_unique_random_users_uuids = _generate_list_of_unique_random_users_uuids(
-    total=TOTAL_NUMBER_OF_RANDOM_USERS
-)
-list_of_random_unique_call_logs_ids = _generate_list_of_unique_random_call_logs_ids(
-    total=TOTAL_NUMBER_OF_RANDOM_USERS * TOTAL_NUMBER_OF_CALLS_PER_USER
-)
-list_of_total_call_logs = []
-
-for random_user_uuid in list_of_unique_random_users_uuids:
-    current_random_user_call_logs_ids = list_of_random_unique_call_logs_ids[
-        :TOTAL_NUMBER_OF_CALLS_PER_USER
-    ]
-    del list_of_random_unique_call_logs_ids[:TOTAL_NUMBER_OF_CALLS_PER_USER]
-
-    list_of_total_call_logs += _generate_random_list_call_logs_for_user(
-        call_logs_ids=current_random_user_call_logs_ids,
-        user_uuid=random_user_uuid,
-        total_calls=TOTAL_NUMBER_OF_CALLS_PER_USER,
-        start_date=(dt.utcnow() - td(days=365)),
-        end_date=dt.utcnow(),
-    )
 
 
 class TestNoAuth(IntegrationTest):
@@ -611,42 +576,6 @@ class TestListCDR(IntegrationTest):
         result = self.call_logd.cdr.list()
 
         assert_that(result, has_entries(items=empty(), filtered=0, total=0))
-
-    @multiple_call_logs(list_of_total_call_logs, batch_size=BULK_BATCH_SIZE)
-    def test_list_call_logs_when_large_number_of_users_and_calls(self):
-
-        result = self.call_logd.cdr.list()
-        assert_that(
-            result,
-            has_entries(
-                total=TOTAL_NUMBER_OF_CALLS_PER_USER * TOTAL_NUMBER_OF_RANDOM_USERS,
-                filtered=TOTAL_NUMBER_OF_CALLS_PER_USER * TOTAL_NUMBER_OF_RANDOM_USERS,
-            ),
-        )
-
-        counter = 0
-        while counter <= len(list_of_unique_random_users_uuids) - 1:
-            random_user_uuid = list_of_unique_random_users_uuids[counter]
-            random_token = 'my-token-{}'.format(counter + 1)
-            self.auth.set_token(
-                MockUserToken(
-                    random_token,
-                    user_uuid=random_user_uuid,
-                    metadata={"tenant_uuid": MASTER_TENANT},
-                )
-            )
-
-            self.call_logd.set_token(random_token)
-            result = self.call_logd.cdr.list_from_user(user_uuid=random_user_uuid)
-
-            assert_that(
-                result,
-                has_entries(
-                    filtered=TOTAL_NUMBER_OF_CALLS_PER_USER,
-                    total=TOTAL_NUMBER_OF_CALLS_PER_USER,
-                ),
-            )
-            counter += 1
 
     @call_log(
         **{'id': 1},
