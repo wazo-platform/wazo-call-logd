@@ -11,7 +11,6 @@ from alembic import op
 revision = 'd6a8d09c2f29'
 down_revision = '4dfbea039971'
 INDEX_NAME = 'call_logd_call_log_participant__idx__call_log_id'
-INDEX_TO_DROP = 'call_logd_call_log_participant__idx__user_uuid'
 TABLE_NAME = 'call_logd_call_log_participant'
 ON_COLUMN = 'call_log_id'
 
@@ -33,7 +32,6 @@ def upgrade():
             table_name=TABLE_NAME,
             columns=[ON_COLUMN],
         )
-    op.drop_index(INDEX_TO_DROP)
 
 
 def downgrade():

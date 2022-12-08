@@ -89,59 +89,6 @@ def call_log(**call_log):
     return _decorate
 
 
-def multiple_call_logs(list_of_call_logs, batch_size=10):
-    def _decorate(func):
-        @wraps(func)
-        def wrapped_function(self, *args, **kwargs):
-            list_of_call_logs_ids = []
-            if batch_size < len(list_of_call_logs):
-                batched_list_of_call_logs = [
-                    list_of_call_logs[i : i + batch_size]  # noqa: E203
-                    for i in range(0, len(list_of_call_logs), batch_size)
-                ]
-                with self.database.queries() as queries:
-                    for batch_list in batched_list_of_call_logs:
-                        list_of_call_logs_ids += queries.bulk_insert_multiple_call_logs(
-                            batch_list
-                        )
-                        list_of_batch_participants = []
-                        for call_log in batch_list:
-                            call_log_participants = call_log['participants']
-                            for participant in call_log_participants:
-                                participant['call_log_id'] = call_log['id']
-                                list_of_batch_participants.append(participant)
-
-                        queries.bulk_insert_multiple_call_logs_participants(
-                            list_of_batch_participants
-                        )
-            else:
-                with self.database.queries() as queries:
-                    list_of_call_logs_ids += queries.bulk_insert_multiple_call_logs(
-                        list_of_call_logs
-                    )
-                    list_of_participants = []
-                    for call_log in list_of_call_logs:
-                        call_log_participants = call_log['participants']
-                        for participant in call_log_participants:
-                            participant['call_log_id'] = call_log['id']
-                            list_of_participants.append(participant)
-
-                    queries.bulk_insert_multiple_call_logs_participants(
-                        list_of_participants
-                    )
-
-            try:
-                return func(self, *args, **kwargs)
-            finally:
-                with self.database.queries() as queries:
-                    for call_log_id in list_of_call_logs_ids:
-                        queries.delete_call_log(call_log_id)
-
-        return wrapped_function
-
-    return _decorate
-
-
 def export(**export):
     def _decorate(func):
         @wraps(func)
@@ -387,24 +334,6 @@ class DatabaseQueries:
         self.connection = connection
         self.Session = scoped_session(sessionmaker(bind=connection))
 
-    def bulk_insert_multiple_call_logs(self, list_of_call_logs):
-        session = self.Session()
-        list_of_calls_logs_objects = []
-        for call_log_dict in list_of_call_logs:
-            list_of_calls_logs_objects.append(
-                CallLog(
-                    id=call_log_dict['id'],
-                    tenant_uuid=MASTER_TENANT,
-                    date=call_log_dict['date'],
-                )
-            )
-        session.bulk_save_objects(list_of_calls_logs_objects)
-        session.commit()
-        list_of_call_logs_ids = []
-        for call_log in list_of_calls_logs_objects:
-            list_of_call_logs_ids.append(call_log.id)
-        return list_of_call_logs_ids
-
     def insert_call_log(self, **kwargs):
         session = self.Session()
         kwargs.setdefault('date', dt.now())
@@ -482,22 +411,6 @@ class DatabaseQueries:
         kwargs.setdefault('role', 'source')
         call_log_participant = CallLogParticipant(**kwargs)
         session.add(call_log_participant)
-        session.commit()
-
-    def bulk_insert_multiple_call_logs_participants(
-        self, list_of_call_logs_participants
-    ):
-        session = self.Session()
-        list_of_participants_objects = []
-        for participant_dict in list_of_call_logs_participants:
-            list_of_participants_objects.append(
-                CallLogParticipant(
-                    user_uuid=participant_dict['user_uuid'],
-                    role='source',
-                    call_log_id=participant_dict['call_log_id'],
-                )
-            )
-        session.bulk_save_objects(list_of_participants_objects)
         session.commit()
 
     def find_all_call_log(self):

@@ -1,9 +1,6 @@
 # Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from uuid import uuid4
-
-from datetime import timedelta as td
 import logging
 import os
 import pytz
@@ -123,45 +120,6 @@ def cdr(
             },
         ],
     }
-
-
-def _pick_random_date(start=None, end=None):
-    return start + td(
-        seconds=random.randint(0, int((end - start).total_seconds())),
-    )
-
-
-def _generate_list_of_unique_random_call_logs_ids(total=5):
-    list_of_random_ids = []
-    while len(list_of_random_ids) < total:
-        random_id = random.randint(1, total + 1)
-        if random_id not in list_of_random_ids:
-            list_of_random_ids.append(random_id)
-    return sorted(list_of_random_ids)
-
-
-def _generate_list_of_unique_random_users_uuids(total=5):
-    list_of_unique_random_users_uuids = []
-    for i in range(total):
-        list_of_unique_random_users_uuids.append(str(uuid4()))
-    return list_of_unique_random_users_uuids
-
-
-def _generate_random_list_call_logs_for_user(
-    call_logs_ids=None, user_uuid=None, total_calls=5, start_date=None, end_date=None
-):
-    list_of_user_calls = []
-    for i in range(total_calls):
-        call_log = {}
-        call_log['id'] = (call_logs_ids[i],)
-        call_log['participants'] = [
-            {'user_uuid': user_uuid, 'role': 'source'},
-        ]
-        call_log['date'] = _pick_random_date(start=start_date, end=end_date).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-        list_of_user_calls.append(call_log)
-    return list_of_user_calls
 
 
 class WrongClient:
