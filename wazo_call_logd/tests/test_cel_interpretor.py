@@ -1,4 +1,4 @@
-# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -20,11 +20,33 @@ from ..cel_interpretor import (
     CallerCELInterpretor,
     DispatchCELInterpretor,
     extract_cel_extra,
+    extra_to_dict,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
 )
 from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog
+
+
+class TestExtraToDict(TestCase):
+    def test_mixed_input(self):
+        extra = "key_1: value_1,key_2: value_2, key_3: ,key_4: value,4, key_5: value,5, key_6: normal"
+
+        result = extra_to_dict(extra)
+
+        assert_that(
+            result,
+            has_entries(
+                {
+                    'key_1': 'value_1',
+                    'key_2': 'value_2',
+                    'key_3': '',
+                    'key_4': 'value,4',
+                    'key_5': 'value,5',
+                    'key_6': 'normal',
+                }
+            ),
+        )
 
 
 class TestExtractCELExtra:

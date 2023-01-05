@@ -1,4 +1,4 @@
-# Copyright 2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime
@@ -85,7 +85,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  CHAN_START                 | 2022-07-05 15:10:17.477554    | Harry Potter      | 1603      | 1604                  | mycontext     | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
  APP_START                  | 2022-07-05 15:10:17.676004    | Harry Potter      | 1603      | s                     | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
  XIVO_USER_FWD              | 2022-07-05 15:10:17.677551    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"extra":"NUM:1604,CONTEXT:mycontext,NAME:Willy Wonka"}
- WAZO_USER_MISSED_CALL      | 2022-07-05 15:10:17.677582    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"extra":"wazo_tenant_uuid: 006a72c4-eb68-481a-808f-33b28ec109c8,source_user_uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,destination_user_uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,destination_exten: 1604,source_name: Harry Potter,destination_name: Willy Wonka"}
+ WAZO_USER_MISSED_CALL      | 2022-07-05 15:10:17.677582    | Harry Potter      | 1603      | forward_voicemail     | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"extra":"wazo_tenant_uuid: 006a72c4-eb68-481a-808f-33b28ec109c8,source_user_uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,destination_user_uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,destination_exten: 1604,source_name: Harry Potter, Gryffindor,destination_name: Willy Wonka"}
  ANSWER                     | 2022-07-05 15:10:17.679283    | Harry Potter      | 1603      | pickup                | xivo-pickup   | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
  HANGUP                     | 2022-07-05 15:10:23.918826    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"hangupcause":3,"hangupsource":"dialplan/builtin","dialstatus":""}
  CHAN_END                   | 2022-07-05 15:10:23.918826    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
@@ -143,7 +143,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
                         has_properties(
                             date_answer=None,
                             tenant_uuid=wazo_tenant_uuid,
-                            source_name='Harry Potter',
+                            source_name='Harry Potter, Gryffindor',
                             source_internal_name='Harry Potter',
                             source_exten='1603',
                             source_line_identity='pjsip/cul113qn',

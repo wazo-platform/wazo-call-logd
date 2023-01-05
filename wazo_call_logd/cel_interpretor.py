@@ -1,4 +1,4 @@
-# Copyright 2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
@@ -17,6 +17,8 @@ EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?
 WAIT_FOR_MOBILE_REGEX = re.compile(r'^Local/(\S+)@wazo_wait_for_registration-\S+;2$')
 MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
+EXTRA_KEY_REGEX = re.compile(r'^\s*([a-zA-Z0-9_\-,]+)\s*:\s*(.*)$')
+EXTRA_VALUE_REGEX = re.compile(r'^\s*([a-zA-Z0-9_\-,\s]+),(.*)$')
 
 
 def extract_cel_extra(extra):
@@ -31,6 +33,36 @@ def extract_cel_extra(extra):
         return
 
     return extra
+
+
+def extra_to_dict(extra):
+    result = {}
+    end = extra
+    while end:
+        value = ''
+
+        matches = EXTRA_KEY_REGEX.match(end)
+        if not matches:
+            break
+        else:
+            key = matches[1].strip()
+            end = matches[2].strip()
+
+        matches = EXTRA_VALUE_REGEX.match(end)
+        if matches:
+            value = matches[1]
+            end = matches[2]
+        elif end:
+            if end.startswith(','):
+                # key_1:,key2:value
+                end = end[1:]
+            else:
+                # last_key:value
+                value = end
+
+        result[key] = value
+
+    return result
 
 
 def is_valid_mixmonitor_start_extra(extra):
@@ -255,17 +287,16 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_wazo_user_missed_call(self, cel, call):
-        extra = extract_cel_extra(cel.extra)
+        extra = extra_to_dict(extract_cel_extra(cel.extra)['extra'])
         if not extra:
             return
 
-        extra_tokens = extra['extra'].split(',')
-        wazo_tenant_uuid = extra_tokens[0].split(': ')[1]
-        source_user_uuid = extra_tokens[1].split(': ')[1]
-        destination_user_uuid = extra_tokens[2].split(': ')[1]
-        destination_exten = extra_tokens[3].split(': ')[1]
-        source_name = extra_tokens[4].split(': ')[1]
-        destination_name = extra_tokens[5].split(': ')[1]
+        wazo_tenant_uuid = extra['wazo_tenant_uuid']
+        source_user_uuid = extra['source_user_uuid']
+        destination_user_uuid = extra['destination_user_uuid']
+        destination_exten = extra['destination_exten']
+        source_name = extra['source_name']
+        destination_name = extra['destination_name']
 
         if source_user_uuid:
             source_participant = CallLogParticipant(
