@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -35,13 +35,8 @@ DEFAULT_CONFIG = {
         'password': 'guest',
         'host': 'localhost',
         'port': '5672',
-        'exchange_name': 'xivo',
-        'exchange_type': 'topic',
-        'exchange_durable': True,
-        'subscribe': {
-            'exchange_name': 'wazo-headers',
-            'exchange_type': 'headers',
-        },
+        'exchange_name': 'wazo-headers',
+        'exchange_type': 'headers',
     },
     'celery': {
         'broker': 'amqp://guest:guest@localhost:5672',
