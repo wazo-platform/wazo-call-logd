@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_test_helpers.bus import BusClient
@@ -13,4 +13,4 @@ class CallLogBusClient(BusClient):
             },
             'name': 'CEL',
         }
-        self.publish(payload, headers={'name': 'CEL'}, routing_key='ami.CEL')
+        self.publish(payload, headers={'name': 'CEL'})

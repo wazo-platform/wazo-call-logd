@@ -1,5 +1,13 @@
 # Changelog
 
+## 23.01
+
+* Bus configuration keys changed:
+
+  * key `exchange_name` now defaults to `wazo-headers`
+  * key `exchange_type` was removed
+  * key `exchange_durable` was removed
+
 ## 22.12
 
 * The `/cdr` endpoint now contains a new field called `destination_details`

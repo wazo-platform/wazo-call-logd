@@ -12,16 +12,6 @@ debug: false
 db_uri: postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-call-logd
 cel_db_uri: postgresql://asterisk:proformatique@localhost/asterisk?application_name=wazo-call-logd
 
-# Event bus (AMQP) connection settings
-bus:
-  username: guest
-  password: guest
-  host: localhost
-  port: 5672
-  exchange_name: xivo
-  exchange_type: topic
-  exchange_durable: True
-
 # REST API server
 rest_api:
 
@@ -61,8 +51,7 @@ bus:
   password: guest
   host: localhost
   port: 5672
-  exchange_name: xivo
-  exchange_type: topic
+  exchange_name: wazo-headers
 
 email_export_body_template: /var/lib/wazo-call-logd/templates/email_export_body.j2
 email_export_from_name: Wazo
