@@ -1,9 +1,10 @@
-# Copyright 2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
 import re
 import logging
+import urllib.parse
 
 from xivo.asterisk.line_identity import identity_from_channel
 
@@ -57,6 +58,25 @@ def is_valid_mixmonitor_stop_extra(extra):
         return False
 
     return True
+
+
+def _extract_user_missed_call_variables(extra):
+    extra_tokens = extra['extra'].split(',')
+    wazo_tenant_uuid = extra_tokens[0].split(': ')[1]
+    source_user_uuid = extra_tokens[1].split(': ')[1]
+    destination_user_uuid = extra_tokens[2].split(': ')[1]
+    destination_exten = extra_tokens[3].split(': ')[1]
+    source_name = urllib.parse.unquote(extra_tokens[4].split(': ')[1])
+    destination_name = urllib.parse.unquote(extra_tokens[5].split(': ')[1])
+
+    return (
+        wazo_tenant_uuid,
+        source_user_uuid,
+        destination_user_uuid,
+        destination_exten,
+        source_name,
+        destination_name,
+    )
 
 
 class DispatchCELInterpretor:
@@ -259,13 +279,14 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not extra:
             return
 
-        extra_tokens = extra['extra'].split(',')
-        wazo_tenant_uuid = extra_tokens[0].split(': ')[1]
-        source_user_uuid = extra_tokens[1].split(': ')[1]
-        destination_user_uuid = extra_tokens[2].split(': ')[1]
-        destination_exten = extra_tokens[3].split(': ')[1]
-        source_name = extra_tokens[4].split(': ')[1]
-        destination_name = extra_tokens[5].split(': ')[1]
+        (
+            wazo_tenant_uuid,
+            source_user_uuid,
+            destination_user_uuid,
+            destination_exten,
+            source_name,
+            destination_name,
+        ) = _extract_user_missed_call_variables(extra)
 
         if source_user_uuid:
             source_participant = CallLogParticipant(

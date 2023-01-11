@@ -1,5 +1,7 @@
-# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+import urllib.parse
 
 from unittest import TestCase
 from unittest.mock import Mock, sentinel
@@ -22,9 +24,84 @@ from ..cel_interpretor import (
     extract_cel_extra,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
+    _extract_user_missed_call_variables,
 )
 from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog
+
+
+class TestExtractUserMissedCallVariables(TestCase):
+    def setUp(self):
+        self.wazo_tenant_uuid = '2c34c282-433e-4bb8-8d56-fec14ff7e1e9'
+        self.source_user_uuid = ''
+        self.destination_user_uuid = 'de77813f-3a09-4558-ac14-d9c829e95818'
+        self.destination_exten = '1006'
+        self.source_name = '"TREMBLAY, François" <5551234567>'
+        self.destination_name = 'Karl'
+
+        self.valid_separators = [',', ', ']
+
+    def test_uriencoded_field(self):
+        encoded_source_name = urllib.parse.quote(self.source_name)
+        encoded_destination_name = urllib.parse.quote(self.destination_name)
+
+        for separator in self.valid_separators:
+            extra_string = separator.join(
+                [
+                    f'wazo_tenant_uuid: {self.wazo_tenant_uuid}',
+                    f'source_user_uuid: {self.source_user_uuid}',
+                    f'destination_user_uuid: {self.destination_user_uuid}',
+                    f'destination_exten: {self.destination_exten}',
+                    f'source_name: {encoded_source_name}',
+                    f'destination_name: {encoded_destination_name}',
+                ]
+            )
+            extra = {'extra': extra_string}
+
+            result = _extract_user_missed_call_variables(extra)
+
+            assert_that(
+                result,
+                contains_exactly(
+                    self.wazo_tenant_uuid,
+                    self.source_user_uuid,
+                    self.destination_user_uuid,
+                    self.destination_exten,
+                    self.source_name,
+                    self.destination_name,
+                ),
+            )
+
+    def test_pre_uriencoded_field(self):
+        # CEL generated before the upgrade can still be deserialized
+        old_source_name = (
+            '"TREMBLAY François" <5551234567>'  # Commas were not supported
+        )
+        extra_string = ','.join(
+            [
+                f'wazo_tenant_uuid: {self.wazo_tenant_uuid}',
+                f'source_user_uuid: {self.source_user_uuid}',
+                f'destination_user_uuid: {self.destination_user_uuid}',
+                f'destination_exten: {self.destination_exten}',
+                f'source_name: {old_source_name}',
+                f'destination_name: {self.destination_name}',
+            ]
+        )
+        extra = {'extra': extra_string}
+
+        result = _extract_user_missed_call_variables(extra)
+
+        assert_that(
+            result,
+            contains_exactly(
+                self.wazo_tenant_uuid,
+                self.source_user_uuid,
+                self.destination_user_uuid,
+                self.destination_exten,
+                old_source_name,
+                self.destination_name,
+            ),
+        )
 
 
 class TestExtractCELExtra:
