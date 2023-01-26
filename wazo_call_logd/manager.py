@@ -1,15 +1,17 @@
 # Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
+from .database.queries import DAO
 
 logger = logging.getLogger(__name__)
 
 
 class CallLogsManager:
     def __init__(self, dao, generator, writer, publisher):
-        self.dao = dao
+        self.dao: DAO = dao
         self.generator = generator
         self.writer = writer
         self.publisher = publisher

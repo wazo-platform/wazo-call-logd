@@ -9,6 +9,7 @@ from operator import attrgetter
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd import raw_call_log
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
+from wazo_confd_client import Client as ConfdClient
 
 from .participant import find_participant
 from .database.models import CallLogParticipant
@@ -22,7 +23,7 @@ CallLogsCreation = namedtuple(
 
 class CallLogsGenerator:
     def __init__(self, confd, cel_interpretors):
-        self.confd = confd
+        self.confd: ConfdClient = confd
         self._cel_interpretors = cel_interpretors
         self._service_tenant_uuid = None
 

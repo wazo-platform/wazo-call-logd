@@ -1,5 +1,7 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+from typing import Callable
 
 import json
 import re
@@ -9,7 +11,8 @@ import urllib.parse
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import CallLogParticipant, Destination, Recording
+from .database.models import CallLogParticipant, Destination, Recording, CEL
+from .raw_call_log import RawCallLog
 
 
 logger = logging.getLogger(__name__)
@@ -108,15 +111,16 @@ class DispatchCELInterpretor:
 
 
 class AbstractCELInterpretor:
-    eventtype_map = {}
+    eventtype_map: dict[str, Callable[[CEL, RawCallLog], RawCallLog]] = {}
 
-    def interpret_cels(self, cels, call_log):
+    def interpret_cels(self, cels: list[CEL], call_log: RawCallLog):
         for cel in cels:
             call_log = self.interpret_cel(cel, call_log)
         return call_log
 
-    def interpret_cel(self, cel, call):
+    def interpret_cel(self, cel: CEL, call: RawCallLog):
         eventtype = cel.eventtype
+        logger.debug("Interpreting CEL event type %s", eventtype)
         if eventtype in self.eventtype_map:
             interpret_function = self.eventtype_map[eventtype]
             return interpret_function(cel, call)
@@ -312,7 +316,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.source_line_identity = identity_from_channel(cel.channame)
         return call
 
-    def interpret_wazo_call_log_destination(self, cel, call):
+    def interpret_wazo_call_log_destination(self, cel, call: RawCallLog):
         extra = extract_cel_extra(cel.extra)
         if not extra:
             return call

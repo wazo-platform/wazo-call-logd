@@ -5,11 +5,13 @@ import logging
 
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo.asterisk.protocol_interface import InvalidChannelError
+from wazo_confd_client import Client as ConfdClient
+
 
 logger = logging.getLogger(__name__)
 
 
-def find_participant(confd, channame):
+def find_participant(confd: ConfdClient, channame: str):
     try:
         protocol, line_name = protocol_interface_from_channel(channame)
     except InvalidChannelError:
