@@ -131,6 +131,14 @@ class WrongClient:
 
 
 class _BaseIntegrationTest(AssetLaunchingTestCase):
+    bus: CallLogBusClient
+    call_logd: CallLogdClient
+    database: DbHelper
+    cel_database: DbHelper
+    filesystem: FileSystemClient
+    email: EmailClient
+    auth: AuthClient
+
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
 
     @classmethod
@@ -245,7 +253,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
                 MASTER_TOKEN,
                 MASTER_USER_UUID,
                 WAZO_UUID,
-                {"tenant_uuid": MASTER_TENANT, "uuid": MASTER_USER_UUID},
+                {"tenant_uuid": str(MASTER_TENANT), "uuid": str(MASTER_USER_UUID)},
             )
         )
         cls.auth.set_token(
@@ -253,7 +261,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
                 USER_1_TOKEN,
                 USER_1_UUID,
                 WAZO_UUID,
-                {"tenant_uuid": USERS_TENANT, "uuid": USER_1_UUID},
+                {"tenant_uuid": str(USERS_TENANT), "uuid": str(USER_1_UUID)},
             )
         )
         cls.auth.set_token(
@@ -261,7 +269,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
                 USER_2_TOKEN,
                 USER_2_UUID,
                 WAZO_UUID,
-                {"tenant_uuid": USERS_TENANT, "uuid": USER_2_UUID},
+                {"tenant_uuid": str(USERS_TENANT), "uuid": str(USER_2_UUID)},
             )
         )
         cls.auth.set_token(
@@ -269,7 +277,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
                 OTHER_USER_TOKEN,
                 OTHER_USER_UUID,
                 WAZO_UUID,
-                {"tenant_uuid": OTHER_TENANT, "uuid": OTHER_USER_UUID},
+                {"tenant_uuid": str(OTHER_TENANT), "uuid": str(OTHER_USER_UUID)},
             )
         )
         cls.auth.set_valid_credentials(
@@ -408,6 +416,9 @@ class RawCelIntegrationTest(_BaseIntegrationTest):
             def call_log_generated():
                 with self.database.queries() as queries:
                     call_log = queries.find_last_call_log()
+                    logger.debug("call_log=%s", call_log)
+                    if call_log:
+                        logger.debug("call_log.participants=%s", call_log.participants)
                     assert_that(call_log, expected)
 
             until.assert_(call_log_generated, tries=5)

@@ -74,8 +74,8 @@ class ConfdClient:
 
 class MockUser:
     def __init__(self, uuid, tenant_uuid, line_ids=None, mobile=None, userfield=None):
-        self._uuid = uuid
-        self._tenant_uuid = tenant_uuid
+        self._uuid = str(uuid)
+        self._tenant_uuid = str(tenant_uuid)
         self._line_ids = line_ids or []
         self._mobile = mobile
         self._userfield = userfield
@@ -132,7 +132,7 @@ class MockLine:
 
 class MockSwitchboard:
     def __init__(self, uuid, name=None):
-        self._uuid = uuid
+        self._uuid = str(uuid)
         self._name = name
 
     def uuid(self):
@@ -146,7 +146,7 @@ class MockContext:
     def __init__(self, id, name, tenant_uuid):
         self._id = id
         self._name = name
-        self._tenant_uuid = tenant_uuid
+        self._tenant_uuid = str(tenant_uuid)
 
     def id_(self):
         return self._id
