@@ -11,8 +11,9 @@ import urllib.parse
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import CallLogParticipant, Destination, Recording, CEL
+from .database.models import CallLogParticipant, Destination, Recording
 from .raw_call_log import RawCallLog
+from xivo_dao.alchemy.cel import CEL
 
 
 logger = logging.getLogger(__name__)
