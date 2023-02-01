@@ -1,8 +1,8 @@
 - project:
     templates:
-      - wazo-tox-py37
-      - wazo-tox-linters
-      - debian-packaging-template
+      - wazo-tox-linters-310
+      - wazo-tox-py39
+      - debian-packaging-bullseye
     check:
       jobs:
         - wazo-tox-integration-call-logd
@@ -12,9 +12,9 @@
 
 - job:
     name: wazo-tox-integration-call-logd
-    parent: wazo-tox-integration
+    parent: wazo-tox-integration-py39
     required-projects:
-      wazo-platform/xivo-manage-db
+      - wazo-platform/xivo-manage-db
     timeout: 3600
     vars:
       docker_compose_services_override:

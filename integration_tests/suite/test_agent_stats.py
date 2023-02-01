@@ -1,4 +1,4 @@
-# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
@@ -149,7 +149,7 @@ class TestInputParameters(IntegrationTest):
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00'})
     # fmt: on
     def test_that_listing_agents_stats_with_wrong_parameters_returns_error(self):
-        erronous_bodies = [
+        erroneous_bodies = [
             # from_
             {'from_': 'test'},
             {'from_': False},
@@ -190,7 +190,7 @@ class TestInputParameters(IntegrationTest):
             {'timezone': 'invalid'},
             {'timezone': 1234},
         ]
-        for body in erronous_bodies:
+        for body in erroneous_bodies:
             assert_that(
                 calling(self.call_logd.agent_statistics.list).with_args(**body),
                 raises(CallLogdError).matching(has_properties(status_code=400)),

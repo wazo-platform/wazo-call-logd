@@ -1,4 +1,4 @@
-# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -7,7 +7,7 @@ import smtplib
 
 from celery import Task
 from collections import namedtuple
-from email import utils as email_utils
+from email import utils as email_utils, policy
 from email.message import EmailMessage
 from wazo_auth_client import Client as AuthClient
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -136,8 +136,7 @@ class RecordingExportTask(Task):
         smtp_starttls = smtp_config.get('starttls')
 
         subject = config.get('email_export_subject')
-
-        message = EmailMessage()
+        message = EmailMessage(policy=policy.default.clone(max_line_length=500))
         message['From'] = email_utils.formataddr(email_from)
         message['Subject'] = subject
         message['To'] = email_utils.formataddr(email_destination)

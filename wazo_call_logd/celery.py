@@ -1,5 +1,6 @@
-# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
 import multiprocessing
@@ -24,14 +25,33 @@ def configure(config):
     app.conf.worker_hijack_root_logger = False
     app.conf.worker_loglevel = logging.getLevelName(config['log_level']).upper()
 
-    app.conf.worker_max_tasks_per_child = 1000
-    app.conf.worker_max_memory_per_child = 100000
+    app.conf.worker_max_tasks_per_child = 1_000
+    app.conf.worker_max_memory_per_child = 100_000
+
+
+def start_celery(argv: tuple[str, ...]) -> int | None:
+    """
+    This method implements the `worker_main` and `start` from Celery < 5.0
+    Until we can update to Celery >= 5.0.3 where it was re-added.
+    https://github.com/celery/celery/pull/6481/files
+    """
+    from celery.bin.celery import celery
+    from click.exceptions import Exit
+
+    celery.params[0].default = app
+
+    try:
+        celery.main(args=argv, standalone_mode=False)
+    except Exit as e:
+        return e.exit_code
+    finally:
+        celery.params[0].default = None
 
 
 def spawn_workers(config):
     logger.debug('Starting Celery workers...')
     argv = [
-        'call-logd-worker',  # argv[0] is arbitrary
+        'worker',
         # NOTE(sileht): setproctitle must be installed to have the celery
         # process well named like:
         #   celeryd: call-logd@<hostname>:MainProcess
@@ -41,11 +61,11 @@ def spawn_workers(config):
         '--hostname',
         f'{WORKER_NAME}@%h',
         '--autoscale',
-        "{},{}".format(config['celery']['worker_max'], config['celery']['worker_min']),
+        f"{config['celery']['worker_max']},{config['celery']['worker_min']}",
         '--pidfile',
         config['celery']['worker_pid_file'],
     ]
-    process = multiprocessing.Process(target=app.worker_main, args=(argv,))
+    process = multiprocessing.Process(target=start_celery, args=(argv,))
     process.start()
     return process
 
