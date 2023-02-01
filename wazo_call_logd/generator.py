@@ -1,6 +1,6 @@
 # Copyright 2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+from __future__ import annotations
 import logging
 
 from collections import namedtuple
@@ -11,7 +11,7 @@ from wazo_call_logd import raw_call_log
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from wazo_confd_client import Client as ConfdClient
 
-from .participant import find_participant
+from .participant import find_participant, find_participant_by_uuid
 from .database.models import CallLogParticipant
 
 
@@ -51,10 +51,7 @@ class CallLogsGenerator:
             call_log = interpretor.interpret_cels(cels_by_call, call_log)
 
             self._remove_duplicate_participants(call_log)
-            if not call_log.participants:
-                self._fetch_participants(self.confd, call_log)
-            else:
-                self._update_call_participants_with_their_tags(self.confd, call_log)
+            self._fetch_participants(self.confd, call_log)
             self._ensure_tenant_uuid_is_set(call_log)
             self._fill_extensions_from_participants(call_log)
             self._remove_incomplete_recordings(call_log)
@@ -92,57 +89,44 @@ class CallLogsGenerator:
             for duplicate_channel_name in duplicate_channel_names:
                 call_log.raw_participants.pop(duplicate_channel_name, None)
 
-    def _fetch_participants(self, confd, call_log):
-        call_log.participants = []
+    def _fetch_participants(self, confd, call_log: raw_call_log.RawCallLog):
+        participants_by_uuid: dict[str, CallLogParticipant] = {
+            str(participant.user_uuid): participant
+            for participant in call_log.participants
+        }
         for channel_name, raw_attributes in call_log.raw_participants.items():
             confd_participant = find_participant(confd, channel_name)
             if not confd_participant:
+                logger.info("No participant found for channel %s", channel_name)
                 continue
-            raw_attributes.update(**confd_participant)
-            answered = {}
+            raw_attributes.update(**confd_participant._asdict())
+            if confd_participant.uuid in participants_by_uuid:
+                participant = participants_by_uuid.pop(confd_participant.uuid)
+            else:
+                participant = CallLogParticipant(
+                    user_uuid=confd_participant.uuid
+                )
+                call_log.participants.append(participant)
+
+            participant.line_id = confd_participant.line_id
+            participant.tags = confd_participant.tags
+            participant.role = raw_attributes['role']
             if 'answered' in raw_attributes:
-                answered['answered'] = raw_attributes['answered']
-            participant_model = CallLogParticipant(
-                user_uuid=confd_participant['uuid'],
-                line_id=confd_participant['line_id'],
-                tags=confd_participant['tags'],
-                role=raw_attributes['role'],
-                **answered,
-            )
-            call_log.participants.append(participant_model)
+                participant.answered = raw_attributes["answered"]
 
-    def _update_call_participants_with_their_tags(self, confd, call_log):
-        source_user_uuid = call_log.source_user_uuid
-        destination_user_uuid = call_log.destination_user_uuid
-
-        if source_user_uuid:
-            source_user = confd.users.get(source_user_uuid)
-            source_user_tags = (
-                [tag.strip() for tag in source_user['userfield'].split(',')]
-                if source_user['userfield']
-                else []
-            )
-
-        if destination_user_uuid:
-            destination_user = confd.users.get(destination_user_uuid)
-            destination_user_tags = (
-                [tag.strip() for tag in destination_user['userfield'].split(',')]
-                if destination_user['userfield']
-                else []
-            )
-
-        call_log_new_participants = []
-        for participant in call_log.participants:
-            if source_user_uuid:
-                if participant.user_uuid == source_user_uuid:
-                    participant.tags = source_user_tags
-                    participant.line_id = source_user['lines'][0]['id']
-            if destination_user_uuid:
-                if participant.user_uuid == destination_user_uuid:
-                    participant.tags = destination_user_tags
-                    participant.line_id = destination_user['lines'][0]['id']
-            call_log_new_participants.append(participant)
-        call_log.participants = call_log_new_participants
+        if participants_by_uuid:
+            # remaining participants identified by CEL interpretation but have no matching channel
+            for uuid, participant in participants_by_uuid.items():
+                confd_participant = find_participant_by_uuid(confd, uuid)
+                if not confd_participant:
+                    logger.info("No participant found for user_uuid %s", uuid)
+                    continue
+                participant.line_id = confd_participant.line_id
+                participant.tags = confd_participant.tags
+                if uuid == call_log.source_user_uuid:
+                    participant.role = 'source'
+                elif uuid == call_log.destination_user_uuid:
+                    participant.role = 'destination'
 
     def _ensure_tenant_uuid_is_set(self, call_log):
         tenant_uuids = {

@@ -6,20 +6,30 @@ from unittest.mock import Mock
 
 from hamcrest import (
     assert_that,
-    has_entries,
+    has_properties,
     none,
 )
 
-from ..participant import find_participant
+from ..participant import find_participant, find_participant_by_uuid
+
+def merge(*maps):
+    return dict((k, v) for k, v in m.items() for m in maps)
 
 
 def confd_mock(lines=None):
     lines = lines or []
     confd = Mock()
     confd.lines.list.return_value = {'items': lines}
-    confd.users.get.return_value = (
-        lines[0]['users'][0] if lines and lines[0].get('users') else None
+    users = (
+        {
+            user['uuid']: dict(user, lines=[line])
+            for line in lines
+            for user in line['users']
+        }
+        if lines and lines[0].get('users')
+        else None
     )
+    confd.users.get.side_effect = users.get if users else lambda uuid: None
     return confd
 
 
@@ -63,10 +73,33 @@ class TestFindParticipant(TestCase):
 
         assert_that(
             result,
-            has_entries(
+            has_properties(
                 uuid='user_uuid',
                 tenant_uuid='tenant_uuid',
                 line_id=12,
+                tags=['user_userfield', 'toto'],
+            ),
+        )
+
+    def test_find_participant_from_user_uuid(self):
+        user = {
+            'uuid': 'user_uuid',
+            'tenant_uuid': 'tenant_uuid',
+            'userfield': 'user_userfield, toto',
+        }
+        lines = [{'id': 12, 'users': [user], 'extensions': []}]
+        user_uuid = user["uuid"]
+        confd = confd_mock(lines)
+
+        result = find_participant_by_uuid(confd, user_uuid=user_uuid)
+
+        assert_that(
+            result,
+            has_properties(
+                uuid='user_uuid',
+                tenant_uuid='tenant_uuid',
+                line_id=12,
+                main_extension=None,
                 tags=['user_userfield', 'toto'],
             ),
         )
