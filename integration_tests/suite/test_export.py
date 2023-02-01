@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     equal_to,
     has_entries,
@@ -804,7 +804,7 @@ class TestRecordingMediaExport(IntegrationTest):
         def events_received():
             assert_that(
                 created_events.accumulate(with_headers=True),
-                contains(
+                contains_exactly(
                     has_entries(
                         message=has_entries(
                             data=has_entries(uuid=export_uuid, status='pending'),
@@ -819,7 +819,7 @@ class TestRecordingMediaExport(IntegrationTest):
             )
             assert_that(
                 updated_events.accumulate(with_headers=True),
-                contains(
+                contains_exactly(
                     has_entries(
                         message=has_entries(
                             data=has_entries(uuid=export_uuid, status='processing'),
@@ -863,7 +863,7 @@ class TestRecordingMediaExport(IntegrationTest):
         def events_received():
             assert_that(
                 created_accumulator.accumulate(with_headers=True),
-                contains(
+                contains_exactly(
                     has_entries(
                         message=has_entries(
                             data=has_entries(uuid=export_uuid, status='pending'),
@@ -878,7 +878,7 @@ class TestRecordingMediaExport(IntegrationTest):
             )
             assert_that(
                 updated_accumulator.accumulate(with_headers=True),
-                contains(
+                contains_exactly(
                     has_entries(
                         message=has_entries(
                             data=has_entries(uuid=export_uuid, status='processing'),
@@ -923,7 +923,7 @@ class TestRecordingMediaExport(IntegrationTest):
         def events_received():
             assert_that(
                 created_accumulator.accumulate(with_headers=True),
-                contains(
+                contains_exactly(
                     has_entries(
                         message=has_entries(
                             data=has_entries(uuid=export_uuid, status='pending'),
@@ -938,7 +938,7 @@ class TestRecordingMediaExport(IntegrationTest):
             )
             assert_that(
                 updated_accumulator.accumulate(with_headers=True),
-                contains(
+                contains_exactly(
                     has_entries(
                         message=has_entries(
                             data=has_entries(uuid=export_uuid, status='processing'),

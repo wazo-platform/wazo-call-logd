@@ -1,6 +1,6 @@
 FROM wazoplatform/wazo-purge-db
 
-RUN pip install sqlalchemy_utils==0.32.21
+RUN pip install sqlalchemy_utils==0.36.8
 
 COPY . /usr/src/wazo-call-logd
 WORKDIR /usr/src/wazo-call-logd
