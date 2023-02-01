@@ -108,7 +108,6 @@ class DispatchCELInterpretor:
 
 
 class AbstractCELInterpretor:
-
     eventtype_map = {}
 
     def interpret_cels(self, cels, call_log):

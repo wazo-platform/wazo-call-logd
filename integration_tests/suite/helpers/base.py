@@ -131,7 +131,6 @@ class WrongClient:
 
 
 class _BaseIntegrationTest(AssetLaunchingTestCase):
-
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
 
     @classmethod
@@ -339,7 +338,6 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
 
 
 class IntegrationTest(_BaseIntegrationTest):
-
     asset = 'base'
     service = 'call-logd'
     wait_strategy = NoWaitStrategy()
@@ -350,7 +348,6 @@ class IntegrationTest(_BaseIntegrationTest):
 
 
 class DBIntegrationTest(_BaseIntegrationTest):
-
     asset = 'database'
     service = 'postgres'
     wait_strategy = NoWaitStrategy()
@@ -361,7 +358,6 @@ class DBIntegrationTest(_BaseIntegrationTest):
 
 
 class RawCelIntegrationTest(_BaseIntegrationTest):
-
     asset = 'base'
     service = 'call-logd'
     wait_strategy = CallLogdEverythingUpWaitStrategy()

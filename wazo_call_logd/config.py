@@ -153,7 +153,6 @@ def _parse_cli_args(argv):
 
 
 def _load_key_file(config):
-
     updated_config = {}
     export_id = config['exports'].get('service_id')
     export_key = config['exports'].get('service_key')

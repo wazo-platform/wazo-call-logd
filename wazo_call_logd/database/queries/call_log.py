@@ -1,12 +1,15 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+
+from typing import Any
 
 import sqlalchemy as sa
 
 from sqlalchemy import distinct
 from sqlalchemy import sql, func, and_
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, Query
 from sqlalchemy.orm import subqueryload
 
 from .base import BaseDAO
@@ -14,7 +17,6 @@ from ..models import CallLog, CallLogParticipant
 
 
 class CallLogDAO(BaseDAO):
-
     searched_columns = (
         CallLog.source_name,
         CallLog.source_exten,
@@ -114,40 +116,40 @@ class CallLogDAO(BaseDAO):
 
         return {'total': total, 'filtered': filtered}
 
-    def _apply_user_filter(self, query, params):
-        if params.get('me_user_uuid'):
-            me_user_uuid = params['me_user_uuid']
+    def _apply_user_filter(self, query: Query, params: dict[str, Any]) -> Query:
+        if me_user_uuid := params.get('me_user_uuid'):
             query = query.filter(
-                CallLog.participant_user_uuids.contains(str(me_user_uuid))
+                CallLog.participants.any(
+                    CallLogParticipant.user_uuid == str(me_user_uuid)
+                )
             )
         return query
 
-    def _apply_filters(self, query, params):
-        if params.get('start'):
-            query = query.filter(CallLog.date >= params['start'])
-        if params.get('end'):
-            query = query.filter(CallLog.date < params['end'])
+    def _apply_filters(self, query: Query, params: dict[str, Any]) -> Query:
+        if start_date := params.get('start'):
+            query = query.filter(CallLog.date >= start_date)
+        if end_date := params.get('end'):
+            query = query.filter(CallLog.date < end_date)
 
-        if params.get('call_direction'):
-            query = query.filter(CallLog.direction == params['call_direction'])
+        if call_direction := params.get('call_direction'):
+            query = query.filter(CallLog.direction == call_direction)
 
-        if params.get('cdr_ids'):
-            query = query.filter(CallLog.id.in_(params['cdr_ids']))
+        if cdr_ids := params.get('cdr_ids'):
+            query = query.filter(CallLog.id.in_(cdr_ids))
 
-        if params.get('id'):
-            query = query.filter(CallLog.id == params['id'])
+        if call_log_id := params.get('id'):
+            query = query.filter(CallLog.id == call_log_id)
 
-        if params.get('search'):
+        if search := params.get('search'):
             filters = (
-                sql.cast(column, sa.String).ilike('%%%s%%' % params['search'])
+                sql.cast(column, sa.String).ilike(f'%{search}%')
                 for column in self.searched_columns
             )
             query = query.filter(sql.or_(*filters))
 
-        if params.get('number'):
-            sql_regex = params['number'].replace('_', '%')
+        if number := params.get('number'):
             filters = (
-                sql.cast(column, sa.String).like('%s' % sql_regex)
+                sql.cast(column, sa.String).like(f"{number.replace('_', '%')}")
                 for column in [
                     CallLog.source_exten,
                     CallLog.destination_exten,
@@ -162,27 +164,28 @@ class CallLogDAO(BaseDAO):
                 )
             )
 
-        if params.get('tenant_uuids'):
-            query = query.filter(CallLog.tenant_uuid.in_(params['tenant_uuids']))
+        if tenant_uuids := params.get('tenant_uuids'):
+            query = query.filter(CallLog.tenant_uuid.in_(tenant_uuids))
 
-        if params.get('me_user_uuid'):
-            me_user_uuid = params['me_user_uuid']
+        if me_user_uuid := params.get('me_user_uuid'):
             query = query.filter(
-                CallLog.participant_user_uuids.contains(str(me_user_uuid))
+                CallLog.participants.any(
+                    CallLogParticipant.user_uuid == str(me_user_uuid)
+                )
             )
 
-        if params.get('user_uuids'):
+        if user_uuids := params.get('user_uuids'):
             filters = (
-                CallLog.participant_user_uuids.contains(str(user_uuid))
-                for user_uuid in params['user_uuids']
+                CallLog.participants.any(CallLogParticipant.user_uuid == str(user_uuid))
+                for user_uuid in user_uuids
             )
             query = query.filter(sql.or_(*filters))
 
-        if params.get('start_id'):
-            query = query.filter(CallLog.id >= params['start_id'])
+        if start_id := params.get('start_id'):
+            query = query.filter(CallLog.id >= start_id)
 
-        if params.get('recorded') is not None:
-            if params['recorded']:
+        if (recorded := params.get('recorded')) is not None:
+            if recorded:
                 query = query.filter(CallLog.recordings.any())
             else:
                 query = query.filter(~CallLog.recordings.any())

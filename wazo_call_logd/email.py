@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -7,7 +7,6 @@ from jinja2 import BaseLoader, Environment, TemplateNotFound
 
 
 class TemplateLoader(BaseLoader):
-
     _templates = {
         'email_export_body': 'email_export_body_template',
     }

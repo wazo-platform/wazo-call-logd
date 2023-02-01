@@ -1,4 +1,4 @@
-# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import (
@@ -20,7 +20,6 @@ Base = declarative_base()
 
 @generic_repr
 class Tenant(Base):
-
     __tablename__ = 'call_logd_tenant'
 
     uuid = Column(UUIDType, primary_key=True)
@@ -28,7 +27,6 @@ class Tenant(Base):
 
 @generic_repr
 class CallLog(Base):
-
     # NOTE: Until bullseye upgrade, this schema must match the one migrated from manage-db and the
     # one injected in integration tests
     __tablename__ = 'call_logd_call_log'
@@ -128,7 +126,6 @@ class CallLog(Base):
 
 @generic_repr
 class Destination(Base):
-
     __tablename__ = 'call_logd_call_log_destination'
 
     uuid = Column(
@@ -169,7 +166,6 @@ class Destination(Base):
 
 @generic_repr
 class CallLogParticipant(Base):
-
     # NOTE: Until bullseye upgrade, this schema must match the one migrated from manage-db and the
     # one injected in integration tests
     __tablename__ = 'call_logd_call_log_participant'
@@ -232,7 +228,6 @@ class CallLogParticipant(Base):
 
 @generic_repr
 class Recording(Base):
-
     __tablename__ = 'call_logd_recording'
 
     uuid = Column(
@@ -276,7 +271,6 @@ class Recording(Base):
 
 @generic_repr
 class Retention(Base):
-
     __tablename__ = 'call_logd_retention'
 
     tenant_uuid = Column(
@@ -301,7 +295,6 @@ class Retention(Base):
 
 @generic_repr
 class Config(Base):
-
     __tablename__ = 'call_logd_config'
 
     id = Column(Integer, primary_key=True)
@@ -315,7 +308,6 @@ class Config(Base):
 
 @generic_repr
 class Export(Base):
-
     __tablename__ = 'call_logd_export'
 
     uuid = Column(

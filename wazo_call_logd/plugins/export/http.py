@@ -1,7 +1,9 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from flask import g, send_file
 from xivo import tenant_helpers
@@ -22,11 +24,15 @@ from .schemas import (
     ExportSchema,
 )
 
+if TYPE_CHECKING:
+    from .services import ExportService
+
+
 logger = logging.getLogger(__name__)
 
 
 class ExportAuthResource(AuthResource):
-    def __init__(self, service):
+    def __init__(self, service: ExportService) -> None:
         super().__init__()
         self.service = service
 
