@@ -326,7 +326,7 @@ class DbHelper:
             connection.execute(text(query), **kwargs)
 
     @contextmanager
-    def queries(self) -> ContextManager[DatabaseQueries]:
+    def queries(self):
         with self.connect() as connection:
             yield DatabaseQueries(connection)
 
