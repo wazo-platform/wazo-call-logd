@@ -12,9 +12,6 @@ from hamcrest import (
 
 from ..participant import find_participant, find_participant_by_uuid
 
-def merge(*maps):
-    return dict((k, v) for k, v in m.items() for m in maps)
-
 
 def confd_mock(lines=None):
     lines = lines or []
