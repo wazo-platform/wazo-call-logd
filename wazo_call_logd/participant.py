@@ -31,7 +31,7 @@ def get_tags(field: str | None) -> list[str]:
 def find_participant_by_uuid(confd, user_uuid: str) -> ParticipantInfo | None:
     try:
         user = confd.users.get(user_uuid)
-    except requests.exceptions.HTTPError as ex:
+    except requests.exceptions.HTTPError:
         logger.exception("Error retrieving user(user_uuid=%s) from confd", user_uuid)
         return None
 
@@ -103,7 +103,7 @@ def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | Non
 
     try:
         user = confd.users.get(user_uuid)
-    except requests.exceptions.HTTPError as ex:
+    except requests.exceptions.HTTPError:
         logger.exception("Error retrieving user(user_uuid=%s) from confd", user_uuid)
         return None
 
