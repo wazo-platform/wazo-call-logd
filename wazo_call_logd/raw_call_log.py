@@ -1,10 +1,15 @@
 # Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from typing import Literal
 
 import logging
 
+from datetime import datetime
 from collections import defaultdict
-from wazo_call_logd.database.models import CallLog
+from wazo_call_logd.database.models import CallLog, CallLogParticipant
 
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.extension_filter import (
@@ -17,49 +22,49 @@ logger = logging.getLogger(__name__)
 
 class RawCallLog:
     def __init__(self):
-        self.date = None
-        self.date_end = None
-        self.source_name = None
-        self.source_exten = None
-        self.source_internal_exten = None
-        self.source_internal_context = None
-        self.source_internal_name = None
-        self.source_user_uuid = None
-        self.requested_name = None
-        self.requested_exten = None
-        self.requested_context = None
-        self.requested_internal_exten = None
-        self.requested_internal_context = None
-        self.destination_name = None
-        self.destination_exten = None
-        self.destination_user_uuid = None
-        self.destination_internal_exten = None
-        self.destination_internal_context = None
-        self.destination_line_identity = None
-        self.user_field = None
-        self.date_answer = None
-        self.source_line_identity = None
-        self.direction = 'internal'
-        self.raw_participants = defaultdict(dict)
-        self.participants = []
-        self.participants_by_channame = {}
-        self.recordings = []
-        self.cel_ids = []
-        self.interpret_callee_bridge_enter = True
-        self.interpret_caller_xivo_user_fwd = True
-        self._tenant_uuid = None
-        self.pending_wait_for_mobile_peers = set()
-        self.caller_id_by_channels = {}
-        self.extension_filter = ExtensionFilter(DEFAULT_HIDDEN_EXTENSIONS)
-        self.destination_details = []
+        self.date: datetime = None # type: ignore[assignment]
+        self.date_end: datetime = None # type: ignore[assignment]
+        self.source_name: str = None # type: ignore[assignment]
+        self.source_exten: str = None # type: ignore[assignment]
+        self.source_internal_exten: str = None # type: ignore[assignment]
+        self.source_internal_context: str = None # type: ignore[assignment]
+        self.source_internal_name: str = None # type: ignore[assignment]
+        self.source_user_uuid: str = None # type: ignore[assignment]
+        self.requested_name: str = None # type: ignore[assignment]
+        self.requested_exten: str = None # type: ignore[assignment]
+        self.requested_context: str = None # type: ignore[assignment]
+        self.requested_internal_exten: str = None # type: ignore[assignment]
+        self.requested_internal_context: str = None # type: ignore[assignment]
+        self.destination_name: str = None # type: ignore[assignment]
+        self.destination_exten: str = None # type: ignore[assignment]
+        self.destination_user_uuid: str = None # type: ignore[assignment]
+        self.destination_internal_exten: str = None # type: ignore[assignment]
+        self.destination_internal_context: str = None # type: ignore[assignment]
+        self.destination_line_identity: str = None # type: ignore[assignment]
+        self.user_field: str = None # type: ignore[assignment]
+        self.date_answer: datetime = None # type: ignore[assignment]
+        self.source_line_identity: str = None # type: ignore[assignment]
+        self.direction: Literal['source', 'destination', 'internal'] = 'internal'
+        self.raw_participants: dict[str, dict] = defaultdict(dict)
+        self.participants: list[CallLogParticipant] = []
+        self.participants_by_channame: dict[str, CallLogParticipant] = {}
+        self.recordings: list = []
+        self.cel_ids: list[int] = []
+        self.interpret_callee_bridge_enter: bool = True
+        self.interpret_caller_xivo_user_fwd: bool = True
+        self._tenant_uuid: str = None # type: ignore[assignment]
+        self.pending_wait_for_mobile_peers: set[str] = set()
+        self.caller_id_by_channels: dict[str, str] = {}
+        self.extension_filter: ExtensionFilter = ExtensionFilter(DEFAULT_HIDDEN_EXTENSIONS)
+        self.destination_details: list = []
 
     @property
-    def tenant_uuid(self):
+    def tenant_uuid(self) -> str:
         return self._tenant_uuid
 
     def set_tenant_uuid(self, tenant_uuid):
         if self._tenant_uuid is None:
-            self._tenant_uuid = tenant_uuid
+            self._tenant_uuid = str(tenant_uuid)
         elif self._tenant_uuid != tenant_uuid:
             logger.error(
                 "We got a cel with an expected tenant_uuid: " "%s instead of %s",
@@ -67,7 +72,7 @@ class RawCallLog:
                 self._tenant_uuid,
             )
 
-    def to_call_log(self):
+    def to_call_log(self) -> CallLog:
         if not self.date:
             raise InvalidCallLogException('date not found')
         if not (self.source_name or self.source_exten):
