@@ -1753,29 +1753,29 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
         # Both were called, call log should include both as participants.
         USER_A_UUID = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
         USER_B_UUID = "31be0853-dde6-48cd-986d-85bc708754a1"
-
+        tenant = "54eb71f8-1f4b-4ae4-8730-638062fbe521"
         self.confd.set_users(
-            MockUser(USER_A_UUID, USERS_TENANT, line_ids=[1]),
-            MockUser(USER_B_UUID, USERS_TENANT, line_ids=[2]),
+            MockUser(USER_A_UUID, tenant, line_ids=[1]),
+            MockUser(USER_B_UUID, tenant, line_ids=[2]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='9EYlfTvB',
                 users=[{'uuid': USER_A_UUID}],
-                tenant_uuid=USERS_TENANT,
+                tenant_uuid=tenant,
                 extensions=[{'exten': '8001', 'context': 'internal'}],
             ),
             MockLine(
                 id=2,
                 name='rNXlGVeY',
                 users=[{'uuid': USER_B_UUID}],
-                tenant_uuid=USERS_TENANT,
+                tenant_uuid=tenant,
                 extensions=[{'exten': '8002', 'context': 'internal'}],
             )
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='internal', tenant_uuid=USERS_TENANT)
+            MockContext(id=1, name='internal', tenant_uuid=tenant)
         )
 
         self._assert_last_call_log_matches(
@@ -1828,28 +1828,29 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
         # Both were called, call log should include both as participants.
         USER_A_UUID = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
         USER_B_UUID = "31be0853-dde6-48cd-986d-85bc708754a1"
+        tenant = "54eb71f8-1f4b-4ae4-8730-638062fbe521"
         self.confd.set_users(
-            MockUser(USER_A_UUID, USERS_TENANT, line_ids=[1]),
-            MockUser(USER_B_UUID, USERS_TENANT, line_ids=[2]),
+            MockUser(USER_A_UUID, tenant, line_ids=[1]),
+            MockUser(USER_B_UUID, tenant, line_ids=[2]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='9EYlfTvB',
                 users=[{'uuid': USER_A_UUID}],
-                tenant_uuid=USERS_TENANT,
+                tenant_uuid=tenant,
                 extensions=[{'exten': '8001', 'context': 'internal'}],
             ),
             MockLine(
                 id=2,
                 name='rNXlGVeY',
                 users=[{'uuid': USER_B_UUID}],
-                tenant_uuid=USERS_TENANT,
+                tenant_uuid=tenant,
                 extensions=[{'exten': '8002', 'context': 'internal'}],
             )
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='internal', tenant_uuid=USERS_TENANT)
+            MockContext(id=1, name='internal', tenant_uuid=tenant)
         )
         
         self._assert_last_call_log_matches(
