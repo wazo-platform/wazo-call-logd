@@ -282,7 +282,7 @@ class TestCallerCELInterpretor(TestCase):
             instance=True,
             interpret_caller_xivo_user_fwd=True,
             extension_filter=Mock(filter=lambda x: x),
-            participants=[]
+            participants=[],
         )
         assert hasattr(self.call, "participants")
 

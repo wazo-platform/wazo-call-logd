@@ -64,7 +64,10 @@ def is_valid_mixmonitor_stop_extra(extra):
 
     return True
 
+
 T = TypeVar("T")
+
+
 def find(col: Iterable[T], pred: Callable[[T], bool]) -> T | None:
     for x in col:
         if pred(x):
@@ -300,19 +303,24 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         ) = _extract_user_missed_call_variables(extra)
 
         if source_user_uuid:
-            source_participant = find(call.participants, lambda p: p.user_uuid == source_user_uuid)
+            source_participant = find(
+                call.participants, lambda p: p.user_uuid == source_user_uuid
+            )
             if not source_participant:
-                source_participant = CallLogParticipant(
-                    user_uuid=source_user_uuid
-                )
+                source_participant = CallLogParticipant(user_uuid=source_user_uuid)
                 call.participants.append(source_participant)
             source_participant.role = 'source'
             source_participant.answered = False
             call.source_user_uuid = source_user_uuid
-            logger.debug("identified source participant (user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event", 
-                source_participant.user_uuid, source_name)
+            logger.debug(
+                "identified source participant (user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event",
+                source_participant.user_uuid,
+                source_name,
+            )
         if destination_user_uuid:
-            destination_participant = find(call.participants, lambda p: p.user_uuid == destination_user_uuid)
+            destination_participant = find(
+                call.participants, lambda p: p.user_uuid == destination_user_uuid
+            )
             if not destination_participant:
                 destination_participant = CallLogParticipant(
                     user_uuid=destination_user_uuid,
@@ -321,8 +329,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             destination_participant.role = 'destination'
             destination_participant.answered = False
             call.destination_user_uuid = destination_user_uuid
-            logger.debug("identified destination participant (user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event", 
-                destination_participant.user_uuid, destination_name)
+            logger.debug(
+                "identified destination participant (user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event",
+                destination_participant.user_uuid,
+                destination_name,
+            )
 
         call.set_tenant_uuid(wazo_tenant_uuid)
         call.destination_exten = destination_exten
@@ -360,12 +371,14 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'user_name': extra_dict['name'],
             }
             participant = CallLogParticipant(
-                user_uuid=destination_details["user_uuid"],
-                role="destination"
+                user_uuid=destination_details["user_uuid"], role="destination"
             )
             call.participants.append(participant)
-            logger.debug("identified destination participant (user_uuid=%s, user_name=%s) from WAZO_CALL_LOG_DESTINATION", 
-                participant.user_uuid, destination_details['user_name'])
+            logger.debug(
+                "identified destination participant (user_uuid=%s, user_name=%s) from WAZO_CALL_LOG_DESTINATION",
+                participant.user_uuid,
+                destination_details['user_name'],
+            )
         elif extra_dict['type'] == 'meeting':
             destination_details = {
                 'type': extra_dict['type'],

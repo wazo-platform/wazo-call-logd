@@ -21,11 +21,7 @@ class ParticipantInfo(NamedTuple):
 
 
 def get_tags(field: str | None) -> list[str]:
-    return (
-        [tag.strip() for tag in field.split(',')]
-        if field
-        else []
-    )
+    return [tag.strip() for tag in field.split(',')] if field else []
 
 
 def find_participant_by_uuid(confd, user_uuid: str) -> ParticipantInfo | None:
@@ -48,19 +44,24 @@ def find_participant_by_uuid(confd, user_uuid: str) -> ParticipantInfo | None:
     # of defaulting to first line of user, though this might be erroneous
     line = user['lines'] and user['lines'][0]
     logger.debug("user(user_uuid=%s) has first line: %s", user_uuid, line)
-    main_extension = line and ('extensions' in line or None) and (line['extensions'] or None) and line['extensions'][0]
+    main_extension = (
+        line
+        and ('extensions' in line or None)
+        and (line['extensions'] or None)
+        and line['extensions'][0]
+    )
     return ParticipantInfo(
         uuid=user['uuid'],
         tenant_uuid=user['tenant_uuid'],
         line_id=line['id'],
         tags=tags,
-        main_extension=main_extension
+        main_extension=main_extension,
     )
 
 
 def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | None:
     """
-    find and fetch participant information from confd, 
+    find and fetch participant information from confd,
     using channel name or user_uuid as available
     """
     line = None
@@ -90,7 +91,7 @@ def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | Non
         return None
 
     user_uuid = users[0]['uuid']
-        
+
     extensions = line['extensions']
     if extensions:
         main_extension = extensions[0]
@@ -119,5 +120,5 @@ def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | Non
         tenant_uuid=user['tenant_uuid'],
         line_id=line and line['id'],
         tags=tags,
-        main_extension=main_extension
+        main_extension=main_extension,
     )

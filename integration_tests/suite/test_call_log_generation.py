@@ -1747,9 +1747,9 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
 1674248467.40 | 1674248467.40 | 2023-01-20 21:01:29.900072+00 | CHAN_END                  | PJSIP/rgcZLNGE-00000028 | 8000      | 98001      | test-UC-1  | 8000      | unreachable       |                                                                                                                                                                                                                             
 1674248467.40 | 1674248467.40 | 2023-01-20 21:01:29.900072+00 | LINKEDID_END              | PJSIP/rgcZLNGE-00000028 | 8000      | 98001      | test-UC-1  | 8000      | unreachable       |                                                                                                                                                                                                                             
         '''
-        )
+    )
     def test_user_missed_call_fallback_missed(self):
-        # user A missed, fallback to user B, missed too. 
+        # user A missed, fallback to user B, missed too.
         # Both were called, call log should include both as participants.
         USER_A_UUID = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
         USER_B_UUID = "31be0853-dde6-48cd-986d-85bc708754a1"
@@ -1772,11 +1772,9 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
                 users=[{'uuid': USER_B_UUID}],
                 tenant_uuid=tenant,
                 extensions=[{'exten': '8002', 'context': 'internal'}],
-            )
+            ),
         )
-        self.confd.set_contexts(
-            MockContext(id=1, name='internal', tenant_uuid=tenant)
-        )
+        self.confd.set_contexts(MockContext(id=1, name='internal', tenant_uuid=tenant))
 
         self._assert_last_call_log_matches(
             '1674248467.40',
@@ -1784,17 +1782,23 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
                 id=not_none(),
                 participants=contains_inanyorder(
                     has_properties(
-                        uuid=not_none(), user_uuid=USER_A_UUID, role='destination', answered=False
+                        uuid=not_none(),
+                        user_uuid=USER_A_UUID,
+                        role='destination',
+                        answered=False,
                     ),
                     has_properties(
-                        uuid=not_none(), user_uuid=USER_B_UUID, role='destination', answered=False
-                    )
+                        uuid=not_none(),
+                        user_uuid=USER_B_UUID,
+                        role='destination',
+                        answered=False,
+                    ),
                 ),
             ),
         )
 
     @raw_cels(
-# select linkedid, uniqueid, eventtime, eventtype, channame, cid_ani, cid_dnid, cid_name, cid_num, exten, extra from cel where call_log_id = 22 order by eventtime asc;
+        # select linkedid, uniqueid, eventtime, eventtype, channame, cid_ani, cid_dnid, cid_name, cid_num, exten, extra from cel where call_log_id = 22 order by eventtime asc;
         '''\
 linkedid      | uniqueid      | eventtime                     | eventtype                 | channame                | cid_ani   | cid_dnid   | cid_name   | cid_num   | exten             | extra                                                                                                                                                                                                                       
 --------------+---------------+-------------------------------+---------------------------+-------------------------+-----------+------------+------------+-----------+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1822,9 +1826,9 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
 1674485777.43 | 1674485777.43 | 2023-01-23 14:56:30.683553+00 | HANGUP                    | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | s                 | {"hangupcause":16,"hangupsource":"PJSIP/rNXlGVeY-0000002d","dialstatus":"ANSWER"}                                                                                                                                           
 1674485777.43 | 1674485777.43 | 2023-01-23 14:56:30.683553+00 | LINKEDID_END              | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | s                 |                                                                                                                                                                                                                             
         '''
-        )
+    )
     def test_user_missed_call_fallback_answered(self):
-        # user A missed, fallback to user B, answered. 
+        # user A missed, fallback to user B, answered.
         # Both were called, call log should include both as participants.
         USER_A_UUID = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
         USER_B_UUID = "31be0853-dde6-48cd-986d-85bc708754a1"
@@ -1847,23 +1851,27 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
                 users=[{'uuid': USER_B_UUID}],
                 tenant_uuid=tenant,
                 extensions=[{'exten': '8002', 'context': 'internal'}],
-            )
+            ),
         )
-        self.confd.set_contexts(
-            MockContext(id=1, name='internal', tenant_uuid=tenant)
-        )
-        
+        self.confd.set_contexts(MockContext(id=1, name='internal', tenant_uuid=tenant))
+
         self._assert_last_call_log_matches(
             '1674485777.43',
             has_properties(
                 id=not_none(),
                 participants=contains_inanyorder(
                     has_properties(
-                        uuid=not_none(), user_uuid=USER_A_UUID, role='destination', answered=False
+                        uuid=not_none(),
+                        user_uuid=USER_A_UUID,
+                        role='destination',
+                        answered=False,
                     ),
                     has_properties(
-                        uuid=not_none(), user_uuid=USER_B_UUID, role='destination', answered=True
-                    )
-                )
+                        uuid=not_none(),
+                        user_uuid=USER_B_UUID,
+                        role='destination',
+                        answered=True,
+                    ),
+                ),
             ),
         )

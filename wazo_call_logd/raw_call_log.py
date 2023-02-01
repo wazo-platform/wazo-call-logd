@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from typing import Literal
 
@@ -22,28 +23,28 @@ logger = logging.getLogger(__name__)
 
 class RawCallLog:
     def __init__(self):
-        self.date: datetime = None # type: ignore[assignment]
-        self.date_end: datetime = None # type: ignore[assignment]
-        self.source_name: str = None # type: ignore[assignment]
-        self.source_exten: str = None # type: ignore[assignment]
-        self.source_internal_exten: str = None # type: ignore[assignment]
-        self.source_internal_context: str = None # type: ignore[assignment]
-        self.source_internal_name: str = None # type: ignore[assignment]
-        self.source_user_uuid: str = None # type: ignore[assignment]
-        self.requested_name: str = None # type: ignore[assignment]
-        self.requested_exten: str = None # type: ignore[assignment]
-        self.requested_context: str = None # type: ignore[assignment]
-        self.requested_internal_exten: str = None # type: ignore[assignment]
-        self.requested_internal_context: str = None # type: ignore[assignment]
-        self.destination_name: str = None # type: ignore[assignment]
-        self.destination_exten: str = None # type: ignore[assignment]
-        self.destination_user_uuid: str = None # type: ignore[assignment]
-        self.destination_internal_exten: str = None # type: ignore[assignment]
-        self.destination_internal_context: str = None # type: ignore[assignment]
-        self.destination_line_identity: str = None # type: ignore[assignment]
-        self.user_field: str = None # type: ignore[assignment]
-        self.date_answer: datetime = None # type: ignore[assignment]
-        self.source_line_identity: str = None # type: ignore[assignment]
+        self.date: datetime = None  # type: ignore[assignment]
+        self.date_end: datetime = None  # type: ignore[assignment]
+        self.source_name: str = None  # type: ignore[assignment]
+        self.source_exten: str = None  # type: ignore[assignment]
+        self.source_internal_exten: str = None  # type: ignore[assignment]
+        self.source_internal_context: str = None  # type: ignore[assignment]
+        self.source_internal_name: str = None  # type: ignore[assignment]
+        self.source_user_uuid: str = None  # type: ignore[assignment]
+        self.requested_name: str = None  # type: ignore[assignment]
+        self.requested_exten: str = None  # type: ignore[assignment]
+        self.requested_context: str = None  # type: ignore[assignment]
+        self.requested_internal_exten: str = None  # type: ignore[assignment]
+        self.requested_internal_context: str = None  # type: ignore[assignment]
+        self.destination_name: str = None  # type: ignore[assignment]
+        self.destination_exten: str = None  # type: ignore[assignment]
+        self.destination_user_uuid: str = None  # type: ignore[assignment]
+        self.destination_internal_exten: str = None  # type: ignore[assignment]
+        self.destination_internal_context: str = None  # type: ignore[assignment]
+        self.destination_line_identity: str = None  # type: ignore[assignment]
+        self.user_field: str = None  # type: ignore[assignment]
+        self.date_answer: datetime = None  # type: ignore[assignment]
+        self.source_line_identity: str = None  # type: ignore[assignment]
         self.direction: Literal['source', 'destination', 'internal'] = 'internal'
         self.raw_participants: dict[str, dict] = defaultdict(dict)
         self.participants: list[CallLogParticipant] = []
@@ -52,10 +53,12 @@ class RawCallLog:
         self.cel_ids: list[int] = []
         self.interpret_callee_bridge_enter: bool = True
         self.interpret_caller_xivo_user_fwd: bool = True
-        self._tenant_uuid: str = None # type: ignore[assignment]
+        self._tenant_uuid: str = None  # type: ignore[assignment]
         self.pending_wait_for_mobile_peers: set[str] = set()
         self.caller_id_by_channels: dict[str, str] = {}
-        self.extension_filter: ExtensionFilter = ExtensionFilter(DEFAULT_HIDDEN_EXTENSIONS)
+        self.extension_filter: ExtensionFilter = ExtensionFilter(
+            DEFAULT_HIDDEN_EXTENSIONS
+        )
         self.destination_details: list = []
 
     @property

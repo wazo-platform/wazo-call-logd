@@ -103,9 +103,7 @@ class CallLogsGenerator:
             if confd_participant.uuid in participants_by_uuid:
                 participant = participants_by_uuid.pop(confd_participant.uuid)
             else:
-                participant = CallLogParticipant(
-                    user_uuid=confd_participant.uuid
-                )
+                participant = CallLogParticipant(user_uuid=confd_participant.uuid)
                 call_log.participants.append(participant)
 
             participant.line_id = confd_participant.line_id
