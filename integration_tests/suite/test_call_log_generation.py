@@ -1,5 +1,6 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+# flake8: noqa: W291
 
 from datetime import datetime
 from hamcrest import (
@@ -1799,7 +1800,7 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
 
     @raw_cels(
         # select linkedid, uniqueid, eventtime, eventtype, channame, cid_ani, cid_dnid, cid_name, cid_num, exten, extra from cel where call_log_id = 22 order by eventtime asc;
-        '''\
+        '''
 linkedid      | uniqueid      | eventtime                     | eventtype                 | channame                | cid_ani   | cid_dnid   | cid_name   | cid_num   | exten             | extra                                                                                                                                                                                                                       
 --------------+---------------+-------------------------------+---------------------------+-------------------------+-----------+------------+------------+-----------+-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 1674485777.43 | 1674485777.43 | 2023-01-23 14:56:17.689711+00 | CHAN_START                | PJSIP/rgcZLNGE-0000002b |           |            | test-UC-1  | 8000      | 98001             |                                                                                                                                                                                                                             
