@@ -28,7 +28,7 @@ from wazo_call_logd.database.models import (
 )
 
 from .constants import MASTER_TENANT, USER_1_UUID
-from typing import ContextManager
+
 
 logger = logging.getLogger(__name__)
 
