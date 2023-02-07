@@ -17,7 +17,9 @@ call-logd:
 	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..
 
 cel-db:
+	sed -i 's|wazoplatform/wazo-confd-db|wazoplatform/wazo-confd-db:bullseye|' $(CEL_POSTGRES_DOCKER)
 	docker build --no-cache -t wazoplatform/wazo-confd-db-test -f $(CEL_POSTGRES_DOCKER) $(MANAGE_DB_DIR)
+	sed -i 's|wazoplatform/wazo-confd-db:bullseye|wazoplatform/wazo-confd-db|' $(CEL_POSTGRES_DOCKER)
 
 db:
 	docker build -f ../contribs/docker/Dockerfile-db -t wazoplatform/wazo-call-logd-db ..
