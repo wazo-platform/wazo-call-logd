@@ -216,6 +216,15 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
                 userfield='Paris,France',
             ),
         )
+        self.confd.set_lines(
+            MockLine(
+                id=2,
+                name='cul113qn',
+                users=[{'uuid': destination_user_uuid}],
+                tenant_uuid=wazo_tenant_uuid,
+                extensions=[{'exten': '1800', 'context': 'mycontext'}],
+            ),
+        )
         self.confd.set_contexts(
             MockContext(id=1, name='mycontext', tenant_uuid=wazo_tenant_uuid)
         )
