@@ -284,7 +284,6 @@ class TestCallerCELInterpretor(TestCase):
             extension_filter=Mock(filter=lambda x: x),
             participants=[],
         )
-        assert hasattr(self.call, "participants")
 
     def test_interpret_cel_unknown_or_ignored_event(self):
         cel = Mock(eventtype='unknown_or_ignored_eventtype')

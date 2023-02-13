@@ -24,14 +24,11 @@ def get_tags(field: str | None) -> list[str]:
     return [tag.strip() for tag in field.split(',')] if field else []
 
 
-def find_participant_by_uuid(confd, user_uuid: str) -> ParticipantInfo | None:
+def find_participant_by_uuid(confd: ConfdClient, user_uuid: str) -> ParticipantInfo | None:
     try:
         user = confd.users.get(user_uuid)
-    except requests.exceptions.HTTPError:
-        logger.exception("Error retrieving user(user_uuid=%s) from confd", user_uuid)
-        return None
-
-    if not user:
+    except requests.exceptions.HTTPError as ex:
+        logger.error("Error retrieving user(user_uuid=%s) from confd: %s", user_uuid, str(ex))
         return None
 
     tags = get_tags(user['userfield'])
@@ -40,20 +37,19 @@ def find_participant_by_uuid(confd, user_uuid: str) -> ParticipantInfo | None:
         user['uuid'],
         user['tenant_uuid'],
     )
-    # NOTE(charles): this replicates the behavior of CallLogsGenerator._update_call_participants_with_their_tags
-    # of defaulting to first line of user, though this might be erroneous
+    # NOTE(charles): without authoritative information on the line actually used, the main line of the user is provided
     line = user['lines'] and user['lines'][0]
-    logger.debug("user(user_uuid=%s) has first line: %s", user_uuid, line)
-    main_extension = (
-        line
-        and ('extensions' in line or None)
-        and (line['extensions'] or None)
-        and line['extensions'][0]
-    )
+    
+    main_extension = None
+    if line:
+        logger.debug("user(user_uuid=%s) has first line: %s", user_uuid, line)
+        if line["extensions"]:
+            main_extension = line['extensions'][0]
+
     return ParticipantInfo(
         uuid=user['uuid'],
         tenant_uuid=user['tenant_uuid'],
-        line_id=line['id'],
+        line_id=line and line['id'],
         tags=tags,
         main_extension=main_extension,
     )
@@ -62,10 +58,8 @@ def find_participant_by_uuid(confd, user_uuid: str) -> ParticipantInfo | None:
 def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | None:
     """
     find and fetch participant information from confd,
-    using channel name or user_uuid as available
+    using the channel name
     """
-    line = None
-    main_extension = None
     try:
         protocol, line_name = protocol_interface_from_channel(channame)
     except InvalidChannelError:
@@ -93,6 +87,7 @@ def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | Non
     user_uuid = users[0]['uuid']
 
     extensions = line['extensions']
+    main_extension = None
     if extensions:
         main_extension = extensions[0]
 
@@ -104,8 +99,8 @@ def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | Non
 
     try:
         user = confd.users.get(user_uuid)
-    except requests.exceptions.HTTPError:
-        logger.exception("Error retrieving user(user_uuid=%s) from confd", user_uuid)
+    except requests.exceptions.HTTPError as ex:
+        logger.error("Error retrieving user(user_uuid=%s) from confd: %s", user_uuid, str(ex))
         return None
 
     tags = get_tags(user['userfield'])
@@ -118,7 +113,7 @@ def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | Non
     return ParticipantInfo(
         uuid=user['uuid'],
         tenant_uuid=user['tenant_uuid'],
-        line_id=line and line['id'],
+        line_id=line['id'],
         tags=tags,
         main_extension=main_extension,
     )

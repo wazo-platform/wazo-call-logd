@@ -93,11 +93,12 @@ class CallLogsGenerator:
         participants_by_uuid: dict[str, CallLogParticipant] = {
             str(participant.user_uuid): participant
             for participant in call_log.participants
+            if participant.user_uuid
         }
         for channel_name, raw_attributes in call_log.raw_participants.items():
             confd_participant = find_participant(confd, channel_name)
             if not confd_participant:
-                logger.info("No participant found for channel %s", channel_name)
+                logger.debug("No participant found for channel %s", channel_name)
                 continue
             raw_attributes.update(**confd_participant._asdict())
             if confd_participant.uuid in participants_by_uuid:
@@ -112,19 +113,18 @@ class CallLogsGenerator:
             if 'answered' in raw_attributes:
                 participant.answered = raw_attributes["answered"]
 
-        if participants_by_uuid:
-            # remaining participants identified by CEL interpretation but have no matching channel
-            for uuid, participant in participants_by_uuid.items():
-                confd_participant = find_participant_by_uuid(confd, uuid)
-                if not confd_participant:
-                    logger.info("No participant found for user_uuid %s", uuid)
-                    continue
-                participant.line_id = confd_participant.line_id
-                participant.tags = confd_participant.tags
-                if uuid == call_log.source_user_uuid:
-                    participant.role = 'source'
-                elif uuid == call_log.destination_user_uuid:
-                    participant.role = 'destination'
+        # remaining participants identified by CEL interpretation but have no matching channel
+        for uuid, participant in participants_by_uuid.items():
+            confd_participant = find_participant_by_uuid(confd, uuid)
+            if not confd_participant:
+                logger.debug("No participant found for user_uuid %s", uuid)
+                continue
+            participant.line_id = confd_participant.line_id
+            participant.tags = confd_participant.tags
+            if uuid == call_log.source_user_uuid:
+                participant.role = 'source'
+            elif uuid == call_log.destination_user_uuid:
+                participant.role = 'destination'
 
     def _ensure_tenant_uuid_is_set(self, call_log):
         tenant_uuids = {

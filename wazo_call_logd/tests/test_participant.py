@@ -11,6 +11,7 @@ from hamcrest import (
 )
 
 from ..participant import find_participant, find_participant_by_uuid
+from requests.exceptions import HTTPError
 
 
 def confd_mock(lines=None):
@@ -26,7 +27,13 @@ def confd_mock(lines=None):
         if lines and lines[0].get('users')
         else None
     )
-    confd.users.get.side_effect = users.get if users else lambda uuid: None
+    def confd_users_get(uuid):
+        if users and uuid in users:
+            return users[uuid]
+        else:
+            raise HTTPError(response=Mock(status_code=404, request=Mock()))
+
+    confd.users.get.side_effect = confd_users_get
     return confd
 
 
@@ -99,4 +106,16 @@ class TestFindParticipant(TestCase):
                 main_extension=None,
                 tags=['user_userfield', 'toto'],
             ),
+        )
+
+    def test_find_participant_from_user_uuid_when_not_found(self):
+        lines = [{'id': 12, 'users': [], 'extensions': []}]
+        user_uuid = "phantom-user-uuid"
+        confd = confd_mock(lines)
+
+        result = find_participant_by_uuid(confd, user_uuid=user_uuid)
+
+        assert_that(
+            result,
+            none(),
         )
