@@ -41,19 +41,20 @@ def find_participant_by_uuid(
         user['uuid'],
         user['tenant_uuid'],
     )
-    # NOTE(charles): without authoritative information on the line actually used, the main line of the user is provided
-    line = user['lines'] and user['lines'][0]
 
     main_extension = None
-    if line:
-        logger.debug("user(user_uuid=%s) has first line: %s", user_uuid, line)
-        if line["extensions"]:
-            main_extension = line['extensions'][0]
+    main_line_id = None
+    if user['lines']:
+        main_line = user['lines'][0]
+        main_line_id = main_line['id']
+        logger.debug("user(user_uuid=%s) has main line: %s", user_uuid, main_line)
+        if main_line["extensions"]:
+            main_extension = main_line['extensions'][0]
 
     return ParticipantInfo(
         uuid=user['uuid'],
         tenant_uuid=user['tenant_uuid'],
-        line_id=line and line['id'],
+        line_id=main_line_id,
         tags=tags,
         main_extension=main_extension,
     )
