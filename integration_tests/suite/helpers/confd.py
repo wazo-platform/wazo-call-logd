@@ -1,4 +1,4 @@
-# Copyright 2015-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -87,7 +87,10 @@ class MockUser:
         return {
             'uuid': self._uuid,
             'tenant_uuid': self._tenant_uuid,
-            'lines': [{'id': line_id, 'extensions': [], 'name': ''} for line_id in self._line_ids],
+            'lines': [
+                {'id': line_id, 'extensions': [], 'name': ''}
+                for line_id in self._line_ids
+            ],
             'mobile_phone_number': self._mobile,
             'userfield': self._userfield,
         }

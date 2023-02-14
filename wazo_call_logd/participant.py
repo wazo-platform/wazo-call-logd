@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -24,11 +24,15 @@ def get_tags(field: str | None) -> list[str]:
     return [tag.strip() for tag in field.split(',')] if field else []
 
 
-def find_participant_by_uuid(confd: ConfdClient, user_uuid: str) -> ParticipantInfo | None:
+def find_participant_by_uuid(
+    confd: ConfdClient, user_uuid: str
+) -> ParticipantInfo | None:
     try:
         user = confd.users.get(user_uuid)
     except requests.exceptions.HTTPError as ex:
-        logger.error("Error retrieving user(user_uuid=%s) from confd: %s", user_uuid, str(ex))
+        logger.error(
+            "Error retrieving user(user_uuid=%s) from confd: %s", user_uuid, str(ex)
+        )
         return None
 
     tags = get_tags(user['userfield'])
@@ -39,7 +43,7 @@ def find_participant_by_uuid(confd: ConfdClient, user_uuid: str) -> ParticipantI
     )
     # NOTE(charles): without authoritative information on the line actually used, the main line of the user is provided
     line = user['lines'] and user['lines'][0]
-    
+
     main_extension = None
     if line:
         logger.debug("user(user_uuid=%s) has first line: %s", user_uuid, line)
@@ -100,7 +104,9 @@ def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | Non
     try:
         user = confd.users.get(user_uuid)
     except requests.exceptions.HTTPError as ex:
-        logger.error("Error retrieving user(user_uuid=%s) from confd: %s", user_uuid, str(ex))
+        logger.error(
+            "Error retrieving user(user_uuid=%s) from confd: %s", user_uuid, str(ex)
+        )
         return None
 
     tags = get_tags(user['userfield'])

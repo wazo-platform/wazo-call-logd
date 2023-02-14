@@ -1885,4 +1885,3 @@ linkedid      | uniqueid      | eventtime                     | eventtype       
                 ),
             ),
         )
-

@@ -1,4 +1,4 @@
-# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -27,6 +27,7 @@ def confd_mock(lines=None):
         if lines and lines[0].get('users')
         else None
     )
+
     def confd_users_get(uuid):
         if users and uuid in users:
             return users[uuid]
