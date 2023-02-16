@@ -109,7 +109,7 @@ class CallLogsGenerator:
                 continue
             raw_attributes.update(**confd_participant._asdict())
             users[confd_participant.uuid] = confd_participant
-            
+
             participant = CallLogParticipant(user_uuid=confd_participant.uuid)
             participant.line_id = confd_participant.line_id
             participant.tags = confd_participant.tags
@@ -133,7 +133,8 @@ class CallLogsGenerator:
                 p for p in connected_participants if str(p.user_uuid) == user_uuid
             ]
             user_participants_info = [
-                p for p in call_log.participants_info 
+                p
+                for p in call_log.participants_info
                 if "user_uuid" in p and p["user_uuid"] == user_uuid
             ]
             logger.info("Identified user participant %s", user_uuid)
@@ -149,7 +150,7 @@ class CallLogsGenerator:
                     line_id=confd_participant.line_id,
                     tags=confd_participant.tags,
                     answered=False,
-                    role=user_participants_info[-1]["role"]
+                    role=user_participants_info[-1]["role"],
                 )
                 unreached_participants.append(participant)
             elif len(user_connected_participants) == len(user_participants_info):

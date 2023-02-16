@@ -65,7 +65,7 @@ CHAN_START   | 2019-08-28 15:29:21.159727 |          |         |         | ycetq
 CHAN_START   | 2019-08-28 15:29:21.154157 |          |         |         | ycetqvtr | wazo_wait_for_registration | Local/ycetqvtr@wazo_wait_for_registration-00000005;1 |          |                                                       | 1567020561.34 | 1567020560.33 |                                                      |
 APP_START    | 2019-08-28 15:29:21.145952 | Alice    | 1001    | 1001    | s        | user                       | PJSIP/qxqz31sq-00000017                              | Dial     | Local/ycetqvtr@wazo_wait_for_registration,30,         | 1567020560.33 | 1567020560.33 |                                                      |
 CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002     | inside                     | PJSIP/qxqz31sq-00000017                              |          |                                                       | 1567020560.33 | 1567020560.33 |                                                      |
-        '''
+        '''  # noqa: W291
     )
     def test_call_to_mobile_dial(self):
         self._assert_last_call_log_matches(
@@ -90,7 +90,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  HANGUP                     | 2022-07-05 15:10:23.918826    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |{"hangupcause":3,"hangupsource":"dialplan/builtin","dialstatus":""}
  CHAN_END                   | 2022-07-05 15:10:23.918826    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
  LINKEDID_END               | 2022-07-05 15:10:23.918826    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000007    | 1657048217.7     | 1657048217.7     |
-'''
+'''  # noqa: W291
     )
     def test_when_calling_unreachable_phone_then_destination_info_is_set_within_call_log(
         self,
@@ -199,7 +199,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  HANGUP                     | 2022-07-07 15:52:20.041784    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |{"hangupcause":19,"hangupsource":"dialplan/builtin","dialstatus":"NOANSWER"}
  CHAN_END                   | 2022-07-07 15:52:20.041784    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |
  LINKEDID_END               | 2022-07-07 15:52:20.041784    | Harry Potter      | 1603      | unreachable           | user          | PJSIP/cul113qn-00000009    | 1657223529.9     | 1657223529.9     |
-'''
+'''  # noqa: W291
     )
     def test_when_incall_and_unreachable_phone_then_call_log_contains_no_source_user_uuid(
         self,
@@ -290,7 +290,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  HANGUP                         | 2022-07-20 17:56:18.116943        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  | {"hangupcause":16,"hangupsource":"PJSIP/xfloi61j-0000000d","dialstatus":"ANSWER"}
  CHAN_END                       | 2022-07-20 17:56:18.116943        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  |
  LINKEDID_END                   | 2022-07-20 17:56:18.116943        | Harry Potter      | 1603      | 1603      | s         | user       | PJSIP/cul113qn-0000000c  | 1658354172.12  | 1658354172.12  |
-'''
+'''  # noqa: W291
     )
     def test_internal_call_has_destination_details_setup_correctly(self):
         user_uuid = 'c3f297bd-93e1-46f6-a309-79b320acb7fb'
@@ -336,7 +336,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  HANGUP                         | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000001","dialstatus":"ANSWER"}
  CHAN_END                       | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
  LINKEDID_END                   | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
-'''
+'''  # noqa: W291
     )
     def test_incoming_call_has_destination_details_setup_correctly(self):
         user_uuid = 'cb79f29b-f69a-4b93-85c2-49dcce119a9f'
@@ -376,7 +376,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  HANGUP                         | 2022-07-22 18:56:53.053578        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000001","dialstatus":""}
  CHAN_END                       | 2022-07-22 18:56:53.053578        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      |
  LINKEDID_END                   | 2022-07-22 18:56:53.053578        | Harry Potter          | 1603          | 1603      | participant   | wazo-meeting  | PJSIP/cul113qn-00000001   | 1658530580.3  | 1658530580.3      |
-'''
+'''  # noqa: W291
     )
     def test_meeting_has_destination_details_setup_correctly(self):
         meeting_uuid = '9195757f-c381-4f38-b684-98fef848f48b'
@@ -414,7 +414,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  HANGUP                         | 2022-07-22 19:18:53.54901         | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000004","dialstatus":""}
  CHAN_END                       | 2022-07-22 19:18:53.54901         | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     |
  LINKEDID_END                   | 2022-07-22 19:18:53.54901         | Harry Potter          | 1603          | 1603      | s             | conference    | PJSIP/cul113qn-00000004   | 1658531927.10 | 1658531927.10     |
-'''
+'''  # noqa: W291
     )
     def test_conference_has_destination_details_setup_correctly(self):
         conference_id = '1'
@@ -453,7 +453,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
  HANGUP       | 2017-11-10 10:07:13.761307 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302   |
  CHAN_END     | 2017-11-10 10:07:13.762793 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302   |
  LINKEDID_END | 2017-11-10 10:07:13.764775 | SIP/dev_37_0-0000001a | 1510326428.26 | 1510326428.26 |          | 42302   |
-'''
+'''  # noqa: W291
     )
     def test_incoming_call_no_cid_name_rewritten_cid_num(self):
         self._assert_last_call_log_matches(
@@ -483,7 +483,7 @@ BRIDGE_EXIT  | 2015-06-18 14:09:02.268    | SIP/as2mkq-0000001f | 1434650936.31 
 HANGUP       | 2015-06-18 14:09:02.269498 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 CHAN_END     | 2015-06-18 14:09:02.271033 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
-'''
+'''  # noqa: W291
     )
     def test_given_cels_with_unknown_line_identities_when_generate_call_log_then_no_user_uuid(
         self,
@@ -544,7 +544,7 @@ BRIDGE_EXIT  | 2015-06-18 14:09:02.268    | SIP/as2mkq-0000001f | 1434650936.31 
 HANGUP       | 2015-06-18 14:09:02.269498 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 CHAN_END     | 2015-06-18 14:09:02.271033 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
 LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 | 123456789.1011
-'''
+'''  # noqa: W291
     )
     def test_given_cels_with_known_line_identities_when_generate_call_log_then_call_log_have_user_uuid_and_internal_extension(
         self,
@@ -668,7 +668,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2018-04-24 14:27:27.226649 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
  CHAN_END      | 2018-04-24 14:27:27.250875 | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
  LINKEDID_END  | 2018-04-24 14:27:27.25419  | Alicé    | 101     | s                 | user        | SCCP/101-00000005   | 1524594437.7 | 1524594437.7 |
-'''
+'''  # noqa: W291
     )
     def test_given_cels_of_forwarded_call_when_generate_call_log_then_requested_different_from_destination(
         self,
@@ -733,7 +733,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2018-04-24 15:15:53.812298 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
  CHAN_END      | 2018-04-24 15:15:53.819273 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
  LINKEDID_END  | 2018-04-24 15:15:53.830883 | John Rambo   | 42309   | s      | user        | SIP/dev_32-00000003 | 1524597350.9  | 1524597350.9
- '''
+ '''  # noqa: W291
     )
     def test_given_incoming_call_when_generate_call_log_then_requested_internal_extension_is_set(
         self,
@@ -804,8 +804,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2019-08-02 14:20:12.322631 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
  CHAN_END      | 2019-08-02 14:20:12.327546 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
  LINKEDID_END  | 2019-08-02 14:20:12.329958 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
-
-'''
+'''  # noqa: W291
     )
     def test_originate_from_mobile(self):
         self._assert_last_call_log_matches(
@@ -836,7 +835,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:09:02.269498 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
  CHAN_END     | 2015-06-18 14:09:02.271033 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
  LINKEDID_END | 2015-06-18 14:09:02.272325 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000001f | 1434650936.31 | 1434650936.31 |
-    '''
+    '''  # noqa: W291
     )
     def test_answered_internal(self):
         self._assert_last_call_log_matches(
@@ -869,7 +868,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:10:28.289431 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
  CHAN_END     | 2015-06-18 14:10:28.290746 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
  LINKEDID_END | 2015-06-18 14:10:28.292243 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-00000021 | 1434651024.33 | 1434651024.33 |
-    '''
+    '''  # noqa: W291
     )
     def test_internal_no_answer(self):
         self._assert_last_call_log_matches(
@@ -909,7 +908,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2018-02-02 15:00:30.481403 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
  CHAN_END      | 2018-02-02 15:00:30.484065 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
  LINKEDID_END  | 2018-02-02 15:00:30.486225 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000007   | 1517601625.17 | 1517601625.17 |
-    '''
+    '''  # noqa: W291
     )
     def test_internal_unconditional_forwarded_answered_call(self):
         self._assert_last_call_log_matches(
@@ -954,7 +953,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2018-02-06 13:33:37.410228 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
  CHAN_END      | 2018-02-06 13:33:37.412453 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
  LINKEDID_END  | 2018-02-06 13:33:37.414762 | Charlie -> Alice |     101 | s                 | user        | SCCP/101-00000002   | 1517942011.16 | 1517942011.16 |
-    '''
+    '''  # noqa: W291
     )
     def test_internal_busy_fwd_answered_call(self):
         self._assert_last_call_log_matches(
@@ -992,7 +991,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2013-01-01 11:02:45.3 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
  CHAN_END     | 2013-01-01 11:02:45.4 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
  LINKEDID_END | 2013-01-01 11:02:45.5 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
-    '''
+    '''  # noqa: W291
     )
     def test_answered_incoming_call(self):
         self._assert_last_call_log_matches(
@@ -1029,7 +1028,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2020-04-06 14:44:17.0 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
  CHAN_END      | 2020-04-06 14:44:17.1 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
  LINKEDID_END  | 2020-04-06 14:44:17.2 | fb          | 0123456789 | unreachable       | user        | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
-    '''
+    '''  # noqa: W291
     )
     def test_not_answered_incoming_call_with_unconditional_forward(self):
         self._assert_last_call_log_matches(
@@ -1069,7 +1068,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2013-01-01 11:02:45.3 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
  CHAN_END     | 2013-01-01 11:02:45.4 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
  LINKEDID_END | 2013-01-01 11:02:45.5 |            | 0612345678 | s     | user        | SIP/trunk-00000028  | 1376060558.17 | 1376060558.17
-    '''
+    '''  # noqa: W291
     )
     def test_answered_incoming_call_on_s(self):
         self._assert_last_call_log_matches(
@@ -1109,7 +1108,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:12:16.865316 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
  CHAN_END     | 2015-06-18 14:12:16.866615 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
  LINKEDID_END | 2015-06-18 14:12:16.867848 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000026 | 1434651126.38 | 1434651125.37 |
-    '''
+    '''  # noqa: W291
     )
     def test_answered_outgoing_call(self):
         self._assert_last_call_log_matches(
@@ -1151,7 +1150,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP           | 2021-07-19 11:13:07.00682-04  | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
  CHAN_END         | 2021-07-19 11:13:07.00682-04  | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
  LINKEDID_END     | 2021-07-19 11:13:07.00682-04  | O Romanov    | 5550001234 | dial       | outcall     | PJSIP/ru3fqt3x-00000007                                                | 1626707574.7 | 1626707574.7
-        '''
+        '''  # noqa: W291
     )
     def test_answered_outgoing_call_with_custom_caller_id(self):
         self._assert_last_call_log_matches(
@@ -1183,7 +1182,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:13:24.149943 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
  CHAN_END     | 2015-06-18 14:13:24.151296 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
  LINKEDID_END | 2015-06-18 14:13:24.152458 |          | **9642301 |           | from-extern | SIP/dev_34-1-00000028 | 1434651198.40 | 1434651198.39 |
-    '''
+    '''  # noqa: W291
     )
     def test_answered_outgoing_call_with_userfield(self):
         self._assert_last_call_log_matches(
@@ -1220,7 +1219,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2013-12-04 14:21:06.9 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
  CHAN_END     | 2013-12-04 14:21:07.1 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
  LINKEDID_END | 2013-12-04 14:21:07.2 | Neelix Talaxian  | 1066    | s     | user    | SIP/2dvtpb-00000009 | 1386184858.9  | 1386184858.9
-    '''
+    '''  # noqa: W291
     )
     def test_uniqueids_that_do_not_have_the_same_sort_order_chonologically_and_alphabetically(
         self,
@@ -1261,7 +1260,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:15:19.211393 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
  CHAN_END     | 2015-06-18 14:15:19.212596 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
  LINKEDID_END | 2015-06-18 14:15:19.213763 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002b | 1434651312.43 | 1434651312.43
-    '''
+    '''  # noqa: W291
     )
     def test_answered_originate(self):
         self._assert_last_call_log_matches(
@@ -1295,7 +1294,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2015-06-18 14:15:54.951351 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
  CHAN_END     | 2015-06-18 14:15:54.952707 | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
  LINKEDID_END | 2015-06-18 14:15:54.9539   | Elès 45  | 1045    | s     | user    | SIP/as2mkq-0000002d | 1434651348.45 | 1434651348.45
-    '''
+    '''  # noqa: W291
     )
     def test_unanswered_originate(self):
         self._assert_last_call_log_matches(
@@ -1329,7 +1328,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2014-02-20 09:29:00.308165 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
  CHAN_END     | 2014-02-20 09:29:00.309786 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
  LINKEDID_END | 2014-02-20 09:29:00.309806 | Carlos   |    1003 | endcall:hangupsilent | forward | SIP/d49t0y-00000003 | 1392906526.4 | 1392906526.4
-    '''
+    '''  # noqa: W291
     )
     def test_originate_hung_up_by_switchboard(self):
         self._assert_last_call_log_matches(
@@ -1363,7 +1362,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP       | 2020-05-04 12:21:50.3 | User 01  | 1001      | dial      | outcall     | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
  CHAN_END     | 2020-05-04 12:21:50.4 | User 01  | 1001      | dial      | outcall     | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
  LINKEDID_END | 2020-05-04 12:21:50.5 | User 01  | 1001      | dial      | outcall     | PJSIP/d6jtulhp-00000002 | 1588609307.2 | 1588609307.2
-    '''
+    '''  # noqa: W291
     )
     def test_unanswered_outcall(self):
         self._assert_last_call_log_matches(
@@ -1424,8 +1423,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  CHAN_END     | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
  HANGUP       | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
  LINKEDID_END | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
-
-'''
+'''  # noqa: W291
     )
     def test_given_group_call_then_destination_user_uuid_should_be_answered_callee(
         self,
@@ -1486,7 +1484,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  CHAN_END     | 2021-02-10 15:39:15.641666+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
  HANGUP       | 2021-02-10 15:39:15.641666+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
  LINKEDID_END | 2021-02-10 15:39:15.641666+00 | PJSIP/svlhxtj3-00000033 | 1612971551.59 | 1612971551.59
- '''
+ '''  # noqa: W291
     )
     def test_given_queue_call_then_destination_user_uuid_should_be_answered_callee(
         self,
@@ -1569,7 +1567,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  CHAN_END     | 2021-03-10 15:53:10.29859-05  | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
  HANGUP       | 2021-03-10 15:53:10.29859-05  | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
  LINKEDID_END | 2021-03-10 15:53:10.29859-05  | PJSIP/mvkph8he-00000026      | 1615409586.212 | 1615409566.206
-    '''
+    '''  # noqa: W291
     )
     def test_group_call_has_no_duplicate_participant(self):
         self.confd.set_users(
@@ -1618,7 +1616,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP            | 2021-09-20 19:54:39.075497+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 | {"hangupcause":16,"hangupsource":"PJSIP/9lh0igq4-00000b11","dialstatus":""}
  CHAN_END          | 2021-09-20 19:54:39.075497+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 |
  LINKEDID_END      | 2021-09-20 19:54:39.075497+00 | participant                                       | Shevek | 8032    | PJSIP/9lh0igq4-00000b11 | 1632167674.4076 | 1632167674.4076 |
-'''
+'''  # noqa: W291
     )
     def test_meeting_call_has_no_weird_exten(self):
         self._assert_last_call_log_matches(
@@ -1641,7 +1639,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP          | 2021-11-17 11:10:38.615574-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 |                 |                                            | 1637165430.0 | 1637165430.0 | {"hangupcause":16,"hangupsource":"PJSIP/ycetqvtr-00000000","dialstatus":""}
  CHAN_END        | 2021-11-17 11:10:38.615574-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 |                 |                                            | 1637165430.0 | 1637165430.0 |
  LINKEDID_END    | 2021-11-17 11:10:38.615574-05 | Alice WebRTC | 1101    | 4001     | s      | conference  | PJSIP/ycetqvtr-00000000 |                 |                                            | 1637165430.0 | 1637165430.0 |
-'''
+'''  # noqa: W291
     )
     def test_conference_has_a_destination_name(self):
         self._assert_last_call_log_matches(
@@ -1675,7 +1673,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP           | 2021-10-06 13:55:58.718839-04 | fb user2  | 1802    | 1802    | adhoc_conference | convert_to_stasis | PJSIP/auc6927d-00000013 | AppDial    | (Outgoing Line)                                                                                                       | 1633542906.31 | 1633542834.28 |                                                 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
  CHAN_END         | 2021-10-06 13:55:58.718839-04 | fb user2  | 1802    | 1802    | adhoc_conference | convert_to_stasis | PJSIP/auc6927d-00000013 | AppDial    | (Outgoing Line)                                                                                                       | 1633542906.31 | 1633542834.28 |                                                 |
  LINKEDID_END     | 2021-10-06 13:55:58.718839-04 | fb user2  | 1802    | 1802    | adhoc_conference | convert_to_stasis | PJSIP/auc6927d-00000013 | AppDial    | (Outgoing Line)                                                                                                       | 1633542906.31 | 1633542834.28 |                                                 |
-'''
+'''  # noqa: W291
     )
     def test_adhoc_conference(self):
         self.confd.set_users(
@@ -1754,8 +1752,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         1674248467.40 | 1674248473.42 | 2023-01-20 00:00:16.0+00 | CHAN_END                  | PJSIP/rNXlGVeY-0000002a | 8002      |            | B McTest   | 8002      |                                                                                                                                                                                                                             
         1674248467.40 | 1674248467.40 | 2023-01-20 00:00:17.0+00 | HANGUP                    | PJSIP/rgcZLNGE-00000028 | 8000      | 98001      | test-UC-1  | 8000      | {"hangupcause":16,"hangupsource":"dialplan/builtin","dialstatus":"NOANSWER"}                                                                                                                                                
         1674248467.40 | 1674248467.40 | 2023-01-20 00:00:18.0+00 | CHAN_END                  | PJSIP/rgcZLNGE-00000028 | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
-1674248467.40 | 1674248467.40 | 2023-01-20 00:00:19.0+00 | LINKEDID_END              | PJSIP/rgcZLNGE-00000028 | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
-        '''
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:19.0+00 | LINKEDID_END              | PJSIP/rgcZLNGE-00000028 | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
+        '''  # noqa: W291
     )
     def test_user_missed_call_fallback_missed(self):
         # user A missed, fallback to user B, missed too.
@@ -1807,33 +1805,33 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         )
 
     @raw_cels(
-        '''
-linkedid      | uniqueid      | eventtime                | eventtype                 | channame                | cid_ani   | cid_dnid   | cid_name   | cid_num   | extra                                                                                                                                                                                                                       
---------------+---------------+--------------------------+---------------------------+-------------------------+-----------+------------+------------+-----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:00.0+00 | CHAN_START                | PJSIP/rgcZLNGE-0000002b |           |            | test-UC-1  | 8000      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:01.0+00 | XIVO_INCALL               | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}                                                                                                                                                                            
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:02.0+00 | WAZO_CALL_LOG_DESTINATION | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"type: user,uuid: ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,name: A Mctest"}                                                                                                                                            
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:03.0+00 | APP_START                 | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485778.44 | 2023-01-23 00:00:04.0+00 | CHAN_START                | PJSIP/9EYlfTvB-0000002c |           |            | A Mctest   | 8001      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:05.0+00 | XIVO_USER_FWD             | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"NUM:8001,CONTEXT:default-key-4wfgx-internal,NAME:A Mctest"}                                                                                                                                                       
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:06.0+00 | WAZO_USER_MISSED_CALL     | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"wazo_tenant_uuid: 54eb71f8-1f4b-4ae4-8730-638062fbe521,source_user_uuid: ,destination_user_uuid: ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,destination_exten: 8001,source_name: test-UC-1,destination_name: A Mctest"} 
-1674485777.43 | 1674485778.44 | 2023-01-23 00:00:07.0+00 | CHAN_END                  | PJSIP/9EYlfTvB-0000002c | 8001      |            | A Mctest   | 8001      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485778.44 | 2023-01-23 00:00:08.0+00 | HANGUP                    | PJSIP/9EYlfTvB-0000002c | 8001      |            | A Mctest   | 8001      | {"hangupcause":0,"hangupsource":"","dialstatus":""}                                                                                                                                                                         
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:09.0+00 | WAZO_CALL_LOG_DESTINATION | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"type: user,uuid: 31be0853-dde6-48cd-986d-85bc708754a1,name: B McTest"}                                                                                                                                            
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:10.0+00 | APP_START                 | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485783.45 | 2023-01-23 00:00:11.0+00 | CHAN_START                | PJSIP/rNXlGVeY-0000002d |           |            | B McTest   | 8002      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485783.45 | 2023-01-23 00:00:12.0+00 | ANSWER                    | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:13.0+00 | ANSWER                    | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485783.45 | 2023-01-23 00:00:14.0+00 | BRIDGE_ENTER              | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}                                                                                                                                    
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:15.0+00 | BRIDGE_ENTER              | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}                                                                                                                                    
-1674485777.43 | 1674485783.45 | 2023-01-23 00:00:16.0+00 | BRIDGE_EXIT               | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}                                                                                                                                    
-1674485777.43 | 1674485783.45 | 2023-01-23 00:00:17.0+00 | HANGUP                    | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      | {"hangupcause":16,"hangupsource":"PJSIP/rNXlGVeY-0000002d","dialstatus":""}                                                                                                                                                 
-1674485777.43 | 1674485783.45 | 2023-01-23 00:00:18.0+00 | CHAN_END                  | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:19.0+00 | BRIDGE_EXIT               | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}                                                                                                                                    
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:20.0+00 | CHAN_END                  | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:21.0+00 | HANGUP                    | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"hangupcause":16,"hangupsource":"PJSIP/rNXlGVeY-0000002d","dialstatus":"ANSWER"}                                                                                                                                           
-1674485777.43 | 1674485777.43 | 2023-01-23 00:00:22.0+00 | LINKEDID_END              | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
-        '''
+        '''\
+        linkedid      | uniqueid      | eventtime                | eventtype                 | channame                | cid_ani   | cid_dnid   | cid_name   | cid_num   | extra                                                                                                                                                                                                                       
+        --------------+---------------+--------------------------+---------------------------+-------------------------+-----------+------------+------------+-----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:00.0+00 | CHAN_START                | PJSIP/rgcZLNGE-0000002b |           |            | test-UC-1  | 8000      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:01.0+00 | XIVO_INCALL               | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}                                                                                                                                                                            
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:02.0+00 | WAZO_CALL_LOG_DESTINATION | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"type: user,uuid: ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,name: A Mctest"}                                                                                                                                            
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:03.0+00 | APP_START                 | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485778.44 | 2023-01-23 00:00:04.0+00 | CHAN_START                | PJSIP/9EYlfTvB-0000002c |           |            | A Mctest   | 8001      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:05.0+00 | XIVO_USER_FWD             | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"NUM:8001,CONTEXT:default-key-4wfgx-internal,NAME:A Mctest"}                                                                                                                                                       
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:06.0+00 | WAZO_USER_MISSED_CALL     | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"wazo_tenant_uuid: 54eb71f8-1f4b-4ae4-8730-638062fbe521,source_user_uuid: ,destination_user_uuid: ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,destination_exten: 8001,source_name: test-UC-1,destination_name: A Mctest"} 
+        1674485777.43 | 1674485778.44 | 2023-01-23 00:00:07.0+00 | CHAN_END                  | PJSIP/9EYlfTvB-0000002c | 8001      |            | A Mctest   | 8001      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485778.44 | 2023-01-23 00:00:08.0+00 | HANGUP                    | PJSIP/9EYlfTvB-0000002c | 8001      |            | A Mctest   | 8001      | {"hangupcause":0,"hangupsource":"","dialstatus":""}                                                                                                                                                                         
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:09.0+00 | WAZO_CALL_LOG_DESTINATION | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"extra":"type: user,uuid: 31be0853-dde6-48cd-986d-85bc708754a1,name: B McTest"}                                                                                                                                            
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:10.0+00 | APP_START                 | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:11.0+00 | CHAN_START                | PJSIP/rNXlGVeY-0000002d |           |            | B McTest   | 8002      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:12.0+00 | ANSWER                    | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:13.0+00 | ANSWER                    | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:14.0+00 | BRIDGE_ENTER              | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}                                                                                                                                    
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:15.0+00 | BRIDGE_ENTER              | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}                                                                                                                                    
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:16.0+00 | BRIDGE_EXIT               | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}                                                                                                                                    
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:17.0+00 | HANGUP                    | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      | {"hangupcause":16,"hangupsource":"PJSIP/rNXlGVeY-0000002d","dialstatus":""}                                                                                                                                                 
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:18.0+00 | CHAN_END                  | PJSIP/rNXlGVeY-0000002d | 8002      |            | B McTest   | 8002      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:19.0+00 | BRIDGE_EXIT               | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}                                                                                                                                    
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:20.0+00 | CHAN_END                  | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:21.0+00 | HANGUP                    | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      | {"hangupcause":16,"hangupsource":"PJSIP/rNXlGVeY-0000002d","dialstatus":"ANSWER"}                                                                                                                                           
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:22.0+00 | LINKEDID_END              | PJSIP/rgcZLNGE-0000002b | 8000      | 98001      | test-UC-1  | 8000      |                                                                                                                                                                                                                             
+        '''  # noqa: W291
     )
     def test_user_missed_call_fallback_answered(self):
         # user A missed, fallback to user B, answered.

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import logging
 import requests.exceptions
-from xivo.asterisk.protocol_interface import protocol_interface_from_channel
-from xivo.asterisk.protocol_interface import InvalidChannelError
+from xivo.asterisk.protocol_interface import (
+    protocol_interface_from_channel,
+    InvalidChannelError,
+)
 from wazo_confd_client import Client as ConfdClient
 from typing import NamedTuple
 
@@ -45,6 +47,7 @@ def find_participant_by_uuid(
     main_extension = None
     main_line_id = None
     if user['lines']:
+        # NOTE(charles): without authoritative information on the line actually used, the main line of the user is provided
         main_line = user['lines'][0]
         main_line_id = main_line['id']
         logger.debug("user(user_uuid=%s) has main line: %s", user_uuid, main_line)

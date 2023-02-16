@@ -1,12 +1,9 @@
 # Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 from unittest import TestCase
 from unittest.mock import ANY, Mock, patch, create_autospec
-
-from wazo_call_logd.raw_call_log import RawCallLog
-from wazo_call_logd.generator import CallLogsGenerator
-from wazo_call_logd.exceptions import InvalidCallLogException
 
 from hamcrest import (
     all_of,
@@ -17,17 +14,21 @@ from hamcrest import (
     equal_to,
     has_property,
     is_,
-    raises
+    raises,
 )
+from wazo_call_logd.raw_call_log import RawCallLog
+from wazo_call_logd.generator import CallLogsGenerator
+from wazo_call_logd.exceptions import InvalidCallLogException
 
 
 def mock_call():
     return create_autospec(
-        RawCallLog, instance=True, 
-        raw_participants={}, 
-        recordings=[], 
+        RawCallLog,
+        instance=True,
+        raw_participants={},
+        recordings=[],
         participants=[],
-        participants_info=[]
+        participants_info=[],
     )
 
 

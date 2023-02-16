@@ -12,7 +12,7 @@ import urllib.parse
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import CallLogParticipant, Destination, Recording
+from .database.models import Destination, Recording
 from .raw_call_log import RawCallLog
 from xivo_dao.alchemy.cel import CEL
 
@@ -308,17 +308,19 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 user_uuid=source_user_uuid,
                 answered=False,
                 name=source_name,
-                role="source"
+                role="source",
             )
             # Check for previously registered information on the same user
-            participant_info = find(reversed(call.participants_info), 
-                lambda p: p.get("user_uuid") == source_user_uuid and p.get("role") == "source"
+            participant_info = find(
+                reversed(call.participants_info),
+                lambda p: p.get("user_uuid") == source_user_uuid
+                and p.get("role") == "source",
             )
             if participant_info:
                 participant_info.update(info)
             else:
                 call.participants_info.append(info)
-            
+
             logger.debug(
                 "identified source participant info(user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event",
                 source_user_uuid,
@@ -330,11 +332,13 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 user_uuid=destination_user_uuid,
                 answered=False,
                 name=destination_name,
-                role="destination"
+                role="destination",
             )
-            if call.participants_info \
-                and "user_uuid" in call.participants_info[-1] \
-                and call.participants_info[-1]["user_uuid"] == destination_user_uuid:
+            if (
+                call.participants_info
+                and "user_uuid" in call.participants_info[-1]
+                and call.participants_info[-1]["user_uuid"] == destination_user_uuid
+            ):
                 # last destination participant registered is the same user, e.g. from WAZO_CALL_LOG_DESTINATION
                 call.participants_info[-1].update(info)
             else:
@@ -382,9 +386,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'user_name': extra_dict['name'],
             }
             participant_info = dict(
-                user_uuid=destination_details['user_uuid'], 
+                user_uuid=destination_details['user_uuid'],
                 role='destination',
-                name=destination_details['user_name']
+                name=destination_details['user_name'],
             )
             call.participants_info.append(participant_info)
 
