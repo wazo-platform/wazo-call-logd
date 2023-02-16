@@ -283,6 +283,7 @@ class TestCallerCELInterpretor(TestCase):
             interpret_caller_xivo_user_fwd=True,
             extension_filter=Mock(filter=lambda x: x),
             participants=[],
+            participants_info=[]
         )
 
     def test_interpret_cel_unknown_or_ignored_event(self):

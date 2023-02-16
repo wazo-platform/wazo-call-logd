@@ -47,6 +47,7 @@ class RawCallLog:
         self.source_line_identity: str = None  # type: ignore[assignment]
         self.direction: Literal['source', 'destination', 'internal'] = 'internal'
         self.raw_participants: dict[str, dict] = defaultdict(dict)
+        self.participants_info: list[dict] = []
         self.participants: list[CallLogParticipant] = []
         self.participants_by_channame: dict[str, CallLogParticipant] = {}
         self.recordings: list = []

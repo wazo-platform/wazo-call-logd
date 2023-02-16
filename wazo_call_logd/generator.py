@@ -6,12 +6,13 @@ import logging
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
+
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd import raw_call_log
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from wazo_confd_client import Client as ConfdClient
 
-from .participant import find_participant, find_participant_by_uuid
+from .participant import find_participant, find_participant_by_uuid, ParticipantInfo
 from .database.models import CallLogParticipant
 
 
@@ -90,41 +91,80 @@ class CallLogsGenerator:
                 call_log.raw_participants.pop(duplicate_channel_name, None)
 
     def _fetch_participants(self, confd, call_log: raw_call_log.RawCallLog):
-        participants_by_uuid: dict[str, CallLogParticipant] = {
-            str(participant.user_uuid): participant
-            for participant in call_log.participants
-            if participant.user_uuid
-        }
+        users: dict[str, ParticipantInfo] = {}
+
+        def get_user(user_uuid):
+            confd_participant = users.get(user_uuid)
+            if not confd_participant:
+                users[user_uuid] = confd_participant = find_participant_by_uuid(
+                    self.confd, user_uuid
+                )
+            return confd_participant
+
+        connected_participants = []
         for channel_name, raw_attributes in call_log.raw_participants.items():
             confd_participant = find_participant(confd, channel_name)
             if not confd_participant:
                 logger.debug("No participant found for channel %s", channel_name)
                 continue
             raw_attributes.update(**confd_participant._asdict())
-            if confd_participant.uuid in participants_by_uuid:
-                participant = participants_by_uuid.pop(confd_participant.uuid)
-            else:
-                participant = CallLogParticipant(user_uuid=confd_participant.uuid)
-                call_log.participants.append(participant)
-
+            users[confd_participant.uuid] = confd_participant
+            
+            participant = CallLogParticipant(user_uuid=confd_participant.uuid)
             participant.line_id = confd_participant.line_id
             participant.tags = confd_participant.tags
             participant.role = raw_attributes['role']
             if 'answered' in raw_attributes:
                 participant.answered = raw_attributes["answered"]
+            connected_participants.append(participant)
 
-        # remaining participants identified by CEL interpretation but have no matching channel
-        for uuid, participant in participants_by_uuid.items():
-            confd_participant = find_participant_by_uuid(confd, uuid)
-            if not confd_participant:
-                logger.debug("No participant found for user_uuid %s", uuid)
-                continue
-            participant.line_id = confd_participant.line_id
-            participant.tags = confd_participant.tags
-            if uuid == call_log.source_user_uuid:
-                participant.role = 'source'
-            elif uuid == call_log.destination_user_uuid:
-                participant.role = 'destination'
+        # participant information from CEL interpretation can augment participants extracted from channels
+        # and fill in unreachable participants with no corresponding channel
+        unreached_participants = []
+        users_from_cel = (
+            str(participant_info["user_uuid"])
+            for participant_info in call_log.participants_info
+            if "user_uuid" in participant_info
+        )
+        users_from_channels = (str(p.user_uuid) for p in connected_participants)
+        user_uuids = set(users_from_cel).union(users_from_channels)
+        for user_uuid in user_uuids:
+            user_connected_participants = [
+                p for p in connected_participants if str(p.user_uuid) == user_uuid
+            ]
+            user_participants_info = [
+                p for p in call_log.participants_info 
+                if "user_uuid" in p and p["user_uuid"] == user_uuid
+            ]
+            logger.info("Identified user participant %s", user_uuid)
+
+            if not user_connected_participants:
+                # case of unreachable users with no matching channels
+                confd_participant = get_user(user_uuid)
+                if not confd_participant:
+                    logger.debug("No user found for user_uuid %s", user_uuid)
+                    continue
+                participant = CallLogParticipant(
+                    user_uuid=confd_participant.uuid,
+                    line_id=confd_participant.line_id,
+                    tags=confd_participant.tags,
+                    answered=False,
+                    role=user_participants_info[-1]["role"]
+                )
+                unreached_participants.append(participant)
+            elif len(user_connected_participants) == len(user_participants_info):
+                # simple cases where user mentions from CELs correspond one-to-one to opened channels
+                for participant_info, participant in zip(
+                    user_participants_info, user_connected_participants
+                ):
+                    if "answered" in participant_info and participant.answered is None:
+                        participant.answered = participant_info["answered"]
+            else:
+                # tricky cases where cel-based user mentions do not correspond one-to-one with opened channels
+                # such as the same user being sometimes unreachable and sometimes reachable in the same call
+                logger.debug("Uncorrelated participants info for user %s", user_uuid)
+
+        call_log.participants = connected_participants + unreached_participants
 
     def _ensure_tenant_uuid_is_set(self, call_log):
         tenant_uuids = {

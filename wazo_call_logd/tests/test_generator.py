@@ -2,20 +2,33 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
-from unittest.mock import ANY, Mock, patch
+from unittest.mock import ANY, Mock, patch, create_autospec
 
-from hamcrest import all_of
-from hamcrest import assert_that
-from hamcrest import calling
-from hamcrest import contains_exactly
-from hamcrest import contains_inanyorder
-from hamcrest import equal_to
-from hamcrest import has_property
-from hamcrest import is_
-from hamcrest import raises
-
+from wazo_call_logd.raw_call_log import RawCallLog
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.exceptions import InvalidCallLogException
+
+from hamcrest import (
+    all_of,
+    assert_that,
+    calling,
+    contains_exactly,
+    contains_inanyorder,
+    equal_to,
+    has_property,
+    is_,
+    raises
+)
+
+
+def mock_call():
+    return create_autospec(
+        RawCallLog, instance=True, 
+        raw_participants={}, 
+        recordings=[], 
+        participants=[],
+        participants_info=[]
+    )
 
 
 class TestCallLogsGenerator(TestCase):
@@ -53,7 +66,7 @@ class TestCallLogsGenerator(TestCase):
     def test_call_logs_from_cel_one_call(self, raw_call_log_constructor):
         linkedid = '9328742934'
         cels = self._generate_cel_for_call([linkedid])
-        call = Mock(raw_participants={}, recordings=[], participants=[])
+        call = mock_call()
         self.interpretor.interpret_cels.return_value = call
         raw_call_log_constructor.return_value = call
         expected_call = call.to_call_log.return_value
@@ -68,8 +81,8 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1 = Mock(raw_participants={}, recordings=[], participants=[])
-        call_2 = Mock(raw_participants={}, recordings=[], participants=[])
+        call_1 = mock_call()
+        call_2 = mock_call()
         self.interpretor.interpret_cels.side_effect = [call_1, call_2]
         raw_call_log_constructor.side_effect = [call_1, call_2]
         expected_call_1 = call_1.to_call_log.return_value
@@ -88,8 +101,8 @@ class TestCallLogsGenerator(TestCase):
         cels_1 = self._generate_cel_for_call('9328742934')
         cels_2 = self._generate_cel_for_call('2707230959')
         cels = cels_1 + cels_2
-        call_1 = Mock(raw_participants={}, recordings=[], participants=[])
-        call_2 = Mock(raw_participants={}, recordings=[], participants=[])
+        call_1 = mock_call()
+        call_2 = mock_call()
         self.interpretor.interpret_cels.side_effect = [call_1, call_2]
         raw_call_log_constructor.side_effect = [call_1, call_2]
         expected_call_1 = call_1.to_call_log.return_value
@@ -117,12 +130,8 @@ class TestCallLogsGenerator(TestCase):
         interpretor_true_1.can_interpret.return_value = True
         interpretor_true_2.can_interpret.return_value = True
         interpretor_false.can_interpret.return_value = False
-        interpretor_true_1.interpret_cels.return_value = Mock(
-            raw_participants={}, recordings=[], participants=[]
-        )
-        interpretor_true_2.interpret_cels.return_value = Mock(
-            raw_participants={}, recordings=[], participants=[]
-        )
+        interpretor_true_1.interpret_cels.return_value = mock_call()
+        interpretor_true_2.interpret_cels.return_value = mock_call()
         generator = CallLogsGenerator(
             self.confd_client,
             [
