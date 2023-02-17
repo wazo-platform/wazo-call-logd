@@ -8,7 +8,7 @@ from itertools import groupby
 from operator import attrgetter
 
 from wazo_call_logd.exceptions import InvalidCallLogException
-from wazo_call_logd import raw_call_log
+from wazo_call_logd.raw_call_log import RawCallLog
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from wazo_confd_client import Client as ConfdClient
 
@@ -44,7 +44,7 @@ class CallLogsGenerator:
         for _, cels_by_call_iter in self._group_cels_by_linkedid(cels):
             cels_by_call = list(cels_by_call_iter)
 
-            call_log = raw_call_log.RawCallLog()
+            call_log = RawCallLog()
             call_log.cel_ids = [cel.id for cel in cels_by_call]
 
             interpretor = self._get_interpretor(cels_by_call)
@@ -90,17 +90,9 @@ class CallLogsGenerator:
             for duplicate_channel_name in duplicate_channel_names:
                 call_log.raw_participants.pop(duplicate_channel_name, None)
 
-    def _fetch_participants(self, confd, call_log: raw_call_log.RawCallLog):
-        users: dict[str, ParticipantInfo] = {}
-
-        def get_user(user_uuid):
-            confd_participant = users.get(user_uuid)
-            if not confd_participant:
-                users[user_uuid] = confd_participant = find_participant_by_uuid(
-                    self.confd, user_uuid
-                )
-            return confd_participant
-
+    def _compute_participants_from_channels(
+        self, confd: ConfdClient, call_log: RawCallLog
+    ):
         connected_participants = []
         for channel_name, raw_attributes in call_log.raw_participants.items():
             confd_participant = find_participant(confd, channel_name)
@@ -108,7 +100,6 @@ class CallLogsGenerator:
                 logger.debug("No participant found for channel %s", channel_name)
                 continue
             raw_attributes.update(**confd_participant._asdict())
-            users[confd_participant.uuid] = confd_participant
 
             participant = CallLogParticipant(user_uuid=confd_participant.uuid)
             participant.line_id = confd_participant.line_id
@@ -117,6 +108,22 @@ class CallLogsGenerator:
             if 'answered' in raw_attributes:
                 participant.answered = raw_attributes["answered"]
             connected_participants.append(participant)
+        return connected_participants
+
+    def _fetch_participants(self, confd: ConfdClient, call_log: RawCallLog):
+        users: dict[str, ParticipantInfo] = {}
+
+        def get_user(user_uuid):
+            confd_participant = users.get(user_uuid)
+            if not confd_participant:
+                users[user_uuid] = confd_participant = find_participant_by_uuid(
+                    confd, user_uuid
+                )
+            return confd_participant
+
+        connected_participants = self._compute_participants_from_channels(
+            confd, call_log
+        )
 
         # participant information from CEL interpretation can augment participants extracted from channels
         # and fill in unreachable participants with no corresponding channel
@@ -143,7 +150,7 @@ class CallLogsGenerator:
                 # case of unreachable users with no matching channels
                 confd_participant = get_user(user_uuid)
                 if not confd_participant:
-                    logger.debug("No user found for user_uuid %s", user_uuid)
+                    logger.error("No user found for user_uuid %s", user_uuid)
                     continue
                 participant = CallLogParticipant(
                     user_uuid=confd_participant.uuid,
