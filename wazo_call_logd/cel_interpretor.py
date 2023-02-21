@@ -1,8 +1,7 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
-from typing import Callable, TypeVar
-from collections.abc import Iterable
+from typing import Callable
 
 import json
 import re
@@ -14,6 +13,7 @@ from xivo.asterisk.line_identity import identity_from_channel
 from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
 from .raw_call_log import RawCallLog
+from .utils import find
 from xivo_dao.alchemy.cel import CEL
 
 
@@ -63,15 +63,6 @@ def is_valid_mixmonitor_stop_extra(extra):
         return False
 
     return True
-
-
-T = TypeVar("T")
-
-
-def find(col: Iterable[T], pred: Callable[[T], bool]) -> T | None:
-    for x in col:
-        if pred(x):
-            return x
 
 
 def _extract_user_missed_call_variables(extra):
