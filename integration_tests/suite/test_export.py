@@ -1,4 +1,4 @@
-# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -140,7 +140,6 @@ class TestExportAPI(IntegrationTest):
 
 
 class TestRecordingMediaExport(IntegrationTest):
-
     asset = 'base'
     wait_strategy = CallLogdEverythingUpWaitStrategy()
 

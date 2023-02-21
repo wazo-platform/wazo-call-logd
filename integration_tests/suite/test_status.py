@@ -1,4 +1,4 @@
-# Copyright 2018-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, equal_to, has_entries, has_entry
@@ -8,7 +8,6 @@ from .helpers.base import IntegrationTest
 
 
 class TestStatusNoRabbitMQ(IntegrationTest):
-
     asset = 'no_rabbitmq'
 
     def test_given_no_rabbitmq_when_status_then_rabbitmq_fail(self):
