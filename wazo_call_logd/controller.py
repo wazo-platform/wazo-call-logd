@@ -1,8 +1,9 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import signal
+import threading
 
 from functools import partial
 from wazo_auth_client import Client as AuthClient
@@ -33,6 +34,7 @@ logger = logging.getLogger(__name__)
 class Controller:
     def __init__(self, config):
         self.config = config
+        self._stopping_thread = None
         DBSession = new_db_session(config['db_uri'])
         CELDBSession = new_db_session(config['cel_db_uri'])
         self.dao = DAO(DBSession, CELDBSession)
@@ -98,14 +100,14 @@ class Controller:
 
     def run(self):
         logger.info('Starting wazo-call-logd')
+        signal.signal(signal.SIGTERM, partial(_signal_handler, self))
+        signal.signal(signal.SIGINT, partial(_signal_handler, self))
         self.token_renewer.subscribe_to_token_change(
             self.token_status.token_change_callback
         )
         self.status_aggregator.add_provider(self.bus_consumer.provide_status)
         self.status_aggregator.add_provider(self.token_status.provide_status)
         self.status_aggregator.add_provider(celery.provide_status)
-        signal.signal(signal.SIGTERM, partial(_sigterm_handler, self))
-
         self._update_db_from_config_file()
 
         try:
@@ -113,13 +115,18 @@ class Controller:
                 with self.token_renewer:
                     self.http_server.run()
         finally:
-            logger.info('Stopping wazo-call-logd')
+            logger.info('Stopping wazo-call-logd...')
             self._celery_process.terminate()
             self._celery_process.join()
+            if self._stopping_thread:
+                self._stopping_thread.join()
 
     def stop(self, reason):
         logger.warning('Stopping wazo-call-logd: %s', reason)
-        self.http_server.stop()
+        self._stopping_thread = threading.Thread(
+            target=self.http_server.stop, name=reason
+        )
+        self._stopping_thread.start()
 
     def _update_db_from_config_file(self):
         with self.dao.helper.db_ready():
@@ -160,5 +167,5 @@ class Controller:
             )
 
 
-def _sigterm_handler(controller, signum, frame):
-    controller.stop(reason='SIGTERM')
+def _signal_handler(controller, signum, frame):
+    controller.stop(reason=signal.Signals(signum).name)
