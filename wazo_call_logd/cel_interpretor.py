@@ -295,12 +295,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         if source_user_uuid:
             call.source_user_uuid = source_user_uuid
-            info = dict(
-                user_uuid=source_user_uuid,
-                answered=False,
-                name=source_name,
-                role="source",
-            )
+            info = {
+                "user_uuid": source_user_uuid,
+                "answered": False,
+                "name": source_name,
+                "role": "source",
+            }
             # Check for previously registered information on the same user
             participant_info = find(
                 reversed(call.participants_info),
@@ -319,12 +319,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             )
         if destination_user_uuid:
             call.destination_user_uuid = destination_user_uuid
-            info = dict(
-                user_uuid=destination_user_uuid,
-                answered=False,
-                name=destination_name,
-                role="destination",
-            )
+            info = {
+                "user_uuid": destination_user_uuid,
+                "answered": False,
+                "name": destination_name,
+                "role": "destination",
+            }
             if (
                 call.participants_info
                 and "user_uuid" in call.participants_info[-1]
@@ -376,11 +376,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'user_uuid': extra_dict['uuid'],
                 'user_name': extra_dict['name'],
             }
-            participant_info = dict(
-                user_uuid=destination_details['user_uuid'],
-                role='destination',
-                name=destination_details['user_name'],
-            )
+            participant_info = {
+                "user_uuid": destination_details['user_uuid'],
+                "role": 'destination',
+                "name": destination_details['user_name'],
+            }
             call.participants_info.append(participant_info)
 
             logger.debug(
