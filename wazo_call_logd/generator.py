@@ -116,9 +116,7 @@ class CallLogsGenerator:
         def get_user(user_uuid):
             confd_participant = users.get(user_uuid)
             if not confd_participant:
-                confd_participant = find_participant_by_uuid(
-                    confd, user_uuid
-                )
+                confd_participant = find_participant_by_uuid(confd, user_uuid)
                 users[user_uuid] = confd_participant
             return confd_participant
 
