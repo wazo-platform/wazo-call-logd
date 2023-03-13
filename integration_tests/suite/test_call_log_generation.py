@@ -1760,6 +1760,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         # Both were called, call log should include both as participants.
         user_a_uuid = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
         user_b_uuid = "31be0853-dde6-48cd-986d-85bc708754a1"
+        user_b_name = "B McTest"
         tenant = "54eb71f8-1f4b-4ae4-8730-638062fbe521"
         self.confd.set_users(
             MockUser(user_a_uuid, tenant, line_ids=[1]),
@@ -1801,6 +1802,25 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                         answered=False,
                     ),
                 ),
+                destination_user_uuid=user_b_uuid,
+                destination_name=user_b_name,
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        key="type",
+                        value="user"
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        key="user_uuid",
+                        value=user_b_uuid
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        key="user_name",
+                        value=user_b_name
+                    ),
+                )
             ),
         )
 
@@ -1837,7 +1857,9 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         # user A missed, fallback to user B, answered.
         # Both were called, call log should include both as participants.
         user_a_uuid = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
+        user_a_name = "A Mctest"
         user_b_uuid = "31be0853-dde6-48cd-986d-85bc708754a1"
+        user_b_name = "B McTest"
         tenant = "54eb71f8-1f4b-4ae4-8730-638062fbe521"
         self.confd.set_users(
             MockUser(user_a_uuid, tenant, line_ids=[1]),
@@ -1879,5 +1901,24 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                         answered=True,
                     ),
                 ),
+                destination_user_uuid=user_b_uuid,
+                destination_name=user_b_name,
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        key="type",
+                        value="user"
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        key="user_uuid",
+                        value=user_b_uuid
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        key="user_name",
+                        value=user_b_name
+                    ),
+                )
             ),
         )
