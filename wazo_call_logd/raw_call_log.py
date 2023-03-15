@@ -30,7 +30,6 @@ class RawCallLog:
         self.source_internal_exten: str | None = None
         self.source_internal_context: str | None = None
         self.source_internal_name: str | None = None
-        self.source_user_uuid: str | None = None
         self.requested_name: str | None = None
         self.requested_exten: str | None = None
         self.requested_context: str | None = None
@@ -38,7 +37,6 @@ class RawCallLog:
         self.requested_internal_context: str | None = None
         self.destination_name: str | None = None
         self.destination_exten: str | None = None
-        self.destination_user_uuid: str | None = None
         self.destination_internal_exten: str | None = None
         self.destination_internal_context: str | None = None
         self.destination_line_identity: str | None = None

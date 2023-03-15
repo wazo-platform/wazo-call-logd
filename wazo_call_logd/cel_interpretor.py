@@ -84,6 +84,17 @@ def _extract_user_missed_call_variables(extra):
     )
 
 
+def _extract_call_log_destination_variables(extra: dict) -> dict:
+    extra_tokens = extra['extra'].split(',')
+    extra_dict = dict()
+    for token in extra_tokens:
+        key = token.split(': ')[0].strip()
+        value = token.split(': ')[1].strip()
+        extra_dict[key] = value
+
+    return extra_dict
+
+
 class DispatchCELInterpretor:
     def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
         self.caller_cel_interpretor = caller_cel_interpretor
@@ -294,7 +305,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         ) = _extract_user_missed_call_variables(extra)
 
         if source_user_uuid:
-            call.source_user_uuid = source_user_uuid
             info = {
                 "user_uuid": source_user_uuid,
                 "answered": False,
@@ -318,7 +328,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 source_name,
             )
         if destination_user_uuid:
-            call.destination_user_uuid = destination_user_uuid
             info = {
                 "user_uuid": destination_user_uuid,
                 "answered": False,
@@ -354,12 +363,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not extra:
             return call
 
-        extra_tokens = extra['extra'].split(',')
-        extra_dict = dict()
-        for token in extra_tokens:
-            key = token.split(': ')[0].strip()
-            value = token.split(': ')[1].strip()
-            extra_dict[key] = value
+        extra_dict = _extract_call_log_destination_variables(extra)
 
         if 'type' not in extra_dict.keys():
             logger.error('required destination type is not found.')
@@ -382,6 +386,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "name": destination_details['user_name'],
             }
             call.participants_info.append(participant_info)
+            call.destination_name = participant_info["name"]
 
             logger.debug(
                 "identified destination participant (user_uuid=%s, user_name=%s) from WAZO_CALL_LOG_DESTINATION",
