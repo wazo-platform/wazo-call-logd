@@ -1807,20 +1807,20 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_details=contains_inanyorder(
                     has_properties(
                         uuid=not_none(),
-                        key="type",
-                        value="user"
+                        destination_details_key="type",
+                        destination_details_value="user",
                     ),
                     has_properties(
                         uuid=not_none(),
-                        key="user_uuid",
-                        value=user_b_uuid
+                        destination_details_key="user_uuid",
+                        destination_details_value=user_b_uuid,
                     ),
                     has_properties(
                         uuid=not_none(),
-                        key="user_name",
-                        value=user_b_name
+                        destination_details_key="user_name",
+                        destination_details_value=user_b_name,
                     ),
-                )
+                ),
             ),
         )
 
@@ -1906,19 +1906,19 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_details=contains_inanyorder(
                     has_properties(
                         uuid=not_none(),
-                        key="type",
-                        value="user"
+                        destination_details_key="type",
+                        destination_details_value="user",
                     ),
                     has_properties(
                         uuid=not_none(),
-                        key="user_uuid",
-                        value=user_b_uuid
+                        destination_details_key="user_uuid",
+                        destination_details_value=user_b_uuid,
                     ),
                     has_properties(
                         uuid=not_none(),
-                        key="user_name",
-                        value=user_b_name
+                        destination_details_key="user_name",
+                        destination_details_value=user_b_name,
                     ),
-                )
+                ),
             ),
         )
