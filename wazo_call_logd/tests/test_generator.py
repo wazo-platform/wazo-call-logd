@@ -4,20 +4,28 @@ from __future__ import annotations
 
 from unittest import TestCase
 from unittest.mock import ANY, Mock, patch, create_autospec
+from collections import defaultdict
+
+import requests.exceptions
 
 from hamcrest import (
     all_of,
     assert_that,
     calling,
     contains_exactly,
+    contains,
     contains_inanyorder,
     equal_to,
     has_property,
+    has_properties,
+    has_length,
     is_,
     raises,
+    anything,
+    empty,
 )
 from wazo_call_logd.raw_call_log import RawCallLog
-from wazo_call_logd.generator import CallLogsGenerator
+from wazo_call_logd.generator import CallLogsGenerator, _ParticipantsProcessor
 from wazo_call_logd.exceptions import InvalidCallLogException
 
 
@@ -166,3 +174,53 @@ class TestCallLogsGenerator(TestCase):
             result.append(Mock(linkedid=linked_id))
 
         return result
+
+
+def mock_data_dict(**kwargs):
+    d = defaultdict(lambda: None)
+    d.update(**kwargs)
+    return d
+
+
+class TestParticipantsProcessor(TestCase):
+    def setUp(self):
+        self.confd = Mock()
+        self.processor = _ParticipantsProcessor(self.confd)
+
+    def test_participants_missing_from_confd(self):
+        raw_call_log = mock_call()
+        raw_call_log.raw_participants = {"channel/id": {}}
+        raw_call_log.participants_info = [
+            {"user_uuid": "some-user-uuid", "answered": True}
+        ]
+        self.confd.users.get.side_effect = requests.exceptions.HTTPError()
+        call_log = self.processor(raw_call_log)
+        assert_that(self.confd.mock_calls, contains(anything()))
+        assert_that(call_log.participants, is_(empty()))
+
+    def test_participant_identified_from_channel(self):
+        call_log = mock_call()
+        channel_name = "PJSIP/rgcZLNGE-00000028"
+        call_log.raw_participants[channel_name] = {"role": "destination"}
+        call_log.participants_info = [
+            {"user_uuid": "some-user-uuid", "answered": True, "role": "destination"}
+        ]
+
+        confd_user = mock_data_dict(
+            uuid="some-user-uuid", lines=[mock_data_dict(name="rgcZLNGE", id=1)]
+        )
+        confd_line = mock_data_dict(name="rgcZLNGE", id=1, users=[confd_user])
+        self.confd.users.get.return_value = confd_user
+        self.confd.lines.list.return_value = {"items": [confd_line]}
+        call_log = self.processor(call_log)
+        assert_that(
+            self.confd.users.get.mock_calls, has_length(1)
+        )  # verify cache effectiveness
+        assert_that(
+            call_log.participants,
+            contains_exactly(
+                has_properties(
+                    answered=True, user_uuid="some-user-uuid", role="destination"
+                )
+            ),
+        )
