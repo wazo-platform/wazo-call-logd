@@ -30,8 +30,7 @@ class defaultdict(OrderedDict):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return 'defaultdict(%s, %s)' % (self.default,
-                                        super().__repr__())
+        return 'defaultdict(%s, %s)' % (self.default, super().__repr__())
 
     def __missing__(self, key):
         if self.default:

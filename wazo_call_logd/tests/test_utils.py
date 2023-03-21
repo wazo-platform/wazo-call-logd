@@ -35,7 +35,9 @@ class TestDefaultdict(TestCase):
             d[k].append(v)
 
         # because of the ordered dict backing, we expect items to appear according to insertion order of keys
-        self.assertEqual(list(d.items()), [('yellow', [1, 3]), ('blue', [2, 4]), ('red', [1])])
+        self.assertEqual(
+            list(d.items()), [('yellow', [1, 3]), ('blue', [2, 4]), ('red', [1])]
+        )
 
     def test_counter(self):
         """
