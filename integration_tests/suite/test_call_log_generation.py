@@ -1802,7 +1802,6 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                         answered=False,
                     ),
                 ),
-                destination_user_uuid=user_b_uuid,
                 destination_name=user_b_name,
                 destination_details=contains_inanyorder(
                     has_properties(
