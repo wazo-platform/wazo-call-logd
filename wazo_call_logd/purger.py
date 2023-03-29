@@ -1,4 +1,4 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -78,6 +78,8 @@ class CallLogsPurger:
                 days_to_keep,
                 DEFAULT_CALL_LOGD_CDR_DAYS,
             )
+            if days != days_to_keep:
+                logger.debug('Tenant %s: overriding call log retention to %s days', tenant.uuid, days)
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
@@ -116,6 +118,8 @@ class ExportsPurger:
                 days_to_keep,
                 DEFAULT_CALL_LOGD_EXPORT_DAYS,
             )
+            if days != days_to_keep:
+                logger.debug('Tenant %s: overriding export retention to %s days', tenant.uuid, days)
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
@@ -148,6 +152,8 @@ class RecordingsPurger:
                 days_to_keep,
                 DEFAULT_CALL_LOGD_RECORDING_DAYS,
             )
+            if days != days_to_keep:
+                logger.debug('Tenant %s: overriding recording retention to %s days', tenant.uuid, days)
 
             max_date = func.now() - datetime.timedelta(days=days)
             query = (
