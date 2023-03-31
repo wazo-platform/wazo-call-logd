@@ -25,11 +25,11 @@ def confd_mock(lines=None):
             for user in line['users']
         }
         if lines and lines[0].get('users')
-        else None
+        else {}
     )
 
     def confd_users_get(uuid):
-        if users and uuid in users:
+        if uuid in users:
             return users[uuid]
         else:
             raise HTTPError(response=Mock(status_code=404, request=Mock()))
