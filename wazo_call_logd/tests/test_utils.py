@@ -1,4 +1,4 @@
-from wazo_call_logd.utils import find, defaultdict
+from wazo_call_logd.utils import find, OrderedDefaultDict
 from unittest import TestCase
 
 
@@ -30,7 +30,7 @@ class TestDefaultdict(TestCase):
         Simple multidict/accumulator use case example
         """
         s = [('yellow', 1), ('blue', 2), ('yellow', 3), ('blue', 4), ('red', 1)]
-        d = defaultdict(default=list)
+        d = OrderedDefaultDict(default=list)
         for k, v in s:
             d[k].append(v)
 
@@ -44,7 +44,7 @@ class TestDefaultdict(TestCase):
         Simple counter use case example
         """
         s = 'mississippi'
-        d = defaultdict(default=int)
+        d = OrderedDefaultDict(default=int)
         for k in s:
             d[k] += 1
 
@@ -54,7 +54,7 @@ class TestDefaultdict(TestCase):
         """
         Insertion order is maintained on iteration over keys and items
         """
-        d = defaultdict()
+        d = OrderedDefaultDict()
         for i in range(10):
             d[i] = i
 

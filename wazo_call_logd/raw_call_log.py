@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 import logging
 
 from datetime import datetime
-from wazo_call_logd.utils import defaultdict
+from wazo_call_logd.utils import OrderedDefaultDict
 from wazo_call_logd.database.models import CallLog, CallLogParticipant
 
 from wazo_call_logd.exceptions import InvalidCallLogException
@@ -44,7 +44,7 @@ class RawCallLog:
         self.date_answer: datetime | None = None
         self.source_line_identity: str | None = None
         self.direction: Literal['source', 'destination', 'internal'] = 'internal'
-        self.raw_participants: dict[str, dict] = defaultdict(default=dict)
+        self.raw_participants: dict[str, dict] = OrderedDefaultDict(default=dict)
         self.participants_info: list[dict] = []
         self.participants: list[CallLogParticipant] = []
         self.recordings: list = []

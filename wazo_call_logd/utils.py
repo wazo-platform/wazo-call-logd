@@ -16,13 +16,13 @@ def find(col: Iterable[T], pred: Callable[[T], bool]) -> T | None:
             return x
 
 
-class defaultdict(OrderedDict):
+class OrderedDefaultDict(OrderedDict):
     """
     https://gist.github.com/ohe/1605376
     Default Dict Implementation built upon OrderedDict(because collections.defaultdict and collections.OrderedDict are not composable)
     Representation of a default dict:
-    >>> defaultdict([('foo', 'bar'), ('bar', 'baz'])
-    defaultdict(None, OrderedDict([('foo', 'bar'), ('bar', 'baz')]))
+    >>> OrderedDefaultDict([('foo', 'bar'), ('bar', 'baz'])
+    OrderedDefaultDict(None, OrderedDict([('foo', 'bar'), ('bar', 'baz')]))
     """
 
     def __init__(self, *args, **kwargs):
