@@ -1,5 +1,7 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+from typing import Callable
 
 import json
 import re
@@ -9,7 +11,10 @@ import urllib.parse
 from xivo.asterisk.line_identity import identity_from_channel
 
 from .database.cel_event_type import CELEventType
-from .database.models import CallLogParticipant, Destination, Recording
+from .database.models import Destination, Recording
+from .raw_call_log import RawCallLog
+from .utils import find
+from xivo_dao.alchemy.cel import CEL
 
 
 logger = logging.getLogger(__name__)
@@ -79,6 +84,17 @@ def _extract_user_missed_call_variables(extra):
     )
 
 
+def _extract_call_log_destination_variables(extra: dict) -> dict:
+    extra_tokens = extra['extra'].split(',')
+    extra_dict = dict()
+    for token in extra_tokens:
+        key = token.split(': ')[0].strip()
+        value = token.split(': ')[1].strip()
+        extra_dict[key] = value
+
+    return extra_dict
+
+
 class DispatchCELInterpretor:
     def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
         self.caller_cel_interpretor = caller_cel_interpretor
@@ -108,15 +124,16 @@ class DispatchCELInterpretor:
 
 
 class AbstractCELInterpretor:
-    eventtype_map = {}
+    eventtype_map: dict[str, Callable[[CEL, RawCallLog], RawCallLog]] = {}
 
-    def interpret_cels(self, cels, call_log):
+    def interpret_cels(self, cels: list[CEL], call_log: RawCallLog):
         for cel in cels:
             call_log = self.interpret_cel(cel, call_log)
         return call_log
 
-    def interpret_cel(self, cel, call):
+    def interpret_cel(self, cel: CEL, call: RawCallLog):
         eventtype = cel.eventtype
+        logger.debug("Interpreting CEL event type %s", eventtype)
         if eventtype in self.eventtype_map:
             interpret_function = self.eventtype_map[eventtype]
             return interpret_function(cel, call)
@@ -288,21 +305,50 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         ) = _extract_user_missed_call_variables(extra)
 
         if source_user_uuid:
-            source_participant = CallLogParticipant(
-                role='source',
-                user_uuid=source_user_uuid,
-                answered=False,
+            info = {
+                "user_uuid": source_user_uuid,
+                "answered": False,
+                "name": source_name,
+                "role": "source",
+            }
+            # Check for previously registered information on the same user
+            participant_info = find(
+                reversed(call.participants_info),
+                lambda p: p.get("user_uuid") == source_user_uuid
+                and p.get("role") == "source",
             )
-            call.participants.append(source_participant)
-            call.source_user_uuid = source_user_uuid
+            if participant_info:
+                participant_info.update(info)
+            else:
+                call.participants_info.append(info)
+
+            logger.debug(
+                "identified source participant info(user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event",
+                source_user_uuid,
+                source_name,
+            )
         if destination_user_uuid:
-            destination_participant = CallLogParticipant(
-                role='destination',
-                user_uuid=destination_user_uuid,
-                answered=False,
+            info = {
+                "user_uuid": destination_user_uuid,
+                "answered": False,
+                "name": destination_name,
+                "role": "destination",
+            }
+            if (
+                call.participants_info
+                and "user_uuid" in call.participants_info[-1]
+                and call.participants_info[-1]["user_uuid"] == destination_user_uuid
+            ):
+                # last destination participant registered is the same user, e.g. from WAZO_CALL_LOG_DESTINATION
+                call.participants_info[-1].update(info)
+            else:
+                call.participants_info.append(info)
+
+            logger.debug(
+                "identified destination participant info (user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event",
+                destination_user_uuid,
+                destination_name,
             )
-            call.participants.append(destination_participant)
-            call.destination_user_uuid = destination_user_uuid
 
         call.set_tenant_uuid(wazo_tenant_uuid)
         call.destination_exten = destination_exten
@@ -317,12 +363,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not extra:
             return call
 
-        extra_tokens = extra['extra'].split(',')
-        extra_dict = dict()
-        for token in extra_tokens:
-            key = token.split(': ')[0].strip()
-            value = token.split(': ')[1].strip()
-            extra_dict[key] = value
+        extra_dict = _extract_call_log_destination_variables(extra)
 
         if 'type' not in extra_dict.keys():
             logger.error('required destination type is not found.')
@@ -339,6 +380,19 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'user_uuid': extra_dict['uuid'],
                 'user_name': extra_dict['name'],
             }
+            participant_info = {
+                "user_uuid": destination_details['user_uuid'],
+                "role": 'destination',
+                "name": destination_details['user_name'],
+            }
+            call.participants_info.append(participant_info)
+            call.destination_name = participant_info["name"]
+
+            logger.debug(
+                "identified destination participant (user_uuid=%s, user_name=%s) from WAZO_CALL_LOG_DESTINATION",
+                destination_details['user_uuid'],
+                destination_details['user_name'],
+            )
         elif extra_dict['type'] == 'meeting':
             destination_details = {
                 'type': extra_dict['type'],

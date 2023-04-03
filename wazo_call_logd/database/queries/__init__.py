@@ -1,5 +1,6 @@
 # Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 from .agent_stat import AgentStatDAO
 from .call_log import CallLogDAO
@@ -23,11 +24,22 @@ class DAO:
         'retention': RetentionDAO,
         'tenant': TenantDAO,
     }
+    call_log: CallLogDAO
+    config: ConfigDAO
+    export: ExportDAO
+    helper: HelperDAO
+    recording: RecordingDAO
+    retention: RetentionDAO
+    tenant: TenantDAO
+
     _cel_dao = {
         'cel': CELDAO,
         'queue_stat': QueueStatDAO,
         'agent_stat': AgentStatDAO,
     }
+    cel: CELDAO
+    queue_stat: QueueStatDAO
+    agent_stat: AgentStatDAO
 
     def __init__(self, session, cel_db_session):
         for name, dao in self._dao.items():

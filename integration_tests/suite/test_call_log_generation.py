@@ -215,6 +215,15 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
                 userfield='Paris,France',
             ),
         )
+        self.confd.set_lines(
+            MockLine(
+                id=2,
+                name='cul113qn',
+                users=[{'uuid': destination_user_uuid}],
+                tenant_uuid=wazo_tenant_uuid,
+                extensions=[{'exten': '1800', 'context': 'mycontext'}],
+            ),
+        )
         self.confd.set_contexts(
             MockContext(id=1, name='mycontext', tenant_uuid=wazo_tenant_uuid)
         )
@@ -795,7 +804,6 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  HANGUP        | 2019-08-02 14:20:12.322631 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
  CHAN_END      | 2019-08-02 14:20:12.327546 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
  LINKEDID_END  | 2019-08-02 14:20:12.329958 |                   | **9742332 |                   | from-extern                | PJSIP/dev_32-00000009                         | 1564770000.23 | 1564770000.21
-
 '''
     )
     def test_originate_from_mobile(self):
@@ -1415,7 +1423,6 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
  CHAN_END     | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
  HANGUP       | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
  LINKEDID_END | 2021-02-08 18:41:08.90886+00  | PJSIP/9jqihz0h-00000007                                               | 1612809662.17 | 1612809661.11
-
 '''
     )
     def test_given_group_call_then_destination_user_uuid_should_be_answered_callee(
@@ -1717,6 +1724,198 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                         has_properties(
                             uuid=not_none(), user_uuid=USER_3_UUID, role='destination'
                         ),
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''\
+        linkedid      | uniqueid      | eventtime                | eventtype                 | channame                | cid_name   | cid_num   | extra
+        --------------+---------------+--------------------------+---------------------------+-------------------------+------------+-----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:00.0+00 | CHAN_START                | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      |
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:01.0+00 | XIVO_INCALL               | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:02.0+00 | WAZO_CALL_LOG_DESTINATION | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      | {"extra":"type: user,uuid: ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,name: A Mctest"}
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:03.0+00 | APP_START                 | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      |
+        1674248467.40 | 1674248468.41 | 2023-01-20 00:00:04.0+00 | CHAN_START                | PJSIP/9EYlfTvB-00000029 | A Mctest   | 8001      |
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:05.0+00 | XIVO_USER_FWD             | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      | {"extra":"NUM:8001,CONTEXT:default-key-4wfgx-internal,NAME:A Mctest"}
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:06.0+00 | WAZO_USER_MISSED_CALL     | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      | {"extra":"wazo_tenant_uuid: 54eb71f8-1f4b-4ae4-8730-638062fbe521,source_user_uuid: ,destination_user_uuid: ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,destination_exten: 8001,source_name: test-UC-1,destination_name: A Mctest"}
+        1674248467.40 | 1674248468.41 | 2023-01-20 00:00:07.0+00 | HANGUP                    | PJSIP/9EYlfTvB-00000029 | A Mctest   | 8001      | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        1674248467.40 | 1674248468.41 | 2023-01-20 00:00:08.0+00 | CHAN_END                  | PJSIP/9EYlfTvB-00000029 | A Mctest   | 8001      |
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:09.0+00 | WAZO_CALL_LOG_DESTINATION | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      | {"extra":"type: user,uuid: 31be0853-dde6-48cd-986d-85bc708754a1,name: B McTest"}
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:10.0+00 | APP_START                 | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      |
+        1674248467.40 | 1674248473.42 | 2023-01-20 00:00:11.0+00 | CHAN_START                | PJSIP/rNXlGVeY-0000002a | B McTest   | 8002      |
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:12.0+00 | XIVO_USER_FWD             | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      | {"extra":"NUM:8002,CONTEXT:default-key-4wfgx-internal,NAME:B McTest"}
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:13.0+00 | WAZO_USER_MISSED_CALL     | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      | {"extra":"wazo_tenant_uuid: 54eb71f8-1f4b-4ae4-8730-638062fbe521,source_user_uuid: ,destination_user_uuid: 31be0853-dde6-48cd-986d-85bc708754a1,destination_exten: 8001,source_name: test-UC-1,destination_name: B McTest"}
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:14.0+00 | ANSWER                    | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      |
+        1674248467.40 | 1674248473.42 | 2023-01-20 00:00:15.0+00 | HANGUP                    | PJSIP/rNXlGVeY-0000002a | B McTest   | 8002      | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        1674248467.40 | 1674248473.42 | 2023-01-20 00:00:16.0+00 | CHAN_END                  | PJSIP/rNXlGVeY-0000002a | B McTest   | 8002      |
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:17.0+00 | HANGUP                    | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      | {"hangupcause":16,"hangupsource":"dialplan/builtin","dialstatus":"NOANSWER"}
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:18.0+00 | CHAN_END                  | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      |
+        1674248467.40 | 1674248467.40 | 2023-01-20 00:00:19.0+00 | LINKEDID_END              | PJSIP/rgcZLNGE-00000028 | test-UC-1  | 8000      |
+        '''
+    )
+    def test_user_missed_call_fallback_missed(self):
+        # user A missed, fallback to user B, missed too.
+        # Both were called, call log should include both as participants.
+        user_a_uuid = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
+        user_b_uuid = "31be0853-dde6-48cd-986d-85bc708754a1"
+        user_b_name = "B McTest"
+        tenant = "54eb71f8-1f4b-4ae4-8730-638062fbe521"
+        self.confd.set_users(
+            MockUser(user_a_uuid, tenant, line_ids=[1]),
+            MockUser(user_b_uuid, tenant, line_ids=[2]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='9EYlfTvB',
+                users=[{'uuid': user_a_uuid}],
+                tenant_uuid=tenant,
+                extensions=[{'exten': '8001', 'context': 'internal'}],
+            ),
+            MockLine(
+                id=2,
+                name='rNXlGVeY',
+                users=[{'uuid': user_b_uuid}],
+                tenant_uuid=tenant,
+                extensions=[{'exten': '8002', 'context': 'internal'}],
+            ),
+        )
+        self.confd.set_contexts(MockContext(id=1, name='internal', tenant_uuid=tenant))
+
+        self._assert_last_call_log_matches(
+            '1674248467.40',
+            has_properties(
+                id=not_none(),
+                participants=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=user_a_uuid,
+                        role='destination',
+                        answered=False,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=user_b_uuid,
+                        role='destination',
+                        answered=False,
+                    ),
+                ),
+                destination_name=user_b_name,
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        destination_details_key="type",
+                        destination_details_value="user",
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        destination_details_key="user_uuid",
+                        destination_details_value=user_b_uuid,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        destination_details_key="user_name",
+                        destination_details_value=user_b_name,
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''\
+        linkedid      | uniqueid      | eventtime                | eventtype                 | channame                | cid_name   | cid_num   | extra
+        --------------+---------------+--------------------------+---------------------------+-------------------------+------------+-----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:00.0+00 | CHAN_START                | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      |
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:01.0+00 | XIVO_INCALL               | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:02.0+00 | WAZO_CALL_LOG_DESTINATION | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      | {"extra":"type: user,uuid: ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,name: A Mctest"}
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:03.0+00 | APP_START                 | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      |
+        1674485777.43 | 1674485778.44 | 2023-01-23 00:00:04.0+00 | CHAN_START                | PJSIP/9EYlfTvB-0000002c | A Mctest   | 8001      |
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:05.0+00 | XIVO_USER_FWD             | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      | {"extra":"NUM:8001,CONTEXT:default-key-4wfgx-internal,NAME:A Mctest"}
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:06.0+00 | WAZO_USER_MISSED_CALL     | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      | {"extra":"wazo_tenant_uuid: 54eb71f8-1f4b-4ae4-8730-638062fbe521,source_user_uuid: ,destination_user_uuid: ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,destination_exten: 8001,source_name: test-UC-1,destination_name: A Mctest"}
+        1674485777.43 | 1674485778.44 | 2023-01-23 00:00:07.0+00 | CHAN_END                  | PJSIP/9EYlfTvB-0000002c | A Mctest   | 8001      |
+        1674485777.43 | 1674485778.44 | 2023-01-23 00:00:08.0+00 | HANGUP                    | PJSIP/9EYlfTvB-0000002c | A Mctest   | 8001      | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:09.0+00 | WAZO_CALL_LOG_DESTINATION | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      | {"extra":"type: user,uuid: 31be0853-dde6-48cd-986d-85bc708754a1,name: B McTest"}
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:10.0+00 | APP_START                 | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      |
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:11.0+00 | CHAN_START                | PJSIP/rNXlGVeY-0000002d | B McTest   | 8002      |
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:12.0+00 | ANSWER                    | PJSIP/rNXlGVeY-0000002d | B McTest   | 8002      |
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:13.0+00 | ANSWER                    | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      |
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:14.0+00 | BRIDGE_ENTER              | PJSIP/rNXlGVeY-0000002d | B McTest   | 8002      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:15.0+00 | BRIDGE_ENTER              | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:16.0+00 | BRIDGE_EXIT               | PJSIP/rNXlGVeY-0000002d | B McTest   | 8002      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:17.0+00 | HANGUP                    | PJSIP/rNXlGVeY-0000002d | B McTest   | 8002      | {"hangupcause":16,"hangupsource":"PJSIP/rNXlGVeY-0000002d","dialstatus":""}
+        1674485777.43 | 1674485783.45 | 2023-01-23 00:00:18.0+00 | CHAN_END                  | PJSIP/rNXlGVeY-0000002d | B McTest   | 8002      |
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:19.0+00 | BRIDGE_EXIT               | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      | {"bridge_id":"4829874c-dcd2-4e4c-bf72-370cb6c54933","bridge_technology":"simple_bridge"}
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:20.0+00 | CHAN_END                  | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      |
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:21.0+00 | HANGUP                    | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      | {"hangupcause":16,"hangupsource":"PJSIP/rNXlGVeY-0000002d","dialstatus":"ANSWER"}
+        1674485777.43 | 1674485777.43 | 2023-01-23 00:00:22.0+00 | LINKEDID_END              | PJSIP/rgcZLNGE-0000002b | test-UC-1  | 8000      |
+        '''
+    )
+    def test_user_missed_call_fallback_answered(self):
+        # user A missed, fallback to user B, answered.
+        # Both were called, call log should include both as participants.
+        user_a_uuid = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
+        user_b_uuid = "31be0853-dde6-48cd-986d-85bc708754a1"
+        user_b_name = "B McTest"
+        tenant = "54eb71f8-1f4b-4ae4-8730-638062fbe521"
+        self.confd.set_users(
+            MockUser(user_a_uuid, tenant, line_ids=[1]),
+            MockUser(user_b_uuid, tenant, line_ids=[2]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='9EYlfTvB',
+                users=[{'uuid': user_a_uuid}],
+                tenant_uuid=tenant,
+                extensions=[{'exten': '8001', 'context': 'internal'}],
+            ),
+            MockLine(
+                id=2,
+                name='rNXlGVeY',
+                users=[{'uuid': user_b_uuid}],
+                tenant_uuid=tenant,
+                extensions=[{'exten': '8002', 'context': 'internal'}],
+            ),
+        )
+        self.confd.set_contexts(MockContext(id=1, name='internal', tenant_uuid=tenant))
+
+        self._assert_last_call_log_matches(
+            '1674485777.43',
+            has_properties(
+                id=not_none(),
+                participants=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=user_a_uuid,
+                        role='destination',
+                        answered=False,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=user_b_uuid,
+                        role='destination',
+                        answered=True,
+                    ),
+                ),
+                destination_user_uuid=user_b_uuid,
+                destination_name=user_b_name,
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        destination_details_key="type",
+                        destination_details_value="user",
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        destination_details_key="user_uuid",
+                        destination_details_value=user_b_uuid,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        destination_details_key="user_name",
+                        destination_details_value=user_b_name,
                     ),
                 ),
             ),

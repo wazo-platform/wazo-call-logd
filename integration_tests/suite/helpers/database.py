@@ -1,5 +1,6 @@
 # Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 from datetime import (
     datetime as dt,
@@ -27,6 +28,7 @@ from wazo_call_logd.database.models import (
 )
 
 from .constants import MASTER_TENANT, USER_1_UUID
+
 
 logger = logging.getLogger(__name__)
 
@@ -419,9 +421,9 @@ class DatabaseQueries:
         session.commit()
         return call_logs
 
-    def find_last_call_log(self):
+    def find_last_call_log(self) -> CallLog | None:
         session = self.Session()
-        call_log = session.query(CallLog).order_by(CallLog.date).first()
+        call_log: CallLog = session.query(CallLog).order_by(CallLog.date).first()
         session.commit()
         if call_log:
             call_log.tenant_uuid = str(call_log.tenant_uuid)
@@ -429,6 +431,8 @@ class DatabaseQueries:
                 call_log.destination_user_uuid = str(call_log.destination_user_uuid)
             if call_log.source_user_uuid:
                 call_log.source_user_uuid = str(call_log.source_user_uuid)
+            for participant in call_log.participants:
+                participant.user_uuid = str(participant.user_uuid)
         return call_log
 
     def find_all_recordings(self, call_log_id):

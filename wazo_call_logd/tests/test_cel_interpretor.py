@@ -4,7 +4,7 @@
 import urllib.parse
 
 from unittest import TestCase
-from unittest.mock import Mock, sentinel
+from unittest.mock import Mock, sentinel, create_autospec
 
 from hamcrest import (
     assert_that,
@@ -277,10 +277,13 @@ class TestAbstractCELInterpretor(TestCase):
 class TestCallerCELInterpretor(TestCase):
     def setUp(self):
         self.caller_cel_interpretor = CallerCELInterpretor()
-        self.call = Mock(
+        self.call = create_autospec(
             RawCallLog,
+            instance=True,
             interpret_caller_xivo_user_fwd=True,
             extension_filter=Mock(filter=lambda x: x),
+            participants=[],
+            participants_info=[],
         )
 
     def test_interpret_cel_unknown_or_ignored_event(self):
