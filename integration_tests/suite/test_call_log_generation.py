@@ -1856,7 +1856,6 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         # user A missed, fallback to user B, answered.
         # Both were called, call log should include both as participants.
         user_a_uuid = "ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6"
-        user_a_name = "A Mctest"
         user_b_uuid = "31be0853-dde6-48cd-986d-85bc708754a1"
         user_b_name = "B McTest"
         tenant = "54eb71f8-1f4b-4ae4-8730-638062fbe521"
