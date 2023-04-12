@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -9,7 +9,7 @@ from cheroot import wsgi
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 from xivo import http_helpers
 from xivo.http_helpers import ReverseProxied
 
@@ -19,7 +19,7 @@ VERSION = 1.0
 
 logger = logging.getLogger(__name__)
 app = Flask('wazo_call_logd')
-api = Api(app, prefix='/{}'.format(VERSION))
+api = Api(app, prefix=f'/{VERSION}')
 
 
 class HTTPServer:
@@ -62,10 +62,7 @@ class HTTPServer:
         for route in http_helpers.list_routes(app):
             logger.debug(route)
 
-        try:
-            self.server.start()
-        except KeyboardInterrupt:
-            self.server.stop()
+        self.server.start()
 
     def stop(self):
         if self.server:

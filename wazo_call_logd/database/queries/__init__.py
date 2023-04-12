@@ -15,6 +15,18 @@ from .tenant import TenantDAO
 
 
 class DAO:
+    call_log: CallLogDAO
+    config: ConfigDAO
+    export: ExportDAO
+    helper: HelperDAO
+    recording: RecordingDAO
+    retention: RetentionDAO
+    tenant: TenantDAO
+
+    cel: CELDAO
+    queue_stat: QueueStatDAO
+    agent_stat: AgentStatDAO
+
     _dao = {
         'call_log': CallLogDAO,
         'config': ConfigDAO,
@@ -44,5 +56,6 @@ class DAO:
     def __init__(self, session, cel_db_session):
         for name, dao in self._dao.items():
             setattr(self, name, dao(session))
+
         for name, dao in self._cel_dao.items():
             setattr(self, name, dao(cel_db_session))
