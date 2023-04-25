@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -956,7 +956,7 @@ class TestListCDR(IntegrationTest):
                     tags='',
                 ),
             ),
-            'CSV received: {}'.format(result_raw),
+            f'CSV received: {result_raw}',
         )
 
     @call_log(
@@ -1460,9 +1460,7 @@ class TestListCDR(IntegrationTest):
             ),
         )
 
-        result = self.call_logd.cdr.list(
-            user_uuid='{},{}'.format(USER_2_UUID, USER_3_UUID)
-        )
+        result = self.call_logd.cdr.list(user_uuid=f'{USER_2_UUID},{USER_3_UUID}')
         assert_that(
             result,
             has_entries(
@@ -1676,7 +1674,7 @@ class TestListCDR(IntegrationTest):
                 has_entries(start='2017-04-11T00:00:00+00:00'),
                 has_entries(start='2017-04-12T00:00:00+00:00'),
             ),
-            'CSV received: {}'.format(result_raw),
+            f'CSV received: {result_raw}',
         )
 
     def test_given_no_token_when_list_my_cdr_then_401(self):
@@ -1757,7 +1755,7 @@ class TestListCDR(IntegrationTest):
                 has_entries(start='2017-04-11T00:00:00+00:00'),
                 has_entries(start='2017-04-12T00:00:00+00:00'),
             ),
-            'CSV received: {}'.format(result_raw),
+            f'CSV received: {result_raw}',
         )
 
     @call_logs(number=1100, participant_user=USER_1_UUID)

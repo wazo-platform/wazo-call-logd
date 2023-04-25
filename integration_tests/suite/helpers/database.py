@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -307,7 +307,7 @@ class DbHelper:
     def __init__(self, uri, db):
         self.uri = uri
         self.db = db
-        uri = "{}/{}".format(self.uri, self.db)
+        uri = f"{self.uri}/{self.db}"
         self._engine = sa.create_engine(uri, pool_pre_ping=True)
 
     def is_up(self):

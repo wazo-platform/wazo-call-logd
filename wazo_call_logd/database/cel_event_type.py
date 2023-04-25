@@ -1,8 +1,8 @@
-# Copyright 2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-class CELEventType(object):
+class CELEventType:
     answer = 'ANSWER'
     app_end = 'APP_END'
     app_start = 'APP_START'

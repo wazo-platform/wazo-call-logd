@@ -127,7 +127,7 @@ class WrongClient:
 
     def __getattr__(self, member):
         del member
-        raise Exception('Could not create client {}'.format(self.name))
+        raise Exception(f'Could not create client {self.name}')
 
 
 class _BaseIntegrationTest(AssetLaunchingTestCase):

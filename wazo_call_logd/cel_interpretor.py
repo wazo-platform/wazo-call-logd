@@ -682,7 +682,7 @@ class LocalOriginateCELInterpretor:
 
     @classmethod
     def three_channels_minimum(cls, cels):
-        channels = set(cel.uniqueid for cel in cels)
+        channels = {cel.uniqueid for cel in cels}
         return len(channels) >= 3
 
     @classmethod
