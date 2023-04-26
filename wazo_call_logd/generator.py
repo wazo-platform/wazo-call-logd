@@ -1,12 +1,12 @@
-# Copyright 2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+
 import logging
 
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
-from typing import List
 
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
@@ -64,7 +64,7 @@ class _ParticipantsProcessor:
 
     def _compute_participants_from_channels(
         self, call_log: RawCallLog
-    ) -> List[CallLogParticipant]:
+    ) -> list[CallLogParticipant]:
         connected_participants = []
         for channel_name, raw_attributes in call_log.raw_participants.items():
             confd_participant = self._fetch_participant_from_channel(channel_name)
@@ -181,7 +181,7 @@ class CallLogsGenerator:
         return result
 
     def list_call_log_ids(self, cels):
-        return set(cel.call_log_id for cel in cels if cel.call_log_id)
+        return {cel.call_log_id for cel in cels if cel.call_log_id}
 
     def _group_cels_by_linkedid(self, cels):
         cels = sorted(cels, key=attrgetter('linkedid'))
@@ -193,7 +193,7 @@ class CallLogsGenerator:
                 return interpretor
 
         raise RuntimeError(
-            'Could not find suitable interpretor in {}'.format(self._cel_interpretors)
+            f'Could not find suitable interpretor in {self._cel_interpretors}'
         )
 
     def _remove_duplicate_participants(self, call_log):

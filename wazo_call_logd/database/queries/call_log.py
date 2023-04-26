@@ -104,7 +104,7 @@ class CallLogDAO(BaseDAO):
             query = self._apply_user_filter(query, params)
 
             segregation_fields = ('tenant_uuids', 'me_user_uuid')
-            count_params = dict([(p, params.get(p)) for p in segregation_fields])
+            count_params = {p: params.get(p) for p in segregation_fields}
             query = self._apply_filters(query, count_params)
 
             total = query.count()

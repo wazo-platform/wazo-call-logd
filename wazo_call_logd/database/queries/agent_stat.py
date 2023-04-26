@@ -1,4 +1,4 @@
-# Copyright 2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from sqlalchemy import func, text
@@ -106,7 +106,7 @@ class AgentStatDAO(BaseDAO):
 
     def _extract_timezone_to_postgres_format(self, from_):
         tz_offset = from_.strftime('%z') or '+0000'
-        return '{}:{}'.format(tz_offset[0:3], tz_offset[3:])
+        return f'{tz_offset[0:3]}:{tz_offset[3:]}'
 
     def _agent_stat_query(self, session, **filters):
         query = (
