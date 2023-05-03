@@ -103,7 +103,7 @@ class _ParticipantsProcessor:
                 for p in call_log.participants_info
                 if "user_uuid" in p and p["user_uuid"] == user_uuid
             ]
-            logger.info(
+            logger.debug(
                 "Identified user participant %s(from CEL: %d, from channels: %d)",
                 user_uuid,
                 len(user_participants_info),
