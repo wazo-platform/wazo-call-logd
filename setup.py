@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from setuptools import setup
@@ -21,7 +21,6 @@ setup(
             'wazo-call-logd=wazo_call_logd.main:main',
             'wazo-call-logd-init-db=wazo_call_logd.init_db:main',
             'wazo-call-logd-upgrade-db=wazo_call_logd.main:upgrade_db',
-            'wazo-call-logd-migrate-db=wazo_call_logd.main_migrate_db:main',
             'wazo-call-logs=wazo_call_logd.main_sweep:main',
         ],
         'wazo_call_logd.celery_tasks': [
