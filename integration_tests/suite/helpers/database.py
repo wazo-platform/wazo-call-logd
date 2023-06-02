@@ -393,6 +393,12 @@ class DatabaseQueries:
         query.delete()
         session.commit()
 
+    def find_retentions(self, tenant_uuid):
+        session = self.Session()
+        query = session.query(Retention)
+        query = query.filter(Retention.tenant_uuid == tenant_uuid)
+        return query.all()
+
     def delete_recording_by_call_log_id(self, call_log_id):
         session = self.Session()
         session.query(Recording).filter(Recording.call_log_id == call_log_id).delete()
