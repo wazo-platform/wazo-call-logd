@@ -95,6 +95,7 @@ class Controller:
                 'token_renewer': self.token_renewer,
                 'status_aggregator': self.status_aggregator,
                 'bus_publisher': self.bus_publisher,
+                'bus_consumer': self.bus_consumer,
             },
         )
 
