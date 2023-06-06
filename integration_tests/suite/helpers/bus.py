@@ -14,3 +14,7 @@ class CallLogBusClient(BusClient):
             'name': 'CEL',
         }
         self.publish(payload, headers={'name': 'CEL'})
+
+    def send_tenant_deleted(self, tenant_uuid):
+        payload = {'data': {'uuid': tenant_uuid}, 'name': 'auth_tenant_deleted'}
+        self.publish(payload, headers={'name': 'auth_tenant_deleted'})

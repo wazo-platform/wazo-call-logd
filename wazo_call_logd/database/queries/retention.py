@@ -3,6 +3,9 @@
 
 from .base import BaseDAO
 from ..models import Config, Retention, Tenant
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class RetentionDAO(BaseDAO):
@@ -52,3 +55,16 @@ class RetentionDAO(BaseDAO):
             session.add(retention)
             session.flush()
             session.expunge(retention)
+
+    def delete(self, tenant_uuid):
+        with self.new_session() as session:
+            deleted_count = (
+                session.query(Retention)
+                .filter(Retention.tenant_uuid == tenant_uuid)
+                .delete()
+            )
+            logger.debug(
+                "Deleted %d Retention entries for tenant_uuid %s",
+                deleted_count,
+                tenant_uuid,
+            )

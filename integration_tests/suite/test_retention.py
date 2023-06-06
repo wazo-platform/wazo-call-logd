@@ -5,6 +5,7 @@ from hamcrest import (
     assert_that,
     calling,
     contains,
+    empty,
     has_entries,
     has_properties,
 )
@@ -129,3 +130,16 @@ class TestRetention(IntegrationTest):
             )
 
         until.assert_(event_received, tries=3)
+
+    @retention()
+    def test_tenant_cleanup(self, retention: dict):
+        self.bus.send_tenant_deleted(retention['tenant_uuid'])
+
+        def assert_no_retention_for_tenant():
+            with self.database.queries() as queries:
+                retentions = queries.find_retentions(
+                    tenant_uuid=retention['tenant_uuid']
+                )
+                assert_that(retentions, empty())
+
+        until.assert_(assert_no_retention_for_tenant, tries=5)
