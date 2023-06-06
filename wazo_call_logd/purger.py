@@ -1,20 +1,13 @@
 # Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os
 import datetime
 import logging
+import os
 
 from sqlalchemy import func
 
-from .database.models import (
-    CallLog,
-    Config,
-    Export,
-    Recording,
-    Retention,
-    Tenant,
-)
+from .database.models import CallLog, Config, Export, Recording, Retention, Tenant
 
 logger = logging.getLogger(__name__)
 

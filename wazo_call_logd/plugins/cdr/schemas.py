@@ -1,13 +1,7 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import (
-    EXCLUDE,
-    post_load,
-    pre_dump,
-    pre_load,
-    post_dump,
-)
+from marshmallow import EXCLUDE, post_dump, post_load, pre_dump, pre_load
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema

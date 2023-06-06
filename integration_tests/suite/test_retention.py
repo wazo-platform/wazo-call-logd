@@ -1,24 +1,13 @@
-# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    calling,
-    contains,
-    empty,
-    has_entries,
-    has_properties,
-)
+from hamcrest import assert_that, calling, contains, empty, has_entries, has_properties
 from wazo_call_logd_client.exceptions import CallLogdError
 from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
-from .helpers.constants import (
-    MASTER_TENANT,
-    OTHER_TENANT,
-    UNKNOWN_UUID,
-)
+from .helpers.constants import MASTER_TENANT, OTHER_TENANT, UNKNOWN_UUID
 from .helpers.database import retention
 
 

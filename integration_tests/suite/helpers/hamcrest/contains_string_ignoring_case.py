@@ -1,4 +1,4 @@
-# Copyright 2011-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2011-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: BSD-3-Clause
 
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
@@ -6,8 +6,8 @@
 
 # Derived from https://github.com/hamcrest/PyHamcrest/blob/master/src/hamcrest/library/text/stringcontains.py
 
-from hamcrest.library.text.substringmatcher import SubstringMatcher
 from hamcrest.core.helpers.hasmethod import hasmethod
+from hamcrest.library.text.substringmatcher import SubstringMatcher
 
 __author__ = "Jon Reid"
 __copyright__ = "Copyright 2011 hamcrest.org"

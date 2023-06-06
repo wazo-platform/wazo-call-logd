@@ -5,15 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 import sqlalchemy as sa
-
-from sqlalchemy import distinct
-from sqlalchemy import sql, func, and_
+from sqlalchemy import and_, distinct, func, sql
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.orm import joinedload, Query
-from sqlalchemy.orm import subqueryload
+from sqlalchemy.orm import Query, joinedload, subqueryload
 
-from .base import BaseDAO
 from ..models import CallLog, CallLogParticipant
+from .base import BaseDAO
 
 
 class CallLogDAO(BaseDAO):

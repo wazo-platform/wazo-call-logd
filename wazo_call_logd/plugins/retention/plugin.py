@@ -1,14 +1,15 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from .http import RetentionResource
-from .services import RetentionService
-from .notifier import RetentionNotifier
-from .listener import RententionListener
+from flask_restful import Api
 
 from wazo_call_logd.bus import BusConsumer, BusPublisher
 from wazo_call_logd.database.queries import DAO
-from flask_restful import Api
+
+from .http import RetentionResource
+from .listener import RententionListener
+from .notifier import RetentionNotifier
+from .services import RetentionService
 
 
 class Plugin:

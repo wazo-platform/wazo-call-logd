@@ -1,23 +1,16 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
+from datetime import timedelta as td
+from datetime import timezone as tz
 
-from datetime import (
-    timedelta as td,
-    timezone as tz,
-)
-from hamcrest import (
-    assert_that,
-    contains_inanyorder,
-    has_properties,
-    none,
-)
+from hamcrest import assert_that, contains_inanyorder, has_properties, none
 
 from wazo_call_logd.database.models import Recording
 
 from .helpers.base import DBIntegrationTest
-from .helpers.database import recording, call_log
+from .helpers.database import call_log, recording
 
 
 class TestRecording(DBIntegrationTest):

@@ -7,22 +7,20 @@ from typing import TYPE_CHECKING
 
 from flask import g, send_file
 from xivo import tenant_helpers
-
 from xivo.auth_verifier import required_acl
-from xivo.tenant_flask_helpers import auth_client, token, Tenant
+from xivo.tenant_flask_helpers import Tenant, auth_client, token
+
 from wazo_call_logd.auth import extract_token_id_from_query_or_header
 from wazo_call_logd.exceptions import ExportNotFoundException
 from wazo_call_logd.http import AuthResource
 
 from .exceptions import (
     ExportErrorException,
-    ExportNotDoneYetException,
     ExportFSNotFoundException,
     ExportFSPermissionException,
+    ExportNotDoneYetException,
 )
-from .schemas import (
-    ExportSchema,
-)
+from .schemas import ExportSchema
 
 if TYPE_CHECKING:
     from .services import ExportService

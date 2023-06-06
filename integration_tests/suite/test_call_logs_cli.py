@@ -1,10 +1,8 @@
 # Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import (
-    datetime as dt,
-    timedelta as td,
-)
+from datetime import datetime as dt
+from datetime import timedelta as td
 
 from hamcrest import (
     assert_that,
@@ -15,9 +13,10 @@ from hamcrest import (
     has_properties,
 )
 from xivo_dao.alchemy.cel import CEL
+
 from wazo_call_logd.database.models import CallLog, Recording
 
-from .helpers.base import cdr, raw_cels, RawCelIntegrationTest
+from .helpers.base import RawCelIntegrationTest, cdr, raw_cels
 from .helpers.constants import NOW
 from .helpers.database import call_log, cel, recording
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy

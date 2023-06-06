@@ -2,15 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
-from datetime import (
-    datetime as dt,
-    timedelta as td,
-)
-from functools import wraps
 import logging
-import sqlalchemy as sa
-
 from contextlib import contextmanager
+from datetime import datetime as dt
+from datetime import timedelta as td
+from functools import wraps
+
+import sqlalchemy as sa
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.stat_agent import StatAgent
@@ -28,7 +26,6 @@ from wazo_call_logd.database.models import (
 )
 
 from .constants import MASTER_TENANT, USER_1_UUID
-
 
 logger = logging.getLogger(__name__)
 

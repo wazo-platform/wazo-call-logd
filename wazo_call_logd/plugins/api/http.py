@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-import yaml
 
+import yaml
 from flask import make_response
 from flask_restful import Resource
 from xivo.chain_map import ChainMap

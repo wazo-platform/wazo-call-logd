@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
-import requests
-
 from io import StringIO
+
+import requests
 from hamcrest import (
     all_of,
     any_of,
@@ -12,40 +12,41 @@ from hamcrest import (
     calling,
     contains_exactly,
     contains_inanyorder,
-    equal_to,
     empty,
-    has_entry,
+    equal_to,
     has_entries,
+    has_entry,
     has_items,
     has_key,
     has_length,
     has_properties,
 )
-from wazo_call_logd.database.models import Destination
 from wazo_call_logd_client.exceptions import CallLogdError
 from wazo_test_helpers.auth import MockUserToken
 from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
-from .helpers.base import cdr, IntegrationTest
+from wazo_call_logd.database.models import Destination
+
+from .helpers.base import IntegrationTest, cdr
 from .helpers.constants import (
     ALICE,
     BOB,
     CHARLES,
+    MASTER_TENANT,
+    MASTER_TOKEN,
+    MINUTES,
     NON_USER_TOKEN,
-    OTHER_USER_UUID,
-    OTHER_USER_TOKEN,
+    NOW,
     OTHER_TENANT,
+    OTHER_USER_TOKEN,
+    OTHER_USER_UUID,
+    USER_1_TOKEN,
     USER_1_UUID,
+    USER_2_TOKEN,
     USER_2_UUID,
     USER_3_UUID,
     USERS_TENANT,
-    USER_1_TOKEN,
-    USER_2_TOKEN,
-    MASTER_TOKEN,
-    MASTER_TENANT,
-    MINUTES,
-    NOW,
 )
 from .helpers.database import call_log, call_logs
 from .helpers.hamcrest.contains_string_ignoring_case import (

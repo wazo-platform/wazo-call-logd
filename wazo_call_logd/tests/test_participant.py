@@ -4,14 +4,10 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
-from hamcrest import (
-    assert_that,
-    has_properties,
-    none,
-)
+from hamcrest import assert_that, has_properties, none
+from requests.exceptions import HTTPError
 
 from ..participant import find_participant, find_participant_by_uuid
-from requests.exceptions import HTTPError
 
 
 def confd_mock(lines=None):

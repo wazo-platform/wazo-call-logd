@@ -4,21 +4,22 @@
 import logging
 import os
 import smtplib
+from collections import namedtuple
+from email import policy
+from email import utils as email_utils
+from email.message import EmailMessage
+from zipfile import ZIP_DEFLATED, ZipFile
+
+from wazo_auth_client import Client as AuthClient
 
 from celery import Task
-from collections import namedtuple
-from email import utils as email_utils, policy
-from email.message import EmailMessage
-from wazo_auth_client import Client as AuthClient
-from zipfile import ZipFile, ZIP_DEFLATED
-
 from wazo_call_logd.bus import BusPublisher
 from wazo_call_logd.email import TemplateFormatter
 from wazo_call_logd.plugins.export.notifier import ExportNotifier
 
 from .exceptions import (
-    RecordingMediaFSPermissionException,
     RecordingMediaFSNotFoundException,
+    RecordingMediaFSPermissionException,
 )
 
 logger = logging.getLogger(__name__)

@@ -1,11 +1,11 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
-
-from wazo_call_logd.http import AuthResource
 from xivo.auth_verifier import required_acl
 from xivo.tenant_flask_helpers import Tenant
+
+from wazo_call_logd.http import AuthResource
 
 from .schemas import RetentionSchema
 

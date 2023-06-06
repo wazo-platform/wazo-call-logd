@@ -1,11 +1,11 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import os
 
-import alembic.config
 import alembic.command
+import alembic.config
 import alembic.migration
 from sqlalchemy import create_engine
 

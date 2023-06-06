@@ -2,9 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import urllib.parse
-
 from unittest import TestCase
-from unittest.mock import Mock, sentinel, create_autospec
+from unittest.mock import Mock, create_autospec, sentinel
 
 from hamcrest import (
     assert_that,
@@ -21,10 +20,10 @@ from ..cel_interpretor import (
     AbstractCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
+    _extract_user_missed_call_variables,
     extract_cel_extra,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
-    _extract_user_missed_call_variables,
 )
 from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog

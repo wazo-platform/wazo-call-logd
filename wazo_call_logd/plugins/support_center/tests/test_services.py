@@ -1,16 +1,12 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import pytz
-
 from datetime import datetime
-from hamcrest import (
-    assert_that,
-    contains_exactly,
-)
 from unittest import TestCase
 
+import pytz
 from dateutil.relativedelta import relativedelta
+from hamcrest import assert_that, contains_exactly
 
 from wazo_call_logd.plugins.support_center.services import QueueStatisticsService
 

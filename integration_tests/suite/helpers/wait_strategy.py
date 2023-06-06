@@ -1,8 +1,7 @@
-# Copyright 2016-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2016-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
-
 from hamcrest import assert_that, has_entries, has_entry, only_contains
 from wazo_test_helpers import until
 from wazo_test_helpers.wait_strategy import WaitStrategy

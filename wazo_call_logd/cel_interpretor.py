@@ -1,21 +1,20 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
-from typing import Callable
 
 import json
-import re
 import logging
+import re
 import urllib.parse
+from typing import Callable
 
 from xivo.asterisk.line_identity import identity_from_channel
+from xivo_dao.alchemy.cel import CEL
 
 from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
 from .raw_call_log import RawCallLog
 from .utils import find
-from xivo_dao.alchemy.cel import CEL
-
 
 logger = logging.getLogger(__name__)
 

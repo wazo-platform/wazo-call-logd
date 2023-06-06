@@ -1,12 +1,8 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from .http import ExportDownloadResource, ExportResource
 from .services import ExportService
-
-from .http import (
-    ExportDownloadResource,
-    ExportResource,
-)
 
 
 class Plugin:

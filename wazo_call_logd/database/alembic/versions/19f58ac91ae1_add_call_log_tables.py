@@ -5,9 +5,9 @@ Revises: 5648242a2fee
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '19f58ac91ae1'

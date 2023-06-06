@@ -1,24 +1,23 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import (
-    datetime as dt,
-    timedelta as td,
-)
+from datetime import datetime as dt
+from datetime import timedelta as td
+
 from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
+    empty,
     has_entries,
     has_length,
-    empty,
-    has_property,
     has_properties,
+    has_property,
 )
+
 from wazo_call_logd.database.models import CallLog, CallLogParticipant, Recording
 
-from .helpers.base import cdr, DBIntegrationTest
-from .helpers.database import recording, call_log
+from .helpers.base import DBIntegrationTest, cdr
 from .helpers.constants import (
     ALICE,
     BOB,
@@ -28,6 +27,7 @@ from .helpers.constants import (
     NOW,
     USER_1_UUID,
 )
+from .helpers.database import call_log, recording
 
 
 class TestCallLog(DBIntegrationTest):

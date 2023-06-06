@@ -2,16 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from typing import Literal
-import logging
 
 from wazo_call_logd.database.models import CallLog, CallLogParticipant
 from wazo_call_logd.exceptions import InvalidCallLogException
-from wazo_call_logd.extension_filter import (
-    ExtensionFilter,
-    DEFAULT_HIDDEN_EXTENSIONS,
-)
+from wazo_call_logd.extension_filter import DEFAULT_HIDDEN_EXTENSIONS, ExtensionFilter
 from wazo_call_logd.utils import OrderedDefaultDict
 
 logger = logging.getLogger(__name__)

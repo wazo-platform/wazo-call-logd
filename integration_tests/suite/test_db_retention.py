@@ -1,19 +1,15 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
 
-from hamcrest import (
-    assert_that,
-    equal_to,
-    has_properties,
-)
+from hamcrest import assert_that, equal_to, has_properties
 
 from wazo_call_logd.database.models import Retention
 
 from .helpers.base import DBIntegrationTest
+from .helpers.constants import MASTER_TENANT, UNKNOWN_UUID
 from .helpers.database import retention
-from .helpers.constants import UNKNOWN_UUID, MASTER_TENANT
 
 
 class TestRecording(DBIntegrationTest):

@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from wazo_call_logd.database.queries import DAO
     from wazo_call_logd.database.models import Export
+    from wazo_call_logd.database.queries import DAO
 
 
 class ExportService:
