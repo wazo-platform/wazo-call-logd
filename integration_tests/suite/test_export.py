@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
-import requests
 import zipfile
-
 from datetime import datetime, timedelta
+from io import BytesIO
+
+import requests
 from hamcrest import (
     assert_that,
     calling,
@@ -16,8 +17,6 @@ from hamcrest import (
     has_key,
     has_properties,
 )
-from io import BytesIO
-
 from wazo_call_logd_client.exceptions import CallLogdError
 from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises

@@ -1,29 +1,20 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
+from datetime import datetime as dt
+from datetime import timedelta as td
+from datetime import timezone as tz
 
-from datetime import (
-    datetime as dt,
-    timedelta as td,
-    timezone as tz,
-)
-from hamcrest import (
-    assert_that,
-    calling,
-    has_properties,
-    not_none,
-)
+from hamcrest import assert_that, calling, has_properties, not_none
 from wazo_test_helpers.hamcrest.raises import raises
+
 from wazo_call_logd.database.models import Export
 from wazo_call_logd.exceptions import ExportNotFoundException
 
 from .helpers.base import DBIntegrationTest
+from .helpers.constants import MASTER_TENANT, OTHER_TENANT
 from .helpers.database import export
-from .helpers.constants import (
-    MASTER_TENANT,
-    OTHER_TENANT,
-)
 
 
 class TestDBExport(DBIntegrationTest):

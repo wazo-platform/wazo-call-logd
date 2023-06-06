@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import logging
-import requests.exceptions
-from xivo.asterisk.protocol_interface import (
-    protocol_interface_from_channel,
-    InvalidChannelError,
-)
-from wazo_confd_client import Client as ConfdClient
 from typing import NamedTuple
+
+import requests.exceptions
+from wazo_confd_client import Client as ConfdClient
+from xivo.asterisk.protocol_interface import (
+    InvalidChannelError,
+    protocol_interface_from_channel,
+)
 
 logger = logging.getLogger(__name__)
 

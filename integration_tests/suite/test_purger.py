@@ -1,11 +1,10 @@
 # Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import (
-    datetime as dt,
-    timedelta as td,
-)
-from hamcrest import assert_that, has_length, equal_to
+from datetime import datetime as dt
+from datetime import timedelta as td
+
+from hamcrest import assert_that, equal_to, has_length
 
 from wazo_call_logd.database.models import CallLog, Export, Recording
 

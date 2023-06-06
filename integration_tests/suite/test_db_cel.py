@@ -1,4 +1,4 @@
-# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import timedelta as td
@@ -9,8 +9,8 @@ from hamcrest import (
     contains_exactly,
     contains_inanyorder,
     empty,
-    has_property,
     has_properties,
+    has_property,
 )
 from xivo_dao.alchemy.cel import CEL
 

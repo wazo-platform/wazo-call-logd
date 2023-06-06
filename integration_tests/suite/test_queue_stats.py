@@ -1,8 +1,7 @@
-# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytz
-
 from hamcrest import (
     assert_that,
     calling,
@@ -12,13 +11,12 @@ from hamcrest import (
     has_items,
     has_properties,
 )
-from wazo_test_helpers.hamcrest.raises import raises
-
 from wazo_call_logd_client.exceptions import CallLogdError
+from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import MASTER_TENANT
-from .helpers.database import stat_queue, stat_queue_periodic, stat_call_on_queue
+from .helpers.database import stat_call_on_queue, stat_queue, stat_queue_periodic
 from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
 )

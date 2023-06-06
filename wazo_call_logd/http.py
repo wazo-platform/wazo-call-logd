@@ -1,10 +1,9 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask_restful import Resource
+from xivo import mallow_helpers, rest_api_helpers
 from xivo.auth_verifier import AuthVerifier
-from xivo import mallow_helpers
-from xivo import rest_api_helpers
 
 auth_verifier = AuthVerifier()
 

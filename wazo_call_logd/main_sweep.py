@@ -1,4 +1,4 @@
-# Copyright 2012-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2012-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -8,23 +8,26 @@ import sys
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
 from xivo.chain_map import ChainMap
-from xivo.config_helper import parse_config_file
-from xivo.config_helper import read_config_file_hierarchy
-from xivo.config_helper import set_xivo_uuid
+from xivo.config_helper import (
+    parse_config_file,
+    read_config_file_hierarchy,
+    set_xivo_uuid,
+)
 from xivo.daemonize import pidfile_context
 from xivo.token_renewer import TokenRenewer
-from xivo.xivo_logging import setup_logging
-from xivo.xivo_logging import silence_loggers
+from xivo.xivo_logging import setup_logging, silence_loggers
 from xivo_dao import init_db_from_config
 
 from wazo_call_logd.bus import BusPublisher
+from wazo_call_logd.cel_interpretor import (
+    CalleeCELInterpretor,
+    CallerCELInterpretor,
+    DispatchCELInterpretor,
+    LocalOriginateCELInterpretor,
+)
 from wazo_call_logd.config import DEFAULT_CONFIG
-from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
-from wazo_call_logd.cel_interpretor import CallerCELInterpretor
-from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
-from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
-from wazo_call_logd.database.queries import DAO
 from wazo_call_logd.database.helpers import new_db_session
+from wazo_call_logd.database.queries import DAO
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter

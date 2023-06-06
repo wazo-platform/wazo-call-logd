@@ -5,8 +5,7 @@ import argparse
 import os
 
 from xivo.chain_map import ChainMap
-from xivo.config_helper import parse_config_file
-from xivo.config_helper import read_config_file_hierarchy
+from xivo.config_helper import parse_config_file, read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
 _PID_DIR = '/run/wazo-call-logd'

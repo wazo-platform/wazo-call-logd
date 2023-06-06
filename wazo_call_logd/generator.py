@@ -3,19 +3,18 @@
 from __future__ import annotations
 
 import logging
-
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
 
+from wazo_confd_client import Client as ConfdClient
+from xivo.asterisk.protocol_interface import protocol_interface_from_channel
+
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
-from xivo.asterisk.protocol_interface import protocol_interface_from_channel
-from wazo_confd_client import Client as ConfdClient
 
-from .participant import find_participant, find_participant_by_uuid, ParticipantInfo
 from .database.models import CallLogParticipant
-
+from .participant import ParticipantInfo, find_participant, find_participant_by_uuid
 
 logger = logging.getLogger(__name__)
 CallLogsCreation = namedtuple(

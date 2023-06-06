@@ -4,8 +4,8 @@
 import logging
 import signal
 import threading
-
 from functools import partial
+
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
 from xivo import plugin_helpers
@@ -13,20 +13,21 @@ from xivo.status import StatusAggregator, TokenStatus
 from xivo.token_renewer import TokenRenewer
 
 from wazo_call_logd import celery
-
-from wazo_call_logd.cel_interpretor import DispatchCELInterpretor
-from wazo_call_logd.cel_interpretor import CallerCELInterpretor
-from wazo_call_logd.cel_interpretor import CalleeCELInterpretor
-from wazo_call_logd.cel_interpretor import LocalOriginateCELInterpretor
+from wazo_call_logd.cel_interpretor import (
+    CalleeCELInterpretor,
+    CallerCELInterpretor,
+    DispatchCELInterpretor,
+    LocalOriginateCELInterpretor,
+)
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter
 
 from .auth import init_master_tenant
 from .bus import BusConsumer, BusPublisher
-from .database.queries import DAO
 from .database.helpers import new_db_session
-from .http_server import app, api, HTTPServer
+from .database.queries import DAO
+from .http_server import HTTPServer, api, app
 
 logger = logging.getLogger(__name__)
 

@@ -1,13 +1,13 @@
-# Copyright 2015-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 
 from flask import request
 from requests import HTTPError
+from werkzeug.local import LocalProxy as Proxy
 from xivo import auth_verifier
 from xivo.rest_api_helpers import APIException
-from werkzeug.local import LocalProxy as Proxy
 
 from .exceptions import TokenWithUserUUIDRequiredError
 from .http_server import app

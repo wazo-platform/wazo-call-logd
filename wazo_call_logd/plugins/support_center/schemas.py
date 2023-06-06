@@ -1,18 +1,12 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import pytz
-
-from marshmallow import (
-    post_load,
-    pre_dump,
-    pre_load,
-    validates_schema,
-    ValidationError,
-)
 from datetime import time
+
+import pytz
+from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
 from xivo.mallow import fields
-from xivo.mallow.validate import OneOf, ContainsOnly, Range, Regexp
+from xivo.mallow.validate import ContainsOnly, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
 
 HOUR_REGEX = r"^([0,1][0-9]|2[0-3]):[0-5][0-9]$"

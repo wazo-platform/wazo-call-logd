@@ -2,14 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime as dt
-from hamcrest import (
-    assert_that,
-    contains_inanyorder,
-    has_properties,
-)
+
+from hamcrest import assert_that, contains_inanyorder, has_properties
 from wazo_test_helpers import until
 
-from .helpers.base import raw_cels, RawCelIntegrationTest
+from .helpers.base import RawCelIntegrationTest, raw_cels
 from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 

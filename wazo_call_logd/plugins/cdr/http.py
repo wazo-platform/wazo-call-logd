@@ -1,15 +1,15 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import logging
 import csv
-
+import logging
 from io import StringIO
 
 from flask import g, jsonify, make_response, request, send_file, url_for
 from xivo import tenant_helpers
 from xivo.auth_verifier import required_acl
-from xivo.tenant_flask_helpers import auth_client, token, Tenant
+from xivo.tenant_flask_helpers import Tenant, auth_client, token
+
 from wazo_call_logd.auth import (
     extract_token_id_from_query_or_header,
     get_token_pbx_user_uuid_from_request,
@@ -21,19 +21,19 @@ from .exceptions import (
     CDRNotFoundException,
     CDRRecordingMediaFSPermissionException,
     NoRecordingToExportException,
-    RecordingNotFoundException,
-    RecordingMediaNotFoundException,
-    RecordingMediaFSPermissionException,
     RecordingMediaFSNotFoundException,
+    RecordingMediaFSPermissionException,
+    RecordingMediaNotFoundException,
+    RecordingNotFoundException,
 )
 from .schemas import (
+    CDRListRequestSchema,
     CDRSchema,
     CDRSchemaList,
-    CDRListRequestSchema,
-    RecordingMediaExportSchema,
+    RecordingMediaDeleteRequestSchema,
     RecordingMediaExportBodySchema,
     RecordingMediaExportRequestSchema,
-    RecordingMediaDeleteRequestSchema,
+    RecordingMediaExportSchema,
 )
 
 logger = logging.getLogger(__name__)

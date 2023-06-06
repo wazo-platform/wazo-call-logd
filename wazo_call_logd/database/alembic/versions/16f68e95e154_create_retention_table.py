@@ -5,9 +5,9 @@ Revises: cbd0bbfb6dd8
 
 """
 
+import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects.postgresql import UUID
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '16f68e95e154'

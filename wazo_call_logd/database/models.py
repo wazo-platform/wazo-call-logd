@@ -1,16 +1,15 @@
 # Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import (
-    timedelta as td,
-    timezone as tz,
-)
+from datetime import timedelta as td
+from datetime import timezone as tz
+
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, CheckConstraint, ForeignKey, Index
+from sqlalchemy.schema import CheckConstraint, Column, ForeignKey, Index
 from sqlalchemy.sql import case, select, text
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String, Text
 from sqlalchemy_utils import UUIDType, generic_repr

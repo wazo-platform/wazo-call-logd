@@ -1,5 +1,6 @@
-from wazo_call_logd.utils import find, OrderedDefaultDict
 from unittest import TestCase
+
+from wazo_call_logd.utils import OrderedDefaultDict, find
 
 
 class TestFind(TestCase):

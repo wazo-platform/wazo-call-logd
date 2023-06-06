@@ -3,32 +3,27 @@
 
 import logging
 import os
-import pytz
 import random
-
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from contextlib import contextmanager, wraps
+from datetime import datetime
+
+import pytz
+from dateutil.relativedelta import relativedelta
 from hamcrest import assert_that
 from requests.packages import urllib3
 from wazo_call_logd_client.client import Client as CallLogdClient
 from wazo_test_helpers import until
-from wazo_test_helpers.auth import (
-    AuthClient,
-    MockUserToken,
-    MockCredentials,
-)
-from wazo_test_helpers.wait_strategy import NoWaitStrategy
 from wazo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
-    NoSuchService,
     NoSuchPort,
+    NoSuchService,
 )
+from wazo_test_helpers.auth import AuthClient, MockCredentials, MockUserToken
+from wazo_test_helpers.wait_strategy import NoWaitStrategy
 
 from wazo_call_logd.database.helpers import new_db_session
 from wazo_call_logd.database.queries import DAO
 
-from .wait_strategy import CallLogdEverythingUpWaitStrategy
 from .bus import CallLogBusClient
 from .confd import ConfdClient
 from .constants import (
@@ -45,16 +40,17 @@ from .constants import (
     OTHER_USER_UUID,
     SECONDS,
     TIME_FORMAT,
-    USERS_TENANT,
     USER_1_TOKEN,
     USER_1_UUID,
     USER_2_TOKEN,
     USER_2_UUID,
+    USERS_TENANT,
     WAZO_UUID,
 )
 from .database import DbHelper
 from .email import EmailClient
 from .filesystem import FileSystemClient
+from .wait_strategy import CallLogdEverythingUpWaitStrategy
 
 urllib3.disable_warnings()
 logger = logging.getLogger(__name__)

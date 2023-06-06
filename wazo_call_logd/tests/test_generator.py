@@ -1,32 +1,32 @@
-# Copyright 2013-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
-from unittest import TestCase
-from unittest.mock import ANY, Mock, patch, create_autospec
 from collections import defaultdict
+from unittest import TestCase
+from unittest.mock import ANY, Mock, create_autospec, patch
 
 import requests.exceptions
-
 from hamcrest import (
     all_of,
+    anything,
     assert_that,
     calling,
-    contains_exactly,
     contains,
+    contains_exactly,
     contains_inanyorder,
+    empty,
     equal_to,
-    has_property,
-    has_properties,
     has_length,
+    has_properties,
+    has_property,
     is_,
     raises,
-    anything,
-    empty,
 )
-from wazo_call_logd.raw_call_log import RawCallLog
-from wazo_call_logd.generator import CallLogsGenerator, _ParticipantsProcessor
+
 from wazo_call_logd.exceptions import InvalidCallLogException
+from wazo_call_logd.generator import CallLogsGenerator, _ParticipantsProcessor
+from wazo_call_logd.raw_call_log import RawCallLog
 
 
 def mock_call():

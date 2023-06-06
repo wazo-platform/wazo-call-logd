@@ -1,22 +1,15 @@
-# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import (
-    datetime as dt,
-    timezone as tz,
-    timedelta as td,
-)
+from datetime import datetime as dt
+from datetime import timedelta as td
+from datetime import timezone as tz
 
-from hamcrest import (
-    assert_that,
-    contains_inanyorder,
-    empty,
-    equal_to,
-    has_entries,
-)
+from hamcrest import assert_that, contains_inanyorder, empty, equal_to, has_entries
+
 from .helpers.base import DBIntegrationTest
-from .helpers.database import stat_queue, stat_queue_periodic, stat_call_on_queue
 from .helpers.constants import OTHER_TENANT, USERS_TENANT
+from .helpers.database import stat_call_on_queue, stat_queue, stat_queue_periodic
 
 QUEUE_ID = 1
 

@@ -1,13 +1,13 @@
-# Copyright 2022-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from xivo.status import Status
 from xivo_bus.consumer import BusConsumer as BaseConsumer
 from xivo_bus.publisher import BusPublisher as BasePublisher
 from xivo_bus.resources.call_logs.events import (
     CallLogCreatedEvent,
     CallLogUserCreatedEvent,
 )
-from xivo.status import Status
 
 from wazo_call_logd.plugins.cdr.schemas import CDRSchema
 

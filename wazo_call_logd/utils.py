@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import Callable, TypeVar
-from collections.abc import Iterable
-from collections import OrderedDict
 
+from collections import OrderedDict
+from collections.abc import Iterable
+from typing import Callable, TypeVar
 
 T = TypeVar("T")
 

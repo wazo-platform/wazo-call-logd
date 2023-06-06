@@ -1,12 +1,11 @@
 # Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import func, text
 from marshmallow import Schema, fields
-
-from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
-from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
+from sqlalchemy import func, text
 from xivo_dao.alchemy.stat_agent import StatAgent
+from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
+from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 
 from .base import BaseDAO
 

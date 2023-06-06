@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime
+
 from hamcrest import (
-    assert_that,
     all_of,
     any_of,
+    assert_that,
     contains,
     contains_inanyorder,
     empty,
@@ -15,20 +16,20 @@ from hamcrest import (
     has_length,
     has_properties,
     is_,
+    none,
     not_,
     not_none,
-    none,
 )
 from wazo_test_helpers import until
 
-from .helpers.base import raw_cels, RawCelIntegrationTest
+from .helpers.base import RawCelIntegrationTest, raw_cels
 from .helpers.confd import MockContext, MockLine, MockUser
 from .helpers.constants import (
+    SERVICE_TENANT,
     USER_1_UUID,
     USER_2_UUID,
     USER_3_UUID,
     USERS_TENANT,
-    SERVICE_TENANT,
 )
 
 

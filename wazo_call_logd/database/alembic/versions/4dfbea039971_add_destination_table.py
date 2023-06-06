@@ -5,8 +5,8 @@ Revises: 4e193f4c53d0
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy_utils import UUIDType
 
 # revision identifiers, used by Alembic.

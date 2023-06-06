@@ -1,10 +1,10 @@
-# Copyright 2020-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-import pytz
 
 from copy import copy
 from datetime import datetime
+
+import pytz
 from dateutil.relativedelta import relativedelta
 
 from .exceptions import (

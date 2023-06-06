@@ -1,9 +1,10 @@
-# Copyright 2020-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
 from xivo.auth_verifier import required_acl
-from xivo.tenant_flask_helpers import token, Tenant
+from xivo.tenant_flask_helpers import Tenant, token
+
 from wazo_call_logd.http import AuthResource
 
 from .schemas import (
@@ -11,10 +12,10 @@ from .schemas import (
     AgentStatisticsRequestSchema,
     AgentStatisticsSchemaList,
     QueueStatisticsListRequestSchema,
-    QueueStatisticsRequestSchema,
     QueueStatisticsQoSRequestSchema,
-    QueueStatisticsSchemaList,
     QueueStatisticsQoSSchemaList,
+    QueueStatisticsRequestSchema,
+    QueueStatisticsSchemaList,
 )
 
 

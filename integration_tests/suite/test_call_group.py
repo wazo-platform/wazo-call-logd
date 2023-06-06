@@ -1,10 +1,10 @@
-# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import has_properties
 
+from .helpers.base import RawCelIntegrationTest, raw_cels
 from .helpers.confd import MockContext, MockLine, MockUser
-from .helpers.base import raw_cels, RawCelIntegrationTest
 from .helpers.constants import USERS_TENANT
 
 
