@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class RententionListener:
+class RetentionListener:
     dao: RetentionDAO
 
     def tenant_deleted(self, event: dict):
