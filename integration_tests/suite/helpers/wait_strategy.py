@@ -8,7 +8,7 @@ from wazo_test_helpers.wait_strategy import WaitStrategy
 
 
 class ComponentsWaitStrategy(WaitStrategy):
-    def __init__(self, components):
+    def __init__(self, components: list[str]):
         self._components = components
 
     def wait(self, integration_test):
@@ -20,9 +20,7 @@ class ComponentsWaitStrategy(WaitStrategy):
 
             assert_that(
                 status,
-                has_entries(
-                    dict.fromkeys(self._components, value=has_entry('status', 'ok'))
-                ),
+                has_entries(dict.fromkeys(components, has_entry('status', 'ok'))),
             )
 
         until.assert_(components_are_ok, self._components, timeout=10)
