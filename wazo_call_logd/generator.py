@@ -6,9 +6,11 @@ import logging
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
+from typing import Iterator
 
 from wazo_confd_client import Client as ConfdClient
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
+from xivo_dao.alchemy.cel import CEL
 
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
@@ -17,6 +19,8 @@ from .database.models import CallLogParticipant
 from .participant import ParticipantInfo, find_participant, find_participant_by_uuid
 
 logger = logging.getLogger(__name__)
+
+
 CallLogsCreation = namedtuple(
     'CallLogsCreation', ('new_call_logs', 'call_logs_to_delete')
 )
@@ -156,7 +160,12 @@ class CallLogsGenerator:
 
     def call_logs_from_cel(self, cels):
         result = []
-        for _, cels_by_call_iter in self._group_cels_by_linkedid(cels):
+        for linkedids, cels_by_call_iter in self._group_cels_by_shared_channels(cels):
+            logger.debug(
+                'interpreting %d cels from correlated linkedids(%s)',
+                len(cels_by_call_iter),
+                linkedids,
+            )
             cels_by_call = list(cels_by_call_iter)
 
             call_log = RawCallLog()
@@ -185,6 +194,44 @@ class CallLogsGenerator:
     def _group_cels_by_linkedid(self, cels):
         cels = sorted(cels, key=attrgetter('linkedid'))
         return groupby(cels, key=attrgetter('linkedid'))
+
+    def _group_cels_by_shared_channels(
+        self, cels: list[CEL]
+    ) -> Iterator[(set[str], list[CEL])]:
+        cels = sorted(cels, key=attrgetter('linkedid'))
+        linkedid_sequences = [
+            (linkedid, list(cels))
+            for linkedid, cels in groupby(cels, key=attrgetter('linkedid'))
+        ]
+
+        # identify linkedid-based cel sequences that share uniqueids(i.e. channels)
+        # this correlation is transitive, i.e. if a channel is shared between sequence a and b, and between b and c,
+        # then a and c are also correlated
+        correlation_groups: list[(set[str], set[str], list[CEL])] = []
+        for linkedid, cels in linkedid_sequences:
+            uniqueids = set(cel.uniqueid for cel in cels)
+            correlated_sequences = False
+            for (
+                correlated_uniqueids,
+                correlated_linkedids,
+                correlated_cels,
+            ) in correlation_groups:
+                # correlation identified if any channel in this cel sequence are also in other sequences in the group
+                if uniqueids & correlated_uniqueids:
+                    correlated_cels.extend(cels)  # add cels to correlation group
+                    correlated_uniqueids.update(
+                        uniqueids
+                    )  # expand the correlation group to the channels of this sequence
+                    correlated_sequences = True
+                    correlated_linkedids.add(linkedid)
+            if not correlated_sequences:
+                # if no correlation found, create a new correlation group
+                correlation_groups.append((uniqueids, {linkedid}, list(cels)))
+
+        yield from (
+            (linkedids, sorted(cels, key=attrgetter('eventtime')))
+            for (uniqueids, linkedids, cels) in correlation_groups
+        )
 
     def _get_interpretor(self, cels):
         for interpretor in self._cel_interpretors:
