@@ -1,6 +1,7 @@
-from wazo_call_logd.database.queries.retention import RetentionDAO
 import logging
 from dataclasses import dataclass
+
+from wazo_call_logd.database.queries.retention import RetentionDAO
 
 logger = logging.getLogger(__name__)
 
