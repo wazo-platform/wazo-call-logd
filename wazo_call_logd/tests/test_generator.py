@@ -23,7 +23,9 @@ from hamcrest import (
     is_,
     raises,
 )
+from xivo_dao.alchemy.cel import CEL
 
+from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.generator import CallLogsGenerator, _ParticipantsProcessor
 from wazo_call_logd.raw_call_log import RawCallLog
@@ -74,7 +76,7 @@ class TestCallLogsGenerator(TestCase):
     @patch('wazo_call_logd.generator.RawCallLog')
     def test_call_logs_from_cel_one_call(self, raw_call_log_constructor):
         linkedid = '9328742934'
-        cels = self._generate_cel_for_call([linkedid])
+        cels = self._generate_cels_for_call(linkedid)
         call = mock_call()
         self.interpretor.interpret_cels.return_value = call
         raw_call_log_constructor.return_value = call
@@ -87,8 +89,8 @@ class TestCallLogsGenerator(TestCase):
 
     @patch('wazo_call_logd.generator.RawCallLog')
     def test_call_logs_from_cel_two_calls(self, raw_call_log_constructor):
-        cels_1 = self._generate_cel_for_call('9328742934')
-        cels_2 = self._generate_cel_for_call('2707230959')
+        cels_1 = self._generate_cels_for_call('9328742934')
+        cels_2 = self._generate_cels_for_call('2707230959')
         cels = cels_1 + cels_2
         call_1 = mock_call()
         call_2 = mock_call()
@@ -107,8 +109,8 @@ class TestCallLogsGenerator(TestCase):
     def test_call_logs_from_cel_two_calls_one_valid_one_invalid(
         self, raw_call_log_constructor
     ):
-        cels_1 = self._generate_cel_for_call('9328742934')
-        cels_2 = self._generate_cel_for_call('2707230959')
+        cels_1 = self._generate_cels_for_call('9328742934')
+        cels_2 = self._generate_cels_for_call('2707230959')
         cels = cels_1 + cels_2
         call_1 = mock_call()
         call_2 = mock_call()
@@ -121,6 +123,31 @@ class TestCallLogsGenerator(TestCase):
 
         self.interpretor.interpret_cels.assert_any_call(cels_1, ANY)
         self.interpretor.interpret_cels.assert_any_call(cels_2, ANY)
+        assert_that(result, contains_exactly(expected_call_1))
+
+    @patch('wazo_call_logd.generator.RawCallLog')
+    def test_call_logs_from_cels_incomplete_call(self, raw_call_log_constructor):
+        cels = self._generate_cels_for_incomplete_call('9328742934')
+        raw_call_log_constructor.side_effect = AssertionError
+
+        result = self.generator.call_logs_from_cel(cels)
+        assert_that(result, empty())
+
+    @patch('wazo_call_logd.generator.RawCallLog')
+    def test_call_logs_from_cels_multiple_calls_one_incomplete(
+        self, raw_call_log_constructor
+    ):
+        cels_1 = self._generate_cels_for_incomplete_call('9328742934')
+        cels_2 = self._generate_cels_for_call('9328742935')
+        cels = cels_1 + cels_2
+        call_1 = mock_call()
+        self.interpretor.interpret_cels.side_effect = lambda cels, call: call
+        raw_call_log_constructor.side_effect = [call_1]
+        expected_call_1 = call_1.to_call_log.return_value
+
+        result = self.generator.call_logs_from_cel(cels)
+        self.interpretor.interpret_cels.assert_any_call(cels_2, ANY)
+
         assert_that(result, contains_exactly(expected_call_1))
 
     def test_list_call_log_ids(self):
@@ -150,7 +177,7 @@ class TestCallLogsGenerator(TestCase):
                 interpretor_false,
             ],
         )
-        cels = self._generate_cel_for_call(['545783248'])
+        cels = self._generate_cels_for_call('545783248')
 
         generator.call_logs_from_cel(cels)
 
@@ -162,17 +189,48 @@ class TestCallLogsGenerator(TestCase):
         interpretor = Mock()
         interpretor.can_interpret.return_value = False
         generator = CallLogsGenerator(self.confd_client, [interpretor])
-        cels = self._generate_cel_for_call(['545783248'])
+        cels = self._generate_cels_for_call('545783248')
 
         assert_that(
             calling(generator.call_logs_from_cel).with_args(cels), raises(RuntimeError)
         )
 
-    def _generate_cel_for_call(self, linked_id, cel_count=3):
+    def _generate_cels_for_call(self, linked_id: str, cel_count=3):
         result = []
-        for _ in range(cel_count):
-            result.append(Mock(linkedid=linked_id))
+        for i in range(cel_count - 1):
+            result.append(
+                create_autospec(
+                    CEL,
+                    instance=True,
+                    id=i,
+                    linkedid=linked_id,
+                    eventtime=f'2023-05-31 00:00:0{i}.000000+00',
+                )
+            )
+        result.append(
+            create_autospec(
+                CEL,
+                instance=True,
+                id=i,
+                linkedid=linked_id,
+                eventtype=CELEventType.linkedid_end,
+                eventtime=f'2023-05-31 00:00:0{i}.000000+00',
+            )
+        )
+        return result
 
+    def _generate_cels_for_incomplete_call(self, linked_id: str, cel_count=3):
+        result = []
+        for i in range(cel_count):
+            result.append(
+                create_autospec(
+                    CEL,
+                    instance=True,
+                    id=i,
+                    linkedid=linked_id,
+                    eventtime=f'2023-05-31 00:00:0{i}.000000+00',
+                )
+            )
         return result
 
 
