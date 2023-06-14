@@ -6,12 +6,13 @@ import logging
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
-from typing import Iterator
+from typing import Iterator, Tuple
 
 from wazo_confd_client import Client as ConfdClient
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo_dao.alchemy.cel import CEL
 
+from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
 
@@ -160,13 +161,26 @@ class CallLogsGenerator:
 
     def call_logs_from_cel(self, cels):
         result = []
-        for linkedids, cels_by_call_iter in self._group_cels_by_shared_channels(cels):
+        for linkedids, cels_by_call in self._group_cels_by_shared_channels(cels):
             logger.debug(
                 'interpreting %d cels from correlated linkedids(%s)',
-                len(cels_by_call_iter),
+                len(cels_by_call),
                 linkedids,
             )
-            cels_by_call = list(cels_by_call_iter)
+
+            terminated_links = set(
+                cel.linkedid
+                for cel in cels_by_call
+                if cel.eventtype == CELEventType.linkedid_end
+            )
+
+            if linkedids != terminated_links:
+                unterminated_links = linkedids - terminated_links
+                logger.debug(
+                    "Skipping correlated cel sequence with incomplete linkedid sequences (%s)",
+                    ", ".join(unterminated_links),
+                )
+                continue
 
             call_log = RawCallLog()
             call_log.cel_ids = [cel.id for cel in cels_by_call]
@@ -197,7 +211,7 @@ class CallLogsGenerator:
 
     def _group_cels_by_shared_channels(
         self, cels: list[CEL]
-    ) -> Iterator[(set[str], list[CEL])]:
+    ) -> Iterator[Tuple[set[str], list[CEL]]]:
         cels = sorted(cels, key=attrgetter('linkedid'))
         linkedid_sequences = [
             (linkedid, list(cels))
