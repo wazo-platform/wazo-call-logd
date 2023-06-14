@@ -17,7 +17,7 @@ class BaseDAO:
 
     @contextmanager
     def new_session(self) -> Iterator[BaseSession]:
-        session: BaseSession = self._Session()
+        session = self._Session()
         try:
             yield session
             session.commit()
