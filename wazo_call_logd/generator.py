@@ -16,7 +16,7 @@ from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
 
-from .database.models import CallLogParticipant
+from .database.models import CallLog, CallLogParticipant
 from .participant import ParticipantInfo, find_participant, find_participant_by_uuid
 
 logger = logging.getLogger(__name__)
@@ -159,7 +159,7 @@ class CallLogsGenerator:
             call_logs_to_delete=call_logs_to_delete,
         )
 
-    def call_logs_from_cel(self, cels):
+    def call_logs_from_cel(self, cels: list[CEL]) -> list[CallLog]:
         result = []
         for linkedids, cels_by_call in self._group_cels_by_shared_channels(cels):
             logger.debug(
@@ -198,7 +198,7 @@ class CallLogsGenerator:
             try:
                 result.append(call_log.to_call_log())
             except InvalidCallLogException as e:
-                logger.debug('Invalid call log detected: %s', e)
+                logger.error('Invalid call log detected: %s', e)
 
         return result
 
@@ -337,7 +337,7 @@ class CallLogsGenerator:
                 call_log.requested_internal_exten = extension['exten']
                 call_log.requested_internal_context = extension['context']
 
-    def _remove_incomplete_recordings(self, call_log):
+    def _remove_incomplete_recordings(self, call_log: RawCallLog):
         new_recordings = []
         for recording in call_log.recordings:
             if recording.start_time is None or recording.end_time is None:
