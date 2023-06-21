@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
+import itertools
 from collections import defaultdict
 from unittest import TestCase
 from unittest.mock import ANY, Mock, create_autospec, patch
@@ -27,7 +28,11 @@ from xivo_dao.alchemy.cel import CEL
 
 from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
-from wazo_call_logd.generator import CallLogsGenerator, _ParticipantsProcessor
+from wazo_call_logd.generator import (
+    CallLogsGenerator,
+    _group_cels_by_shared_channels,
+    _ParticipantsProcessor,
+)
 from wazo_call_logd.raw_call_log import RawCallLog
 
 
@@ -302,5 +307,168 @@ class TestParticipantsProcessor(TestCase):
                 has_properties(
                     answered=True, user_uuid="some-user-uuid", role="destination"
                 )
+            ),
+        )
+
+
+class TestGroupCelsBySharedChannels(TestCase):
+    def _generate_cel_sequence(self, linked_id: str, uniqueid_generator, cel_count=3):
+        cels = []
+        for i in range(cel_count):
+            cels.append(
+                create_autospec(
+                    CEL,
+                    instance=True,
+                    linkedid=linked_id,
+                    uniqueid=uniqueid_generator(),
+                    eventtime=f'2023-05-31 00:00:0{i}.000000+00',
+                )
+            )
+        return cels
+
+    def test_group_correlated_cels(self):
+        linkedid_1 = '123456789.0'
+
+        uniqueid_cycle = itertools.cycle(
+            linkedid_1.replace('.0', f'.{i}') for i in range(5)
+        )
+        cel_sequence_1 = self._generate_cel_sequence(
+            linkedid_1, lambda: next(uniqueid_cycle), cel_count=10
+        )
+        linkedid_2 = '123456789.5'
+        # uniqueids sequence for this linkedid overlap first sequence over the first 3 elements
+        uniqueid_cycle_2 = itertools.cycle(
+            linkedid_1.replace('.0', f'.{i+3}') for i in range(5)
+        )
+        cel_sequence_2 = self._generate_cel_sequence(
+            linkedid_2, lambda: next(uniqueid_cycle_2), cel_count=10
+        )
+        assert set(cel.uniqueid for cel in cel_sequence_1) & set(
+            cel.uniqueid for cel in cel_sequence_2
+        )
+
+        groups = list(_group_cels_by_shared_channels(cel_sequence_1 + cel_sequence_2))
+
+        assert_that(groups, has_length(1))
+
+        assert_that(
+            groups,
+            contains_exactly(
+                contains_exactly(
+                    contains_inanyorder(linkedid_1, linkedid_2),
+                    contains_exactly(
+                        *sorted(
+                            cel_sequence_1 + cel_sequence_2,
+                            key=lambda cel: cel.eventtime,
+                        )
+                    ),
+                )
+            ),
+        )
+
+    def test_uncorrelated_cels(self):
+        linkedid_1 = '123456789.0'
+        uniqueids = (linkedid_1.replace('.0', f'.{i}') for i in itertools.count(0))
+
+        cel_sequence_1 = self._generate_cel_sequence(
+            linkedid_1, lambda: next(uniqueids), cel_count=10
+        )
+        linkedid_2 = '123456789.11'
+        # uniqueids sequence for this linkedid overlap first sequence over the first 3 elements
+        cel_sequence_2 = self._generate_cel_sequence(
+            linkedid_2, lambda: next(uniqueids), cel_count=10
+        )
+        assert set(cel.uniqueid for cel in cel_sequence_1).isdisjoint(
+            cel.uniqueid for cel in cel_sequence_2
+        )
+
+        groups = list(_group_cels_by_shared_channels(cel_sequence_1 + cel_sequence_2))
+
+        assert_that(groups, has_length(2))
+
+        assert_that(
+            groups,
+            contains_inanyorder(
+                contains_exactly(
+                    contains_inanyorder(linkedid_1),
+                    contains_exactly(
+                        *sorted(
+                            cel_sequence_1,
+                            key=lambda cel: cel.eventtime,
+                        )
+                    ),
+                ),
+                contains_exactly(
+                    contains_inanyorder(linkedid_2),
+                    contains_exactly(
+                        *sorted(
+                            cel_sequence_2,
+                            key=lambda cel: cel.eventtime,
+                        )
+                    ),
+                ),
+            ),
+        )
+
+    def test_correlated_and_uncorrelated_cels(self):
+        linkedid_1 = '123456789.0'
+        uniqueids = (linkedid_1.replace('.0', f'.{i}') for i in itertools.count(0))
+
+        cel_sequence_1 = self._generate_cel_sequence(
+            linkedid_1, lambda: next(uniqueids), cel_count=10
+        )
+        linkedid_2 = '123456789.11'
+        # uniqueids sequence for this linkedid overlap first sequence over the first 3 elements
+        cel_sequence_2 = self._generate_cel_sequence(
+            linkedid_2, lambda: next(uniqueids), cel_count=10
+        )
+        assert set(cel.uniqueid for cel in cel_sequence_1).isdisjoint(
+            cel.uniqueid for cel in cel_sequence_2
+        )
+
+        linkedid_3 = '123456789.21'
+        uniqueids = itertools.chain(
+            (cel.uniqueid for cel in itertools.islice(cel_sequence_2, 5, None)),
+            uniqueids,
+        )
+        cel_sequence_3 = self._generate_cel_sequence(
+            linkedid_3, lambda: next(uniqueids), cel_count=10
+        )
+        assert set(cel.uniqueid for cel in cel_sequence_1).isdisjoint(
+            cel.uniqueid for cel in cel_sequence_3
+        )
+        assert set(cel.uniqueid for cel in cel_sequence_2).intersection(
+            cel.uniqueid for cel in cel_sequence_3
+        )
+
+        groups = list(
+            _group_cels_by_shared_channels(
+                cel_sequence_1 + cel_sequence_2 + cel_sequence_3
+            )
+        )
+
+        assert_that(groups, has_length(2))
+
+        assert_that(
+            groups,
+            contains_inanyorder(
+                contains_exactly(
+                    contains_inanyorder(linkedid_1),
+                    contains_exactly(
+                        *sorted(
+                            cel_sequence_1,
+                            key=lambda cel: cel.eventtime,
+                        )
+                    ),
+                ),
+                contains_exactly(
+                    contains_inanyorder(linkedid_2, linkedid_3),
+                    contains_exactly(
+                        *sorted(
+                            cel_sequence_2 + cel_sequence_3,
+                            key=lambda cel: cel.eventtime,
+                        )
+                    ),
+                ),
             ),
         )

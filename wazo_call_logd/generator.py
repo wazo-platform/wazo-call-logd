@@ -142,6 +142,45 @@ class _ParticipantsProcessor:
         call_log.participants = connected_participants + unreached_participants
 
 
+def _group_cels_by_shared_channels(
+    cels: list[CEL],
+) -> Iterator[Tuple[set[str], list[CEL]]]:
+    cels = sorted(cels, key=attrgetter('linkedid'))
+    linkedid_sequences = [
+        (linkedid, list(cels))
+        for linkedid, cels in groupby(cels, key=attrgetter('linkedid'))
+    ]
+
+    # identify linkedid-based cel sequences that share uniqueids(i.e. channels)
+    # this correlation is transitive, i.e. if a channel is shared between sequence a and b, and between b and c,
+    # then a and c are also correlated
+    correlation_groups: list[(set[str], set[str], list[CEL])] = []
+    for linkedid, cels in linkedid_sequences:
+        uniqueids = set(cel.uniqueid for cel in cels)
+        correlated_sequences = False
+        for (
+            correlated_uniqueids,
+            correlated_linkedids,
+            correlated_cels,
+        ) in correlation_groups:
+            # correlation identified if any channel in this cel sequence are also in other sequences in the group
+            if uniqueids & correlated_uniqueids:
+                correlated_cels.extend(cels)  # add cels to correlation group
+                correlated_uniqueids.update(
+                    uniqueids
+                )  # expand the correlation group to the channels of this sequence
+                correlated_sequences = True
+                correlated_linkedids.add(linkedid)
+        if not correlated_sequences:
+            # if no correlation found, create a new correlation group
+            correlation_groups.append((uniqueids, {linkedid}, list(cels)))
+
+    yield from (
+        (linkedids, sorted(cels, key=attrgetter('eventtime')))
+        for (uniqueids, linkedids, cels) in correlation_groups
+    )
+
+
 class CallLogsGenerator:
     def __init__(self, confd, cel_interpretors):
         self.confd: ConfdClient = confd
@@ -161,7 +200,7 @@ class CallLogsGenerator:
 
     def call_logs_from_cel(self, cels: list[CEL]) -> list[CallLog]:
         result = []
-        for linkedids, cels_by_call in self._group_cels_by_shared_channels(cels):
+        for linkedids, cels_by_call in _group_cels_by_shared_channels(cels):
             logger.debug(
                 'interpreting %d cels from correlated linkedids(%s)',
                 len(cels_by_call),
@@ -204,48 +243,6 @@ class CallLogsGenerator:
 
     def list_call_log_ids(self, cels):
         return {cel.call_log_id for cel in cels if cel.call_log_id}
-
-    def _group_cels_by_linkedid(self, cels):
-        cels = sorted(cels, key=attrgetter('linkedid'))
-        return groupby(cels, key=attrgetter('linkedid'))
-
-    def _group_cels_by_shared_channels(
-        self, cels: list[CEL]
-    ) -> Iterator[Tuple[set[str], list[CEL]]]:
-        cels = sorted(cels, key=attrgetter('linkedid'))
-        linkedid_sequences = [
-            (linkedid, list(cels))
-            for linkedid, cels in groupby(cels, key=attrgetter('linkedid'))
-        ]
-
-        # identify linkedid-based cel sequences that share uniqueids(i.e. channels)
-        # this correlation is transitive, i.e. if a channel is shared between sequence a and b, and between b and c,
-        # then a and c are also correlated
-        correlation_groups: list[(set[str], set[str], list[CEL])] = []
-        for linkedid, cels in linkedid_sequences:
-            uniqueids = set(cel.uniqueid for cel in cels)
-            correlated_sequences = False
-            for (
-                correlated_uniqueids,
-                correlated_linkedids,
-                correlated_cels,
-            ) in correlation_groups:
-                # correlation identified if any channel in this cel sequence are also in other sequences in the group
-                if uniqueids & correlated_uniqueids:
-                    correlated_cels.extend(cels)  # add cels to correlation group
-                    correlated_uniqueids.update(
-                        uniqueids
-                    )  # expand the correlation group to the channels of this sequence
-                    correlated_sequences = True
-                    correlated_linkedids.add(linkedid)
-            if not correlated_sequences:
-                # if no correlation found, create a new correlation group
-                correlation_groups.append((uniqueids, {linkedid}, list(cels)))
-
-        yield from (
-            (linkedids, sorted(cels, key=attrgetter('eventtime')))
-            for (uniqueids, linkedids, cels) in correlation_groups
-        )
 
     def _get_interpretor(self, cels):
         for interpretor in self._cel_interpretors:
