@@ -195,6 +195,31 @@ class TestCallLogsGenerator(TestCase):
             calling(generator.call_logs_from_cel).with_args(cels), raises(RuntimeError)
         )
 
+    @patch('wazo_call_logd.generator.RawCallLog')
+    def test_cels_from_correlated_linkedids_grouped(self, call_log_constructor):
+        sequence_1 = self._generate_cels_for_call('123456789.0')
+        sequence_2 = self._generate_cels_for_call('123456789.1')
+        sequence_2[0].uniqueid = sequence_1[0].uniqueid
+
+        self.interpretor.interpret_cels.side_effect = lambda cels, call: call
+        call_logs = self.generator.call_logs_from_cel(sequence_1 + sequence_2)
+        assert call_logs
+        self.interpretor.interpret_cels.assert_any_call(
+            sorted(sequence_1 + sequence_2, key=lambda cel: cel.eventtime), ANY
+        )
+
+    @patch('wazo_call_logd.generator.RawCallLog')
+    def test_cels_from_uncorrelated_linkedids_not_grouped(self, call_log_constructor):
+        sequence_1 = self._generate_cels_for_call('123456789.0')
+        sequence_2 = self._generate_cels_for_call('123456789.1')
+
+        self.interpretor.interpret_cels.side_effect = lambda cels, call: call
+        call_logs = self.generator.call_logs_from_cel(sequence_1 + sequence_2)
+        assert call_logs
+        self.interpretor.interpret_cels.assert_any_call(sequence_1, ANY)
+        self.interpretor.interpret_cels.assert_any_call(sequence_2, ANY)
+        assert_that(call_logs, has_length(2))
+
     def _generate_cels_for_call(self, linked_id: str, cel_count=3):
         result = []
         for i in range(cel_count - 1):
@@ -202,7 +227,6 @@ class TestCallLogsGenerator(TestCase):
                 create_autospec(
                     CEL,
                     instance=True,
-                    id=i,
                     linkedid=linked_id,
                     eventtime=f'2023-05-31 00:00:0{i}.000000+00',
                 )
@@ -211,7 +235,6 @@ class TestCallLogsGenerator(TestCase):
             create_autospec(
                 CEL,
                 instance=True,
-                id=i,
                 linkedid=linked_id,
                 eventtype=CELEventType.linkedid_end,
                 eventtime=f'2023-05-31 00:00:0{i}.000000+00',
@@ -226,7 +249,6 @@ class TestCallLogsGenerator(TestCase):
                 create_autospec(
                     CEL,
                     instance=True,
-                    id=i,
                     linkedid=linked_id,
                     eventtime=f'2023-05-31 00:00:0{i}.000000+00',
                 )
