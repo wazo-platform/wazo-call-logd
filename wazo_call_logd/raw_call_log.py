@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
+from collections import defaultdict
 from datetime import datetime
-from typing import Literal
+from typing import DefaultDict, Literal
 
 from wazo_call_logd.database.models import CallLog, CallLogParticipant
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.extension_filter import DEFAULT_HIDDEN_EXTENSIONS, ExtensionFilter
-from wazo_call_logd.utils import OrderedDefaultDict
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class RawCallLog:
         self.date_answer: datetime | None = None
         self.source_line_identity: str | None = None
         self.direction: Literal['source', 'destination', 'internal'] = 'internal'
-        self.raw_participants: dict[str, dict] = OrderedDefaultDict(default=dict)
+        self.raw_participants: DefaultDict[str, dict] = defaultdict(dict)
         self.participants_info: list[dict] = []
         self.participants: list[CallLogParticipant] = []
         self.recordings: list = []
