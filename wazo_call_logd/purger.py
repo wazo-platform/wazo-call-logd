@@ -33,6 +33,7 @@ def _remove_recording_files(call_logs):
     for call_log in call_logs:
         for recording in call_log.recordings:
             if recording.path:
+                logger.debug('Deleting recording file %s', recording.path)
                 try:
                     # NOTE(fblackburn): wazo-purge-db must be executed
                     # on the same filesystem than wazo-call-logd

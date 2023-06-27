@@ -7,7 +7,7 @@ from wazo_call_logd.bus import BusConsumer, BusPublisher
 from wazo_call_logd.database.queries import DAO
 
 from .http import RetentionResource
-from .listener import RententionListener
+from .listener import RetentionListener
 from .notifier import RetentionNotifier
 from .services import RetentionService
 
@@ -21,7 +21,7 @@ class Plugin:
 
         notifier = RetentionNotifier(bus_publisher)
         service = RetentionService(dao, notifier)
-        listener = RententionListener(dao.retention)
+        listener = RetentionListener(dao.retention)
 
         bus_consumer.subscribe('auth_tenant_deleted', listener.tenant_deleted)
 

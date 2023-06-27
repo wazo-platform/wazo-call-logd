@@ -1,9 +1,16 @@
-# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from sqlalchemy import distinct
 from xivo_dao.alchemy.cel import CEL
 
 from .base import BaseDAO
+
+
+def eject(session, objects):
+    for obj in objects:
+        session.expunge(obj)
+    return objects
 
 
 class CELDAO(BaseDAO):
@@ -28,6 +35,17 @@ class CELDAO(BaseDAO):
             query = session.query(CEL)
             query.update({'call_log_id': None}, synchronize_session=False)
 
+    def _correlated_cels_by_uniqueid(self, session, base_cels):
+        correlated_links = session.query(distinct(CEL.linkedid)).filter(
+            CEL.uniqueid.in_(base_cels.with_entities(CEL.uniqueid).subquery())
+        )
+        correlated_cels = (
+            session.query(CEL)
+            .filter(CEL.linkedid.in_(correlated_links.subquery()))
+            .order_by(CEL.eventtime.asc())
+        )
+        return correlated_cels
+
     def find_last_unprocessed(self, limit=None, older=None):
         with self.new_session() as session:
             subquery = (
@@ -35,32 +53,19 @@ class CELDAO(BaseDAO):
                 .filter(CEL.call_log_id.is_(None))
                 .order_by(CEL.eventtime.desc())
             )
+
             if limit:
                 subquery = subquery.limit(limit)
             elif older:
                 subquery = subquery.filter(CEL.eventtime >= older)
 
-            linked_ids = subquery.subquery()
-
-            cel_rows = (
-                session.query(CEL)
-                .filter(CEL.linkedid.in_(linked_ids))
-                .order_by(CEL.eventtime.desc())
-                .all()
-            )
-            cel_rows.reverse()
-            for cel in cel_rows:
-                session.expunge(cel)
-            return cel_rows
+            cels = list(self._correlated_cels_by_uniqueid(session, subquery))
+            return eject(session, cels)
 
     def find_from_linked_id(self, linked_id):
         with self.new_session() as session:
-            cel_rows = (
-                session.query(CEL)
-                .filter(CEL.linkedid == linked_id)
-                .order_by(CEL.eventtime.asc())
-                .all()
+            linked_cels = session.query(CEL).filter(CEL.linkedid == linked_id)
+            correlated_cels = list(
+                self._correlated_cels_by_uniqueid(session, linked_cels)
             )
-            for cel in cel_rows:
-                session.expunge(cel)
-            return cel_rows
+            return eject(session, correlated_cels)

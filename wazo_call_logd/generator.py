@@ -6,17 +6,22 @@ import logging
 from collections import namedtuple
 from itertools import groupby
 from operator import attrgetter
+from typing import Iterator, Tuple
 
 from wazo_confd_client import Client as ConfdClient
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
+from xivo_dao.alchemy.cel import CEL
 
+from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
 
-from .database.models import CallLogParticipant
+from .database.models import CallLog, CallLogParticipant
 from .participant import ParticipantInfo, find_participant, find_participant_by_uuid
 
 logger = logging.getLogger(__name__)
+
+
 CallLogsCreation = namedtuple(
     'CallLogsCreation', ('new_call_logs', 'call_logs_to_delete')
 )
@@ -137,6 +142,45 @@ class _ParticipantsProcessor:
         call_log.participants = connected_participants + unreached_participants
 
 
+def _group_cels_by_shared_channels(
+    cels: list[CEL],
+) -> Iterator[Tuple[set[str], list[CEL]]]:
+    cels = sorted(cels, key=attrgetter('linkedid'))
+    linkedid_sequences = [
+        (linkedid, list(cels))
+        for linkedid, cels in groupby(cels, key=attrgetter('linkedid'))
+    ]
+
+    # identify linkedid-based cel sequences that share uniqueids(i.e. channels)
+    # this correlation is transitive, i.e. if a channel is shared between sequence a and b, and between b and c,
+    # then a and c are also correlated
+    correlation_groups: list[(set[str], set[str], list[CEL])] = []
+    for linkedid, cels in linkedid_sequences:
+        uniqueids = set(cel.uniqueid for cel in cels)
+        correlated_sequences = False
+        for (
+            correlated_uniqueids,
+            correlated_linkedids,
+            correlated_cels,
+        ) in correlation_groups:
+            # correlation identified if any channel in this cel sequence are also in other sequences in the group
+            if uniqueids & correlated_uniqueids:
+                correlated_cels.extend(cels)  # add cels to correlation group
+                correlated_uniqueids.update(
+                    uniqueids
+                )  # expand the correlation group to the channels of this sequence
+                correlated_sequences = True
+                correlated_linkedids.add(linkedid)
+        if not correlated_sequences:
+            # if no correlation found, create a new correlation group
+            correlation_groups.append((uniqueids, {linkedid}, list(cels)))
+
+    yield from (
+        (linkedids, sorted(cels, key=attrgetter('eventtime')))
+        for (uniqueids, linkedids, cels) in correlation_groups
+    )
+
+
 class CallLogsGenerator:
     def __init__(self, confd, cel_interpretors):
         self.confd: ConfdClient = confd
@@ -154,10 +198,28 @@ class CallLogsGenerator:
             call_logs_to_delete=call_logs_to_delete,
         )
 
-    def call_logs_from_cel(self, cels):
+    def call_logs_from_cel(self, cels: list[CEL]) -> list[CallLog]:
         result = []
-        for _, cels_by_call_iter in self._group_cels_by_linkedid(cels):
-            cels_by_call = list(cels_by_call_iter)
+        for linkedids, cels_by_call in _group_cels_by_shared_channels(cels):
+            logger.debug(
+                'interpreting %d cels from correlated linkedids(%s)',
+                len(cels_by_call),
+                linkedids,
+            )
+
+            terminated_links = set(
+                cel.linkedid
+                for cel in cels_by_call
+                if cel.eventtype == CELEventType.linkedid_end
+            )
+
+            if linkedids != terminated_links:
+                unterminated_links = linkedids - terminated_links
+                logger.debug(
+                    "Skipping correlated cel sequence with incomplete linkedid sequences (%s)",
+                    ", ".join(unterminated_links),
+                )
+                continue
 
             call_log = RawCallLog()
             call_log.cel_ids = [cel.id for cel in cels_by_call]
@@ -175,16 +237,12 @@ class CallLogsGenerator:
             try:
                 result.append(call_log.to_call_log())
             except InvalidCallLogException as e:
-                logger.debug('Invalid call log detected: %s', e)
+                logger.error('Invalid call log detected: %s', e)
 
         return result
 
     def list_call_log_ids(self, cels):
         return {cel.call_log_id for cel in cels if cel.call_log_id}
-
-    def _group_cels_by_linkedid(self, cels):
-        cels = sorted(cels, key=attrgetter('linkedid'))
-        return groupby(cels, key=attrgetter('linkedid'))
 
     def _get_interpretor(self, cels):
         for interpretor in self._cel_interpretors:
@@ -276,7 +334,7 @@ class CallLogsGenerator:
                 call_log.requested_internal_exten = extension['exten']
                 call_log.requested_internal_context = extension['context']
 
-    def _remove_incomplete_recordings(self, call_log):
+    def _remove_incomplete_recordings(self, call_log: RawCallLog):
         new_recordings = []
         for recording in call_log.recordings:
             if recording.start_time is None or recording.end_time is None:

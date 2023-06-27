@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from datetime import datetime as dt
 from datetime import timedelta as td
 from functools import wraps
+from uuid import uuid4
 
 import sqlalchemy as sa
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -278,8 +279,8 @@ def cel(**cel):
             with self.cel_database.queries() as queries:
                 cel.setdefault('eventtype', 'eventtype')
                 cel.setdefault('eventtime', dt.now())
-                cel.setdefault('uniqueid', 'uniqueid')
-                cel.setdefault('linkedid', 'linkedid')
+                cel.setdefault('uniqueid', uuid4())
+                cel.setdefault('linkedid', uuid4())
                 if cel.pop('processed', False):
                     cel['call_log_id'] = 1
                 cel['id'] = queries.insert_cel(**cel)

@@ -59,14 +59,39 @@ CEL_DB_URI = os.getenv('DB_URI', 'postgresql://asterisk:proformatique@127.0.0.1:
 DB_URI = os.getenv('DB_URI', 'postgresql://wazo-call-logd:Secr7t@127.0.0.1:{port}')
 
 
-# this decorator takes the output of a psql and changes it into a list of dict
-def raw_cels(cel_output):
+def parse_fields(line: str):
+    return [field.strip() for field in line.split('|')]
+
+
+def parse_raw_cels(text_table: str):
     cels = []
-    lines = cel_output.strip().split('\n')
-    columns = [field.strip() for field in lines[0].split('|')]
-    for line in lines[2:]:
-        cel = [field.strip() for field in line.split('|')]
+    lines = [
+        line
+        for line in text_table.strip().split('\n')
+        if line and set(line.strip()) != set('+-')
+    ]
+    logger.debug("parsing %d lines of cel table", len(lines))
+    columns = parse_fields(lines.pop(0))
+    logger.debug("parsed %d fields in cel table header", len(columns))
+
+    for i, line in enumerate(lines):
+        cel = parse_fields(line)
+        logger.debug("parsed %d fields in row %d", len(cel), i)
+        assert len(cel) == len(columns), (columns, cel)
         cels.append(dict(zip(columns, cel)))
+    return cels
+
+
+def raw_cels(cel_output, row_count=None):
+    '''
+    this decorator takes the output of a psql query
+    and parses it into CEL entries that are loaded into the database
+    '''
+    cels = parse_raw_cels(cel_output)
+    if row_count:
+        assert (
+            len(cels) == row_count
+        ), f"parsed row count ({len(cels)}) different from expected row count ({row_count})"
 
     def _decorate(func):
         @wraps(func)

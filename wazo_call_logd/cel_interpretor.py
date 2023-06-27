@@ -94,6 +94,24 @@ def _extract_call_log_destination_variables(extra: dict) -> dict:
     return extra_dict
 
 
+class AbstractCELInterpretor:
+    eventtype_map: dict[str, Callable[[CEL, RawCallLog], RawCallLog]] = {}
+
+    def interpret_cels(self, cels: list[CEL], call_log: RawCallLog):
+        for cel in cels:
+            call_log = self.interpret_cel(cel, call_log)
+        return call_log
+
+    def interpret_cel(self, cel: CEL, call: RawCallLog):
+        eventtype = cel.eventtype
+        logger.debug("Interpreting CEL event type %s", eventtype)
+        if eventtype in self.eventtype_map:
+            interpret_function = self.eventtype_map[eventtype]
+            return interpret_function(cel, call)
+        else:
+            return call
+
+
 class DispatchCELInterpretor:
     def __init__(self, caller_cel_interpretor, callee_cel_interpretor):
         self.caller_cel_interpretor = caller_cel_interpretor
@@ -117,27 +135,8 @@ class DispatchCELInterpretor:
 
         return (caller_cels, callee_cels)
 
-    def can_interpret(self, cels):
-        del cels
+    def can_interpret(self, cels):  # noqa: E261
         return True
-
-
-class AbstractCELInterpretor:
-    eventtype_map: dict[str, Callable[[CEL, RawCallLog], RawCallLog]] = {}
-
-    def interpret_cels(self, cels: list[CEL], call_log: RawCallLog):
-        for cel in cels:
-            call_log = self.interpret_cel(cel, call_log)
-        return call_log
-
-    def interpret_cel(self, cel: CEL, call: RawCallLog):
-        eventtype = cel.eventtype
-        logger.debug("Interpreting CEL event type %s", eventtype)
-        if eventtype in self.eventtype_map:
-            interpret_function = self.eventtype_map[eventtype]
-            return interpret_function(cel, call)
-        else:
-            return call
 
 
 class CallerCELInterpretor(AbstractCELInterpretor):
