@@ -237,7 +237,9 @@ class CallLogsGenerator:
             try:
                 result.append(call_log.to_call_log())
             except InvalidCallLogException as e:
-                logger.error('Invalid call log detected: %s', e)
+                logger.debug(
+                    'Invalid call log detected(linkedids %s): %s', linkedids, e
+                )
 
         return result
 
