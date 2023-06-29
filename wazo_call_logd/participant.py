@@ -48,7 +48,8 @@ def find_participant_by_uuid(
     main_extension = None
     main_line_id = None
     if user['lines']:
-        # NOTE(charles): without authoritative information on the line actually used, the main line of the user is provided
+        # NOTE(charles): without authoritative information on the line actually used,
+        # the main line of the user is provided
         main_line = user['lines'][0]
         main_line_id = main_line['id']
         logger.debug("user(user_uuid=%s) has main line: %s", user_uuid, main_line)

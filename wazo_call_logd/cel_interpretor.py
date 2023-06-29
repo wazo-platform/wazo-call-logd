@@ -321,7 +321,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 call.participants_info.append(info)
 
             logger.debug(
-                "identified source participant info(user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event",
+                "identified source participant info(user_uuid=%s, user_name=%s)"
+                " from WAZO_USER_MISSED_CALL event",
                 source_user_uuid,
                 source_name,
             )
@@ -337,13 +338,15 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 and "user_uuid" in call.participants_info[-1]
                 and call.participants_info[-1]["user_uuid"] == destination_user_uuid
             ):
-                # last destination participant registered is the same user, e.g. from WAZO_CALL_LOG_DESTINATION
+                # last destination participant registered is the same user,
+                # e.g. from WAZO_CALL_LOG_DESTINATION
                 call.participants_info[-1].update(info)
             else:
                 call.participants_info.append(info)
 
             logger.debug(
-                "identified destination participant info (user_uuid=%s, user_name=%s) from WAZO_USER_MISSED_CALL event",
+                "identified destination participant info (user_uuid=%s, user_name=%s)"
+                " from WAZO_USER_MISSED_CALL event",
                 destination_user_uuid,
                 destination_name,
             )
@@ -387,7 +390,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             call.destination_name = participant_info["name"]
 
             logger.debug(
-                "identified destination participant (user_uuid=%s, user_name=%s) from WAZO_CALL_LOG_DESTINATION",
+                "identified destination participant (user_uuid=%s, user_name=%s)"
+                " from WAZO_CALL_LOG_DESTINATION",
                 destination_details['user_uuid'],
                 destination_details['user_name'],
             )
@@ -631,7 +635,8 @@ class LocalOriginateCELInterpretor:
 
         if destination_channel:
             try:
-                # in outgoing calls, destination ANSWER event has more callerid information than START event
+                # in outgoing calls, destination ANSWER event has more callerid
+                # information than START event
                 destination_channel_answer = next(
                     cel
                     for cel in cels

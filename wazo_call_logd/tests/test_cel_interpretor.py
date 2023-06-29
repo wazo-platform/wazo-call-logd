@@ -344,7 +344,8 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_internal_call_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
-            extra='{"extra":"type: user,uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,name: Willy Wonka"}',
+            extra='{"extra":"type: user,uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,'
+            'name: Willy Wonka"}',
         )
 
         result = self.caller_cel_interpretor.interpret_wazo_call_log_destination(
@@ -372,7 +373,8 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_incoming_call_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
-            extra='{"extra":"type: user,uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,name: Harry Potter"}',
+            extra='{"extra":"type: user,uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,'
+            'name: Harry Potter"}',
         )
 
         result = self.caller_cel_interpretor.interpret_wazo_call_log_destination(
@@ -400,7 +402,8 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_meeting_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
-            extra='{"extra":"type: meeting,uuid: 9195757f-c381-4f38-b684-98fef848f48b,name: Meeting with Harry Potter"}',
+            extra='{"extra":"type: meeting,uuid: 9195757f-c381-4f38-b684-98fef848f48b,'
+            'name: Meeting with Harry Potter"}',
         )
 
         result = self.caller_cel_interpretor.interpret_wazo_call_log_destination(
