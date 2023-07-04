@@ -4,7 +4,7 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Derived from https://github.com/hamcrest/PyHamcrest/blob/master/src/hamcrest/library/text/stringcontains.py
+# Derived from https://github.com/hamcrest/PyHamcrest/blob/master/src/hamcrest/library/text/stringcontains.py # noqa: E501
 
 from hamcrest.core.helpers.hasmethod import hasmethod
 from hamcrest.library.text.substringmatcher import SubstringMatcher

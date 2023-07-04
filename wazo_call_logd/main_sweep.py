@@ -49,7 +49,8 @@ def main():
 def _print_deprecation_notice():
     if sys.argv[0].endswith('xivo-call-logs'):
         print(
-            'Warning: xivo-call-logs is a deprecated alias to wazo-call-logs: use wazo-call-logs instead'
+            'Warning: xivo-call-logs is a deprecated alias to wazo-call-logs:'
+            ' use wazo-call-logs instead'
         )
 
 

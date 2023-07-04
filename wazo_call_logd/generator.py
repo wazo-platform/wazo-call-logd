@@ -43,7 +43,8 @@ class _ParticipantsProcessor:
             return
         if confd_participant.uuid in self.confd_participants:
             logger.info(
-                "Same user participant connected through multiple lines: (user_uuid=%s, line_id=%s)",
+                "Same user participant connected through multiple lines:"
+                " (user_uuid=%s, line_id=%s)",
                 confd_participant.uuid,
                 confd_participant.line_id,
             )
@@ -88,7 +89,8 @@ class _ParticipantsProcessor:
     def _fetch_participants(self, call_log: RawCallLog):
         connected_participants = self._compute_participants_from_channels(call_log)
 
-        # participant information from CEL interpretation can augment participants extracted from channels
+        # participant information from CEL interpretation
+        # can augment participants extracted from channels
         # and fill in unreachable participants with no corresponding channel
         unreached_participants = []
         users_from_cel = (
@@ -128,15 +130,18 @@ class _ParticipantsProcessor:
                 )
                 unreached_participants.append(participant)
             elif len(user_connected_participants) == len(user_participants_info):
-                # simple cases where user mentions from CELs correspond one-to-one to opened channels
+                # simple cases where user mentions from CELs
+                # correspond one-to-one to opened channels
                 for participant_info, participant in zip(
                     user_participants_info, user_connected_participants
                 ):
                     if "answered" in participant_info and participant.answered is None:
                         participant.answered = participant_info["answered"]
             else:
-                # tricky cases where cel-based user mentions do not correspond one-to-one with opened channels
-                # such as the same user being sometimes unreachable and sometimes reachable in the same call
+                # tricky cases where cel-based user mentions
+                # do not correspond one-to-one with opened channels
+                # such as the same user being sometimes unreachable
+                # and sometimes reachable in the same call
                 logger.debug("Uncorrelated participants info for user %s", user_uuid)
 
         call_log.participants = connected_participants + unreached_participants
@@ -152,7 +157,8 @@ def _group_cels_by_shared_channels(
     ]
 
     # identify linkedid-based cel sequences that share uniqueids(i.e. channels)
-    # this correlation is transitive, i.e. if a channel is shared between sequence a and b, and between b and c,
+    # this correlation is transitive,
+    # i.e. if a channel is shared between sequence a and b, and between b and c,
     # then a and c are also correlated
     correlation_groups: list[(set[str], set[str], list[CEL])] = []
     for linkedid, cels in linkedid_sequences:
@@ -163,7 +169,8 @@ def _group_cels_by_shared_channels(
             correlated_linkedids,
             correlated_cels,
         ) in correlation_groups:
-            # correlation identified if any channel in this cel sequence are also in other sequences in the group
+            # correlation identified if any channel in this cel sequence
+            # are also in other sequences in the group
             if uniqueids & correlated_uniqueids:
                 correlated_cels.extend(cels)  # add cels to correlation group
                 correlated_uniqueids.update(
