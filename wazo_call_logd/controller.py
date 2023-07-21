@@ -4,6 +4,7 @@
 import logging
 import signal
 import threading
+import time
 from functools import partial
 
 from wazo_auth_client import Client as AuthClient
@@ -161,11 +162,19 @@ class Controller:
             return
 
         linked_id = payload['LinkedID']
+        start_time = time.time()
         try:
             self.manager.generate_from_linked_id(linked_id)
         except Exception:
             logger.exception(
-                'Failed to genereate call log for linked id=\"%s\"', linked_id
+                'Failed to generate call log for linkedid \"%s\"', linked_id
+            )
+        else:
+            processing_time = time.time() - start_time
+            logger.info(
+                'Generated call log for linkedid \"%s\" in %.2fs',
+                linked_id,
+                processing_time,
             )
 
 
