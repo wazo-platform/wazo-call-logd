@@ -1,7 +1,6 @@
 # Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import distinct
 from xivo_dao.alchemy.cel import CEL
 
 from .base import BaseDAO
@@ -36,20 +35,26 @@ class CELDAO(BaseDAO):
             query.update({'call_log_id': None}, synchronize_session=False)
 
     def _correlated_cels_by_uniqueid(self, session, base_cels):
-        correlated_links = session.query(distinct(CEL.linkedid)).filter(
-            CEL.uniqueid.in_(base_cels.with_entities(CEL.uniqueid).subquery())
-        )
+        unique_ids = {row.uniqueid for row in base_cels.all()}
+        correlated_linkedids = {
+            row.linkedid
+            for row in session.query(CEL.linkedid)
+            .distinct(CEL.linkedid)
+            .filter(CEL.uniqueid.in_(unique_ids))
+            .all()
+        }
         correlated_cels = (
             session.query(CEL)
-            .filter(CEL.linkedid.in_(correlated_links.subquery()))
+            .filter(CEL.linkedid.in_(correlated_linkedids))
             .order_by(CEL.eventtime.asc())
         )
+
         return correlated_cels
 
     def find_last_unprocessed(self, limit=None, older=None):
         with self.new_session() as session:
             subquery = (
-                session.query(CEL.linkedid)
+                session.query(CEL.uniqueid)
                 .filter(CEL.call_log_id.is_(None))
                 .order_by(CEL.eventtime.desc())
             )
@@ -64,7 +69,11 @@ class CELDAO(BaseDAO):
 
     def find_from_linked_id(self, linked_id):
         with self.new_session() as session:
-            linked_cels = session.query(CEL).filter(CEL.linkedid == linked_id)
+            linked_cels = (
+                session.query(CEL.uniqueid)
+                .distinct(CEL.uniqueid)
+                .filter(CEL.linkedid == linked_id)
+            )
             correlated_cels = list(
                 self._correlated_cels_by_uniqueid(session, linked_cels)
             )
