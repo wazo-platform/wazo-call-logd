@@ -9,11 +9,11 @@ from wazo_test_helpers.hamcrest.raises import raises
 from .helpers.base import IntegrationTest
 from .helpers.constants import MASTER_TENANT, OTHER_TENANT, UNKNOWN_UUID
 from .helpers.database import retention
-from .helpers.wait_strategy import ComponentsWaitStrategy
+from .helpers.wait_strategy import CallLogdComponentsWaitStrategy
 
 
 class TestRetention(IntegrationTest):
-    wait_strategy = ComponentsWaitStrategy(["bus_consumer"])
+    wait_strategy = CallLogdComponentsWaitStrategy(["bus_consumer"])
 
     @retention(cdr_days=2, export_days=4, recording_days=2)
     def test_get(self, retention):

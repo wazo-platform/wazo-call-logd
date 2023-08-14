@@ -2,28 +2,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
-from hamcrest import assert_that, has_entries, has_entry, only_contains
+from hamcrest import assert_that, only_contains
 from wazo_test_helpers import until
-from wazo_test_helpers.wait_strategy import WaitStrategy
+from wazo_test_helpers.wait_strategy import ComponentsWaitStrategy, WaitStrategy
 
 
-class ComponentsWaitStrategy(WaitStrategy):
-    def __init__(self, components: list[str]):
-        self._components = components
-
-    def wait(self, integration_test):
-        def components_are_ok(components):
-            try:
-                status = integration_test.call_logd.status.get()
-            except requests.RequestException:
-                status = {}
-
-            assert_that(
-                status,
-                has_entries(dict.fromkeys(components, has_entry('status', 'ok'))),
-            )
-
-        until.assert_(components_are_ok, self._components, timeout=10)
+class CallLogdComponentsWaitStrategy(ComponentsWaitStrategy):
+    def get_status(self, integration_test):
+        return integration_test.call_logd.status.get()
 
 
 class CallLogdEverythingUpWaitStrategy(WaitStrategy):
