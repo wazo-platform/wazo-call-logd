@@ -13,7 +13,7 @@ from xivo_dao.alchemy.cel import CEL
 
 from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
-from .raw_call_log import RawCallLog
+from .raw_call_log import BridgeInfo, RawCallLog
 from .utils import find
 
 logger = logging.getLogger(__name__)
@@ -94,6 +94,18 @@ def _extract_call_log_destination_variables(extra: dict) -> dict:
     return extra_dict
 
 
+def bridge_info(details: dict) -> BridgeInfo | None:
+    expected_keys = {'bridge_id', 'bridge_technology'}
+    if not (expected_keys <= set(details)):
+        logger.error(
+            "Missing expected bridge details: %s(missing %s)",
+            details,
+            (expected_keys - set(details)),
+        )
+        return None
+    return BridgeInfo(id=details['bridge_id'], technology=details['bridge_technology'])
+
+
 EventInterpretor = Callable[[CEL, RawCallLog], RawCallLog]
 
 
@@ -112,6 +124,7 @@ class AbstractCELInterpretor:
             interpret_function = self.eventtype_map[eventtype]
             return interpret_function(cel, call)
         else:
+            logger.debug("Ignoring uninterpretable CEL event type %s", eventtype)
             return call
 
 
@@ -205,7 +218,24 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         return call
 
-    def interpret_bridge_start_or_enter(self, cel, call):
+    def interpret_bridge_start_or_enter(self, cel: CEL, call):
+        extra_dict = extract_cel_extra(cel.extra)
+        bridge = extra_dict and bridge_info(extra_dict)
+        if not bridge:
+            logger.error(
+                "Failed to extract expected bridge details from cel(id=%s)", cel.id
+            )
+        else:
+            logger.debug(
+                'identified bridge from caller(id=%s, type=%s)',
+                bridge.id,
+                bridge.technology,
+            )
+            call.bridges[bridge.id] = bridge
+            bridge.channels.add(cel.channame)
+            if cel.peer:
+                bridge.channels.add(cel.peer)
+
         if not call.source_name:
             call.source_name = cel.cid_name
         if not call.source_exten:
@@ -476,7 +506,20 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 recording.end_time = cel.eventtime
         return call
 
-    def interpret_bridge_enter(self, cel, call):
+    def interpret_bridge_enter(self, cel: CEL, call: RawCallLog):
+        extra_dict = extract_cel_extra(cel.extra)
+        bridge = extra_dict and bridge_info(extra_dict)
+        if not bridge:
+            logger.error(
+                "Failed to extract expected bridge details from bridge_enter cel(id=%s)",
+                cel.id,
+            )
+        else:
+            logger.debug(
+                'identified bridge (id=%s, type=%s)', bridge.id, bridge.technology
+            )
+            call.bridges[bridge.id] = bridge
+
         if call.interpret_callee_bridge_enter:
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
@@ -490,7 +533,10 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 'callee(%s) entered bridge with peer: %s', cel.channame, cel.peer
             )
             # peer contains multiple entries during adhoc conferences
-            for peer in cel.peer.split(','):
+            peers = [peer for peer in cel.peer.split(',') if peer]
+            for peer in peers:
+                if bridge:
+                    bridge.channels.add(peer)
                 if peer not in call.raw_participants:
                     continue
                 call.raw_participants[peer].update(answered=True)
