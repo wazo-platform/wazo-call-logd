@@ -211,7 +211,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.source_exten:
             call.source_exten = call.extension_filter.filter(cel.cid_num)
 
-        call.date_answer = cel.eventtime
+        if not call.date_answer:
+            call.date_answer = cel.eventtime
 
         return call
 
