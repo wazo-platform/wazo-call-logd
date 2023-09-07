@@ -94,8 +94,11 @@ def _extract_call_log_destination_variables(extra: dict) -> dict:
     return extra_dict
 
 
+EventInterpretor = Callable[[CEL, RawCallLog], RawCallLog]
+
+
 class AbstractCELInterpretor:
-    eventtype_map: dict[str, Callable[[CEL, RawCallLog], RawCallLog]] = {}
+    eventtype_map: dict[str, EventInterpretor] = {}
 
     def interpret_cels(self, cels: list[CEL], call_log: RawCallLog):
         for cel in cels:
