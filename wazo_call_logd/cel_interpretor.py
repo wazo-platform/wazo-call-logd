@@ -485,6 +485,9 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             call.interpret_callee_bridge_enter = False
 
         if cel.peer:
+            logger.debug(
+                'callee(%s) entered bridge with peer: %s', cel.channame, cel.peer
+            )
             # peer contains multiple entries during adhoc conferences
             for peer in cel.peer.split(','):
                 if peer not in call.raw_participants:
@@ -497,6 +500,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             if cid_number:
                 call.destination_exten = cid_number
                 call.destination_internal_exten = cid_number
+        else:
+            logger.debug('callee(%s) entered bridge with no peer', cel.channame)
 
         return call
 
