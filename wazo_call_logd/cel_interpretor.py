@@ -1,11 +1,13 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+from datetime import datetime
 
 import json
 import logging
 import re
 import urllib.parse
+import dateutil
 from typing import Callable
 
 from xivo.asterisk.line_identity import identity_from_channel
@@ -106,6 +108,13 @@ def bridge_info(details: dict) -> BridgeInfo | None:
     return BridgeInfo(id=details['bridge_id'], technology=details['bridge_technology'])
 
 
+def parse_eventtime(eventtime: str | datetime) -> datetime:
+    if isinstance(eventtime, datetime):
+        return eventtime
+    else:
+        return dateutil.parser.isoparse(eventtime)
+
+
 EventInterpretor = Callable[[CEL, RawCallLog], RawCallLog]
 
 
@@ -178,7 +187,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         }
 
     def interpret_chan_start(self, cel, call):
-        call.date = cel.eventtime
+        call.date = parse_eventtime(cel.eventtime)
         call.source_name = cel.cid_name
         call.source_internal_name = cel.cid_name
         call.source_exten = call.extension_filter.filter(cel.cid_num)
@@ -191,10 +200,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_chan_end(self, cel, call):
-        call.date_end = cel.eventtime
+        call.date_end = parse_eventtime(cel.eventtime)
         for recording in call.recordings:
             if not recording.end_time:
-                recording.end_time = cel.eventtime
+                recording.end_time = parse_eventtime(cel.eventtime)
 
         # Remove unwanted extensions
         call.extension_filter.filter_call(call)
@@ -252,7 +261,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             return call
 
         recording = Recording(
-            start_time=cel.eventtime,
+            start_time=parse_eventtime(cel.eventtime),
             path=extra['filename'],
             mixmonitor_id=extra['mixmonitor_id'],
         )
@@ -266,7 +275,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         for recording in call.recordings:
             if recording.mixmonitor_id == extra['mixmonitor_id']:
-                recording.end_time = cel.eventtime
+                recording.end_time = parse_eventtime(cel.eventtime)
         return call
 
     def interpret_xivo_from_s(self, cel, call):
@@ -503,7 +512,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
     def interpret_chan_end(self, cel, call):
         for recording in call.recordings:
             if not recording.end_time:
-                recording.end_time = cel.eventtime
+                recording.end_time = parse_eventtime(cel.eventtime)
         return call
 
     def interpret_bridge_enter(self, cel: CEL, call: RawCallLog):
@@ -558,7 +567,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             return call
 
         recording = Recording(
-            start_time=cel.eventtime,
+            start_time=parse_eventtime(cel.eventtime),
             path=extra['filename'],
             mixmonitor_id=extra['mixmonitor_id'],
         )
@@ -572,7 +581,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         for recording in call.recordings:
             if recording.mixmonitor_id == extra['mixmonitor_id']:
-                recording.end_time = cel.eventtime
+                recording.end_time = parse_eventtime(cel.eventtime)
         return call
 
 
@@ -612,8 +621,8 @@ class LocalOriginateCELInterpretor:
         except StopIteration:
             return call
 
-        call.date = local_channel1_start.eventtime
-        call.date_end = source_channel_end.eventtime
+        call.date = parse_eventtime(local_channel1_start.eventtime)
+        call.date_end = parse_eventtime(source_channel_end.eventtime)
         call.source_name = source_channel_answer.cid_name
         call.source_exten = source_channel_answer.cid_num
         call.source_line_identity = identity_from_channel(
@@ -632,7 +641,7 @@ class LocalOriginateCELInterpretor:
                 return call
 
             recording = Recording(
-                start_time=cel.eventtime,
+                start_time=parse_eventtime(cel.eventtime),
                 path=extra['filename'],
                 mixmonitor_id=extra['mixmonitor_id'],
             )
@@ -648,7 +657,7 @@ class LocalOriginateCELInterpretor:
 
             for recording in call.recordings:
                 if recording.mixmonitor_id == extra['mixmonitor_id']:
-                    recording.end_time = cel.eventtime
+                    recording.end_time = parse_eventtime(cel.eventtime)
 
         # End of recording when not stopped manually
         for recording in call.recordings:
@@ -719,7 +728,9 @@ class LocalOriginateCELInterpretor:
             call.raw_participants[destination_channel_answer.channame].update(
                 role='destination'
             )
-            call.date_answer = destination_channel_bridge_enter.eventtime
+            call.date_answer = parse_eventtime(
+                destination_channel_bridge_enter.eventtime
+            )
 
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
         is_outcall = any([True for cel in cels if cel.eventtype == 'XIVO_OUTCALL'])
