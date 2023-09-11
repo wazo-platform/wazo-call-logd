@@ -250,8 +250,19 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.source_exten:
             call.source_exten = call.extension_filter.filter(cel.cid_num)
 
-        if not call.date_answer:
-            call.date_answer = cel.eventtime
+        # accounting for calls to e.g. switchboard,
+        # we don't want to consider a call answered when the call is first put on a holding bridge
+        if not call.date_answer and (
+            (not bridge) or bridge.technology != 'holding_bridge'
+        ):
+            logger.debug(
+                'Identified answer time(%s) from caller(%s) on bridge(id=%s) with peer(%s)',
+                cel.eventtime,
+                cel.channame,
+                bridge.id,
+                cel.peer,
+            )
+            call.date_answer = parse_eventtime(cel.eventtime)
 
         return call
 
