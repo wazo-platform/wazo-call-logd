@@ -39,18 +39,18 @@ class _ParticipantsProcessor:
     def _fetch_participant_from_channel(self, channel: str) -> ParticipantInfo | None:
         confd_participant = find_participant(self.confd, channel)
         if not confd_participant:
-            logger.debug("No participant found for channel %s", channel)
+            logger.debug('No participant found for channel %s', channel)
             return
         if confd_participant.uuid in self.confd_participants:
             logger.info(
-                "Same user participant connected through multiple lines:"
-                " (user_uuid=%s, line_id=%s)",
+                'Same user participant connected through multiple lines:'
+                ' (user_uuid=%s, line_id=%s)',
                 confd_participant.uuid,
                 confd_participant.line_id,
             )
         self.confd_participants[confd_participant.uuid] = confd_participant
         logger.debug(
-            "Updated confd participants cache with user %s", confd_participant.uuid
+            'Updated confd participants cache with user %s', confd_participant.uuid
         )
         return confd_participant
 
@@ -61,10 +61,10 @@ class _ParticipantsProcessor:
         if not confd_participant:
             confd_participant = find_participant_by_uuid(self.confd, user_uuid)
             if not confd_participant:
-                logger.error("No user found for user_uuid %s", user_uuid)
+                logger.error('No user found for user_uuid %s', user_uuid)
                 return
             self.confd_participants[user_uuid] = confd_participant
-            logger.debug("Updated confd participants cache with user %s", user_uuid)
+            logger.debug('Updated confd participants cache with user %s', user_uuid)
         return confd_participant
 
     def _compute_participants_from_channels(
@@ -73,7 +73,7 @@ class _ParticipantsProcessor:
         connected_participants = []
         for channel_name, raw_attributes in call_log.raw_participants.items():
             logger.debug(
-                "raw_participant info for channel %s: %s", channel_name, raw_attributes
+                'raw_participant info for channel %s: %s', channel_name, raw_attributes
             )
             confd_participant = self._fetch_participant_from_channel(channel_name)
             if not confd_participant:
@@ -85,7 +85,7 @@ class _ParticipantsProcessor:
             participant.tags = confd_participant.tags
             participant.role = raw_attributes['role']
             if 'answered' in raw_attributes:
-                participant.answered = raw_attributes["answered"]
+                participant.answered = raw_attributes['answered']
             connected_participants.append(participant)
         return connected_participants
 
@@ -101,9 +101,9 @@ class _ParticipantsProcessor:
         # and fill in unreachable participants with no corresponding channel
         unreached_participants = []
         users_from_cel = (
-            str(participant_info["user_uuid"])
+            str(participant_info['user_uuid'])
             for participant_info in call_log.participants_info
-            if "user_uuid" in participant_info
+            if 'user_uuid' in participant_info
         )
         users_from_channels = (str(p.user_uuid) for p in connected_participants)
         user_uuids = set(users_from_cel).union(users_from_channels)
@@ -114,10 +114,10 @@ class _ParticipantsProcessor:
             user_participants_info = [
                 p
                 for p in call_log.participants_info
-                if "user_uuid" in p and p["user_uuid"] == user_uuid
+                if 'user_uuid' in p and p['user_uuid'] == user_uuid
             ]
             logger.debug(
-                "Identified user participant %s(from CEL: %d, from channels: %d)",
+                'Identified user participant %s(from CEL: %d, from channels: %d)',
                 user_uuid,
                 len(user_participants_info),
                 len(user_connected_participants),
@@ -133,23 +133,24 @@ class _ParticipantsProcessor:
                     line_id=confd_participant.line_id,
                     tags=confd_participant.tags,
                     answered=False,
-                    role=user_participants_info[-1]["role"],
+                    role=user_participants_info[-1]['role'],
                 )
                 unreached_participants.append(participant)
+
             elif len(user_connected_participants) == len(user_participants_info):
                 # simple cases where user mentions from CELs
                 # correspond one-to-one to opened channels
                 for participant_info, participant in zip(
                     user_participants_info, user_connected_participants
                 ):
-                    if "answered" in participant_info and participant.answered is None:
-                        participant.answered = participant_info["answered"]
-            else:
+                    if 'answered' in participant_info and participant.answered is None:
+                        participant.answered = participant_info['answered']
+            elif user_participants_info:
                 # tricky cases where cel-based user mentions
                 # do not correspond one-to-one with opened channels
                 # such as the same user being sometimes unreachable
                 # and sometimes reachable in the same call
-                logger.debug("Uncorrelated participants info for user %s", user_uuid)
+                logger.debug('Uncorrelated participants info for user %s', user_uuid)
 
         call_log.participants = connected_participants + unreached_participants
 
@@ -230,8 +231,8 @@ class CallLogsGenerator:
             if linkedids != terminated_links:
                 unterminated_links = linkedids - terminated_links
                 logger.debug(
-                    "Skipping correlated cel sequence with incomplete linkedid sequences (%s)",
-                    ", ".join(unterminated_links),
+                    'Skipping correlated cel sequence with incomplete linkedid sequences (%s)',
+                    ', '.join(unterminated_links),
                 )
                 continue
 
@@ -305,8 +306,8 @@ class CallLogsGenerator:
                     return
 
             logger.debug(
-                "call log of cels `%s` is not attached to a "
-                "tenant_uuid, fallback to service tenant %s",
+                'call log of cels `%s` is not attached to a '
+                'tenant_uuid, fallback to service tenant %s',
                 call_log.cel_ids,
                 self._service_tenant_uuid,
             )
