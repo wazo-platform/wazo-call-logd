@@ -72,6 +72,9 @@ class _ParticipantsProcessor:
     ) -> list[CallLogParticipant]:
         connected_participants = []
         for channel_name, raw_attributes in call_log.raw_participants.items():
+            logger.debug(
+                "raw_participant info for channel %s: %s", channel_name, raw_attributes
+            )
             confd_participant = self._fetch_participant_from_channel(channel_name)
             if not confd_participant:
                 continue
@@ -88,6 +91,10 @@ class _ParticipantsProcessor:
 
     def _fetch_participants(self, call_log: RawCallLog):
         connected_participants = self._compute_participants_from_channels(call_log)
+        logger.debug(
+            'identified %d user participants from channel info',
+            len(connected_participants),
+        )
 
         # participant information from CEL interpretation
         # can augment participants extracted from channels
@@ -274,7 +281,9 @@ class CallLogsGenerator:
 
     def _fetch_participants(self, call_log: RawCallLog):
         participant_processor = _ParticipantsProcessor(self.confd)
-        return participant_processor(call_log)
+        call_log = participant_processor(call_log)
+        logger.debug('fetched participants: %s', call_log.participants)
+        return call_log
 
     def _ensure_tenant_uuid_is_set(self, call_log):
         tenant_uuids = {
