@@ -34,7 +34,7 @@ def extract_cel_extra(extra):
     try:
         extra = json.loads(extra)
     except json.decoder.JSONDecodeError:
-        logger.debug('invalid CEL extra: "%s"', extra)
+        logger.debug('invalid CEL extra: %s', repr(extra))
         return
 
     return extra
