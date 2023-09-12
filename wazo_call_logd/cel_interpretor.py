@@ -259,7 +259,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'Identified answer time(%s) from caller(%s) on bridge(id=%s) with peer(%s)',
                 cel.eventtime,
                 cel.channame,
-                bridge.id,
+                bridge.id if bridge else None,
                 cel.peer,
             )
             call.date_answer = parse_eventtime(cel.eventtime)
@@ -556,7 +556,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 ' from callee bridge enter(bridge id=%s) for channel %s',
                 cel.cid_num,
                 cel.cid_name,
-                bridge.id,
+                bridge.id if bridge else None,
                 cel.channame,
             )
 
