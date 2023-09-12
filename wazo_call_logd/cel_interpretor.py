@@ -540,11 +540,12 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             )
             call.bridges[bridge.id] = bridge
 
+        call.raw_participants[cel.channame].update(answered=True)
+        # only consider the first bridge_enter for destination identity info
         if call.interpret_callee_bridge_enter:
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
-            call.raw_participants[cel.channame].update(answered=True)
 
             call.interpret_callee_bridge_enter = False
 
