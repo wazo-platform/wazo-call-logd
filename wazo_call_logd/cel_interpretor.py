@@ -536,7 +536,10 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             )
         else:
             logger.debug(
-                'identified bridge (id=%s, type=%s)', bridge.id, bridge.technology
+                'identified bridge (id=%s, type=%s) from callee(%s)',
+                bridge.id,
+                bridge.technology,
+                cel.channame,
             )
             call.bridges[bridge.id] = bridge
 
@@ -548,6 +551,14 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             call.destination_name = cel.cid_name
 
             call.interpret_callee_bridge_enter = False
+            logger.debug(
+                'interpreting destination_exten(%s), destination_name(%s) '
+                ' from callee bridge enter(bridge id=%s) for channel %s',
+                cel.cid_num,
+                cel.cid_name,
+                bridge.id,
+                cel.channame,
+            )
 
         if cel.peer:
             logger.debug(
