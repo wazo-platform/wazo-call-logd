@@ -147,17 +147,6 @@ def mock_user(
     mobile: str | None = None,
     userfield: str | None = None,
 ) -> dict[str, any]:
-    """
-    Create a mock user dictionary with the given parameters.
-
-    uuid (str): The UUID of the user.
-    tenant_uuid (str): The UUID of the tenant.
-    line_ids (list[str] | None, optional): The list of line IDs. Defaults to None.
-    mobile (str | None, optional): The mobile phone number. Defaults to None.
-    userfield (str | None, optional): The user field. Defaults to None.
-
-    Returns (dict[str, any]): The mock user dictionary.
-    """
     return mock_dict(
         {
             'uuid': uuid,
@@ -182,18 +171,6 @@ def mock_line(
     extensions: list[str] | None = None,
     tenant_uuid: str | None = None,
 ) -> dict:
-    """
-    Mocks a line.
-
-    :param id: The line ID.
-    :param name: The line name.
-    :param protocol: The line protocol.
-    :param users: The users associated with the line.
-    :param context: The line context.
-    :param extensions: The line extensions.
-    :param tenant_uuid: The tenant UUID.
-    :return: The mocked line.
-    """
     return mock_dict(
         {
             'id': id,
@@ -208,25 +185,10 @@ def mock_line(
 
 
 def mock_switchboard(uuid: str, name: str | None = None) -> dict:
-    """
-    Mocks a switchboard.
-
-    :param uuid: The switchboard UUID.
-    :param name: The switchboard name.
-    :return: The mocked switchboard.
-    """
     return mock_dict({'uuid': uuid, 'name': name})
 
 
 def mock_context(id: int, name: str, tenant_uuid: str) -> dict[str, int | str]:
-    """
-    Mocks a context.
-
-    :param id: The context ID.
-    :param name: The context name.
-    :param tenant_uuid: The tenant UUID.
-    :return: The mocked context.
-    """
     return mock_dict({'id': id, 'name': name, 'tenant_uuid': tenant_uuid})
 
 
