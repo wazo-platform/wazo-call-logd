@@ -11,6 +11,7 @@ from typing import Iterator, Tuple
 from wazo_confd_client import Client as ConfdClient
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo_dao.alchemy.cel import CEL
+from wazo_call_logd.cel_interpretor import AbstractCELInterpretor
 
 from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
@@ -197,7 +198,7 @@ def _group_cels_by_shared_channels(
 
 
 class CallLogsGenerator:
-    def __init__(self, confd, cel_interpretors):
+    def __init__(self, confd, cel_interpretors: list[AbstractCELInterpretor]):
         self.confd: ConfdClient = confd
         self._cel_interpretors = cel_interpretors
         self._service_tenant_uuid = None
