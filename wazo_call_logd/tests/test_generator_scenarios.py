@@ -238,25 +238,38 @@ def mock_confd_client(
     confd_client = create_autospec(
         ConfdClient, instance=True, lines=Mock(), users=Mock(), contexts=Mock()
     )
-    confd_client.lines.list.side_effect = lambda name=None, **kwargs: {
-        'items': [line for line in lines if line['name'] == name]
-        if lines and name
-        else lines
-        if lines and not name
-        else []
-    }
-    confd_client.users.get.side_effect = (
-        (lambda uuid: next(user for user in users if user['uuid'] == uuid))
-        if users is not None
-        else HTTPError
-    )
-    confd_client.contexts.list.side_effect = lambda name=None, **kwargs: {
-        'items': [context for context in contexts if context['name'] == name]
-        if name and contexts
-        else contexts
-        if contexts
-        else []
-    }
+
+    def list_lines(name=None, **kwargs):
+        if lines is None:
+            filtered_lines = []
+        elif name:
+            filtered_lines = [line for line in lines if line['name'] == name]
+        else:
+            filtered_lines = lines
+        return {'items': filtered_lines}
+
+    confd_client.lines.list.side_effect = list_lines
+
+    def get_user(uuid):
+        try:
+            return next(user for user in users if user['uuid'] == uuid)
+        except StopIteration:
+            raise HTTPError(response=Mock(status_code=404, request=Mock()))
+
+    confd_client.users.get.side_effect = get_user if users is not None else HTTPError
+
+    def list_contexts(name=None, **kwargs):
+        if contexts is None:
+            filtered_contexts = []
+        elif name:
+            filtered_contexts = [
+                context for context in contexts if context['name'] == name
+            ]
+        else:
+            filtered_contexts = contexts
+        return {'items': filtered_contexts}
+
+    confd_client.contexts.list.side_effect = list_contexts
     return confd_client
 
 
