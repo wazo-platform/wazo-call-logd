@@ -26,6 +26,16 @@ MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
 
 
+def default_interpretors() -> list[AbstractCELInterpretor]:
+    return [
+        LocalOriginateCELInterpretor(),
+        DispatchCELInterpretor(
+            CallerCELInterpretor(),
+            CalleeCELInterpretor(),
+        ),
+    ]
+
+
 def extract_cel_extra(extra):
     if not extra:
         logger.debug('missing CEL extra')

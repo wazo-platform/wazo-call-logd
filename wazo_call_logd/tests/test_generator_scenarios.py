@@ -22,10 +22,7 @@ from requests import HTTPError
 # from xivo_dao.alchemy.cel import CEL
 from wazo_confd_client import Client as ConfdClient
 from wazo_call_logd.cel_interpretor import (
-    CalleeCELInterpretor,
-    CallerCELInterpretor,
-    DispatchCELInterpretor,
-    LocalOriginateCELInterpretor,
+    default_interpretors,
     parse_eventtime,
 )
 
@@ -276,13 +273,7 @@ class TestCallLogGenerationScenarios(TestCase):
         self.confd_client = mock_confd_client()
         self.generator = CallLogsGenerator(
             self.confd_client,
-            [
-                LocalOriginateCELInterpretor(),
-                DispatchCELInterpretor(
-                    CallerCELInterpretor(),
-                    CalleeCELInterpretor(),
-                ),
-            ],
+            default_interpretors(),
         )
 
     @raw_cels(

@@ -20,10 +20,7 @@ from xivo_dao import init_db_from_config
 
 from wazo_call_logd.bus import BusPublisher
 from wazo_call_logd.cel_interpretor import (
-    CalleeCELInterpretor,
-    CallerCELInterpretor,
-    DispatchCELInterpretor,
-    LocalOriginateCELInterpretor,
+    default_interpretors,
 )
 from wazo_call_logd.config import DEFAULT_CONFIG
 from wazo_call_logd.database.helpers import new_db_session
@@ -82,10 +79,7 @@ def _generate_call_logs():
 
     generator = CallLogsGenerator(
         confd_client,
-        [
-            LocalOriginateCELInterpretor(),
-            DispatchCELInterpretor(CallerCELInterpretor(), CalleeCELInterpretor()),
-        ],
+        default_interpretors(),
     )
     token_renewer.subscribe_to_next_token_details_change(
         generator.set_default_tenant_uuid
