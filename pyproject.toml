@@ -11,6 +11,7 @@ ignore = [
 ]
 per-file-ignores = [
   "integration_tests/suite/*.py:E501",
+  "wazo_call_logd/tests/*.py:E501",
 ]
 exclude = [
     ".tox",

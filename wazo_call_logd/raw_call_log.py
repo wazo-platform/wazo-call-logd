@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import DefaultDict, Literal
 
@@ -12,6 +13,13 @@ from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.extension_filter import DEFAULT_HIDDEN_EXTENSIONS, ExtensionFilter
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class BridgeInfo:
+    id: str
+    technology: str
+    channels: set[str] = field(default_factory=set)
 
 
 class RawCallLog:
@@ -50,6 +58,7 @@ class RawCallLog:
         self.extension_filter: ExtensionFilter = ExtensionFilter(
             DEFAULT_HIDDEN_EXTENSIONS
         )
+        self.bridges: dict[str, BridgeInfo] | None = {}
         self.destination_details: list = []
 
     @property

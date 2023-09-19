@@ -15,10 +15,7 @@ from xivo.token_renewer import TokenRenewer
 
 from wazo_call_logd import celery
 from wazo_call_logd.cel_interpretor import (
-    CalleeCELInterpretor,
-    CallerCELInterpretor,
-    DispatchCELInterpretor,
-    LocalOriginateCELInterpretor,
+    default_interpretors,
 )
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
@@ -59,13 +56,7 @@ class Controller:
         confd_client = ConfdClient(**config['confd'])
         generator = CallLogsGenerator(
             confd_client,
-            [
-                LocalOriginateCELInterpretor(),
-                DispatchCELInterpretor(
-                    CallerCELInterpretor(),
-                    CalleeCELInterpretor(),
-                ),
-            ],
+            default_interpretors(),
         )
         self.token_renewer = TokenRenewer(auth_client)
         self.token_renewer.subscribe_to_token_change(confd_client.set_token)

@@ -1,11 +1,13 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+from datetime import datetime
 
 import json
 import logging
 import re
 import urllib.parse
+import dateutil
 from typing import Callable
 
 from xivo.asterisk.line_identity import identity_from_channel
@@ -13,7 +15,7 @@ from xivo_dao.alchemy.cel import CEL
 
 from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
-from .raw_call_log import RawCallLog
+from .raw_call_log import BridgeInfo, RawCallLog
 from .utils import find
 
 logger = logging.getLogger(__name__)
@@ -24,6 +26,16 @@ MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
 
 
+def default_interpretors() -> list[AbstractCELInterpretor]:
+    return [
+        LocalOriginateCELInterpretor(),
+        DispatchCELInterpretor(
+            CallerCELInterpretor(),
+            CalleeCELInterpretor(),
+        ),
+    ]
+
+
 def extract_cel_extra(extra):
     if not extra:
         logger.debug('missing CEL extra')
@@ -32,7 +44,7 @@ def extract_cel_extra(extra):
     try:
         extra = json.loads(extra)
     except json.decoder.JSONDecodeError:
-        logger.debug('invalid CEL extra: "%s"', extra)
+        logger.debug('invalid CEL extra: %s', repr(extra))
         return
 
     return extra
@@ -94,8 +106,30 @@ def _extract_call_log_destination_variables(extra: dict) -> dict:
     return extra_dict
 
 
+def bridge_info(details: dict) -> BridgeInfo | None:
+    expected_keys = {'bridge_id', 'bridge_technology'}
+    if not (expected_keys <= set(details)):
+        logger.error(
+            "Missing expected bridge details: %s(missing %s)",
+            details,
+            (expected_keys - set(details)),
+        )
+        return None
+    return BridgeInfo(id=details['bridge_id'], technology=details['bridge_technology'])
+
+
+def parse_eventtime(eventtime: str | datetime) -> datetime:
+    if isinstance(eventtime, datetime):
+        return eventtime
+    else:
+        return dateutil.parser.isoparse(eventtime)
+
+
+EventInterpretor = Callable[[CEL, RawCallLog], RawCallLog]
+
+
 class AbstractCELInterpretor:
-    eventtype_map: dict[str, Callable[[CEL, RawCallLog], RawCallLog]] = {}
+    eventtype_map: dict[str, EventInterpretor] = {}
 
     def interpret_cels(self, cels: list[CEL], call_log: RawCallLog):
         for cel in cels:
@@ -109,6 +143,7 @@ class AbstractCELInterpretor:
             interpret_function = self.eventtype_map[eventtype]
             return interpret_function(cel, call)
         else:
+            logger.debug("Ignoring uninterpretable CEL event type %s", eventtype)
             return call
 
 
@@ -162,7 +197,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         }
 
     def interpret_chan_start(self, cel, call):
-        call.date = cel.eventtime
+        call.date = parse_eventtime(cel.eventtime)
         call.source_name = cel.cid_name
         call.source_internal_name = cel.cid_name
         call.source_exten = call.extension_filter.filter(cel.cid_num)
@@ -175,10 +210,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_chan_end(self, cel, call):
-        call.date_end = cel.eventtime
+        call.date_end = parse_eventtime(cel.eventtime)
         for recording in call.recordings:
             if not recording.end_time:
-                recording.end_time = cel.eventtime
+                recording.end_time = parse_eventtime(cel.eventtime)
 
         # Remove unwanted extensions
         call.extension_filter.filter_call(call)
@@ -202,13 +237,42 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         return call
 
-    def interpret_bridge_start_or_enter(self, cel, call):
+    def interpret_bridge_start_or_enter(self, cel: CEL, call):
+        extra_dict = extract_cel_extra(cel.extra)
+        bridge = extra_dict and bridge_info(extra_dict)
+        if not bridge:
+            logger.error(
+                "Failed to extract expected bridge details from cel(id=%s)", cel.id
+            )
+        else:
+            logger.debug(
+                'identified bridge from caller(id=%s, type=%s)',
+                bridge.id,
+                bridge.technology,
+            )
+            call.bridges[bridge.id] = bridge
+            bridge.channels.add(cel.channame)
+            if cel.peer:
+                bridge.channels.add(cel.peer)
+
         if not call.source_name:
             call.source_name = cel.cid_name
         if not call.source_exten:
             call.source_exten = call.extension_filter.filter(cel.cid_num)
 
-        call.date_answer = cel.eventtime
+        # accounting for calls to e.g. switchboard,
+        # we don't want to consider a call answered when the call is first put on a holding bridge
+        if not call.date_answer and (
+            (not bridge) or bridge.technology != 'holding_bridge'
+        ):
+            logger.debug(
+                'Identified answer time(%s) from caller(%s) on bridge(id=%s) with peer(%s)',
+                cel.eventtime,
+                cel.channame,
+                bridge.id if bridge else None,
+                cel.peer,
+            )
+            call.date_answer = parse_eventtime(cel.eventtime)
 
         return call
 
@@ -218,7 +282,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             return call
 
         recording = Recording(
-            start_time=cel.eventtime,
+            start_time=parse_eventtime(cel.eventtime),
             path=extra['filename'],
             mixmonitor_id=extra['mixmonitor_id'],
         )
@@ -232,7 +296,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         for recording in call.recordings:
             if recording.mixmonitor_id == extra['mixmonitor_id']:
-                recording.end_time = cel.eventtime
+                recording.end_time = parse_eventtime(cel.eventtime)
         return call
 
     def interpret_xivo_from_s(self, cel, call):
@@ -469,21 +533,52 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
     def interpret_chan_end(self, cel, call):
         for recording in call.recordings:
             if not recording.end_time:
-                recording.end_time = cel.eventtime
+                recording.end_time = parse_eventtime(cel.eventtime)
         return call
 
-    def interpret_bridge_enter(self, cel, call):
+    def interpret_bridge_enter(self, cel: CEL, call: RawCallLog):
+        extra_dict = extract_cel_extra(cel.extra)
+        bridge = extra_dict and bridge_info(extra_dict)
+        if not bridge:
+            logger.error(
+                "Failed to extract expected bridge details from bridge_enter cel(id=%s)",
+                cel.id,
+            )
+        else:
+            logger.debug(
+                'identified bridge (id=%s, type=%s) from callee(%s)',
+                bridge.id,
+                bridge.technology,
+                cel.channame,
+            )
+            call.bridges[bridge.id] = bridge
+
+        call.raw_participants[cel.channame].update(answered=True)
+        # only consider the first bridge_enter for destination identity info
         if call.interpret_callee_bridge_enter:
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
-            call.raw_participants[cel.channame].update(answered=True)
 
             call.interpret_callee_bridge_enter = False
+            logger.debug(
+                'interpreting destination_exten(%s), destination_name(%s) '
+                ' from callee bridge enter(bridge id=%s) for channel %s',
+                cel.cid_num,
+                cel.cid_name,
+                bridge.id if bridge else None,
+                cel.channame,
+            )
 
         if cel.peer:
+            logger.debug(
+                'callee(%s) entered bridge with peer: %s', cel.channame, cel.peer
+            )
             # peer contains multiple entries during adhoc conferences
-            for peer in cel.peer.split(','):
+            peers = [peer for peer in cel.peer.split(',') if peer]
+            for peer in peers:
+                if bridge:
+                    bridge.channels.add(peer)
                 if peer not in call.raw_participants:
                     continue
                 call.raw_participants[peer].update(answered=True)
@@ -494,6 +589,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             if cid_number:
                 call.destination_exten = cid_number
                 call.destination_internal_exten = cid_number
+        else:
+            logger.debug('callee(%s) entered bridge with no peer', cel.channame)
 
         return call
 
@@ -503,7 +600,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             return call
 
         recording = Recording(
-            start_time=cel.eventtime,
+            start_time=parse_eventtime(cel.eventtime),
             path=extra['filename'],
             mixmonitor_id=extra['mixmonitor_id'],
         )
@@ -517,7 +614,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         for recording in call.recordings:
             if recording.mixmonitor_id == extra['mixmonitor_id']:
-                recording.end_time = cel.eventtime
+                recording.end_time = parse_eventtime(cel.eventtime)
         return call
 
 
@@ -557,8 +654,8 @@ class LocalOriginateCELInterpretor:
         except StopIteration:
             return call
 
-        call.date = local_channel1_start.eventtime
-        call.date_end = source_channel_end.eventtime
+        call.date = parse_eventtime(local_channel1_start.eventtime)
+        call.date_end = parse_eventtime(source_channel_end.eventtime)
         call.source_name = source_channel_answer.cid_name
         call.source_exten = source_channel_answer.cid_num
         call.source_line_identity = identity_from_channel(
@@ -577,7 +674,7 @@ class LocalOriginateCELInterpretor:
                 return call
 
             recording = Recording(
-                start_time=cel.eventtime,
+                start_time=parse_eventtime(cel.eventtime),
                 path=extra['filename'],
                 mixmonitor_id=extra['mixmonitor_id'],
             )
@@ -593,7 +690,7 @@ class LocalOriginateCELInterpretor:
 
             for recording in call.recordings:
                 if recording.mixmonitor_id == extra['mixmonitor_id']:
-                    recording.end_time = cel.eventtime
+                    recording.end_time = parse_eventtime(cel.eventtime)
 
         # End of recording when not stopped manually
         for recording in call.recordings:
@@ -664,7 +761,9 @@ class LocalOriginateCELInterpretor:
             call.raw_participants[destination_channel_answer.channame].update(
                 role='destination'
             )
-            call.date_answer = destination_channel_bridge_enter.eventtime
+            call.date_answer = parse_eventtime(
+                destination_channel_bridge_enter.eventtime
+            )
 
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
         is_outcall = any([True for cel in cels if cel.eventtype == 'XIVO_OUTCALL'])

@@ -1,7 +1,8 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from datetime import datetime
+from datetime import datetime, timedelta
+from uuid import uuid4
 
 from hamcrest import (
     all_of,
@@ -31,6 +32,7 @@ from .helpers.constants import (
     USER_3_UUID,
     USERS_TENANT,
 )
+from .helpers.hamcrest.datetime_close_to import datetime_close_to
 
 
 class TestCallLogGeneration(RawCelIntegrationTest):
@@ -1918,6 +1920,78 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                         destination_details_key="user_name",
                         destination_details_value=user_b_name,
                     ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''
+            eventtime                 |   linkedid    |   uniqueid    |  eventtype   | cid_name  | cid_num | exten |        channame         |             peer             |                                                    extra
+        ------------------------------+---------------+---------------+--------------+-----------+---------+-------+-------------------------+------------------------------+-------------------------------------------------------------------------------------------------------------
+        2023-09-06 18:07:22.626751+00 | 1694023642.7  | 1694023642.7  | CHAN_START   | Caller    | 8001    | 91001 | PJSIP/9EYlfTvB-00000003 |                              |
+        2023-09-06 18:07:22.766486+00 | 1694023642.7  | 1694023642.7  | XIVO_INCALL  | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 |                              | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        2023-09-06 18:07:22.800934+00 | 1694023642.7  | 1694023642.7  | ANSWER       | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 |                              |
+        2023-09-06 18:07:24.634089+00 | 1694023642.7  | 1694023642.7  | BRIDGE_ENTER | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 | Announcer/ARI_MOH-00000002;2 | {"bridge_id":"switchboard-34aba842-e9d3-49c7-ba36-45cdf78bb1fb-queue","bridge_technology":"holding_bridge"}
+        2023-09-06 18:07:27.249116+00 | 1694023642.7  | 1694023647.10 | CHAN_START   | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000004 |                              |
+        2023-09-06 18:07:27.279066+00 | 1694023642.7  | 1694023642.7  | BRIDGE_EXIT  | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 | Announcer/ARI_MOH-00000002;2 | {"bridge_id":"switchboard-34aba842-e9d3-49c7-ba36-45cdf78bb1fb-queue","bridge_technology":"holding_bridge"}
+        2023-09-06 18:07:28.621623+00 | 1694023642.7  | 1694023647.10 | ANSWER       | Caller    | 8001    | s     | PJSIP/KvXYRheV-00000004 |                              |
+        2023-09-06 18:07:28.748438+00 | 1694023642.7  | 1694023642.7  | BRIDGE_ENTER | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 |                              | {"bridge_id":"2513e8a5-184f-4399-a592-a8c629b2aaed","bridge_technology":"simple_bridge"}
+        2023-09-06 18:07:28.77778+00  | 1694023642.7  | 1694023647.10 | BRIDGE_ENTER | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000004 | PJSIP/9EYlfTvB-00000003      | {"bridge_id":"2513e8a5-184f-4399-a592-a8c629b2aaed","bridge_technology":"simple_bridge"}
+        2023-09-06 18:07:33.990541+00 | 1694023642.7  | 1694023642.7  | BRIDGE_EXIT  | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 | PJSIP/KvXYRheV-00000004      | {"bridge_id":"2513e8a5-184f-4399-a592-a8c629b2aaed","bridge_technology":"simple_bridge"}
+        2023-09-06 18:07:33.991055+00 | 1694023642.7  | 1694023642.7  | BRIDGE_ENTER | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 | Announcer/ARI_MOH-00000003;2 | {"bridge_id":"switchboard-34aba842-e9d3-49c7-ba36-45cdf78bb1fb-hold","bridge_technology":"holding_bridge"}
+        2023-09-06 18:07:34.01182+00  | 1694023642.7  | 1694023647.10 | BRIDGE_EXIT  | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000004 |                              | {"bridge_id":"2513e8a5-184f-4399-a592-a8c629b2aaed","bridge_technology":"simple_bridge"}
+        2023-09-06 18:07:34.01327+00  | 1694023642.7  | 1694023647.10 | HANGUP       | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000004 |                              | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        2023-09-06 18:07:34.01327+00  | 1694023642.7  | 1694023647.10 | CHAN_END     | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000004 |                              |
+        2023-09-06 18:07:39.145551+00 | 1694023659.13 | 1694023659.13 | CHAN_START   | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000005 |                              |
+        2023-09-06 18:07:39.181324+00 | 1694023642.7  | 1694023642.7  | BRIDGE_EXIT  | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 | Announcer/ARI_MOH-00000003;2 | {"bridge_id":"switchboard-34aba842-e9d3-49c7-ba36-45cdf78bb1fb-hold","bridge_technology":"holding_bridge"}
+        2023-09-06 18:07:40.514803+00 | 1694023659.13 | 1694023659.13 | ANSWER       | Caller    | 8001    | s     | PJSIP/KvXYRheV-00000005 |                              |
+        2023-09-06 18:07:40.631553+00 | 1694023642.7  | 1694023642.7  | BRIDGE_ENTER | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 |                              | {"bridge_id":"d855ac7e-790b-46bc-9b7f-9634ea7081e1","bridge_technology":"simple_bridge"}
+        2023-09-06 18:07:40.649264+00 | 1694023659.13 | 1694023659.13 | LINKEDID_END | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000005 |                              |
+        2023-09-06 18:07:40.649284+00 | 1694023642.7  | 1694023659.13 | BRIDGE_ENTER | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000005 | PJSIP/9EYlfTvB-00000003      | {"bridge_id":"d855ac7e-790b-46bc-9b7f-9634ea7081e1","bridge_technology":"simple_bridge"}
+        2023-09-06 18:07:45.901316+00 | 1694023642.7  | 1694023659.13 | BRIDGE_EXIT  | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000005 | PJSIP/9EYlfTvB-00000003      | {"bridge_id":"d855ac7e-790b-46bc-9b7f-9634ea7081e1","bridge_technology":"simple_bridge"}
+        2023-09-06 18:07:45.903738+00 | 1694023642.7  | 1694023659.13 | HANGUP       | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000005 |                              | {"hangupcause":16,"hangupsource":"PJSIP/KvXYRheV-00000005","dialstatus":""}
+        2023-09-06 18:07:45.903738+00 | 1694023642.7  | 1694023659.13 | CHAN_END     | Operator  | 8000    | s     | PJSIP/KvXYRheV-00000005 |                              |
+        2023-09-06 18:07:45.981824+00 | 1694023642.7  | 1694023642.7  | BRIDGE_EXIT  | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 |                              | {"bridge_id":"d855ac7e-790b-46bc-9b7f-9634ea7081e1","bridge_technology":"simple_bridge"}
+        2023-09-06 18:07:45.983346+00 | 1694023642.7  | 1694023642.7  | HANGUP       | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 |                              | {"hangupcause":16,"hangupsource":"PJSIP/KvXYRheV-00000005","dialstatus":""}
+        2023-09-06 18:07:45.983346+00 | 1694023642.7  | 1694023642.7  | CHAN_END     | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 |                              |
+        2023-09-06 18:07:45.983346+00 | 1694023642.7  | 1694023642.7  | LINKEDID_END | Caller    | 8001    | s     | PJSIP/9EYlfTvB-00000003 |                              |
+        '''
+    )
+    def test_switchboard_call_answered_then_put_in_shared_queue_then_answered(self):
+        operator_uuid = str(uuid4())
+        self.confd.set_users(
+            MockUser(operator_uuid, USERS_TENANT, line_ids=[1]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='KvXYRheV',
+                users=[{'uuid': operator_uuid}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '8000', 'context': 'default'}],
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
+        )
+        self._assert_last_call_log_matches(
+            '1694023642.7',
+            has_properties(
+                id=not_none(),
+                participants=contains(
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=operator_uuid,
+                        role='destination',
+                        answered=True,
+                    ),
+                ),
+                destination_user_uuid=operator_uuid,
+                destination_name='Operator',
+                direction='inbound',
+                requested_exten='91001',
+                date_answer=datetime_close_to(
+                    '2023-09-06 18:07:28+00:00', delta=timedelta(seconds=1)
                 ),
             ),
         )

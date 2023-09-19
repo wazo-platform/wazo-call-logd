@@ -21,6 +21,7 @@ from ..cel_interpretor import (
     CallerCELInterpretor,
     DispatchCELInterpretor,
     _extract_user_missed_call_variables,
+    bridge_info,
     extract_cel_extra,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
@@ -159,6 +160,35 @@ class TestIsValidMixmonitorStopExtra:
         assert_that(not is_valid)
 
 
+class TestBridgeInfo(TestCase):
+    def test_simple_bridge(self):
+        details = {'bridge_id': 'some-uuid', 'bridge_technology': 'simple_bridge'}
+        bridge = bridge_info(details)
+        assert_that(
+            bridge,
+            has_properties(id='some-uuid', technology='simple_bridge'),
+        )
+
+    def test_missing_attribute_returns_none(self):
+        details = {'bridge_technology': 'simple_bridge'}
+        assert_that(bridge_info(details), none())
+
+        details = {'bridge_id': 'some-uuid'}
+        assert_that(bridge_info(details), none())
+
+    def test_extra_attributes_ignored(self):
+        details = {
+            'bridge_id': 'some-uuid',
+            'bridge_technology': 'simple_bridge',
+            'extra_attribute': 'irrelevant_value',
+        }
+        bridge = bridge_info(details)
+        assert_that(
+            bridge,
+            has_properties(id='some-uuid', technology='simple_bridge'),
+        )
+
+
 class TestCELDispatcher(TestCase):
     def setUp(self):
         self.caller_cel_interpretor = Mock()
@@ -277,12 +307,13 @@ class TestCallerCELInterpretor(TestCase):
     def setUp(self):
         self.caller_cel_interpretor = CallerCELInterpretor()
         self.call = create_autospec(
-            RawCallLog,
+            RawCallLog(),
             instance=True,
             interpret_caller_xivo_user_fwd=True,
             extension_filter=Mock(filter=lambda x: x),
             participants=[],
             participants_info=[],
+            bridges={},
         )
 
     def test_interpret_cel_unknown_or_ignored_event(self):
@@ -449,5 +480,32 @@ class TestCallerCELInterpretor(TestCase):
                     destination_details_key='conference_id',
                     destination_details_value='1',
                 ),
+            ),
+        )
+
+    def test_interpret_bridge_start_or_enter_identifies_bridge(self):
+        cel = Mock(
+            eventtype='BRIDGE_ENTER',
+            extra='{"bridge_id": "some-uuid", "bridge_technology":"simple_bridge"}',
+            channame='protocol/line-1',
+            peer='protocol/line-2',
+        )
+        result = self.caller_cel_interpretor.interpret_bridge_start_or_enter(
+            cel, self.call
+        )
+        assert_that(
+            result,
+            has_properties(
+                bridges=has_entries(
+                    {
+                        'some-uuid': has_properties(
+                            id='some-uuid',
+                            technology='simple_bridge',
+                            channels=contains_inanyorder(
+                                'protocol/line-1', 'protocol/line-2'
+                            ),
+                        )
+                    }
+                )
             ),
         )
