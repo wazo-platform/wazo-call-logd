@@ -17,7 +17,7 @@ RUN pip install -r /usr/src/wazo-call-logd/requirements.txt
 COPY setup.py /usr/src/wazo-call-logd/setup.py
 COPY wazo_call_logd /usr/src/wazo-call-logd/wazo_call_logd
 WORKDIR /usr/src/wazo-call-logd
-RUN python setup.py install
+RUN pip install .
 
 FROM python:3.9-slim-bullseye AS build-image
 COPY --from=compile-image /opt/venv /opt/venv
