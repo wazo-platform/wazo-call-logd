@@ -54,17 +54,24 @@ def _extract_days_to_keep(tenant_days, default_days, purge_db_days, default):
     return default_days
 
 
+def _get_tenants_uuids(session, tenant_uuid):
+    if tenant_uuid:
+        return [tenant_uuid]
+    else:
+        return [tenant_uuid[0] for tenant_uuid in session.query(Tenant.uuid).all()]
+
+
 class CallLogsPurger:
-    def purge(self, days_to_keep, session):
+    def purge(self, days_to_keep, session, tenant_uuid=None):
         config = session.query(Config).first()
         if not config:
             raise Exception('No default config found')
         default_days = config.retention_cdr_days
 
         retentions = {r.tenant_uuid: r for r in session.query(Retention).all()}
-        tenants = session.query(Tenant).all()
-        for tenant in tenants:
-            retention = retentions.get(tenant.uuid)
+        tenants_uuid = _get_tenants_uuids(session, tenant_uuid)
+        for tenant_uuid in tenants_uuid:
+            retention = retentions.get(tenant_uuid)
             tenant_days = retention.cdr_days if retention else None
             days = _extract_days_to_keep(
                 tenant_days,
@@ -75,7 +82,7 @@ class CallLogsPurger:
             if days != days_to_keep:
                 logger.debug(
                     'Tenant %s: overriding call log retention to %s days',
-                    tenant.uuid,
+                    tenant_uuid,
                     days,
                 )
 
@@ -84,7 +91,7 @@ class CallLogsPurger:
                 session.query(CallLog)
                 .join(Recording, Recording.call_log_id == CallLog.id)
                 .filter(CallLog.date < max_date)
-                .filter(CallLog.tenant_uuid == tenant.uuid)
+                .filter(CallLog.tenant_uuid == tenant_uuid)
             )
             call_logs = query.all()
             _remove_recording_files(call_logs)
@@ -92,23 +99,23 @@ class CallLogsPurger:
             query = (
                 session.query(CallLog)
                 .filter(CallLog.date < max_date)
-                .filter(CallLog.tenant_uuid == tenant.uuid)
+                .filter(CallLog.tenant_uuid == tenant_uuid)
             )
             query.delete(synchronize_session=False)
 
 
 class ExportsPurger:
-    def purge(self, days_to_keep, session):
+    def purge(self, days_to_keep, session, tenant_uuid=None):
         config = session.query(Config).first()
         if not config:
             raise Exception('No default config found')
         default_days = config.retention_export_days
 
         retentions = {r.tenant_uuid: r for r in session.query(Retention).all()}
-        tenants = session.query(Tenant).all()
-        for tenant in tenants:
+        tenants_uuid = _get_tenants_uuids(session, tenant_uuid)
+        for tenant_uuid in tenants_uuid:
             days = days_to_keep
-            retention = retentions.get(tenant.uuid)
+            retention = retentions.get(tenant_uuid)
             tenant_days = retention.export_days if retention else None
             days = _extract_days_to_keep(
                 tenant_days,
@@ -119,7 +126,7 @@ class ExportsPurger:
             if days != days_to_keep:
                 logger.debug(
                     'Tenant %s: overriding export retention to %s days',
-                    tenant.uuid,
+                    tenant_uuid,
                     days,
                 )
 
@@ -127,7 +134,7 @@ class ExportsPurger:
             query = (
                 session.query(Export)
                 .filter(Export.requested_at < max_date)
-                .filter(Export.tenant_uuid == tenant.uuid)
+                .filter(Export.tenant_uuid == tenant_uuid)
             )
             exports = query.all()
             _remove_export_files(exports)
@@ -136,17 +143,17 @@ class ExportsPurger:
 
 
 class RecordingsPurger:
-    def purge(self, days_to_keep, session):
+    def purge(self, days_to_keep, session, tenant_uuid=None):
         config = session.query(Config).first()
         if not config:
             raise Exception('No default config found')
         default_days = config.retention_recording_days
 
         retentions = {r.tenant_uuid: r for r in session.query(Retention).all()}
-        tenants = session.query(Tenant).all()
-        for tenant in tenants:
+        tenants_uuid = _get_tenants_uuids(session, tenant_uuid)
+        for tenant_uuid in tenants_uuid:
             days = days_to_keep
-            retention = retentions.get(tenant.uuid)
+            retention = retentions.get(tenant_uuid)
             tenant_days = retention.recording_days if retention else None
             days = _extract_days_to_keep(
                 tenant_days,
@@ -157,7 +164,7 @@ class RecordingsPurger:
             if days != days_to_keep:
                 logger.debug(
                     'Tenant %s: overriding recording retention to %s days',
-                    tenant.uuid,
+                    tenant_uuid,
                     days,
                 )
 
@@ -166,7 +173,7 @@ class RecordingsPurger:
                 session.query(CallLog)
                 .join(Recording, Recording.call_log_id == CallLog.id)
                 .filter(CallLog.date < max_date)
-                .filter(CallLog.tenant_uuid == tenant.uuid)
+                .filter(CallLog.tenant_uuid == tenant_uuid)
             )
             call_logs = query.all()
             _remove_recording_files(call_logs)
@@ -174,7 +181,7 @@ class RecordingsPurger:
             subquery = (
                 session.query(CallLog.id)
                 .filter(CallLog.date < max_date)
-                .filter(CallLog.tenant_uuid == tenant.uuid)
+                .filter(CallLog.tenant_uuid == tenant_uuid)
             )
             query = session.query(Recording).filter(Recording.call_log_id.in_(subquery))
             query.update({'path': None}, synchronize_session=False)

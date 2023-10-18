@@ -46,6 +46,7 @@ from .constants import (
     USER_2_UUID,
     USERS_TENANT,
     WAZO_UUID,
+    SERVICE_TENANT,
 )
 from .database import DbHelper
 from .email import EmailClient
@@ -322,6 +323,11 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
                 'name': 'call-logd-tests-other',
                 'parent_uuid': MASTER_TENANT,
             },
+            {
+                'uuid': SERVICE_TENANT,
+                'name': 'call-logd-tests-other',
+                'parent_uuid': MASTER_TENANT,
+            },
         )
 
     @contextmanager
@@ -355,7 +361,9 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         self._CELSession = new_db_session(cel_db_uri)
 
         self.dao = DAO(self._Session, self._CELSession)
+        self.set_tenants()
 
+    def set_tenants(self):
         tenant_uuids = [MASTER_TENANT, OTHER_TENANT, USERS_TENANT]
         self.dao.tenant.create_all_uuids_if_not_exist(tenant_uuids)
 
