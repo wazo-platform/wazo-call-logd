@@ -859,10 +859,30 @@ class LocalOriginateCELInterpretor:
 
     @classmethod
     def can_interpret(cls, cels):
+        has_three_channels = cls.three_channels_minimum(cels)
+        if not has_three_channels:
+            logger.debug(
+                f'{cls.__name__} dispatch failed: CELs have less than three channels'
+            )
+        first_two_channels_local = cls.first_two_channels_are_local(cels)
+        if not first_two_channels_local:
+            logger.debug(
+                f'{cls.__name__} dispatch failed: non-local channel appears in first two channels'
+            )
+
+        first_channel_answered_first = (
+            cls.first_channel_is_answered_before_any_other_operation(cels)
+        )
+        if not first_channel_answered_first:
+            logger.debug(
+                f'{cls.__name__} dispatch failed: first channel is not answered '
+                'before other events occur'
+            )
+
         return (
-            cls.three_channels_minimum(cels)
-            and cls.first_two_channels_are_local(cels)
-            and cls.first_channel_is_answered_before_any_other_operation(cels)
+            has_three_channels
+            and first_two_channels_local
+            and first_channel_answered_first
         )
 
     @classmethod
