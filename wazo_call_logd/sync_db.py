@@ -48,9 +48,6 @@ def load_config():
 
 
 def main():
-    from time import sleep
-
-    sleep(20)
     cli_args = parse_cli_args()
     config = load_config()
 
