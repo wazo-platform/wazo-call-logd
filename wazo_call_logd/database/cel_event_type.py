@@ -31,3 +31,4 @@ class CELEventType:
     xivo_user_fwd = 'XIVO_USER_FWD'
     wazo_user_missed_call = 'WAZO_USER_MISSED_CALL'
     wazo_call_log_destination = 'WAZO_CALL_LOG_DESTINATION'
+    wazo_originate_all_lines = 'WAZO_ORIGINATE_ALL_LINES'

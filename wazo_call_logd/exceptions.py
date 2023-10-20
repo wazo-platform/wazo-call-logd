@@ -30,3 +30,13 @@ class ExportNotFoundException(APIException):
             error_id='export-not-found-with-given-uuid',
             details={'export_uuid': str(export_uuid)},
         )
+
+
+class CELInterpretationError(Exception):
+    def __init__(self, event_name: str, raw_data=None):
+        super().__init__(
+            f'Failed to interpret event {event_name}.'
+            + ('' if not raw_data else f' payload: {repr(raw_data)}')
+        )
+        self.event_name = event_name
+        self.raw_data = raw_data

@@ -8,7 +8,7 @@ import logging
 import re
 import urllib.parse
 import dateutil
-from typing import Callable
+from typing import Callable, TypedDict
 
 from xivo.asterisk.line_identity import identity_from_channel
 from xivo_dao.alchemy.cel import CEL
@@ -17,6 +17,8 @@ from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
 from .raw_call_log import BridgeInfo, RawCallLog
 from .utils import find
+from .exceptions import CELInterpretationError
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ def default_interpretors() -> list[AbstractCELInterpretor]:
     ]
 
 
-def extract_cel_extra(extra):
+def extract_cel_extra(extra: str) -> dict | None:
     if not extra:
         logger.debug('missing CEL extra')
         return
@@ -104,6 +106,54 @@ def _extract_call_log_destination_variables(extra: dict) -> dict:
         extra_dict[key] = value
 
     return extra_dict
+
+
+class OriginateAllLinesInfo(TypedDict):
+    user_uuid: str
+    tenant_uuid: str
+
+
+def _extract_originate_all_lines_variables(extra: dict) -> OriginateAllLinesInfo | None:
+    if 'extra' not in extra:
+        logger.error('Missing expected \'extra\' key in CEL extra payload')
+        return None
+    raw_data = extra['extra']
+    tokens: list[str] = [token.strip() for token in raw_data.split(',')]
+    if len(tokens) < 2:
+        return None
+    info = {}
+    for token in tokens:
+        try:
+            raw_key, raw_value = token.split(':', maxsplit=1)
+        except (ValueError, TypeError):
+            logger.error('Error parsing token %s in payload %s', token, raw_data)
+            return None
+
+        key = raw_key.strip()
+        value = raw_value.strip()
+        if key == 'user_uuid':
+            info['user_uuid'] = value
+        elif key == 'tenant_uuid':
+            info['tenant_uuid'] = value
+        else:
+            logger.warning('Unexpected key(%s) in event data payload', repr(key))
+    if info.keys() != {'user_uuid', 'tenant_uuid'}:
+        return None
+    return info
+
+
+def _parse_wazo_originate_all_lines_extra(extra: str) -> OriginateAllLinesInfo:
+    wrapper = extract_cel_extra(extra)
+    if not wrapper:
+        raise CELInterpretationError(
+            event_name='WAZO_ORIGINATE_ALL_LINES', raw_data=extra
+        )
+    info = _extract_originate_all_lines_variables(wrapper)
+    if not info:
+        raise CELInterpretationError(
+            event_name='WAZO_ORIGINATE_ALL_LINES', raw_data=extra
+        )
+    return info
 
 
 def bridge_info(details: dict) -> BridgeInfo | None:
@@ -771,6 +821,39 @@ class LocalOriginateCELInterpretor:
             call.direction = 'inbound'
         if is_outcall:
             call.direction = 'outbound'
+
+        # extract tenant and user info from WAZO_ORIGINATE_ALL_LINES custom event
+        try:
+            wazo_originate_all_lines = next(
+                cel
+                for cel in cels
+                if cel.eventtype == CELEventType.wazo_originate_all_lines
+            )
+        except StopIteration:
+            logger.debug('No WAZO_ORIGINATE_ALL_LINES cel found')
+        else:
+            logger.info('processing WAZO_ORIGINATE_ALL_LINES cel entry')
+            try:
+                info = _parse_wazo_originate_all_lines_extra(
+                    wazo_originate_all_lines.extra
+                )
+            except CELInterpretationError:
+                logger.exception(
+                    'Failed to interpret info from WAZO_ORIGINATE_ALL_LINES payload for CEL id %d',
+                    wazo_originate_all_lines.id,
+                )
+            else:
+                logger.debug(
+                    'tenant identified from WAZO_ORIGINATE_ALL_LINES: %s',
+                    info['tenant_uuid'],
+                )
+                call.set_tenant_uuid(info['tenant_uuid'])
+                call.raw_participants[wazo_originate_all_lines.channame].update(
+                    role='source'
+                )
+                call.participants_info.append(
+                    {'user_uuid': info['user_uuid'], 'role': 'source'}
+                )
 
         return call
 
