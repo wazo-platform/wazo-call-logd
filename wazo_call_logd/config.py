@@ -82,6 +82,7 @@ DEFAULT_CONFIG = {
         'retention': True,
         'status': True,
         'support_center': True,
+        'tenant': True,
     },
     'smtp': {
         'host': 'localhost',
