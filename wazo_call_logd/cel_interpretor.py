@@ -26,6 +26,7 @@ EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?
 WAIT_FOR_MOBILE_REGEX = re.compile(r'^Local/(\S+)@wazo_wait_for_registration-\S+;2$')
 MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
+KEY_PAIR_SEQ_REGEX = re.compile(r'\s*(\w+):\s*([^,:]+),?')
 
 
 def default_interpretors() -> list[AbstractCELInterpretor]:
@@ -36,6 +37,11 @@ def default_interpretors() -> list[AbstractCELInterpretor]:
             CalleeCELInterpretor(),
         ),
     ]
+
+
+def parse_key_pair_sequence(text: str) -> list[tuple[str, str]]:
+    key_pairs = KEY_PAIR_SEQ_REGEX.findall(text)
+    return key_pairs
 
 
 def extract_cel_extra(extra: str) -> dict | None:
@@ -118,26 +124,15 @@ def _extract_originate_all_lines_variables(extra: dict) -> OriginateAllLinesInfo
         logger.error('Missing expected \'extra\' key in CEL extra payload')
         return None
     raw_data = extra['extra']
-    tokens: list[str] = [token.strip() for token in raw_data.split(',')]
-    if len(tokens) < 2:
+    key_pairs = parse_key_pair_sequence(raw_data)
+    if len(key_pairs) < 2:
         return None
-    info = {}
-    for token in tokens:
-        try:
-            raw_key, raw_value = token.split(':', maxsplit=1)
-        except (ValueError, TypeError):
-            logger.error('Error parsing token %s in payload %s', token, raw_data)
-            return None
-
-        key = raw_key.strip()
-        value = raw_value.strip()
-        if key == 'user_uuid':
-            info['user_uuid'] = value
-        elif key == 'tenant_uuid':
-            info['tenant_uuid'] = value
-        else:
-            logger.warning('Unexpected key(%s) in event data payload', repr(key))
-    if info.keys() != {'user_uuid', 'tenant_uuid'}:
+    expected_keys = {'user_uuid', 'tenant_uuid'}
+    unexpected_keys = set(key for key, _ in key_pairs) - expected_keys
+    info = {key: value for key, value in key_pairs if key in expected_keys}
+    if unexpected_keys:
+        logger.warning('Unexpected keys(%s) in event data payload', unexpected_keys)
+    if info.keys() != expected_keys:
         return None
     return info
 
@@ -146,12 +141,12 @@ def _parse_wazo_originate_all_lines_extra(extra: str) -> OriginateAllLinesInfo:
     wrapper = extract_cel_extra(extra)
     if not wrapper:
         raise CELInterpretationError(
-            event_name='WAZO_ORIGINATE_ALL_LINES', raw_data=extra
+            event_name=CELEventType.wazo_originate_all_lines, raw_data=extra
         )
     info = _extract_originate_all_lines_variables(wrapper)
     if not info:
         raise CELInterpretationError(
-            event_name='WAZO_ORIGINATE_ALL_LINES', raw_data=extra
+            event_name=CELEventType.wazo_originate_all_lines, raw_data=extra
         )
     return info
 
@@ -830,21 +825,22 @@ class LocalOriginateCELInterpretor:
                 if cel.eventtype == CELEventType.wazo_originate_all_lines
             )
         except StopIteration:
-            logger.debug('No WAZO_ORIGINATE_ALL_LINES cel found')
+            logger.debug(f'No {CELEventType.wazo_originate_all_lines} cel found')
         else:
-            logger.info('processing WAZO_ORIGINATE_ALL_LINES cel entry')
+            logger.info(f'processing {CELEventType.wazo_originate_all_lines} cel entry')
             try:
                 info = _parse_wazo_originate_all_lines_extra(
                     wazo_originate_all_lines.extra
                 )
             except CELInterpretationError:
                 logger.exception(
-                    'Failed to interpret info from WAZO_ORIGINATE_ALL_LINES payload for CEL id %d',
+                    f'Failed to interpret info from {CELEventType.wazo_originate_all_lines}'
+                    ' payload for CEL id %d',
                     wazo_originate_all_lines.id,
                 )
             else:
                 logger.debug(
-                    'tenant identified from WAZO_ORIGINATE_ALL_LINES: %s',
+                    f'tenant identified from {CELEventType.wazo_originate_all_lines}: %s',
                     info['tenant_uuid'],
                 )
                 call.set_tenant_uuid(info['tenant_uuid'])
