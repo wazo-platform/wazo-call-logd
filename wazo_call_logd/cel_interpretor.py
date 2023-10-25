@@ -44,7 +44,7 @@ def parse_key_pair_sequence(text: str) -> list[tuple[str, str]]:
     return key_pairs
 
 
-def extract_cel_extra(extra: str) -> dict | None:
+def extract_cel_extra(extra: str | None) -> dict | None:
     if not extra:
         logger.debug('missing CEL extra')
         return
