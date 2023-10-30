@@ -8,7 +8,7 @@ import logging
 import re
 import urllib.parse
 import dateutil
-from typing import Callable
+from typing import Callable, TypedDict
 
 from xivo.asterisk.line_identity import identity_from_channel
 from xivo_dao.alchemy.cel import CEL
@@ -17,6 +17,8 @@ from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
 from .raw_call_log import BridgeInfo, RawCallLog
 from .utils import find
+from .exceptions import CELInterpretationError
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?
 WAIT_FOR_MOBILE_REGEX = re.compile(r'^Local/(\S+)@wazo_wait_for_registration-\S+;2$')
 MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
+KEY_PAIR_SEQ_REGEX = re.compile(r'\s*(\w+):\s*([^,:]+),?')
 
 
 def default_interpretors() -> list[AbstractCELInterpretor]:
@@ -36,7 +39,12 @@ def default_interpretors() -> list[AbstractCELInterpretor]:
     ]
 
 
-def extract_cel_extra(extra):
+def parse_key_pair_sequence(text: str) -> list[tuple[str, str]]:
+    key_pairs = KEY_PAIR_SEQ_REGEX.findall(text)
+    return key_pairs
+
+
+def extract_cel_extra(extra: str | None) -> dict | None:
     if not extra:
         logger.debug('missing CEL extra')
         return
@@ -104,6 +112,43 @@ def _extract_call_log_destination_variables(extra: dict) -> dict:
         extra_dict[key] = value
 
     return extra_dict
+
+
+class OriginateAllLinesInfo(TypedDict):
+    user_uuid: str
+    tenant_uuid: str
+
+
+def _extract_originate_all_lines_variables(extra: dict) -> OriginateAllLinesInfo | None:
+    if 'extra' not in extra:
+        logger.error('Missing expected \'extra\' key in CEL extra payload')
+        return None
+    raw_data = extra['extra']
+    key_pairs = parse_key_pair_sequence(raw_data)
+    if len(key_pairs) < 2:
+        return None
+    expected_keys = {'user_uuid', 'tenant_uuid'}
+    unexpected_keys = set(key for key, _ in key_pairs) - expected_keys
+    info = {key: value for key, value in key_pairs if key in expected_keys}
+    if unexpected_keys:
+        logger.warning('Unexpected keys(%s) in event data payload', unexpected_keys)
+    if info.keys() != expected_keys:
+        return None
+    return info
+
+
+def _parse_wazo_originate_all_lines_extra(extra: str) -> OriginateAllLinesInfo:
+    wrapper = extract_cel_extra(extra)
+    if not wrapper:
+        raise CELInterpretationError(
+            event_name=CELEventType.wazo_originate_all_lines, raw_data=extra
+        )
+    info = _extract_originate_all_lines_variables(wrapper)
+    if not info:
+        raise CELInterpretationError(
+            event_name=CELEventType.wazo_originate_all_lines, raw_data=extra
+        )
+    return info
 
 
 def bridge_info(details: dict) -> BridgeInfo | None:
@@ -772,14 +817,68 @@ class LocalOriginateCELInterpretor:
         if is_outcall:
             call.direction = 'outbound'
 
+        # extract tenant and user info from WAZO_ORIGINATE_ALL_LINES custom event
+        try:
+            wazo_originate_all_lines = next(
+                cel
+                for cel in cels
+                if cel.eventtype == CELEventType.wazo_originate_all_lines
+            )
+        except StopIteration:
+            logger.debug(f'No {CELEventType.wazo_originate_all_lines} cel found')
+        else:
+            logger.info(f'processing {CELEventType.wazo_originate_all_lines} cel entry')
+            try:
+                info = _parse_wazo_originate_all_lines_extra(
+                    wazo_originate_all_lines.extra
+                )
+            except CELInterpretationError:
+                logger.exception(
+                    f'Failed to interpret info from {CELEventType.wazo_originate_all_lines}'
+                    ' payload for CEL id %d',
+                    wazo_originate_all_lines.id,
+                )
+            else:
+                logger.debug(
+                    f'tenant identified from {CELEventType.wazo_originate_all_lines}: %s',
+                    info['tenant_uuid'],
+                )
+                call.set_tenant_uuid(info['tenant_uuid'])
+                call.raw_participants[wazo_originate_all_lines.channame].update(
+                    role='source'
+                )
+                call.participants_info.append(
+                    {'user_uuid': info['user_uuid'], 'role': 'source'}
+                )
+
         return call
 
     @classmethod
     def can_interpret(cls, cels):
+        has_three_channels = cls.three_channels_minimum(cels)
+        if not has_three_channels:
+            logger.debug(
+                f'{cls.__name__} dispatch failed: CELs have less than three channels'
+            )
+        first_two_channels_local = cls.first_two_channels_are_local(cels)
+        if not first_two_channels_local:
+            logger.debug(
+                f'{cls.__name__} dispatch failed: non-local channel appears in first two channels'
+            )
+
+        first_channel_answered_first = (
+            cls.first_channel_is_answered_before_any_other_operation(cels)
+        )
+        if not first_channel_answered_first:
+            logger.debug(
+                f'{cls.__name__} dispatch failed: first channel is not answered '
+                'before other events occur'
+            )
+
         return (
-            cls.three_channels_minimum(cels)
-            and cls.first_two_channels_are_local(cels)
-            and cls.first_channel_is_answered_before_any_other_operation(cels)
+            has_three_channels
+            and first_two_channels_local
+            and first_channel_answered_first
         )
 
     @classmethod

@@ -116,12 +116,14 @@ def raw_cels(cel_output, row_count=None):
             len(cels) == row_count
         ), f'parsed row count ({len(cels)}) different from expected row count ({row_count})'
 
+    rich_cels = [CEL(id=i, **fields) for i, fields in enumerate(cels)]
+
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             return func(
                 self,
-                [CEL(id=i, **fields) for i, fields in enumerate(cels)],
+                list(rich_cels),
                 *args,
                 **kwargs,
             )
@@ -386,5 +388,86 @@ class TestCallLogGenerationScenarios(TestCase):
                 date_answer=datetime_close_to(
                     '2023-09-06 18:07:28+0000', delta=timedelta(seconds=1)
                 ),
+            ),
+        )
+
+    @raw_cels(
+        '''
+       linkedid   |   uniqueid    |        eventtype         | cid_name  |  cid_num  |                exten                 |            context            |                               channame                                |                                                    extra                                                    |           eventtime
+    --------------+---------------+--------------------------+-----------+-----------+--------------------------------------+-------------------------------+-----------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+-------------------------------
+    1698084944.29 | 1698084944.29 | CHAN_START               |           |           | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;1 |                                                                                                             | 2023-10-23 18:15:44.063215+00
+    1698084944.29 | 1698084944.30 | CHAN_START               |           |           | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;2 |                                                                                                             | 2023-10-23 18:15:44.063253+00
+    1698084944.29 | 1698084944.30 | WAZO_ORIGINATE_ALL_LINES | +12345678 | +12345678 | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;2 | {"extra":"user_uuid:81ea4378-1647-4eae-ad83-26178bdc2890,tenant_uuid:54eb71f8-1f4b-4ae4-8730-638062fbe521"} | 2023-10-23 18:15:44.065081+00
+    1698084944.29 | 1698084944.30 | APP_START                | +12345678 | +12345678 | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;2 |                                                                                                             | 2023-10-23 18:15:44.201567+00
+    1698084944.29 | 1698084944.31 | CHAN_START               | caller    | 8000      | s                                    | default-key-4wfgx-internal    | PJSIP/KvXYRheV-0000000d                                               |                                                                                                             | 2023-10-23 18:15:44.202871+00
+    1698084944.29 | 1698084944.31 | ANSWER                   | caller    | 8000      | 81ea4378-1647-4eae-ad83-26178bdc2890 | default-key-4wfgx-internal    | PJSIP/KvXYRheV-0000000d                                               |                                                                                                             | 2023-10-23 18:15:47.584355+00
+    1698084944.29 | 1698084944.30 | ANSWER                   | +12345678 | +12345678 | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;2 |                                                                                                             | 2023-10-23 18:15:47.584528+00
+    1698084944.29 | 1698084944.29 | ANSWER                   | caller    | 8000      | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;1 |                                                                                                             | 2023-10-23 18:15:47.584696+00
+    1698084944.29 | 1698084944.31 | BRIDGE_ENTER             | caller    | 8000      |                                      | default-key-4wfgx-internal    | PJSIP/KvXYRheV-0000000d                                               | {"bridge_id":"02bf1433-a6e4-42b3-8ab7-8ebcd29fc032","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:47.590051+00
+    1698084944.29 | 1698084944.30 | BRIDGE_ENTER             | +12345678 | +12345678 | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;2 | {"bridge_id":"02bf1433-a6e4-42b3-8ab7-8ebcd29fc032","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:47.590842+00
+    1698084944.29 | 1698084944.29 | XIVO_OUTCALL             | caller    | 8000      | dial                                 | outcall                       | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;1 | {"extra":""}                                                                                                | 2023-10-23 18:15:47.784045+00
+    1698084944.29 | 1698084944.29 | APP_START                | caller    | 8000      | dial                                 | outcall                       | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;1 |                                                                                                             | 2023-10-23 18:15:47.815447+00
+    1698084944.29 | 1698084947.32 | CHAN_START               | wazo      |           | s                                    | default-key-4wfgx-from-extern | PJSIP/rmbmgma2-0000000e                                               |                                                                                                             | 2023-10-23 18:15:47.817025+00
+    1698084944.29 | 1698084947.32 | ANSWER                   |           | +12345678 | dial                                 | default-key-4wfgx-from-extern | PJSIP/rmbmgma2-0000000e                                               |                                                                                                             | 2023-10-23 18:15:50.531362+00
+    1698084944.29 | 1698084947.32 | BRIDGE_ENTER             |           | +12345678 |                                      | default-key-4wfgx-from-extern | PJSIP/rmbmgma2-0000000e                                               | {"bridge_id":"c6ebeccf-b34b-43e0-aa1c-d956dae4f13c","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:50.532461+00
+    1698084944.29 | 1698084944.29 | BRIDGE_ENTER             | caller    | 8000      | dial                                 | outcall                       | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;1 | {"bridge_id":"c6ebeccf-b34b-43e0-aa1c-d956dae4f13c","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:50.532966+00
+    1698084944.29 | 1698084947.32 | BRIDGE_EXIT              |           | +12345678 |                                      | default-key-4wfgx-from-extern | PJSIP/rmbmgma2-0000000e                                               | {"bridge_id":"c6ebeccf-b34b-43e0-aa1c-d956dae4f13c","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:50.590144+00
+    1698084944.29 | 1698084944.30 | BRIDGE_EXIT              |           | +12345678 | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;2 | {"bridge_id":"02bf1433-a6e4-42b3-8ab7-8ebcd29fc032","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:50.590285+00
+    1698084944.29 | 1698084947.32 | BRIDGE_ENTER             |           | +12345678 |                                      | default-key-4wfgx-from-extern | PJSIP/rmbmgma2-0000000e                                               | {"bridge_id":"02bf1433-a6e4-42b3-8ab7-8ebcd29fc032","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:50.590295+00
+    1698084944.29 | 1698084944.29 | BRIDGE_EXIT              | caller    | 8000      | dial                                 | outcall                       | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;1 | {"bridge_id":"c6ebeccf-b34b-43e0-aa1c-d956dae4f13c","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:50.590523+00
+    1698084944.29 | 1698084944.29 | CHAN_END                 | caller    | 8000      | dial                                 | outcall                       | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;1 |                                                                                                             | 2023-10-23 18:15:50.590719+00
+    1698084944.29 | 1698084944.29 | HANGUP                   | caller    | 8000      | dial                                 | outcall                       | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;1 | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}                                                  | 2023-10-23 18:15:50.590719+00
+    1698084944.29 | 1698084944.30 | CHAN_END                 |           | +12345678 | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;2 |                                                                                                             | 2023-10-23 18:15:50.592553+00
+    1698084944.29 | 1698084944.30 | HANGUP                   |           | +12345678 | 81ea4378-1647-4eae-ad83-26178bdc2890 | usersharedlines               | Local/81ea4378-1647-4eae-ad83-26178bdc2890@usersharedlines-00000008;2 | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}                                                  | 2023-10-23 18:15:50.592553+00
+    1698084944.29 | 1698084947.32 | BRIDGE_EXIT              |           | +12345678 |                                      | default-key-4wfgx-from-extern | PJSIP/rmbmgma2-0000000e                                               | {"bridge_id":"02bf1433-a6e4-42b3-8ab7-8ebcd29fc032","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:55.609126+00
+    1698084944.29 | 1698084944.31 | BRIDGE_EXIT              | caller    | 8000      |                                      | default-key-4wfgx-internal    | PJSIP/KvXYRheV-0000000d                                               | {"bridge_id":"02bf1433-a6e4-42b3-8ab7-8ebcd29fc032","bridge_technology":"simple_bridge"}                    | 2023-10-23 18:15:55.612634+00
+    1698084944.29 | 1698084947.32 | HANGUP                   |           | +12345678 |                                      | default-key-4wfgx-from-extern | PJSIP/rmbmgma2-0000000e                                               | {"hangupcause":16,"hangupsource":"PJSIP/rmbmgma2-0000000e","dialstatus":""}                                 | 2023-10-23 18:15:55.614277+00
+    1698084944.29 | 1698084947.32 | CHAN_END                 |           | +12345678 |                                      | default-key-4wfgx-from-extern | PJSIP/rmbmgma2-0000000e                                               |                                                                                                             | 2023-10-23 18:15:55.614277+00
+    1698084944.29 | 1698084944.31 | CHAN_END                 | caller    | 8000      |                                      | default-key-4wfgx-internal    | PJSIP/KvXYRheV-0000000d                                               |                                                                                                             | 2023-10-23 18:15:55.615004+00
+    1698084944.29 | 1698084944.31 | HANGUP                   | caller    | 8000      |                                      | default-key-4wfgx-internal    | PJSIP/KvXYRheV-0000000d                                               | {"hangupcause":16,"hangupsource":"PJSIP/rmbmgma2-0000000e","dialstatus":""}                                 | 2023-10-23 18:15:55.615004+00
+    1698084944.29 | 1698084944.31 | LINKEDID_END             | caller    | 8000      |                                      | default-key-4wfgx-internal    | PJSIP/KvXYRheV-0000000d                                               |                                                                                                             | 2023-10-23 18:15:55.615004+00
+    '''
+    )
+    def test_outcall_from_api_all_lines(self, cels):
+        """
+        an outgoing (trunk) call is triggered through the API,
+        the calling user picks up with an SIP line,
+        the outgoing call connects and is answered by the callee,
+        the calling party hangs up and the call terminates
+        """
+        user_uuid = '81ea4378-1647-4eae-ad83-26178bdc2890'
+        tenant_uuid = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
+
+        caller_user = mock_user(uuid=user_uuid, tenant_uuid=tenant_uuid, line_ids=[1])
+        self.generator.confd = mock_confd_client(
+            users=[caller_user],
+            lines=[
+                mock_line(
+                    id=1,
+                    tenant_uuid=tenant_uuid,
+                    users=[caller_user],
+                    protocol='sip',
+                    name='KvXYRheV',
+                    context='default',
+                )
+            ],
+            contexts=[mock_context(id=1, name='default', tenant_uuid=tenant_uuid)],
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert call_logs
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                tenant_uuid=tenant_uuid,
+                participants=contains_inanyorder(
+                    has_properties(
+                        user_uuid=user_uuid,
+                        role='source',
+                    ),
+                ),
+                direction='outbound',
             ),
         )

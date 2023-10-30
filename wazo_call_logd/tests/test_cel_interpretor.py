@@ -13,14 +13,19 @@ from hamcrest import (
     has_entries,
     has_properties,
     none,
+    not_none,
     same_instance,
 )
+from pytest import raises
+
+from wazo_call_logd.exceptions import CELInterpretationError
 
 from ..cel_interpretor import (
     AbstractCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
     _extract_user_missed_call_variables,
+    _parse_wazo_originate_all_lines_extra,
     bridge_info,
     extract_cel_extra,
     is_valid_mixmonitor_start_extra,
@@ -119,6 +124,45 @@ class TestExtractCELExtra:
         extra = None
         result = extract_cel_extra(extra)
         assert_that(result, none())
+
+
+class TestParseOriginateAllLinesExtra:
+    def test_valid_payloads(self):
+        user_uuid = 'some-uuid-value'
+        tenant_uuid = 'another-uuid-value'
+
+        valid_extras = [
+            f'{{"extra": "user_uuid:{user_uuid},tenant_uuid:{tenant_uuid}"}}',
+            f'{{"extra": "user_uuid:{user_uuid}, tenant_uuid:{tenant_uuid}"}}',
+            f'{{"extra": "user_uuid: {user_uuid}, tenant_uuid: {tenant_uuid}"}}',
+            f'{{"extra": "user_uuid: {user_uuid}, tenant_uuid: {tenant_uuid}, whatsthis:"}}',
+        ]
+        for extra in valid_extras:
+            info = _parse_wazo_originate_all_lines_extra(extra)
+            assert_that(info, not_none())
+            assert_that(
+                info, has_entries({'user_uuid': user_uuid, 'tenant_uuid': tenant_uuid})
+            )
+
+    def test_invalid_payload(self):
+        invalid_extras = [
+            '{"extra": "user_uuid:some-uuid;tenant_uuid:some-uuid"}',
+            '{"extra": "user_uuid:some-uuid tenant_uuid:some-uuid"}',
+            '{"extra": "user_uuid:some-uuid tenant_uuid:some-uuid"}',
+        ]
+        for extra in invalid_extras:
+            with raises(CELInterpretationError):
+                _parse_wazo_originate_all_lines_extra(extra)
+
+    def test_invalid_json(self):
+        invalid_extras = [
+            '{"extra: "user_uuid:some-uuid;tenant_uuid:some-uuid"}',
+            '{"extra": "user_uuid:some-uuid tenant_uuid:some-uuid"',
+            '"user_uuid:some-uuid tenant_uuid:some-uuid"',
+        ]
+        for extra in invalid_extras:
+            with raises(CELInterpretationError):
+                _parse_wazo_originate_all_lines_extra(extra)
 
 
 class TestIsValidMixmonitorStartExtra:
