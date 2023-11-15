@@ -59,7 +59,7 @@ def main():
     del config['auth']['username']
     del config['auth']['password']
     tenants = AuthClient(token=token, **config['auth']).tenants.list()['items']
-    auth_tenants = set(tenant['uuid'] for tenant in tenants)
+    auth_tenants = set(str(tenant['uuid']) for tenant in tenants)
     logger.debug('wazo-auth tenants: %s', auth_tenants)
 
     init_db_from_config(config)
@@ -69,8 +69,8 @@ def main():
     with tenant_dao.new_session() as session:
         call_logd_tenants = set()
         for tenant in session.query(Tenant).all():
-            call_logd_tenants.add(tenant.uuid)
-        logger.debug('wazo-confd tenants: %s', call_logd_tenants)
+            call_logd_tenants.add(str(tenant.uuid))
+        logger.debug('wazo-call-logd tenants: %s', call_logd_tenants)
         logger.debug('wazo-auth tenants: %s', auth_tenants)
 
         removed_tenants = call_logd_tenants - auth_tenants
