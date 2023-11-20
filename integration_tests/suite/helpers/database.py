@@ -11,6 +11,7 @@ from uuid import uuid4
 
 import sqlalchemy as sa
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.stat_agent import StatAgent
 from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
@@ -19,11 +20,13 @@ from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
 
 from wazo_call_logd.database.models import (
+    Base,
     CallLog,
     CallLogParticipant,
     Export,
     Recording,
     Retention,
+    Tenant,
 )
 
 from .constants import MASTER_TENANT, USER_1_UUID
@@ -334,6 +337,11 @@ class DatabaseQueries:
         self.connection = connection
         self.Session = scoped_session(sessionmaker(bind=connection))
 
+    def find_all_tenants(self) -> list[Tenant]:
+        session = self.Session()
+        tenants = session.query(Tenant).all()
+        return tenants
+
     def insert_call_log(self, **kwargs):
         session = self.Session()
         kwargs.setdefault('date', dt.now())
@@ -419,7 +427,7 @@ class DatabaseQueries:
         session.add(call_log_participant)
         session.commit()
 
-    def find_all_call_log(self):
+    def find_all_call_log(self) -> list[CallLog]:
         session = self.Session()
         call_logs = session.query(CallLog).order_by(CallLog.date).all()
         session.commit()
@@ -445,6 +453,15 @@ class DatabaseQueries:
         recordings = query.all()
         session.commit()
         return recordings
+
+    def find_all_exports(self, tenant_uuid=None) -> list[Export]:
+        session = self.Session()
+        query = session.query(Export)
+        if tenant_uuid:
+            query = query.filter(Export.tenant_uuid == tenant_uuid)
+        exports = query.all()
+        session.commit()
+        return exports
 
     def get_call_log_user_uuids(self, call_log_id):
         session = self.Session()
@@ -631,3 +648,17 @@ class DatabaseQueries:
         if not query_1.count() > 0 and not query_2.count() > 0:
             session.query(StatQueue).filter(StatQueue.id == stat_queue_id).delete()
         session.commit()
+
+    def count_all(self) -> dict[str, int]:
+        session: BaseSession = self.Session()
+        metadata: sa.MetaData = Base.metadata
+
+        counts_queries = {
+            name: sa.select([sa.func.count()]).select_from(table)
+            for name, table in metadata.tables.items()
+        }
+        counts = {}
+        for name, count_query in counts_queries.items():
+            counts[name] = session.execute(count_query).scalar()
+
+        return counts
