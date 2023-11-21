@@ -5,6 +5,8 @@ import datetime
 
 EXPORT_SERVICE_ID = 'export-service-id'
 EXPORT_SERVICE_KEY = 'export-service-key'
+CALL_LOGD_USERNAME = 'wazo-call-logd'
+CALL_LOGD_PASSWORD = 'opensesame'
 
 UNKNOWN_UUID = '00000000-0000-4000-8000-000000000000'
 NON_USER_TOKEN = 'non-user-token'

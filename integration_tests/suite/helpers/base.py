@@ -4,7 +4,8 @@
 import logging
 import os
 import random
-from contextlib import contextmanager, wraps
+from contextlib import contextmanager
+from functools import wraps
 from datetime import datetime
 
 import pytz
@@ -29,6 +30,8 @@ from .confd import ConfdClient
 from .constants import (
     ALICE,
     BOB,
+    CALL_LOGD_PASSWORD,
+    CALL_LOGD_USERNAME,
     EXPORT_SERVICE_ID,
     EXPORT_SERVICE_KEY,
     MASTER_TENANT,
@@ -304,6 +307,11 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         )
         cls.auth.set_valid_credentials(
             MockCredentials(EXPORT_SERVICE_ID, EXPORT_SERVICE_KEY),
+            MASTER_TOKEN,
+        )
+
+        cls.auth.set_valid_credentials(
+            MockCredentials(CALL_LOGD_USERNAME, CALL_LOGD_PASSWORD),
             MASTER_TOKEN,
         )
 
