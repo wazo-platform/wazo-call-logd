@@ -10,7 +10,7 @@ from functools import wraps
 from uuid import uuid4
 
 import sqlalchemy as sa
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker, joinedload, selectinload
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.stat_agent import StatAgent
@@ -366,138 +366,151 @@ class DatabaseQueries:
             return tenant
 
     def insert_call_log(self, **kwargs):
-        session = self.Session()
         kwargs.setdefault('date', dt.now())
         kwargs.setdefault('tenant_uuid', MASTER_TENANT)
-        call_log = CallLog(**kwargs)
-        session.add(call_log)
-        session.flush()
-        call_log_id = call_log.id
-        session.commit()
-        return call_log_id
+        with transaction(self.Session()) as session:
+            call_log = CallLog(**kwargs)
+            session.add(call_log)
+            session.flush()
+            return call_log.id
 
     def delete_call_log(self, call_log_id):
-        session = self.Session()
-        session.query(CallLog).filter(CallLog.id == call_log_id).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(CallLog).filter(CallLog.id == call_log_id).delete()
 
     def insert_export(self, **kwargs):
-        session = self.Session()
-        export = Export(**kwargs)
-        session.add(export)
-        session.flush()
-        export_uuid = export.uuid
-        session.commit()
-        return export_uuid
+        with transaction(self.Session()) as session:
+            export = Export(**kwargs)
+            session.add(export)
+            session.flush()
+            export_uuid = export.uuid
+            return export_uuid
 
     def delete_export(self, export_uuid):
-        session = self.Session()
-        session.query(Export).filter(Export.uuid == export_uuid).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(Export).filter(Export.uuid == export_uuid).delete()
 
     def insert_recording(self, **kwargs):
-        session = self.Session()
-        recording = Recording(**kwargs)
-        session.add(recording)
-        session.flush()
-        recording_uuid = recording.uuid
-        session.commit()
-        return recording_uuid
+        with transaction(self.Session()) as session:
+            recording = Recording(**kwargs)
+            session.add(recording)
+            session.flush()
+            recording_uuid = recording.uuid
+
+            return recording_uuid
 
     def delete_recording(self, recording_uuid):
-        session = self.Session()
-        session.query(Recording).filter(Recording.uuid == recording_uuid).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(Recording).filter(Recording.uuid == recording_uuid).delete()
 
     def insert_retention(self, **kwargs):
-        session = self.Session()
-        retention = Retention(**kwargs)
-        session.add(retention)
-        session.commit()
+        with transaction(self.Session()) as session:
+            retention = Retention(**kwargs)
+            session.add(retention)
 
     def delete_retention(self, tenant_uuid):
-        session = self.Session()
-        query = session.query(Retention)
-        query = query.filter(Retention.tenant_uuid == tenant_uuid)
-        query.delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            query = session.query(Retention)
+            query = query.filter(Retention.tenant_uuid == tenant_uuid)
+            query.delete()
 
     def find_retentions(self, tenant_uuid):
-        session = self.Session()
-        query = session.query(Retention)
-        query = query.filter(Retention.tenant_uuid == tenant_uuid)
-        return query.all()
+        with transaction(self.Session()) as session:
+            query = session.query(Retention)
+            query = query.filter(Retention.tenant_uuid == tenant_uuid)
+            return query.all()
 
     def delete_recording_by_call_log_id(self, call_log_id):
-        session = self.Session()
-        session.query(Recording).filter(Recording.call_log_id == call_log_id).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(Recording).filter(
+                Recording.call_log_id == call_log_id
+            ).delete()
 
     def clear_call_logs(self):
-        session = self.Session()
-        session.query(CallLog).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(CallLog).delete()
 
     def clear_recordings(self):
-        session = self.Session()
-        session.query(Recording).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(Recording).delete()
 
     def insert_call_log_participant(self, **kwargs):
-        session = self.Session()
-        kwargs.setdefault('role', 'source')
-        call_log_participant = CallLogParticipant(**kwargs)
-        session.add(call_log_participant)
-        session.commit()
+        with transaction(self.Session()) as session:
+            kwargs.setdefault('role', 'source')
+            call_log_participant = CallLogParticipant(**kwargs)
+            session.add(call_log_participant)
 
     def find_all_call_log(self) -> list[CallLog]:
-        session = self.Session()
-        call_logs = session.query(CallLog).order_by(CallLog.date).all()
-        session.commit()
-        return call_logs
+        with transaction(self.Session()) as session:
+            call_logs = (
+                session.query(CallLog)
+                .order_by(CallLog.date)
+                .options(
+                    selectinload(CallLog.participants),
+                )
+                .all()
+            )
+
+            return call_logs
 
     def find_last_call_log(self) -> CallLog | None:
-        session = self.Session()
-        call_log: CallLog = session.query(CallLog).order_by(CallLog.date).first()
-        session.commit()
-        if call_log:
-            call_log.tenant_uuid = str(call_log.tenant_uuid)
-            if call_log.destination_user_uuid:
-                call_log.destination_user_uuid = str(call_log.destination_user_uuid)
-            if call_log.source_user_uuid:
-                call_log.source_user_uuid = str(call_log.source_user_uuid)
-            for participant in call_log.participants:
-                participant.user_uuid = str(participant.user_uuid)
-        return call_log
+        with transaction(self.Session()) as session:
+            call_log: CallLog = (
+                session.query(CallLog)
+                .order_by(CallLog.date)
+                .options(
+                    selectinload(CallLog.participants),
+                    joinedload(CallLog.destination_participant),
+                    joinedload(CallLog.source_participant),
+                )
+                .first()
+            )
+
+            if call_log:
+                call_log.tenant_uuid = str(call_log.tenant_uuid)
+                if call_log.destination_user_uuid:
+                    call_log.destination_user_uuid = str(call_log.destination_user_uuid)
+                if call_log.source_user_uuid:
+                    call_log.source_user_uuid = str(call_log.source_user_uuid)
+                for participant in call_log.participants:
+                    participant.user_uuid = str(participant.user_uuid)
+            return call_log
 
     def find_all_recordings(self, call_log_id):
-        session = self.Session()
-        query = session.query(Recording).filter(Recording.call_log_id == call_log_id)
-        recordings = query.all()
-        session.commit()
-        return recordings
+        with transaction(self.Session()) as session:
+            query = (
+                session.query(Recording)
+                .filter(Recording.call_log_id == call_log_id)
+                .options(
+                    joinedload(Recording.call_log),
+                )
+            )
+            recordings = query.all()
+            return recordings
 
     def find_all_exports(self, tenant_uuid=None) -> list[Export]:
-        session = self.Session()
-        query = session.query(Export)
-        if tenant_uuid:
-            query = query.filter(Export.tenant_uuid == tenant_uuid)
-        exports = query.all()
-        session.commit()
-        return exports
+        with transaction(self.Session()) as session:
+            query = session.query(Export)
+            if tenant_uuid:
+                query = query.filter(Export.tenant_uuid == tenant_uuid)
+            exports = query.all()
+
+            return exports
 
     def get_call_log_user_uuids(self, call_log_id):
-        session = self.Session()
-        call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
-        result = tuple(call_log.participant_user_uuids)
-        session.commit()
-        return result
+        with transaction(self.Session()) as session:
+            call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
+            result = tuple(
+                str(user_uuid) for user_uuid in call_log.participant_user_uuids
+            )
+
+            return result
 
     def get_call_log_tenant_uuids(self, call_log_id):
-        session = self.Session()
-        call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
-        session.commit()
-        return call_log.tenant_uuid
+        with transaction(self.Session()) as session:
+            call_log = session.query(CallLog).filter(CallLog.id == call_log_id).first()
+
+            return call_log.tenant_uuid
 
     def insert_cel(self, **kwargs):
         kwargs.setdefault('userdeftype', '')
@@ -585,92 +598,88 @@ class DatabaseQueries:
         self.connection.execute(query, id=cel_id)
 
     def insert_stat_agent(self, **kwargs):
-        session = self.Session()
-        agent = StatAgent(**kwargs)
-        session.add(agent)
-        session.flush()
-        stat_agent_id = agent.id
-        session.commit()
-        return stat_agent_id
+        with transaction(self.Session()) as session:
+            agent = StatAgent(**kwargs)
+            session.add(agent)
+            session.flush()
+            stat_agent_id = agent.id
+
+            return stat_agent_id
 
     def delete_stat_agent(self, stat_agent_id):
-        session = self.Session()
-        query = session.query(StatCallOnQueue).filter(
-            StatCallOnQueue.stat_agent_id == stat_agent_id
-        )
-        if not query.count() > 0:
-            session.query(StatAgent).filter(StatAgent.id == stat_agent_id).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            query = session.query(StatCallOnQueue).filter(
+                StatCallOnQueue.stat_agent_id == stat_agent_id
+            )
+            if not query.count() > 0:
+                session.query(StatAgent).filter(StatAgent.id == stat_agent_id).delete()
 
     def insert_stat_agent_periodic(self, **kwargs):
-        session = self.Session()
-        stat = StatAgentPeriodic(**kwargs)
-        session.add(stat)
-        session.flush()
-        # NOTE(fblackburn) Avoid BEGIN new session after commit
-        stat_id = stat.id
-        session.commit()
-        return stat_id
+        with transaction(self.Session()) as session:
+            stat = StatAgentPeriodic(**kwargs)
+            session.add(stat)
+            session.flush()
+            # NOTE(fblackburn) Avoid BEGIN new session after commit
+            stat_id = stat.id
+
+            return stat_id
 
     def delete_stat_agent_periodic(self, stat_id):
-        session = self.Session()
-        session.query(StatAgentPeriodic).filter(
-            StatAgentPeriodic.id == stat_id
-        ).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(StatAgentPeriodic).filter(
+                StatAgentPeriodic.id == stat_id
+            ).delete()
 
     def insert_stat_queue_periodic(self, **kwargs):
-        session = self.Session()
-        stat = StatQueuePeriodic(**kwargs)
-        session.add(stat)
-        session.flush()
-        # NOTE(fblackburn) Avoid BEGIN new session after commit
-        stat_id = stat.id
-        session.commit()
-        return stat_id
+        with transaction(self.Session()) as session:
+            stat = StatQueuePeriodic(**kwargs)
+            session.add(stat)
+            session.flush()
+            # NOTE(fblackburn) Avoid BEGIN new session after commit
+            stat_id = stat.id
+
+            return stat_id
 
     def delete_stat_queue_periodic(self, stat_id):
-        session = self.Session()
-        session.query(StatQueuePeriodic).filter(
-            StatQueuePeriodic.id == stat_id
-        ).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(StatQueuePeriodic).filter(
+                StatQueuePeriodic.id == stat_id
+            ).delete()
 
     def insert_stat_call_on_queue(self, **kwargs):
-        session = self.Session()
-        call = StatCallOnQueue(**kwargs)
-        session.add(call)
-        session.flush()
-        # NOTE(fblackburn) Avoid BEGIN new session after commit
-        call_id = call.id
-        session.commit()
-        return call_id
+        with transaction(self.Session()) as session:
+            call = StatCallOnQueue(**kwargs)
+            session.add(call)
+            session.flush()
+            # NOTE(fblackburn) Avoid BEGIN new session after commit
+            call_id = call.id
+
+            return call_id
 
     def delete_stat_call_on_queue(self, call_id):
-        session = self.Session()
-        session.query(StatCallOnQueue).filter(StatCallOnQueue.id == call_id).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            session.query(StatCallOnQueue).filter(
+                StatCallOnQueue.id == call_id
+            ).delete()
 
     def insert_stat_queue(self, **kwargs):
-        session = self.Session()
-        queue_id = kwargs['id']
-        query = session.query(StatQueue).filter(StatQueue.id == queue_id)
-        if not query.count() > 0:
-            queue = StatQueue(**kwargs)
-            session.add(queue)
-        session.commit()
+        with transaction(self.Session()) as session:
+            queue_id = kwargs['id']
+            query = session.query(StatQueue).filter(StatQueue.id == queue_id)
+            if not query.count() > 0:
+                queue = StatQueue(**kwargs)
+                session.add(queue)
 
     def delete_stat_queue(self, stat_queue_id):
-        session = self.Session()
-        query_1 = session.query(StatQueuePeriodic).filter(
-            StatQueuePeriodic.stat_queue_id == stat_queue_id
-        )
-        query_2 = session.query(StatCallOnQueue).filter(
-            StatCallOnQueue.stat_queue_id == stat_queue_id
-        )
-        if not query_1.count() > 0 and not query_2.count() > 0:
-            session.query(StatQueue).filter(StatQueue.id == stat_queue_id).delete()
-        session.commit()
+        with transaction(self.Session()) as session:
+            query_1 = session.query(StatQueuePeriodic).filter(
+                StatQueuePeriodic.stat_queue_id == stat_queue_id
+            )
+            query_2 = session.query(StatCallOnQueue).filter(
+                StatCallOnQueue.stat_queue_id == stat_queue_id
+            )
+            if not query_1.count() > 0 and not query_2.count() > 0:
+                session.query(StatQueue).filter(StatQueue.id == stat_queue_id).delete()
 
     def count_all(self) -> dict[str, int]:
         session: BaseSession = self.Session()
