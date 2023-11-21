@@ -263,6 +263,8 @@ class Recording(Base):
     def deleted(self):
         return self.path is None
 
+    call_log = relationship(CallLog, uselist=False, viewonly=True)
+
 
 @generic_repr
 class Retention(Base):
