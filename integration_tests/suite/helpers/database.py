@@ -332,15 +332,34 @@ class DbHelper:
             yield DatabaseQueries(connection)
 
 
+@contextmanager
+def transaction(session: BaseSession, close=True):
+    session.begin()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        if close:
+            session.close()
+
+
 class DatabaseQueries:
     def __init__(self, connection):
         self.connection = connection
         self.Session = scoped_session(sessionmaker(bind=connection))
 
     def find_all_tenants(self) -> list[Tenant]:
-        session = self.Session()
-        tenants = session.query(Tenant).all()
-        return tenants
+        with transaction(self.Session()) as session:
+            tenants = session.query(Tenant).all()
+            return tenants
+
+    def find_tenant(self, tenant_uuid) -> Tenant | None:
+        with transaction(self.Session()) as session:
+            tenant = session.get(Tenant, tenant_uuid)
+            return tenant
 
     def insert_call_log(self, **kwargs):
         session = self.Session()
