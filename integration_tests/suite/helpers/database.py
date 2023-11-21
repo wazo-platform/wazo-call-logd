@@ -349,7 +349,11 @@ def transaction(session: BaseSession, close=True):
 class DatabaseQueries:
     def __init__(self, connection):
         self.connection = connection
-        self.Session = scoped_session(sessionmaker(bind=connection))
+        # NOTE(clanglois) expire_on_commit=False is necessary
+        # to make object attributes available after session is closed
+        self.Session = scoped_session(
+            sessionmaker(bind=connection, expire_on_commit=False)
+        )
 
     def find_all_tenants(self) -> list[Tenant]:
         with transaction(self.Session()) as session:
