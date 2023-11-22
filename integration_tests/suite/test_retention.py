@@ -7,8 +7,12 @@ from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
-from .helpers.constants import MASTER_TENANT, OTHER_TENANT, UNKNOWN_UUID
-from .helpers.database import retention
+from .helpers.constants import (
+    MASTER_TENANT_TYPED,
+    OTHER_TENANT_TYPED,
+    UNKNOWN_UUID_TYPED,
+)
+from .helpers.database import RetentionData, retention
 from .helpers.wait_strategy import CallLogdComponentsWaitStrategy
 
 
@@ -16,12 +20,12 @@ class TestRetention(IntegrationTest):
     wait_strategy = CallLogdComponentsWaitStrategy(["bus_consumer"])
 
     @retention(cdr_days=2, export_days=4, recording_days=2)
-    def test_get(self, retention):
-        result = self.call_logd.retention.get(tenant_uuid=MASTER_TENANT)
+    def test_get(self, retention: RetentionData):
+        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT_TYPED))
         assert_that(
             result,
             has_entries(
-                tenant_uuid=MASTER_TENANT,
+                tenant_uuid=str(MASTER_TENANT_TYPED),
                 cdr_days=2,
                 export_days=4,
                 recording_days=2,
@@ -32,11 +36,11 @@ class TestRetention(IntegrationTest):
         )
 
     def test_get_not_configured_tenant(self):
-        result = self.call_logd.retention.get(tenant_uuid=OTHER_TENANT)
+        result = self.call_logd.retention.get(tenant_uuid=str(OTHER_TENANT_TYPED))
         assert_that(
             result,
             has_entries(
-                tenant_uuid=OTHER_TENANT,
+                tenant_uuid=str(OTHER_TENANT_TYPED),
                 cdr_days=None,
                 export_days=None,
                 recording_days=None,
@@ -48,32 +52,34 @@ class TestRetention(IntegrationTest):
 
     def test_get_unknown_tenant(self):
         assert_that(
-            calling(self.call_logd.retention.get).with_args(tenant_uuid=UNKNOWN_UUID),
+            calling(self.call_logd.retention.get).with_args(
+                tenant_uuid=str(UNKNOWN_UUID_TYPED)
+            ),
             raises(CallLogdError).matching(
                 has_properties(status_code=401, error_id='unauthorized-tenant')
             ),
         )
 
     @retention()
-    def test_update(self, retention):
+    def test_update(self, retention: RetentionData):
         args = {'cdr_days': 2, 'export_days': 3, 'recording_days': 2}
-        tenant = retention['tenant_uuid']
+        tenant = str(retention['tenant_uuid'])
         self.call_logd.retention.update(**args, tenant_uuid=tenant)
 
-        result = self.call_logd.retention.get(tenant_uuid=MASTER_TENANT)
+        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT_TYPED))
         assert_that(result, has_entries(**args))
 
     def test_update_not_configured(self):
         args = {'cdr_days': 2, 'export_days': 3, 'recording_days': 2}
-        self.call_logd.retention.update(**args, tenant_uuid=OTHER_TENANT)
+        self.call_logd.retention.update(**args, tenant_uuid=str(OTHER_TENANT_TYPED))
 
-        result = self.call_logd.retention.get(tenant_uuid=OTHER_TENANT)
+        result = self.call_logd.retention.get(tenant_uuid=str(OTHER_TENANT_TYPED))
         assert_that(result, has_entries(**args))
 
     def test_update_unknown_tenant(self):
         assert_that(
             calling(self.call_logd.retention.update).with_args(
-                tenant_uuid=UNKNOWN_UUID
+                tenant_uuid=str(UNKNOWN_UUID_TYPED)
             ),
             raises(CallLogdError).matching(
                 has_properties(status_code=401, error_id='unauthorized-tenant')
@@ -81,11 +87,11 @@ class TestRetention(IntegrationTest):
         )
 
     @retention()
-    def test_update_errors(self, retention):
+    def test_update_errors(self, retention: RetentionData):
         args = {'cdr_days': 1, 'recording_days': 2}
         assert_that(
             calling(self.call_logd.retention.update).with_args(
-                **args, tenant_uuid=retention['tenant_uuid']
+                **args, tenant_uuid=str(retention['tenant_uuid'])
             ),
             raises(CallLogdError).matching(
                 has_properties(status_code=400, error_id='invalid-data')
@@ -93,14 +99,14 @@ class TestRetention(IntegrationTest):
         )
 
     @retention()
-    def test_update_events(self, retention):
+    def test_update_events(self, retention: RetentionData):
         args = {'cdr_days': 2, 'export_days': 3, 'recording_days': 2}
         events = self.bus.accumulator(headers={'name': 'call_logd_retention_updated'})
 
-        tenant = retention['tenant_uuid']
+        tenant = str(retention['tenant_uuid'])
         self.call_logd.retention.update(**args, tenant_uuid=tenant)
 
-        result = self.call_logd.retention.get(tenant_uuid=MASTER_TENANT)
+        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT_TYPED))
         assert_that(result, has_entries(**args))
 
         # TODO(fblackburn) code should publish event BEFORE returning HTTP response
