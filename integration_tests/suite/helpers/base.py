@@ -1,5 +1,6 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
 import os
@@ -7,6 +8,7 @@ import random
 from contextlib import contextmanager
 from functools import wraps
 from datetime import datetime
+from typing import ClassVar
 
 import pytz
 from dateutil.relativedelta import relativedelta
@@ -20,7 +22,7 @@ from wazo_test_helpers.asset_launching_test_case import (
     NoSuchService,
 )
 from wazo_test_helpers.auth import AuthClient, MockCredentials, MockUserToken
-from wazo_test_helpers.wait_strategy import NoWaitStrategy
+from wazo_test_helpers.wait_strategy import NoWaitStrategy, WaitStrategy
 
 from wazo_call_logd.database.helpers import new_db_session
 from wazo_call_logd.database.queries import DAO
@@ -156,13 +158,14 @@ class WrongClient:
 
 
 class _BaseIntegrationTest(AssetLaunchingTestCase):
-    bus: CallLogBusClient
-    call_logd: CallLogdClient
-    database: DbHelper
-    cel_database: DbHelper
-    filesystem: FileSystemClient
-    email: EmailClient
-    auth: AuthClient
+    bus: ClassVar[CallLogBusClient | WrongClient]
+    call_logd: ClassVar[CallLogdClient | WrongClient]
+    database: ClassVar[DbHelper | WrongClient]
+    cel_database: ClassVar[DbHelper | WrongClient]
+    filesystem: ClassVar[FileSystemClient]
+    email: ClassVar[EmailClient | WrongClient]
+    auth: ClassVar[AuthClient | WrongClient]
+    wait_strategy: ClassVar[WaitStrategy]
 
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
 
