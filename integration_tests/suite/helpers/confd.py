@@ -1,6 +1,10 @@
 # Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
+
+from typing import TypedDict
+from uuid import UUID
 import requests
 
 
@@ -72,6 +76,20 @@ class ConfdClient:
         requests.post(url)
 
 
+class UserLineData(TypedDict):
+    id: str
+    extensions: list[str]
+    name: str
+
+
+class MockUserData(TypedDict):
+    uuid: str
+    tenant_uuid: str
+    lines: list[UserLineData]
+    mobile_phone_number: str | None
+    userfield: str | None
+
+
 class MockUser:
     def __init__(self, uuid, tenant_uuid, line_ids=None, mobile=None, userfield=None):
         self._uuid = str(uuid)
@@ -83,7 +101,7 @@ class MockUser:
     def uuid(self):
         return self._uuid
 
-    def to_dict(self):
+    def to_dict(self) -> MockUserData:
         return {
             'uuid': self._uuid,
             'tenant_uuid': self._tenant_uuid,
@@ -96,24 +114,45 @@ class MockUser:
         }
 
 
+class LineUserData(TypedDict):
+    uuid: str | UUID
+
+
+class LineExtensionData(TypedDict):
+    exten: str
+    context: str
+
+
+class MockLineData(TypedDict):
+    id: int
+    name: str | None
+    protocol: str | None
+    users: list[LineUserData] | None
+    context: str | None
+    extensions: list[LineExtensionData] | None
+    tenant_uuid: str | None
+
+
 class MockLine:
     def __init__(
         self,
-        id,
-        name=None,
-        protocol=None,
-        users=None,
-        context=None,
-        extensions=None,
-        tenant_uuid=None,
+        id: int,
+        name: str | None = None,
+        protocol: str | None = None,
+        users: list[LineUserData] | None = None,
+        context: str | None = None,
+        extensions: list[LineExtensionData] | None = None,
+        tenant_uuid: str | UUID | None = None,
     ):
         self._id = id
         self._name = name
         self._protocol = protocol
-        self._users = users or []
+        self._users = (
+            users and [LineUserData(uuid=str(user['uuid'])) for user in users]
+        ) or []
         self._extensions = extensions or []
         self._context = context
-        self._tenant_uuid = tenant_uuid
+        self._tenant_uuid = tenant_uuid and str(tenant_uuid)
 
     def id_(self):
         return self._id
@@ -121,7 +160,7 @@ class MockLine:
     def users(self):
         return self._users
 
-    def to_dict(self):
+    def to_dict(self) -> MockLineData:
         return {
             'id': self._id,
             'name': self._name,
@@ -133,20 +172,31 @@ class MockLine:
         }
 
 
+class MockSwitchboardData(TypedDict):
+    uuid: str
+    name: str | None
+
+
 class MockSwitchboard:
-    def __init__(self, uuid, name=None):
+    def __init__(self, uuid: str | UUID, name: str | None = None):
         self._uuid = str(uuid)
         self._name = name
 
     def uuid(self):
         return self._uuid
 
-    def to_dict(self):
+    def to_dict(self) -> MockSwitchboardData:
         return {'uuid': self._uuid, 'name': self._name}
 
 
+class MockContextData(TypedDict):
+    id: int
+    name: str
+    tenant_uuid: str
+
+
 class MockContext:
-    def __init__(self, id, name, tenant_uuid):
+    def __init__(self, id: int, name: str, tenant_uuid: str | UUID):
         self._id = id
         self._name = name
         self._tenant_uuid = str(tenant_uuid)
@@ -154,5 +204,5 @@ class MockContext:
     def id_(self):
         return self._id
 
-    def to_dict(self):
+    def to_dict(self) -> MockContextData:
         return {'id': self._id, 'name': self._name, 'tenant_uuid': self._tenant_uuid}
