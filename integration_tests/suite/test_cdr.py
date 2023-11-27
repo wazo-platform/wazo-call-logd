@@ -2271,3 +2271,56 @@ class TestListCDR(IntegrationTest):
             response.headers,
             has_entries('Content-Disposition', 'attachment; filename=cdr.csv'),
         )
+
+    @call_log(
+        **{'id': 13},
+        date='2017-03-23 00:00:00',
+        participants=[
+            {'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'line_id': '2', 'role': 'destination'},
+            {
+                'user_uuid': USER_3_UUID,
+                'line_id': '3',
+                'role': 'destination',
+                'answered': True,
+            },
+        ],
+    )
+    def test_list_by_user_only_match_source_and_final_destination(self):
+        result = self.call_logd.cdr.list(user_uuid=[str(USER_1_UUID)])
+
+        assert_that(
+            result,
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(id=13),
+                ),
+                filtered=1,
+                total=1,
+            ),
+        )
+
+        result = self.call_logd.cdr.list(user_uuid=[str(USER_3_UUID)])
+
+        assert_that(
+            result,
+            has_entries(
+                items=contains_inanyorder(
+                    has_entries(id=13),
+                ),
+                filtered=1,
+                total=1,
+            ),
+        )
+
+        # user 2 is an intermediary destination but not the final, so should not match
+        result = self.call_logd.cdr.list(user_uuid=[str(USER_2_UUID)])
+
+        assert_that(
+            result,
+            has_entries(
+                items=empty(),
+                filtered=0,
+                total=1,
+            ),
+        )
