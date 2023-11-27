@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from datetime import datetime as dt
 from datetime import timedelta as td
 from functools import wraps
-from typing import Literal, TypedDict, Union
+from typing import Literal, TypedDict, Union, cast
 from uuid import UUID, uuid4
 
 import sqlalchemy as sa
@@ -115,6 +115,7 @@ def call_log(**call_log):
     return _decorate
 
 
+# NOTE(clanglois): this has its place in core codebase utilities as well
 ExportStatus = Union[
     Literal['pending'],
     Literal['processing'],
@@ -133,6 +134,8 @@ class ExportData(TypedDict):
 
 
 def export(**export):
+    export = cast(ExportData, export)
+
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
@@ -142,6 +145,7 @@ def export(**export):
             export.setdefault('status', 'pending')
             with self.database.queries() as queries:
                 export['uuid'] = queries.insert_export(**export)
+
             try:
                 return func(self, *args, export, **kwargs)
             finally:
@@ -162,6 +166,8 @@ class RecordingData(TypedDict):
 
 
 def recording(**recording):
+    recording = cast(RecordingData, recording)
+
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
@@ -186,6 +192,8 @@ class RetentionData(TypedDict):
 
 
 def retention(**retention):
+    retention = cast(RetentionData, retention)
+
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
