@@ -224,7 +224,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-05T13:00:00+00:00'},
                         until=self._get_tomorrow(),
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         agent_id=42,
                         agent_number='1001',
                         conversation_time=timedelta(seconds=11 + 12).total_seconds(),
@@ -235,7 +235,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-06T13:00:00+00:00'},
                         until=self._get_tomorrow(),
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         agent_id=10,
                         agent_number='1002',
                         conversation_time=timedelta(seconds=14).total_seconds(),
@@ -267,7 +267,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-05T09:00:00-04:00'},
                         until=self._get_tomorrow(timezone),
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         agent_id=42,
                         agent_number='1001',
                         conversation_time=timedelta(seconds=11 + 12).total_seconds(),
@@ -278,7 +278,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-06T09:00:00-04:00'},
                         until=self._get_tomorrow(timezone),
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         agent_id=10,
                         agent_number='1002',
                         conversation_time=timedelta(seconds=14).total_seconds(),
@@ -301,7 +301,7 @@ class TestStatistics(IntegrationTest):
             from_='2020-10-01 00:00:00', until='2020-11-01 00:00:00'
         )
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -417,7 +417,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T07:00:00+00:00'},
                     until=self._get_tomorrow(),
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     agent_id=42,
                     agent_number='1001',
                     answered=9,
@@ -444,7 +444,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': None},
                     until=self._get_tomorrow(),
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     agent_id=42,
                     agent_number='1001',
                     answered=0,
@@ -475,7 +475,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     agent_id=42,
                     agent_number='1001',
                     answered=0,
@@ -528,7 +528,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T23:59:59+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     agent_id=42,
                     agent_number='1001',
                     login_time=timedelta(hours=25).total_seconds(),
@@ -553,7 +553,7 @@ class TestStatistics(IntegrationTest):
         assert_that(results, has_entries(total=equal_to(25)))
 
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -606,7 +606,7 @@ class TestStatistics(IntegrationTest):
         assert_that(results, has_entries(total=equal_to(10)))
 
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -652,7 +652,7 @@ class TestStatistics(IntegrationTest):
         assert_that(results, has_entries(total=equal_to(3)))
 
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -696,7 +696,7 @@ class TestStatistics(IntegrationTest):
 
         assert_that(results, has_entries(total=equal_to(2)))
 
-        common_fields = {'tenant_uuid': MASTER_TENANT, 'agent_id': 42, 'agent_number': '1001'}
+        common_fields = {'tenant_uuid': str(MASTER_TENANT), 'agent_id': 42, 'agent_number': '1001'}
         assert_that(
             results['items'],
             has_items(
@@ -762,7 +762,7 @@ class TestStatistics(IntegrationTest):
 
         assert_that(results, has_entries(total=equal_to(3)))
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -800,7 +800,7 @@ class TestStatistics(IntegrationTest):
         )
 
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -843,7 +843,7 @@ class TestStatistics(IntegrationTest):
 
         assert_that(results, has_entries(total=equal_to(2)))
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -885,7 +885,7 @@ class TestStatistics(IntegrationTest):
 
         assert_that(results, has_entries(total=equal_to(4)))
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -940,7 +940,7 @@ class TestStatistics(IntegrationTest):
 
         assert_that(results, has_entries(total=equal_to(4)))
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -1000,7 +1000,7 @@ class TestStatistics(IntegrationTest):
 
         assert_that(results, has_entries(total=equal_to(3)))
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }
@@ -1056,7 +1056,7 @@ class TestStatistics(IntegrationTest):
 
         assert_that(results, has_entries(total=equal_to(4)))
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
             'agent_number': '1001',
         }

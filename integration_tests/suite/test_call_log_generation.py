@@ -26,11 +26,11 @@ from wazo_test_helpers import until
 from .helpers.base import RawCelIntegrationTest, raw_cels
 from .helpers.confd import MockContext, MockLine, MockUser
 from .helpers.constants import (
-    SERVICE_TENANT_TYPED,
-    USER_1_UUID_TYPED,
-    USER_2_UUID_TYPED,
-    USER_3_UUID_TYPED,
-    USERS_TENANT_TYPED,
+    SERVICE_TENANT,
+    USER_1_UUID,
+    USER_2_UUID,
+    USER_3_UUID,
+    USERS_TENANT,
 )
 from .helpers.hamcrest.datetime_close_to import datetime_close_to
 
@@ -510,11 +510,11 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     contains_inanyorder(
                         has_entries(
                             message=has_entries(
-                                data=has_entries(tenant_uuid=str(SERVICE_TENANT_TYPED))
+                                data=has_entries(tenant_uuid=str(SERVICE_TENANT))
                             ),
                             headers=has_entries(
                                 name='call_log_created',
-                                tenant_uuid=str(SERVICE_TENANT_TYPED),
+                                tenant_uuid=str(SERVICE_TENANT),
                             ),
                         )
                     ),
@@ -554,27 +554,27 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     ):
         linkedid = '123456789.1011'
         self.confd.set_users(
-            MockUser(USER_1_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[1]),
-            MockUser(USER_2_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[2]),
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='as2mkq',
-                users=[{'uuid': USER_1_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '101', 'context': 'default'}],
             ),
             MockLine(
                 id=2,
                 name='je5qtq',
-                users=[{'uuid': USER_2_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '102', 'context': 'default'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
         events = self.bus.accumulator(headers={'name': 'call_log_created'})
         user_events = self.bus.accumulator(headers={'name': 'call_log_user_created'})
@@ -588,20 +588,20 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                         call_log,
                         has_properties(
                             {
-                                'tenant_uuid': USERS_TENANT_TYPED,
+                                'tenant_uuid': USERS_TENANT,
                                 'source_internal_exten': '101',
                                 'source_internal_context': 'default',
-                                'source_user_uuid': USER_1_UUID_TYPED,
+                                'source_user_uuid': USER_1_UUID,
                                 'destination_internal_exten': '102',
                                 'destination_internal_context': 'default',
-                                'destination_user_uuid': USER_2_UUID_TYPED,
+                                'destination_user_uuid': USER_2_UUID,
                             }
                         ),
                     )
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
                     assert_that(
                         user_uuids,
-                        contains_inanyorder(USER_1_UUID_TYPED, USER_2_UUID_TYPED),
+                        contains_inanyorder(USER_1_UUID, USER_2_UUID),
                     )
 
             def bus_event_call_log_created(accumulator):
@@ -612,7 +612,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                             message=has_entries(data=has_key('tags')),
                             headers=has_entries(
                                 name='call_log_created',
-                                tenant_uuid=str(USERS_TENANT_TYPED),
+                                tenant_uuid=str(USERS_TENANT),
                             ),
                         )
                     ),
@@ -627,10 +627,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                                 data=not_(has_key('tags')),
                             ),
                             headers=has_entries(
-                                {f'user_uuid:{USER_1_UUID_TYPED}': True},
+                                {f'user_uuid:{USER_1_UUID}': True},
                                 name='call_log_user_created',
-                                required_acl=f'events.call_log.user.{USER_1_UUID_TYPED}.created',
-                                tenant_uuid=str(USERS_TENANT_TYPED),
+                                required_acl=f'events.call_log.user.{USER_1_UUID}.created',
+                                tenant_uuid=str(USERS_TENANT),
                             ),
                         ),
                         has_entries(
@@ -638,10 +638,10 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                                 data=not_(has_key('tags')),
                             ),
                             headers=has_entries(
-                                {f'user_uuid:{USER_2_UUID_TYPED}': True},
+                                {f'user_uuid:{USER_2_UUID}': True},
                                 name='call_log_user_created',
-                                required_acl=f'events.call_log.user.{USER_2_UUID_TYPED}.created',
-                                tenant_uuid=str(USERS_TENANT_TYPED),
+                                required_acl=f'events.call_log.user.{USER_2_UUID}.created',
+                                tenant_uuid=str(USERS_TENANT),
                             ),
                         ),
                     ),
@@ -678,32 +678,32 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self,
     ):
         self.confd.set_users(
-            MockUser(USER_1_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[1]),
-            MockUser(USER_2_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[2]),
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='101',
-                users=[{'uuid': USER_1_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '101', 'context': 'default'}],
             ),
             MockLine(
                 id=2,
                 name='rku3uo',
-                users=[{'uuid': USER_2_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '103', 'context': 'default'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
         self._assert_last_call_log_matches(
             '1524594437.7',
             has_properties(
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 source_internal_exten='101',
                 source_internal_context='default',
                 requested_name='Bob Lépine',
@@ -743,25 +743,25 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self,
     ):
         self.confd.set_users(
-            MockUser(USER_1_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[1]),
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='101',
-                users=[{'uuid': USER_1_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '101', 'context': 'default'}],
             )
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
 
         self._assert_last_call_log_matches(
             '1524597350.9',
             has_properties(
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 source_internal_exten=None,
                 source_internal_context=None,
                 requested_name='Arsène Lupin',
@@ -1433,27 +1433,27 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self,
     ):
         self.confd.set_users(
-            MockUser(USER_1_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[1]),
-            MockUser(USER_2_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[2]),
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='uzyebgp2',
-                users=[{'uuid': USER_1_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '101', 'context': 'default'}],
             ),
             MockLine(
                 id=2,
                 name='9jqihz0h',
-                users=[{'uuid': USER_2_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '102', 'context': 'default'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
 
         self._assert_last_call_log_matches(
@@ -1464,7 +1464,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2021-02-08 18:41:08.892839+00:00'),
                 source_line_identity='pjsip/d6jtulhp',
                 destination_line_identity='pjsip/9jqihz0h',
-                destination_user_uuid=USER_2_UUID_TYPED,
+                destination_user_uuid=USER_2_UUID,
             ),
         )
 
@@ -1494,27 +1494,27 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self,
     ):
         self.confd.set_users(
-            MockUser(USER_1_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[1]),
-            MockUser(USER_2_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[2]),
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='w6hpvj79',
-                users=[{'uuid': USER_1_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '101', 'context': 'default'}],
             ),
             MockLine(
                 id=2,
                 name='o7r761lt',
-                users=[{'uuid': USER_2_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '102', 'context': 'default'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
 
         self._assert_last_call_log_matches(
@@ -1525,7 +1525,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_end=datetime.fromisoformat('2021-02-10 15:39:15.641666+00:00'),
                 source_line_identity='pjsip/svlhxtj3',
                 destination_line_identity='pjsip/o7r761lt',
-                destination_user_uuid=USER_2_UUID_TYPED,
+                destination_user_uuid=USER_2_UUID,
             ),
         )
 
@@ -1575,27 +1575,27 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     )
     def test_group_call_has_no_duplicate_participant(self):
         self.confd.set_users(
-            MockUser(USER_1_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[1]),
-            MockUser(USER_2_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[2]),
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='101',
-                users=[{'uuid': USER_1_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '101', 'context': 'default'}],
             ),
             MockLine(
                 id=2,
                 name='mvkph8he',
-                users=[{'uuid': USER_2_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '102', 'context': 'default'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
 
         self._assert_last_call_log_matches(
@@ -1603,9 +1603,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             has_properties(
                 participants=all_of(
                     has_length(2),
-                    has_item(
-                        has_properties(user_uuid=USER_2_UUID_TYPED, answered=True)
-                    ),
+                    has_item(has_properties(user_uuid=USER_2_UUID, answered=True)),
                 )
             ),
         )
@@ -1683,35 +1681,35 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     )
     def test_adhoc_conference(self):
         self.confd.set_users(
-            MockUser(USER_1_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[1]),
-            MockUser(USER_2_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[2]),
-            MockUser(USER_3_UUID_TYPED, USERS_TENANT_TYPED, line_ids=[3]),
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+            MockUser(USER_2_UUID, USERS_TENANT, line_ids=[2]),
+            MockUser(USER_3_UUID, USERS_TENANT, line_ids=[3]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='pa9pkxh5',
-                users=[{'uuid': USER_1_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1801', 'context': 'internal'}],
             ),
             MockLine(
                 id=2,
                 name='auc6927d',
-                users=[{'uuid': USER_2_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_2_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1802', 'context': 'internal'}],
             ),
             MockLine(
                 id=3,
                 name='Y4sSJpnV',
-                users=[{'uuid': USER_3_UUID_TYPED}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                users=[{'uuid': USER_3_UUID}],
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1130', 'context': 'internal'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='internal', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='internal', tenant_uuid=USERS_TENANT)
         )
 
         self._assert_last_call_log_matches(
@@ -1720,18 +1718,18 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 id=not_none(),
                 participants=contains_inanyorder(
                     has_properties(
-                        uuid=not_none(), user_uuid=USER_1_UUID_TYPED, role='source'
+                        uuid=not_none(), user_uuid=USER_1_UUID, role='source'
                     ),
                     any_of(
                         # One of the participant is ignored
                         has_properties(
                             uuid=not_none(),
-                            user_uuid=USER_2_UUID_TYPED,
+                            user_uuid=USER_2_UUID,
                             role='destination',
                         ),
                         has_properties(
                             uuid=not_none(),
-                            user_uuid=USER_3_UUID_TYPED,
+                            user_uuid=USER_3_UUID,
                             role='destination',
                         ),
                     ),
@@ -1967,19 +1965,19 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
     def test_switchboard_call_answered_then_put_in_shared_queue_then_answered(self):
         operator_uuid = uuid4()
         self.confd.set_users(
-            MockUser(operator_uuid, USERS_TENANT_TYPED, line_ids=[1]),
+            MockUser(operator_uuid, USERS_TENANT, line_ids=[1]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='KvXYRheV',
                 users=[{'uuid': operator_uuid}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '8000', 'context': 'default'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
         )
         self._assert_last_call_log_matches(
             '1694023642.7',

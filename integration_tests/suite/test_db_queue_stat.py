@@ -238,13 +238,13 @@ class TestQueueStat(DBIntegrationTest):
         assert_that(result[0], has_entries(saturated=3))
 
     # fmt: off
-    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'tenant_uuid': OTHER_TENANT})
-    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'tenant_uuid': USERS_TENANT})
-    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': OTHER_TENANT})
-    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 2, 'tenant_uuid': USERS_TENANT})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'tenant_uuid': str(OTHER_TENANT)})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': str(OTHER_TENANT)})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 2, 'tenant_uuid': str(USERS_TENANT)})
     # fmt: on
     def test_get_interval_filtered_by_tenant(self):
-        tenant_uuids = [USERS_TENANT]
+        tenant_uuids = [str(USERS_TENANT)]
         result = self.dao.queue_stat.get_interval(tenant_uuids, qos_threshold=0)
         res = 2
         assert_that(
@@ -252,10 +252,10 @@ class TestQueueStat(DBIntegrationTest):
         )
 
     # fmt: off
-    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'tenant_uuid': OTHER_TENANT})
-    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'tenant_uuid': USERS_TENANT})
-    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': OTHER_TENANT})
-    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 2, 'tenant_uuid': USERS_TENANT})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'tenant_uuid': str(OTHER_TENANT)})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': str(OTHER_TENANT)})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 2, 'tenant_uuid': str(USERS_TENANT)})
     # fmt: on
     def test_get_interval_filtered_by_empty_tenant(self):
         tenant_uuids = []
@@ -373,21 +373,23 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_stat_queue(1)
         assert_that(result, has_entries(queue_id=1, name='queue'))
 
-    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
-    @stat_queue({'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': OTHER_TENANT})
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_queue(
+        {'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': str(OTHER_TENANT)}
+    )
     def test_get_stat_queue_filtered_by_tenant(self):
-        result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[USERS_TENANT])
+        result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[str(USERS_TENANT)])
         assert_that(result, has_entries(queue_id=1))
 
         result = self.dao.queue_stat.get_stat_queue(
-            1, tenant_uuids=[USERS_TENANT, OTHER_TENANT]
+            1, tenant_uuids=[str(USERS_TENANT), str(OTHER_TENANT)]
         )
         assert_that(result, has_entries(queue_id=1))
 
-        result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[OTHER_TENANT])
+        result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[str(OTHER_TENANT)])
         assert_that(result, equal_to(None))
 
-    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': str(USERS_TENANT)})
     def test_get_stat_queue_empty_tenant(self):
         result = self.dao.queue_stat.get_stat_queue(1, tenant_uuids=[])
         assert_that(result, equal_to(None))
@@ -401,25 +403,33 @@ class TestQueueStat(DBIntegrationTest):
         result = self.dao.queue_stat.get_stat_queue(1)
         assert_that(result, equal_to(None))
 
-    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
-    @stat_queue({'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': OTHER_TENANT})
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_queue(
+        {'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': str(OTHER_TENANT)}
+    )
     def test_get_stat_queues(self):
         result = self.dao.queue_stat.get_stat_queues()
         assert_that(
             result,
             contains_inanyorder(
-                has_entries(queue_id=1, name='queue', tenant_uuid=USERS_TENANT),
-                has_entries(queue_id=2, name='other-queue', tenant_uuid=OTHER_TENANT),
+                has_entries(queue_id=1, name='queue', tenant_uuid=str(USERS_TENANT)),
+                has_entries(
+                    queue_id=2, name='other-queue', tenant_uuid=str(OTHER_TENANT)
+                ),
             ),
         )
 
-    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
-    @stat_queue({'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': OTHER_TENANT})
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_queue(
+        {'queue_id': 2, 'name': 'other-queue', 'tenant_uuid': str(OTHER_TENANT)}
+    )
     def test_get_stat_queues_filtered_by_tenant(self):
-        result = self.dao.queue_stat.get_stat_queues([USERS_TENANT])
+        result = self.dao.queue_stat.get_stat_queues([str(USERS_TENANT)])
         assert_that(result, contains_inanyorder(has_entries(queue_id=1)))
 
-        result = self.dao.queue_stat.get_stat_queues([USERS_TENANT, OTHER_TENANT])
+        result = self.dao.queue_stat.get_stat_queues(
+            [str(USERS_TENANT), str(OTHER_TENANT)]
+        )
         assert_that(
             result,
             contains_inanyorder(
@@ -428,10 +438,10 @@ class TestQueueStat(DBIntegrationTest):
             ),
         )
 
-        result = self.dao.queue_stat.get_stat_queues([OTHER_TENANT])
+        result = self.dao.queue_stat.get_stat_queues([str(OTHER_TENANT)])
         assert_that(result, contains_inanyorder(has_entries(queue_id=2)))
 
-    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': USERS_TENANT})
+    @stat_queue({'queue_id': 1, 'name': 'queue', 'tenant_uuid': str(USERS_TENANT)})
     def test_get_stat_queues_empty_tenant(self):
         result = self.dao.queue_stat.get_stat_queues([])
         assert_that(result, empty())
@@ -462,11 +472,11 @@ class TestQueueStat(DBIntegrationTest):
         )
 
     # fmt: off
-    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:01:00', 'waittime': 1, 'status': 'answered', 'tenant_uuid': OTHER_TENANT})
-    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:02:00', 'waittime': 2, 'status': 'abandoned', 'tenant_uuid': USERS_TENANT})
-    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:03:00', 'waittime': 3, 'status': 'answered', 'tenant_uuid': USERS_TENANT})
-    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': OTHER_TENANT})
-    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 1, 'abandoned': 1, 'tenant_uuid': USERS_TENANT})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:01:00', 'waittime': 1, 'status': 'answered', 'tenant_uuid': str(OTHER_TENANT)})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:02:00', 'waittime': 2, 'status': 'abandoned', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:03:00', 'waittime': 3, 'status': 'answered', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': str(OTHER_TENANT)})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 1, 'abandoned': 1, 'tenant_uuid': str(USERS_TENANT)})
     # fmt: on
     def test_get_qos_interval_filtered_by_empty_tenant(self):
         tenant_uuids = []
@@ -480,15 +490,15 @@ class TestQueueStat(DBIntegrationTest):
         )
 
     # fmt: off
-    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:01:00', 'waittime': 1, 'status': 'answered', 'tenant_uuid': OTHER_TENANT})
-    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:02:00', 'waittime': 2, 'status': 'abandoned', 'tenant_uuid': USERS_TENANT})
-    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:03:00', 'waittime': 3, 'status': 'answered', 'tenant_uuid': USERS_TENANT})
-    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': OTHER_TENANT})
-    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 1, 'abandoned': 1, 'tenant_uuid': USERS_TENANT})
+    @stat_call_on_queue({'queue_id': 1, 'time': '2020-10-01 13:01:00', 'waittime': 1, 'status': 'answered', 'tenant_uuid': str(OTHER_TENANT)})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:02:00', 'waittime': 2, 'status': 'abandoned', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_call_on_queue({'queue_id': 2, 'time': '2020-10-01 14:03:00', 'waittime': 3, 'status': 'answered', 'tenant_uuid': str(USERS_TENANT)})
+    @stat_queue_periodic({'queue_id': 1, 'time': '2020-10-01 13:00:00', 'answered': 1, 'tenant_uuid': str(OTHER_TENANT)})
+    @stat_queue_periodic({'queue_id': 2, 'time': '2020-10-01 14:00:00', 'answered': 1, 'abandoned': 1, 'tenant_uuid': str(USERS_TENANT)})
     # fmt: on
     def test_get_qos_interval_filtered_by_tenant(self):
         result = self.dao.queue_stat.get_qos_interval_by_queue(
-            [OTHER_TENANT],
+            [str(OTHER_TENANT)],
             1,
             qos_min=0,
             qos_max=5,
@@ -496,7 +506,7 @@ class TestQueueStat(DBIntegrationTest):
         assert_that(result, has_entries(answered=1, abandoned=0))
 
         result = self.dao.queue_stat.get_qos_interval_by_queue(
-            [USERS_TENANT, OTHER_TENANT],
+            [str(USERS_TENANT), str(OTHER_TENANT)],
             1,
             qos_min=0,
             qos_max=5,
@@ -504,7 +514,7 @@ class TestQueueStat(DBIntegrationTest):
         assert_that(result, has_entries(answered=1, abandoned=0))
 
         result = self.dao.queue_stat.get_qos_interval_by_queue(
-            [USERS_TENANT],
+            [str(USERS_TENANT)],
             1,
             qos_min=0,
             qos_max=5,

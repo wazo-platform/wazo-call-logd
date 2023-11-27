@@ -6,7 +6,7 @@ from hamcrest import has_properties
 
 from .helpers.base import RawCelIntegrationTest, raw_cels
 from .helpers.confd import MockContext, MockLine, MockUser
-from .helpers.constants import USERS_TENANT_TYPED
+from .helpers.constants import USERS_TENANT
 
 
 class TestCallToGroup(RawCelIntegrationTest):
@@ -98,35 +98,35 @@ LINKEDID_END | 2021-08-23 15:07:08.342721-04 |                   | 3925098f-c504
         user_2_uuid = 'a545ea83-595d-4142-a40c-9012acd3068d'  # Nikolai
         user_3_uuid = '10288506-4ad6-4052-8218-2aa133727e93'  # Anastasia
         self.confd.set_users(
-            MockUser(user_1_uuid, USERS_TENANT_TYPED, line_ids=[1]),
-            MockUser(user_2_uuid, USERS_TENANT_TYPED, line_ids=[2]),
-            MockUser(user_3_uuid, USERS_TENANT_TYPED, line_ids=[3]),
+            MockUser(user_1_uuid, USERS_TENANT, line_ids=[1]),
+            MockUser(user_2_uuid, USERS_TENANT, line_ids=[2]),
+            MockUser(user_3_uuid, USERS_TENANT, line_ids=[3]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='TokxAXWb',
                 users=[{'uuid': user_1_uuid}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1015', 'context': 'inside'}],
             ),
             MockLine(
                 id=2,
                 name='fkwk2z0g',
                 users=[{'uuid': user_2_uuid}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1014', 'context': 'inside'}],
             ),
             MockLine(
                 id=3,
                 name='Ogrp1Zgu',
                 users=[{'uuid': user_3_uuid}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1011', 'context': 'inside'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='inside', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='inside', tenant_uuid=USERS_TENANT)
         )
 
         self._assert_last_call_log_matches(
@@ -200,35 +200,35 @@ LINKEDID_END | 2021-08-23 15:07:08.342721-04 |                   | 3925098f-c504
         user_2_uuid = 'a545ea83-595d-4142-a40c-9012acd3068d'  # Nikolai
         user_3_uuid = '10288506-4ad6-4052-8218-2aa133727e93'  # Anastasia
         self.confd.set_users(
-            MockUser(user_1_uuid, USERS_TENANT_TYPED, line_ids=[1]),
-            MockUser(user_2_uuid, USERS_TENANT_TYPED, line_ids=[2]),
-            MockUser(user_3_uuid, USERS_TENANT_TYPED, line_ids=[3]),
+            MockUser(user_1_uuid, USERS_TENANT, line_ids=[1]),
+            MockUser(user_2_uuid, USERS_TENANT, line_ids=[2]),
+            MockUser(user_3_uuid, USERS_TENANT, line_ids=[3]),
         )
         self.confd.set_lines(
             MockLine(
                 id=1,
                 name='TokxAXWb',
                 users=[{'uuid': user_1_uuid}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1015', 'context': 'inside'}],
             ),
             MockLine(
                 id=2,
                 name='fkwk2z0g',
                 users=[{'uuid': user_2_uuid}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1014', 'context': 'inside'}],
             ),
             MockLine(
                 id=3,
                 name='Ogrp1Zgu',
                 users=[{'uuid': user_3_uuid}],
-                tenant_uuid=USERS_TENANT_TYPED,
+                tenant_uuid=USERS_TENANT,
                 extensions=[{'exten': '1011', 'context': 'inside'}],
             ),
         )
         self.confd.set_contexts(
-            MockContext(id=1, name='inside', tenant_uuid=USERS_TENANT_TYPED)
+            MockContext(id=1, name='inside', tenant_uuid=USERS_TENANT)
         )
 
         self._assert_last_call_log_matches(

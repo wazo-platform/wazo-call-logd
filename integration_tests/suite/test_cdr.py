@@ -140,7 +140,7 @@ class TestGetCDRId(IntegrationTest):
             ),
             Destination(
                 destination_details_key='user_uuid',
-                destination_details_value=USER_2_UUID,
+                destination_details_value=str(USER_2_UUID),
             ),
             Destination(
                 destination_details_key='user_name',
@@ -149,14 +149,14 @@ class TestGetCDRId(IntegrationTest):
         ],
         participants=[
             {
-                'user_uuid': USER_1_UUID,
+                'user_uuid': str(USER_1_UUID),
                 'line_id': '1',
                 'tags': ['Hogwarts', 'Poudlard'],
                 'role': 'source',
                 'answered': True,
             },
             {
-                'user_uuid': USER_2_UUID,
+                'user_uuid': str(USER_2_UUID),
                 'line_id': '2',
                 'tags': ['Chocolate', 'Factory'],
                 'role': 'destination',
@@ -173,13 +173,13 @@ class TestGetCDRId(IntegrationTest):
             result,
             has_entries(
                 id=20,
-                tenant_uuid=MASTER_TENANT,
+                tenant_uuid=str(MASTER_TENANT),
                 answered=True,
                 start='2022-07-21T00:00:00+00:00',
                 end='2022-07-21T00:02:27+00:00',
                 destination_extension='1604',
                 destination_name='Willy Wonka',
-                destination_user_uuid=USER_2_UUID,
+                destination_user_uuid=str(USER_2_UUID),
                 destination_line_id=2,
                 destination_internal_extension='1604',
                 destination_internal_context='mycontext',
@@ -193,11 +193,11 @@ class TestGetCDRId(IntegrationTest):
                 source_name='Harry Potter',
                 source_internal_extension='1603',
                 source_internal_context='mycontext',
-                source_user_uuid=USER_1_UUID,
+                source_user_uuid=str(USER_1_UUID),
                 source_line_id=1,
                 destination_details=has_entries(
                     type='user',
-                    user_uuid=USER_2_UUID,
+                    user_uuid=str(USER_2_UUID),
                     user_name='Willy Wonka',
                 ),
                 tags=contains_inanyorder(
@@ -248,7 +248,7 @@ class TestGetCDRId(IntegrationTest):
             result,
             has_entries(
                 id=164,
-                tenant_uuid=MASTER_TENANT,
+                tenant_uuid=str(MASTER_TENANT),
                 answered=True,
                 start='2022-07-23T00:00:00+00:00',
                 end='2022-07-23T00:02:27+00:00',
@@ -309,7 +309,7 @@ class TestGetCDRId(IntegrationTest):
             result,
             has_entries(
                 id=166,
-                tenant_uuid=MASTER_TENANT,
+                tenant_uuid=str(MASTER_TENANT),
                 answered=True,
                 start='2022-07-23T00:00:00+00:00',
                 end='2022-07-23T00:02:27+00:00',
@@ -353,12 +353,12 @@ class TestGetCDRId(IntegrationTest):
         source_internal_context='internal',
         participants=[
             {
-                'user_uuid': USER_1_UUID,
+                'user_uuid': str(USER_1_UUID),
                 'line_id': '11',
                 'tags': ['rh', 'Poudlard'],
                 'role': 'source',
             },
-            {'user_uuid': USER_2_UUID, 'line_id': '22', 'role': 'destination'},
+            {'user_uuid': str(USER_2_UUID), 'line_id': '22', 'role': 'destination'},
         ],
         recordings=[
             {
@@ -381,14 +381,14 @@ class TestGetCDRId(IntegrationTest):
             result,
             has_entries(
                 id=12,
-                tenant_uuid=MASTER_TENANT,
+                tenant_uuid=str(MASTER_TENANT),
                 answered=True,
                 start='2017-03-23T00:00:00+00:00',
                 answer='2017-03-23T00:01:00+00:00',
                 end='2017-03-23T00:02:27+00:00',
                 destination_extension='3378',
                 destination_name='dést,ination',
-                destination_user_uuid=USER_2_UUID,
+                destination_user_uuid=str(USER_2_UUID),
                 destination_line_id=22,
                 destination_internal_extension='3245',
                 destination_internal_context='internal',
@@ -402,7 +402,7 @@ class TestGetCDRId(IntegrationTest):
                 source_name='soùr.',
                 source_internal_extension='5938',
                 source_internal_context='internal',
-                source_user_uuid=USER_1_UUID,
+                source_user_uuid=str(USER_1_UUID),
                 source_line_id=11,
                 tags=contains_inanyorder('rh', 'Poudlard'),
                 recordings=contains_inanyorder(
@@ -444,7 +444,7 @@ class TestGetCDRId(IntegrationTest):
         source_internal_context='internal',
         participants=[
             {
-                'user_uuid': USER_1_UUID,
+                'user_uuid': str(USER_1_UUID),
                 'line_id': '1',
                 'tags': ['rh', 'Poudlard'],
                 'role': 'source',
@@ -472,7 +472,7 @@ class TestGetCDRId(IntegrationTest):
             result,
             has_entries(
                 id='12',
-                tenant_uuid=MASTER_TENANT,
+                tenant_uuid=str(MASTER_TENANT),
                 answered='True',
                 start='2017-03-23T00:00:00+00:00',
                 answer='2017-03-23T00:01:00+00:00',
@@ -491,7 +491,7 @@ class TestGetCDRId(IntegrationTest):
                 source_name='soùr.',
                 source_internal_extension='5938',
                 source_internal_context='internal',
-                source_user_uuid=USER_1_UUID,
+                source_user_uuid=str(USER_1_UUID),
                 tags=any_of('rh;Poudlard', 'Poudlard;rh'),
                 recording_1_uuid=uuid_(),
                 recording_1_start_time='2017-03-23T00:01:01+00:00',
@@ -508,32 +508,44 @@ class TestGetCDRId(IntegrationTest):
 
     @call_log(
         **{'id': 10},
-        tenant_uuid=USERS_TENANT,
+        tenant_uuid=str(USERS_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     @call_log(
         **{'id': 11},
-        tenant_uuid=USERS_TENANT,
+        tenant_uuid=str(USERS_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': USER_2_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(USER_2_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     @call_log(
         **{'id': 12},
-        tenant_uuid=OTHER_TENANT,
+        tenant_uuid=str(OTHER_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': OTHER_USER_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(OTHER_USER_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     def test_get_cdr_by_id_multitenant(self):
         self.call_logd.set_token(USER_1_TOKEN)
         result = self.call_logd.cdr.get_by_id(10)
         assert_that(
-            result, has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT)
+            result,
+            has_entries(
+                source_user_uuid=str(USER_1_UUID), tenant_uuid=str(USERS_TENANT)
+            ),
         )
 
         result = self.call_logd.cdr.get_by_id(11)
         assert_that(
-            result, has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+            result,
+            has_entries(
+                source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+            ),
         )
 
         assert_that(
@@ -551,24 +563,34 @@ class TestGetCDRId(IntegrationTest):
         result = self.call_logd.cdr.get_by_id(12)
         assert_that(
             result,
-            has_entries(source_user_uuid=OTHER_USER_UUID, tenant_uuid=OTHER_TENANT),
+            has_entries(
+                source_user_uuid=str(OTHER_USER_UUID), tenant_uuid=str(OTHER_TENANT)
+            ),
         )
 
         self.call_logd.set_token(MASTER_TOKEN)
         result = self.call_logd.cdr.get_by_id(10)
         assert_that(
-            result, has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT)
+            result,
+            has_entries(
+                source_user_uuid=str(USER_1_UUID), tenant_uuid=str(USERS_TENANT)
+            ),
         )
 
         result = self.call_logd.cdr.get_by_id(11)
         assert_that(
-            result, has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+            result,
+            has_entries(
+                source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+            ),
         )
 
         result = self.call_logd.cdr.get_by_id(12)
         assert_that(
             result,
-            has_entries(source_user_uuid=OTHER_USER_UUID, tenant_uuid=OTHER_TENANT),
+            has_entries(
+                source_user_uuid=str(OTHER_USER_UUID), tenant_uuid=str(OTHER_TENANT)
+            ),
         )
 
 
@@ -603,7 +625,7 @@ class TestListCDR(IntegrationTest):
             ),
             Destination(
                 destination_details_key='user_uuid',
-                destination_details_value=USER_2_UUID,
+                destination_details_value=str(USER_2_UUID),
             ),
             Destination(
                 destination_details_key='user_name',
@@ -612,14 +634,14 @@ class TestListCDR(IntegrationTest):
         ],
         participants=[
             {
-                'user_uuid': USER_1_UUID,
+                'user_uuid': str(USER_1_UUID),
                 'line_id': '100',
                 'tags': ['Davy Jones', 'Locker'],
                 'role': 'source',
                 'answered': True,
             },
             {
-                'user_uuid': USER_2_UUID,
+                'user_uuid': str(USER_2_UUID),
                 'line_id': '200',
                 'tags': ['Wonderland'],
                 'role': 'destination',
@@ -699,7 +721,7 @@ class TestListCDR(IntegrationTest):
                 items=contains_inanyorder(
                     has_entries(
                         id=1,
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         answered=True,
                         start='2022-07-23T00:00:00+00:00',
                         end='2022-07-23T00:02:27+00:00',
@@ -721,7 +743,7 @@ class TestListCDR(IntegrationTest):
                         source_internal_context='mycontext1',
                         destination_details=has_entries(
                             type='user',
-                            user_uuid=USER_2_UUID,
+                            user_uuid=str(USER_2_UUID),
                             user_name='Alice Wonderland',
                         ),
                         tags=contains_inanyorder(
@@ -733,7 +755,7 @@ class TestListCDR(IntegrationTest):
                     ),
                     has_entries(
                         id=2,
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         answered=True,
                         start='2022-07-24T00:00:00+00:00',
                         end='2022-07-24T00:02:27+00:00',
@@ -758,7 +780,7 @@ class TestListCDR(IntegrationTest):
                     ),
                     has_entries(
                         id=3,
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         answered=True,
                         start='2022-07-24T00:00:00+00:00',
                         end='2022-07-24T00:02:27+00:00',
@@ -798,7 +820,7 @@ class TestListCDR(IntegrationTest):
         source_name='soùr.',
         participants=[
             {
-                'user_uuid': USER_1_UUID,
+                'user_uuid': str(USER_1_UUID),
                 'line_id': '1',
                 'tags': ['rh', 'Poudlard'],
                 'role': 'source',
@@ -833,7 +855,7 @@ class TestListCDR(IntegrationTest):
                 items=contains_inanyorder(
                     has_entries(
                         id=12,
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         answered=True,
                         start='2017-03-23T00:00:00+00:00',
                         answer='2017-03-23T00:01:00+00:00',
@@ -844,7 +866,7 @@ class TestListCDR(IntegrationTest):
                         call_direction='internal',
                         source_extension='7687',
                         source_name='soùr.',
-                        source_user_uuid=USER_1_UUID,
+                        source_user_uuid=str(USER_1_UUID),
                         tags=contains_inanyorder('rh', 'Poudlard'),
                         recordings=contains_inanyorder(
                             has_entries(
@@ -889,7 +911,7 @@ class TestListCDR(IntegrationTest):
         source_name='soùr.',
         participants=[
             {
-                'user_uuid': USER_1_UUID,
+                'user_uuid': str(USER_1_UUID),
                 'line_id': '1',
                 'tags': ['rh', 'Poudlard'],
                 'role': 'source',
@@ -924,7 +946,7 @@ class TestListCDR(IntegrationTest):
             contains_inanyorder(
                 has_entries(
                     id='12',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     answered='True',
                     start='2017-03-23T00:00:00+00:00',
                     answer='2017-03-23T00:01:00+00:00',
@@ -935,7 +957,7 @@ class TestListCDR(IntegrationTest):
                     call_direction='internal',
                     source_extension='7687',
                     source_name='soùr.',
-                    source_user_uuid=USER_1_UUID,
+                    source_user_uuid=str(USER_1_UUID),
                     tags=any_of('rh;Poudlard', 'Poudlard;rh'),
                     recording_1_uuid=uuid_(),
                     recording_1_start_time='2017-03-23T00:01:01+00:00',
@@ -972,7 +994,7 @@ class TestListCDR(IntegrationTest):
         source_name='soùr.',
         participants=[
             {
-                'user_uuid': USER_1_UUID,
+                'user_uuid': str(USER_1_UUID),
                 'line_id': '1',
                 'tags': ['rh', 'Poudlard'],
                 'role': 'source',
@@ -1268,7 +1290,7 @@ class TestListCDR(IntegrationTest):
     def test_given_no_token_when_list_cdr_of_user_then_401(self):
         self.call_logd.set_token(None)
         assert_that(
-            calling(self.call_logd.cdr.list_for_user).with_args(OTHER_USER_UUID),
+            calling(self.call_logd.cdr.list_for_user).with_args(str(OTHER_USER_UUID)),
             raises(CallLogdError).matching(
                 has_properties(
                     status_code=401,
@@ -1365,25 +1387,25 @@ class TestListCDR(IntegrationTest):
 
     @call_log(
         date='2017-04-11',
-        participants=[{'user_uuid': USER_1_UUID, 'tags': ['quebec']}],
+        participants=[{'user_uuid': str(USER_1_UUID), 'tags': ['quebec']}],
     )
     @call_log(date='2017-04-12')
     @call_log(
         date='2017-04-13',
-        participants=[{'user_uuid': USER_1_UUID, 'tags': ['quebec', 'montreal']}],
+        participants=[{'user_uuid': str(USER_1_UUID), 'tags': ['quebec', 'montreal']}],
     )
     @call_log(
         date='2017-04-14',
         participants=[
-            {'user_uuid': USER_1_UUID, 'tags': ['chicoutimi']},
-            {'user_uuid': USER_1_UUID, 'tags': ['roberval']},
+            {'user_uuid': str(USER_1_UUID), 'tags': ['chicoutimi']},
+            {'user_uuid': str(USER_1_UUID), 'tags': ['roberval']},
         ],
     )
     @call_log(
         date='2017-04-15',
         participants=[
             {
-                'user_uuid': USER_1_UUID,
+                'user_uuid': str(USER_1_UUID),
                 'tags': ['alma', 'roberval', 'jonquiere'],
             }
         ],
@@ -1436,19 +1458,19 @@ class TestListCDR(IntegrationTest):
         assert_that(result, has_entries(filtered=0, total=5, items=empty()))
 
     @call_log(date='2017-04-10')
-    @call_log(date='2017-04-11', participants=[{'user_uuid': USER_1_UUID}])
+    @call_log(date='2017-04-11', participants=[{'user_uuid': str(USER_1_UUID)}])
     @call_log(
         date='2017-04-12',
         participants=[
-            {'user_uuid': USER_1_UUID},
-            {'user_uuid': USER_3_UUID},
+            {'user_uuid': str(USER_1_UUID)},
+            {'user_uuid': str(USER_3_UUID)},
         ],
     )
-    @call_log(date='2017-04-13', participants=[{'user_uuid': USER_2_UUID}])
-    @call_log(date='2017-04-14', participants=[{'user_uuid': USER_3_UUID}])
-    @call_log(date='2017-04-15', participants=[{'user_uuid': USER_2_UUID}])
+    @call_log(date='2017-04-13', participants=[{'user_uuid': str(USER_2_UUID)}])
+    @call_log(date='2017-04-14', participants=[{'user_uuid': str(USER_3_UUID)}])
+    @call_log(date='2017-04-15', participants=[{'user_uuid': str(USER_2_UUID)}])
     def test_given_call_logs_when_list_cdr_with_user_uuid_then_list_matching_cdr(self):
-        result = self.call_logd.cdr.list(user_uuid=USER_3_UUID)
+        result = self.call_logd.cdr.list(user_uuid=str(USER_3_UUID))
         assert_that(
             result,
             has_entries(
@@ -1461,7 +1483,9 @@ class TestListCDR(IntegrationTest):
             ),
         )
 
-        result = self.call_logd.cdr.list(user_uuid=f'{USER_2_UUID},{USER_3_UUID}')
+        result = self.call_logd.cdr.list(
+            user_uuid=f'{str(USER_2_UUID)},{str(USER_3_UUID)}'
+        )
         assert_that(
             result,
             has_entries(
@@ -1479,22 +1503,22 @@ class TestListCDR(IntegrationTest):
     @call_log(
         date='2019-06-13T12:00:00+00:00',
         participants=[
-            {'user_uuid': USER_1_UUID, 'role': 'source'},
-            {'user_uuid': USER_2_UUID, 'role': 'destination'},
+            {'user_uuid': str(USER_1_UUID), 'role': 'source'},
+            {'user_uuid': str(USER_2_UUID), 'role': 'destination'},
         ],
     )
     @call_log(
         date='2019-06-13T13:00:00+00:00',
         participants=[
-            {'user_uuid': USER_1_UUID, 'role': 'source'},
-            {'user_uuid': USER_3_UUID, 'role': 'destination'},
+            {'user_uuid': str(USER_1_UUID), 'role': 'source'},
+            {'user_uuid': str(USER_3_UUID), 'role': 'destination'},
         ],
     )
     @call_log(
         date='2019-06-13T14:00:00+00:00',
         participants=[
-            {'user_uuid': USER_3_UUID, 'role': 'source'},
-            {'user_uuid': USER_2_UUID, 'role': 'destination'},
+            {'user_uuid': str(USER_3_UUID), 'role': 'source'},
+            {'user_uuid': str(USER_2_UUID), 'role': 'destination'},
         ],
     )
     def test_when_list_my_cdr_with_user_uuid_then_list_matching_cdr(self):
@@ -1502,14 +1526,14 @@ class TestListCDR(IntegrationTest):
         self.auth.set_token(
             MockUserToken(
                 SOME_TOKEN,
-                user_uuid=USER_1_UUID,
-                metadata={"tenant_uuid": MASTER_TENANT},
+                user_uuid=str(USER_1_UUID),
+                metadata={"tenant_uuid": str(MASTER_TENANT)},
             )
         )
 
         self.call_logd.set_token(SOME_TOKEN)
 
-        results = self.call_logd.cdr.list_from_user(user_uuid=USER_3_UUID)
+        results = self.call_logd.cdr.list_from_user(user_uuid=str(USER_3_UUID))
 
         assert_that(
             results,
@@ -1523,7 +1547,7 @@ class TestListCDR(IntegrationTest):
         )
 
         results = self.call_logd.cdr.list_from_user(
-            user_uuid=','.join([USER_1_UUID, USER_2_UUID, USER_3_UUID])
+            user_uuid=','.join([str(USER_1_UUID), str(USER_2_UUID), str(USER_3_UUID)])
         )
 
         assert_that(
@@ -1599,14 +1623,14 @@ class TestListCDR(IntegrationTest):
         )
 
     @call_log(date='2017-04-10')
-    @call_log(date='2017-04-11', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-12', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-13', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-14', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-15', participants=[{'user_uuid': USER_2_UUID}])
+    @call_log(date='2017-04-11', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-12', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-13', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-14', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-15', participants=[{'user_uuid': str(USER_2_UUID)}])
     def test_given_call_logs_when_list_cdr_of_user_then_list_cdr_of_user(self):
         result = self.call_logd.cdr.list_for_user(
-            USER_1_UUID, limit=2, offset=1, order='start', direction='desc'
+            str(USER_1_UUID), limit=2, offset=1, order='start', direction='desc'
         )
 
         assert_that(
@@ -1624,21 +1648,21 @@ class TestListCDR(IntegrationTest):
     @call_log(
         **{'id': 1},
         recordings=[{'path': '/tmp/foobar.wav'}],
-        participants=[{'user_uuid': USER_1_UUID}],
+        participants=[{'user_uuid': str(USER_1_UUID)}],
     )
     @call_log(
         **{'id': 2},
-        participants=[{'user_uuid': USER_1_UUID}],
+        participants=[{'user_uuid': str(USER_1_UUID)}],
     )
     @call_log(
         **{'id': 3},
         recordings=[{'path': '/tmp/foobar2.wav'}],
-        participants=[{'user_uuid': USER_2_UUID}],
+        participants=[{'user_uuid': str(USER_2_UUID)}],
     )
     def test_given_call_logs_when_list_cdr_of_user_recorded_filter_then_list_recorded(
         self,
     ):
-        results = self.call_logd.cdr.list_for_user(USER_1_UUID, recorded=True)
+        results = self.call_logd.cdr.list_for_user(str(USER_1_UUID), recorded=True)
         assert_that(
             results,
             has_entries(
@@ -1649,7 +1673,7 @@ class TestListCDR(IntegrationTest):
                 ),
             ),
         )
-        results = self.call_logd.cdr.list_for_user(USER_1_UUID, recorded=False)
+        results = self.call_logd.cdr.list_for_user(str(USER_1_UUID), recorded=False)
         assert_that(
             results,
             has_entries(
@@ -1661,12 +1685,12 @@ class TestListCDR(IntegrationTest):
             ),
         )
 
-    @call_log(date='2017-04-11', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-12', participants=[{'user_uuid': USER_1_UUID}])
+    @call_log(date='2017-04-11', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-12', participants=[{'user_uuid': str(USER_1_UUID)}])
     def test_given_call_logs_when_list_cdr_of_user_as_csv_then_list_cdr_of_user_as_csv(
         self,
     ):
-        result_raw = self.call_logd.cdr.list_for_user_csv(USER_1_UUID)
+        result_raw = self.call_logd.cdr.list_for_user_csv(str(USER_1_UUID))
         result = list(csv.DictReader(StringIO(result_raw)))
 
         assert_that(
@@ -1702,18 +1726,18 @@ class TestListCDR(IntegrationTest):
         )
 
     @call_log(date='2017-04-10')
-    @call_log(date='2017-04-11', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-12', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-13', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-14', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-15', participants=[{'user_uuid': USER_2_UUID}])
+    @call_log(date='2017-04-11', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-12', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-13', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-14', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-15', participants=[{'user_uuid': str(USER_2_UUID)}])
     def test_given_call_logs_when_list_my_cdr_then_list_my_cdr(self):
         SOME_TOKEN = 'my-token'
         self.auth.set_token(
             MockUserToken(
                 SOME_TOKEN,
-                user_uuid=USER_1_UUID,
-                metadata={"tenant_uuid": MASTER_TENANT},
+                user_uuid=str(USER_1_UUID),
+                metadata={"tenant_uuid": str(MASTER_TENANT)},
             )
         )
 
@@ -1734,15 +1758,15 @@ class TestListCDR(IntegrationTest):
             ),
         )
 
-    @call_log(date='2017-04-11', participants=[{'user_uuid': USER_1_UUID}])
-    @call_log(date='2017-04-12', participants=[{'user_uuid': USER_1_UUID}])
+    @call_log(date='2017-04-11', participants=[{'user_uuid': str(USER_1_UUID)}])
+    @call_log(date='2017-04-12', participants=[{'user_uuid': str(USER_1_UUID)}])
     def test_given_call_logs_when_list_my_cdr_as_csv_then_list_my_cdr_as_csv(self):
         SOME_TOKEN = 'my-token'
         self.auth.set_token(
             MockUserToken(
                 SOME_TOKEN,
-                user_uuid=USER_1_UUID,
-                metadata={"tenant_uuid": MASTER_TENANT},
+                user_uuid=str(USER_1_UUID),
+                metadata={"tenant_uuid": str(MASTER_TENANT)},
             )
         )
 
@@ -1759,14 +1783,14 @@ class TestListCDR(IntegrationTest):
             f'CSV received: {result_raw}',
         )
 
-    @call_logs(number=1100, participant_user=USER_1_UUID)
+    @call_logs(number=1100, participant_user=str(USER_1_UUID))
     def test_list_my_cdr_default_limit(self):
         SOME_TOKEN = 'my-token'
         self.auth.set_token(
             MockUserToken(
                 SOME_TOKEN,
-                user_uuid=USER_1_UUID,
-                metadata={"tenant_uuid": MASTER_TENANT},
+                user_uuid=str(USER_1_UUID),
+                metadata={"tenant_uuid": str(MASTER_TENANT)},
             )
         )
 
@@ -1781,13 +1805,13 @@ class TestListCDR(IntegrationTest):
     @call_log(
         **{'id': 1},
         recordings=[{'path': '/tmp/foobar.wav'}],
-        participants=[{'user_uuid': USER_1_UUID}],
+        participants=[{'user_uuid': str(USER_1_UUID)}],
     )
-    @call_log(**{'id': 2}, participants=[{'user_uuid': USER_1_UUID}])
+    @call_log(**{'id': 2}, participants=[{'user_uuid': str(USER_1_UUID)}])
     @call_log(
         **{'id': 3},
         recordings=[{'path': '/tmp/foobar2.wav'}],
-        participants=[{'user_uuid': USER_2_UUID}],
+        participants=[{'user_uuid': str(USER_2_UUID)}],
     )
     def test_given_call_logs_when_list_my_cdr_recorded_filter_then_list_my_recorded_cdr(
         self,
@@ -1796,8 +1820,8 @@ class TestListCDR(IntegrationTest):
         self.auth.set_token(
             MockUserToken(
                 SOME_TOKEN,
-                user_uuid=USER_1_UUID,
-                metadata={"tenant_uuid": MASTER_TENANT},
+                user_uuid=str(USER_1_UUID),
+                metadata={"tenant_uuid": str(MASTER_TENANT)},
             )
         )
 
@@ -1827,23 +1851,29 @@ class TestListCDR(IntegrationTest):
 
     @call_log(
         **{'id': 10},
-        tenant_uuid=USERS_TENANT,
+        tenant_uuid=str(USERS_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     @call_log(
         **{'id': 11},
-        tenant_uuid=USERS_TENANT,
+        tenant_uuid=str(USERS_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': USER_2_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(USER_2_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     @call_log(
         **{'id': 12},
-        tenant_uuid=OTHER_TENANT,
+        tenant_uuid=str(OTHER_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': OTHER_USER_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(OTHER_USER_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
-    @call_log(**{'id': 13}, date='2017-03-23 00:00:00', tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 13}, date='2017-03-23 00:00:00', tenant_uuid=str(MASTER_TENANT))
     def test_list_multitenant(self):
         self.call_logd.set_token(USER_1_TOKEN)
         results = self.call_logd.cdr.list_from_user()
@@ -1851,21 +1881,25 @@ class TestListCDR(IntegrationTest):
         assert_that(
             results['items'],
             contains_exactly(
-                has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_1_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
-        results = self.call_logd.cdr.list_for_user(USER_2_UUID)
+        results = self.call_logd.cdr.list_for_user(str(USER_2_UUID))
         assert_that(results['total'], equal_to(2))
         assert_that(results['filtered'], equal_to(1))
         assert_that(
             results['items'],
             contains_exactly(
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
-        results = self.call_logd.cdr.list_for_user(OTHER_USER_UUID)
+        results = self.call_logd.cdr.list_for_user(str(OTHER_USER_UUID))
         assert_that(results['total'], equal_to(2))
         assert_that(results['filtered'], equal_to(0))
 
@@ -1875,7 +1909,9 @@ class TestListCDR(IntegrationTest):
         assert_that(
             results['items'],
             contains_exactly(
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
@@ -1885,7 +1921,9 @@ class TestListCDR(IntegrationTest):
         assert_that(
             results['items'],
             contains_exactly(
-                has_entries(source_user_uuid=OTHER_USER_UUID, tenant_uuid=OTHER_TENANT)
+                has_entries(
+                    source_user_uuid=str(OTHER_USER_UUID), tenant_uuid=str(OTHER_TENANT)
+                )
             ),
         )
 
@@ -1896,7 +1934,7 @@ class TestListCDR(IntegrationTest):
         assert_that(
             results,
             has_entries(
-                items=contains_inanyorder(has_entries(tenant_uuid=MASTER_TENANT))
+                items=contains_inanyorder(has_entries(tenant_uuid=str(MASTER_TENANT)))
             ),
         )
 
@@ -1907,8 +1945,8 @@ class TestListCDR(IntegrationTest):
             results,
             has_entries(
                 items=contains_inanyorder(
-                    has_entries(source_user_uuid=USER_1_UUID),
-                    has_entries(source_user_uuid=USER_2_UUID),
+                    has_entries(source_user_uuid=str(USER_1_UUID)),
+                    has_entries(source_user_uuid=str(USER_2_UUID)),
                 )
             ),
         )
@@ -1919,32 +1957,44 @@ class TestListCDR(IntegrationTest):
         assert_that(
             results['items'],
             contains_inanyorder(
-                has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT),
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT),
-                has_entries(source_user_uuid=OTHER_USER_UUID, tenant_uuid=OTHER_TENANT),
-                has_entries(tenant_uuid=MASTER_TENANT),
+                has_entries(
+                    source_user_uuid=str(USER_1_UUID), tenant_uuid=str(USERS_TENANT)
+                ),
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                ),
+                has_entries(
+                    source_user_uuid=str(OTHER_USER_UUID), tenant_uuid=str(OTHER_TENANT)
+                ),
+                has_entries(tenant_uuid=str(MASTER_TENANT)),
             ),
         )
 
     @call_log(
         **{'id': 10},
-        tenant_uuid=USERS_TENANT,
+        tenant_uuid=str(USERS_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     @call_log(
         **{'id': 11},
-        tenant_uuid=USERS_TENANT,
+        tenant_uuid=str(USERS_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': USER_2_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(USER_2_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     @call_log(
         **{'id': 12},
-        tenant_uuid=OTHER_TENANT,
+        tenant_uuid=str(OTHER_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': OTHER_USER_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(OTHER_USER_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
-    @call_log(**{'id': 13}, date='2017-03-23 00:00:00', tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 13}, date='2017-03-23 00:00:00', tenant_uuid=str(MASTER_TENANT))
     def test_list_multitenant_token_and_tenant_as_query_string(self):
         port = self.service_port(9298, 'call-logd')
 
@@ -1956,15 +2006,17 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_exactly(
-                has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_1_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
         response = requests.get(
-            f'http://127.0.0.1:{port}/1.0/users/{USER_2_UUID}/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/{str(USER_2_UUID)}/cdr',
             params={
                 'token': USER_1_TOKEN,
-                'tenant_uuids': USERS_TENANT,
+                'tenant_uuids': str(USERS_TENANT),
                 'format': 'csv',
             },
         )
@@ -1972,15 +2024,17 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_exactly(
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
         response = requests.get(
-            f'http://127.0.0.1:{port}/1.0/users/{OTHER_USER_UUID}/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/{str(OTHER_USER_UUID)}/cdr',
             params={
                 'token': USER_1_TOKEN,
-                'tenant_uuids': USERS_TENANT,
+                'tenant_uuids': str(USERS_TENANT),
                 'format': 'csv',
             },
         )
@@ -1991,7 +2045,7 @@ class TestListCDR(IntegrationTest):
             f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={
                 'token': USER_2_TOKEN,
-                'tenant_uuids': USERS_TENANT,
+                'tenant_uuids': str(USERS_TENANT),
                 'format': 'csv',
             },
         )
@@ -1999,7 +2053,9 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_exactly(
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
@@ -2011,7 +2067,9 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_exactly(
-                has_entries(source_user_uuid=OTHER_USER_UUID, tenant_uuid=OTHER_TENANT)
+                has_entries(
+                    source_user_uuid=str(OTHER_USER_UUID), tenant_uuid=str(OTHER_TENANT)
+                )
             ),
         )
 
@@ -2022,7 +2080,7 @@ class TestListCDR(IntegrationTest):
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
             result,
-            contains_exactly(has_entries(tenant_uuid=MASTER_TENANT)),
+            contains_exactly(has_entries(tenant_uuid=str(MASTER_TENANT))),
         )
 
         response = requests.get(
@@ -2033,8 +2091,8 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_inanyorder(
-                has_entries(source_user_uuid=USER_1_UUID),
-                has_entries(source_user_uuid=USER_2_UUID),
+                has_entries(source_user_uuid=str(USER_1_UUID)),
+                has_entries(source_user_uuid=str(USER_2_UUID)),
             ),
         )
 
@@ -2046,32 +2104,44 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_inanyorder(
-                has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT),
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT),
-                has_entries(source_user_uuid=OTHER_USER_UUID, tenant_uuid=OTHER_TENANT),
-                has_entries(tenant_uuid=MASTER_TENANT),
+                has_entries(
+                    source_user_uuid=str(USER_1_UUID), tenant_uuid=str(USERS_TENANT)
+                ),
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                ),
+                has_entries(
+                    source_user_uuid=str(OTHER_USER_UUID), tenant_uuid=str(OTHER_TENANT)
+                ),
+                has_entries(tenant_uuid=str(MASTER_TENANT)),
             ),
         )
 
     @call_log(
         **{'id': 10},
-        tenant_uuid=USERS_TENANT,
+        tenant_uuid=str(USERS_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     @call_log(
         **{'id': 11},
-        tenant_uuid=USERS_TENANT,
+        tenant_uuid=str(USERS_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': USER_2_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(USER_2_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
     @call_log(
         **{'id': 12},
-        tenant_uuid=OTHER_TENANT,
+        tenant_uuid=str(OTHER_TENANT),
         date='2017-03-23 00:00:00',
-        participants=[{'user_uuid': OTHER_USER_UUID, 'line_id': '1', 'role': 'source'}],
+        participants=[
+            {'user_uuid': str(OTHER_USER_UUID), 'line_id': '1', 'role': 'source'}
+        ],
     )
-    @call_log(**{'id': 13}, date='2017-03-23 00:00:00', tenant_uuid=MASTER_TENANT)
+    @call_log(**{'id': 13}, date='2017-03-23 00:00:00', tenant_uuid=str(MASTER_TENANT))
     def test_list_format_parameter(self):
         port = self.service_port(9298, 'call-logd')
 
@@ -2083,7 +2153,9 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_exactly(
-                has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_1_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
@@ -2094,15 +2166,17 @@ class TestListCDR(IntegrationTest):
         assert_that(
             response.json()['items'],
             contains_exactly(
-                has_entries(source_user_uuid=USER_1_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_1_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
         response = requests.get(
-            f'http://127.0.0.1:{port}/1.0/users/{USER_2_UUID}/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/{str(USER_2_UUID)}/cdr',
             params={
                 'token': USER_1_TOKEN,
-                'tenant_uuids': USERS_TENANT,
+                'tenant_uuids': str(USERS_TENANT),
                 'format': 'csv',
             },
         )
@@ -2110,22 +2184,26 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_exactly(
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
         response = requests.get(
-            f'http://127.0.0.1:{port}/1.0/users/{USER_2_UUID}/cdr',
+            f'http://127.0.0.1:{port}/1.0/users/{str(USER_2_UUID)}/cdr',
             params={
                 'token': USER_1_TOKEN,
-                'tenant_uuids': USERS_TENANT,
+                'tenant_uuids': str(USERS_TENANT),
                 'format': 'json',
             },
         )
         assert_that(
             response.json()['items'],
             contains_exactly(
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
@@ -2133,7 +2211,7 @@ class TestListCDR(IntegrationTest):
             f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={
                 'token': USER_2_TOKEN,
-                'tenant_uuids': USERS_TENANT,
+                'tenant_uuids': str(USERS_TENANT),
                 'format': 'csv',
             },
         )
@@ -2141,7 +2219,9 @@ class TestListCDR(IntegrationTest):
         assert_that(
             result,
             contains_exactly(
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
@@ -2149,14 +2229,16 @@ class TestListCDR(IntegrationTest):
             f'http://127.0.0.1:{port}/1.0/users/me/cdr',
             params={
                 'token': USER_2_TOKEN,
-                'tenant_uuids': USERS_TENANT,
+                'tenant_uuids': str(USERS_TENANT),
                 'format': 'json',
             },
         )
         assert_that(
             response.json()['items'],
             contains_exactly(
-                has_entries(source_user_uuid=USER_2_UUID, tenant_uuid=USERS_TENANT)
+                has_entries(
+                    source_user_uuid=str(USER_2_UUID), tenant_uuid=str(USERS_TENANT)
+                )
             ),
         )
 
@@ -2167,7 +2249,7 @@ class TestListCDR(IntegrationTest):
         result = list(csv.DictReader(StringIO(response.text)))
         assert_that(
             result,
-            contains_exactly(has_entries(tenant_uuid=MASTER_TENANT)),
+            contains_exactly(has_entries(tenant_uuid=str(MASTER_TENANT))),
         )
         response = requests.get(
             f'http://127.0.0.1:{port}/1.0/cdr',
@@ -2175,7 +2257,7 @@ class TestListCDR(IntegrationTest):
         )
         assert_that(
             response.json()['items'],
-            contains_exactly(has_entries(tenant_uuid=MASTER_TENANT)),
+            contains_exactly(has_entries(tenant_uuid=str(MASTER_TENANT))),
         )
 
     def test_list_csv_export_adds_the_content_disposition_header(self):

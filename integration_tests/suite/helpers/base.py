@@ -36,22 +36,22 @@ from .constants import (
     CALL_LOGD_USERNAME,
     EXPORT_SERVICE_ID,
     EXPORT_SERVICE_KEY,
-    MASTER_TENANT_TYPED,
+    MASTER_TENANT,
     MASTER_TOKEN,
-    MASTER_USER_UUID_TYPED,
+    MASTER_USER_UUID,
     NOW,
-    OTHER_TENANT_TYPED,
+    OTHER_TENANT,
     OTHER_USER_TOKEN,
-    OTHER_USER_UUID_TYPED,
+    OTHER_USER_UUID,
     SECONDS,
     TIME_FORMAT,
     USER_1_TOKEN,
-    USER_1_UUID_TYPED,
+    USER_1_UUID,
     USER_2_TOKEN,
-    USER_2_UUID_TYPED,
-    USERS_TENANT_TYPED,
-    SERVICE_TENANT_TYPED,
-    WAZO_UUID_TYPED,
+    USER_2_UUID,
+    USERS_TENANT,
+    SERVICE_TENANT,
+    WAZO_UUID,
 )
 from .database import DbHelper
 from .email import EmailClient
@@ -279,44 +279,44 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         cls.auth.set_token(
             MockUserToken(
                 MASTER_TOKEN,
-                str(MASTER_USER_UUID_TYPED),
-                str(WAZO_UUID_TYPED),
+                str(MASTER_USER_UUID),
+                str(WAZO_UUID),
                 {
-                    "tenant_uuid": str(MASTER_TENANT_TYPED),
-                    "uuid": str(MASTER_USER_UUID_TYPED),
+                    "tenant_uuid": str(MASTER_TENANT),
+                    "uuid": str(MASTER_USER_UUID),
                 },
             )
         )
         cls.auth.set_token(
             MockUserToken(
                 USER_1_TOKEN,
-                str(USER_1_UUID_TYPED),
-                str(WAZO_UUID_TYPED),
+                str(USER_1_UUID),
+                str(WAZO_UUID),
                 {
-                    "tenant_uuid": str(USERS_TENANT_TYPED),
-                    "uuid": str(USER_1_UUID_TYPED),
+                    "tenant_uuid": str(USERS_TENANT),
+                    "uuid": str(USER_1_UUID),
                 },
             )
         )
         cls.auth.set_token(
             MockUserToken(
                 USER_2_TOKEN,
-                str(USER_2_UUID_TYPED),
-                str(WAZO_UUID_TYPED),
+                str(USER_2_UUID),
+                str(WAZO_UUID),
                 {
-                    "tenant_uuid": str(USERS_TENANT_TYPED),
-                    "uuid": str(USER_2_UUID_TYPED),
+                    "tenant_uuid": str(USERS_TENANT),
+                    "uuid": str(USER_2_UUID),
                 },
             )
         )
         cls.auth.set_token(
             MockUserToken(
                 OTHER_USER_TOKEN,
-                str(OTHER_USER_UUID_TYPED),
-                str(WAZO_UUID_TYPED),
+                str(OTHER_USER_UUID),
+                str(WAZO_UUID),
                 {
-                    "tenant_uuid": str(OTHER_TENANT_TYPED),
-                    "uuid": str(OTHER_USER_UUID_TYPED),
+                    "tenant_uuid": str(OTHER_TENANT),
+                    "uuid": str(OTHER_USER_UUID),
                 },
             )
         )
@@ -332,24 +332,24 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
 
         cls.auth.set_tenants(
             {
-                'uuid': str(MASTER_TENANT_TYPED),
+                'uuid': str(MASTER_TENANT),
                 'name': 'call-logd-tests-master',
-                'parent_uuid': str(MASTER_TENANT_TYPED),
+                'parent_uuid': str(MASTER_TENANT),
             },
             {
-                'uuid': str(USERS_TENANT_TYPED),
+                'uuid': str(USERS_TENANT),
                 'name': 'call-logd-tests-users',
-                'parent_uuid': str(MASTER_TENANT_TYPED),
+                'parent_uuid': str(MASTER_TENANT),
             },
             {
-                'uuid': str(OTHER_TENANT_TYPED),
+                'uuid': str(OTHER_TENANT),
                 'name': 'call-logd-tests-other',
-                'parent_uuid': str(MASTER_TENANT_TYPED),
+                'parent_uuid': str(MASTER_TENANT),
             },
             {
-                'uuid': str(SERVICE_TENANT_TYPED),
+                'uuid': str(SERVICE_TENANT),
                 'name': 'call-logd-tests-other',
-                'parent_uuid': str(MASTER_TENANT_TYPED),
+                'parent_uuid': str(MASTER_TENANT),
             },
         )
 
@@ -387,7 +387,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         self.set_tenants()
 
     def set_tenants(self):
-        tenant_uuids = [MASTER_TENANT_TYPED, OTHER_TENANT_TYPED, USERS_TENANT_TYPED]
+        tenant_uuids = [MASTER_TENANT, OTHER_TENANT, USERS_TENANT]
         self.dao.tenant.create_all_uuids_if_not_exist(tenant_uuids)
 
     def tearDown(self):

@@ -21,8 +21,8 @@ class TestDBExport(DBIntegrationTest):
     @export(path='exp1')
     @export(path='exp2', tenant_uuid=OTHER_TENANT)
     def test_get_tenant_filter(self, export1, export2):
-        master_tenant = uuid.UUID(MASTER_TENANT)
-        other_tenant = uuid.UUID(OTHER_TENANT)
+        master_tenant = MASTER_TENANT
+        other_tenant = OTHER_TENANT
         result = self.dao.export.get(export1['uuid'], [master_tenant])
         assert_that(result, has_properties(uuid=export1['uuid']))
 
@@ -44,7 +44,7 @@ class TestDBExport(DBIntegrationTest):
 
     def test_create(self):
         body = {
-            'tenant_uuid': uuid.UUID(MASTER_TENANT),
+            'tenant_uuid': MASTER_TENANT,
             'user_uuid': uuid.uuid4(),
             'requested_at': dt.now(),
             'status': 'pending',

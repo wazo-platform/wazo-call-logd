@@ -101,12 +101,12 @@ class TestRecording(IntegrationTest):
 
     @call_log(
         **{'id': 10},
-        tenant_uuid=MAIN_TENANT,
+        tenant_uuid=str(MAIN_TENANT),
         recordings=[{'path': '/tmp/10-recording.wav'}],
     )
     @call_log(
         **{'id': 11},
-        tenant_uuid=SUB_TENANT,
+        tenant_uuid=str(SUB_TENANT),
         recordings=[{'path': '/tmp/11-recording.wav'}],
     )
     @file_('/tmp/11-recording.wav', content='11-recording')
@@ -114,7 +114,7 @@ class TestRecording(IntegrationTest):
         rec_uuid = self.call_logd.cdr.get_by_id(10)['recordings'][0]['uuid']
         assert_that(
             calling(self.call_logd.cdr.get_recording_media).with_args(
-                10, rec_uuid, tenant_uuid=SUB_TENANT
+                10, rec_uuid, tenant_uuid=str(SUB_TENANT)
             ),
             raises(CallLogdError).matching(
                 has_properties(status_code=404, error_id='cdr-not-found-with-given-id')
@@ -123,13 +123,13 @@ class TestRecording(IntegrationTest):
 
         rec_uuid = self.call_logd.cdr.get_by_id(11)['recordings'][0]['uuid']
         response = self.call_logd.cdr.get_recording_media(
-            11, rec_uuid, tenant_uuid=MAIN_TENANT
+            11, rec_uuid, tenant_uuid=str(MAIN_TENANT)
         )
         assert_that(response.text, equal_to('11-recording'))
 
     @call_log(
         **{'id': 1},
-        tenant_uuid=MAIN_TENANT,
+        tenant_uuid=str(MAIN_TENANT),
         recordings=[{'path': '/tmp/foobar.wav'}],
     )
     @file_('/tmp/foobar.wav', content='my-recording-content')
@@ -140,11 +140,11 @@ class TestRecording(IntegrationTest):
         base_url = f'http://127.0.0.1:{port}/1.0'
         api_url = f'{base_url}/cdr/{cdr_id}/recordings/{recording_uuid}/media'
 
-        params = {'tenant': MAIN_TENANT, 'token': MAIN_TOKEN}
+        params = {'tenant': str(MAIN_TENANT), 'token': MAIN_TOKEN}
         response = requests.get(api_url, params=params)
         assert_that(response.text, equal_to('my-recording-content'))
 
-        params = {'tenant': SUB_TENANT, 'token': MAIN_TOKEN}
+        params = {'tenant': str(SUB_TENANT), 'token': MAIN_TOKEN}
         response = requests.get(api_url, params=params)
         assert_that(response.status_code, equal_to(404))
 
@@ -235,12 +235,12 @@ class TestRecording(IntegrationTest):
 
     @call_log(
         **{'id': 10},
-        tenant_uuid=MAIN_TENANT,
+        tenant_uuid=str(MAIN_TENANT),
         recordings=[{'path': '/tmp/10-recording.wav'}],
     )
     @call_log(
         **{'id': 11},
-        tenant_uuid=SUB_TENANT,
+        tenant_uuid=str(SUB_TENANT),
         recordings=[{'path': '/tmp/11-recording.wav'}],
     )
     @file_('/tmp/11-recording.wav', content='11-recording')
@@ -248,7 +248,7 @@ class TestRecording(IntegrationTest):
         rec_uuid = self.call_logd.cdr.get_by_id(10)['recordings'][0]['uuid']
         assert_that(
             calling(self.call_logd.cdr.delete_recording_media).with_args(
-                10, rec_uuid, tenant_uuid=SUB_TENANT
+                10, rec_uuid, tenant_uuid=str(SUB_TENANT)
             ),
             raises(CallLogdError).matching(
                 has_properties(status_code=404, error_id='cdr-not-found-with-given-id')
@@ -256,7 +256,9 @@ class TestRecording(IntegrationTest):
         )
 
         rec_uuid = self.call_logd.cdr.get_by_id(11)['recordings'][0]['uuid']
-        self.call_logd.cdr.delete_recording_media(11, rec_uuid, tenant_uuid=MAIN_TENANT)
+        self.call_logd.cdr.delete_recording_media(
+            11, rec_uuid, tenant_uuid=str(MAIN_TENANT)
+        )
         response = self.call_logd.cdr.get_by_id(11)['recordings'][0]
         assert_that(response, has_entries(uuid=rec_uuid, deleted=True))
 
@@ -400,12 +402,12 @@ class TestRecording(IntegrationTest):
 
     @call_log(
         **{'id': 10},
-        tenant_uuid=SUB_TENANT,
+        tenant_uuid=str(SUB_TENANT),
         recordings=[{'path': '/tmp/10-recording.wav'}],
     )
     @call_log(
         **{'id': 11},
-        tenant_uuid=MAIN_TENANT,
+        tenant_uuid=str(MAIN_TENANT),
         recordings=[{'path': '/tmp/11-recording.wav'}],
     )
     @file_('/tmp/10-recording.wav', content='10-recording')
@@ -413,7 +415,7 @@ class TestRecording(IntegrationTest):
     def test_delete_media_mutli_tenant_multi_cdr(self):
         assert_that(
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args(
-                [10, 11], tenant_uuid=SUB_TENANT
+                [10, 11], tenant_uuid=str(SUB_TENANT)
             ),
             raises(CallLogdError).matching(
                 has_properties(
@@ -430,6 +432,8 @@ class TestRecording(IntegrationTest):
         assert_that(recording, has_entries(deleted=False))
 
         rec_uuid = self.call_logd.cdr.get_by_id(11)['recordings'][0]['uuid']
-        self.call_logd.cdr.delete_cdrs_recording_media([11], tenant_uuid=MAIN_TENANT)
+        self.call_logd.cdr.delete_cdrs_recording_media(
+            [11], tenant_uuid=str(MAIN_TENANT)
+        )
         response = self.call_logd.cdr.get_by_id(11)['recordings'][0]
         assert_that(response, has_entries(uuid=rec_uuid, deleted=True))

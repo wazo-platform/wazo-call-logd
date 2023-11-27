@@ -14,7 +14,7 @@ from .helpers.database import RetentionData, retention
 
 class TestRecording(DBIntegrationTest):
     def test_find_or_create(self):
-        tenant_uuid = uuid.UUID(MASTER_TENANT)
+        tenant_uuid = MASTER_TENANT
         result = self.dao.retention.find_or_create(tenant_uuid)
         assert_that(result, has_properties(tenant_uuid=tenant_uuid))
 

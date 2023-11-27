@@ -30,7 +30,7 @@ from wazo_call_logd.database.models import (
     Tenant,
 )
 
-from .constants import MASTER_TENANT_TYPED, USER_1_UUID_TYPED
+from .constants import MASTER_TENANT, USER_1_UUID
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ def call_logs(number, participant_user=None):
         def wrapped_function(self, *args, **kwargs):
             call_log_ids = []
             for _ in range(number):
-                call_log = {'tenant_uuid': MASTER_TENANT_TYPED}
+                call_log = {'tenant_uuid': MASTER_TENANT}
                 with self.database.queries() as queries:
                     call_log_id = queries.insert_call_log(**call_log)
                     if participant_user:
@@ -91,7 +91,7 @@ def call_log(**call_log):
         def wrapped_function(self, *args, **kwargs):
             recordings = call_log.pop('recordings', [])
             participants = call_log.pop('participants', [])
-            call_log.setdefault('tenant_uuid', MASTER_TENANT_TYPED)
+            call_log.setdefault('tenant_uuid', MASTER_TENANT)
             with self.database.queries() as queries:
                 call_log['id'] = queries.insert_call_log(**call_log)
                 call_log['participants'] = participants
@@ -140,8 +140,8 @@ def export(**export):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             export.setdefault('requested_at', dt.utcnow())
-            export.setdefault('tenant_uuid', MASTER_TENANT_TYPED)
-            export.setdefault('user_uuid', USER_1_UUID_TYPED)
+            export.setdefault('tenant_uuid', MASTER_TENANT)
+            export.setdefault('user_uuid', USER_1_UUID)
             export.setdefault('status', 'pending')
             with self.database.queries() as queries:
                 export['uuid'] = queries.insert_export(**export)
@@ -197,7 +197,7 @@ def retention(**retention):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            retention.setdefault('tenant_uuid', MASTER_TENANT_TYPED)
+            retention.setdefault('tenant_uuid', MASTER_TENANT)
             with self.database.queries() as queries:
                 queries.insert_retention(**retention)
             try:
@@ -216,7 +216,7 @@ def stat_queue(queue):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             with self.cel_database.queries() as queries:
-                queue.setdefault('tenant_uuid', MASTER_TENANT_TYPED)
+                queue.setdefault('tenant_uuid', MASTER_TENANT)
                 queue.setdefault('name', 'queue')
                 queue.setdefault('queue_id', 1)
                 queue.setdefault('id', queue['queue_id'])
@@ -237,7 +237,7 @@ def stat_agent(agent):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             with self.cel_database.queries() as queries:
-                agent.setdefault('tenant_uuid', MASTER_TENANT_TYPED)
+                agent.setdefault('tenant_uuid', MASTER_TENANT)
                 agent.setdefault('name', 'agent')
                 agent.setdefault('agent_id', 1)
                 agent.setdefault('id', agent['agent_id'])
@@ -279,7 +279,7 @@ def stat_queue_periodic(stat):
         def wrapped_function(self, *args, **kwargs):
             with self.cel_database.queries() as queries:
                 stat.setdefault('time', '2020-10-01 14:00:00')
-                tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT_TYPED)
+                tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
                 queue_id = stat.pop('queue_id', 1)
                 stat['stat_queue_id'] = queue_id
                 queue_args = {
@@ -309,7 +309,7 @@ def stat_call_on_queue(call):
             with self.cel_database.queries() as queries:
                 call.setdefault('callid', '123')
                 call.setdefault('status', 'answered')
-                tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT_TYPED)
+                tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT)
                 agent_id = call.pop('agent_id', None)
                 if agent_id:
                     call['stat_agent_id'] = agent_id
@@ -427,7 +427,7 @@ class DatabaseQueries:
 
     def insert_call_log(self, **kwargs):
         kwargs.setdefault('date', dt.now())
-        kwargs.setdefault('tenant_uuid', MASTER_TENANT_TYPED)
+        kwargs.setdefault('tenant_uuid', MASTER_TENANT)
         with transaction(self.Session()) as session:
             call_log = CallLog(**kwargs)
             session.add(call_log)

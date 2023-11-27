@@ -52,7 +52,7 @@ class TestQueueStatisticsQOS(IntegrationTest):
             qos_thresholds='5,10,15,20,30',
         )
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'queue_id': 1,
             'queue_name': 'queue',
         }
@@ -166,7 +166,7 @@ class TestQueueStatisticsQOS(IntegrationTest):
             qos_thresholds='5,10,15,20,30',
         )
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'queue_id': 1,
             'queue_name': 'queue',
         }
@@ -276,7 +276,7 @@ class TestQueueStatisticsQOS(IntegrationTest):
             qos_thresholds='5,10,15,20,30',
         )
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'queue_id': 1,
             'queue_name': 'queue',
         }
@@ -373,7 +373,7 @@ class TestQueueStatisticsQOS(IntegrationTest):
             qos_thresholds='5,10,15,20,30',
         )
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'queue_id': 1,
             'queue_name': 'queue',
         }
@@ -435,7 +435,7 @@ class TestQueueStatisticsQOS(IntegrationTest):
     def test_period_thresholds_no_param(self):
         results = self.call_logd.queue_statistics.get_qos_by_id(queue_id=1)
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'queue_id': 1,
             'queue_name': 'queue',
         }
@@ -459,7 +459,7 @@ class TestQueueStatisticsQOS(IntegrationTest):
     def test_period_thresholds_no_stats(self):
         results = self.call_logd.queue_statistics.get_qos_by_id(queue_id=1)
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'queue_id': 1,
             'queue_name': 'queue',
         }

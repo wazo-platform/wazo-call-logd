@@ -20,9 +20,8 @@ from .helpers.base import IntegrationTest
 from .helpers.constants import (
     MASTER_TENANT,
     OTHER_TENANT,
-    OTHER_TENANT_TYPED,
     SERVICE_TENANT,
-    USERS_TENANT_TYPED,
+    USERS_TENANT,
 )
 from .helpers.database import DbHelper, retention, call_log, export
 from .helpers.filesystem import file_
@@ -61,30 +60,30 @@ class TestTenant(IntegrationTest):
     def sync_db(cls):
         cls.docker_exec(['wazo-call-logd-sync-db', '--debug'])
 
-    @retention(tenant_uuid=USERS_TENANT_TYPED)
+    @retention(tenant_uuid=USERS_TENANT)
     @call_log(
         **{'id': 1},
         date='2023-01-01T01:00:00+01:00',
         recordings=[{'path': '/tmp/record1.wav'}],
-        tenant_uuid=USERS_TENANT_TYPED,
+        tenant_uuid=USERS_TENANT,
     )
     @file_('/tmp/record1.wav')
     @export(
-        tenant_uuid=USERS_TENANT_TYPED,
+        tenant_uuid=USERS_TENANT,
         requested_at=dt.utcnow() - td(days=2),
         path='/tmp/export1',
     )
     @file_('/tmp/export1')
-    @retention(tenant_uuid=OTHER_TENANT_TYPED)
+    @retention(tenant_uuid=OTHER_TENANT)
     @call_log(
         **{'id': 2},
         date='2023-01-01T01:00:00+01:00',
         recordings=[{'path': '/tmp/record2.wav'}],
-        tenant_uuid=OTHER_TENANT_TYPED,
+        tenant_uuid=OTHER_TENANT,
     )
     @file_('/tmp/record2.wav')
     @export(
-        tenant_uuid=OTHER_TENANT_TYPED,
+        tenant_uuid=OTHER_TENANT,
         requested_at=dt.utcnow() - td(days=2),
         path='/tmp/export2',
     )
@@ -92,11 +91,11 @@ class TestTenant(IntegrationTest):
     def test_tenant_deleted_event(self, *_):
         def tenant_deleted():
             with self.database.queries() as queries:
-                tenant = queries.find_tenant(USERS_TENANT_TYPED)
+                tenant = queries.find_tenant(USERS_TENANT)
                 assert tenant is None
 
         with tables_counts(self.database) as info:
-            self.bus.send_tenant_deleted(USERS_TENANT_TYPED)
+            self.bus.send_tenant_deleted(USERS_TENANT)
             until.assert_(tenant_deleted, tries=5, interval=5)
 
         assert_that(not self.filesystem.path_exists('/tmp/record1.wav'))
@@ -117,12 +116,12 @@ class TestTenant(IntegrationTest):
             # OTHER_TENANT data remain
             assert_that(
                 queries.find_all_call_log(),
-                contains_exactly(has_properties(id=2, tenant_uuid=OTHER_TENANT_TYPED)),
+                contains_exactly(has_properties(id=2, tenant_uuid=OTHER_TENANT)),
             )
 
             assert_that(
-                queries.find_retentions(OTHER_TENANT_TYPED),
-                contains_exactly(has_properties(tenant_uuid=OTHER_TENANT_TYPED)),
+                queries.find_retentions(OTHER_TENANT),
+                contains_exactly(has_properties(tenant_uuid=OTHER_TENANT)),
             )
 
             recordings = queries.find_all_recordings(call_log_id=2)
@@ -133,32 +132,32 @@ class TestTenant(IntegrationTest):
 
             assert_that(
                 queries.find_all_exports(),
-                contains_exactly(has_properties(tenant_uuid=OTHER_TENANT_TYPED)),
+                contains_exactly(has_properties(tenant_uuid=OTHER_TENANT)),
             )
 
-    @retention(tenant_uuid=USERS_TENANT_TYPED)
+    @retention(tenant_uuid=USERS_TENANT)
     @call_log(
         **{'id': 1},
         date='2023-01-01T01:00:00+01:00',
         recordings=[{'path': '/tmp/record1.wav'}],
-        tenant_uuid=USERS_TENANT_TYPED,
+        tenant_uuid=USERS_TENANT,
     )
     @file_('/tmp/record1.wav')
     @export(
-        tenant_uuid=USERS_TENANT_TYPED,
+        tenant_uuid=USERS_TENANT,
         requested_at=dt.utcnow() - td(days=2),
         path='/tmp/export1',
     )
     @file_('/tmp/export1')
-    @retention(tenant_uuid=OTHER_TENANT)
+    @retention(tenant_uuid=str(OTHER_TENANT))
     @call_log(
         **{'id': 2},
         date='2023-01-01T01:00:00+01:00',
         recordings=[{'path': '/tmp/record2.wav'}],
-        tenant_uuid=OTHER_TENANT,
+        tenant_uuid=str(OTHER_TENANT),
     )
     @export(
-        tenant_uuid=OTHER_TENANT,
+        tenant_uuid=str(OTHER_TENANT),
         requested_at=dt.utcnow() - td(days=2),
         path='/tmp/export2',
     )
@@ -168,19 +167,19 @@ class TestTenant(IntegrationTest):
         # remove USERS_TENANT_TYPED from auth service
         self.auth.set_tenants(
             {
-                'uuid': MASTER_TENANT,
+                'uuid': str(MASTER_TENANT),
                 'name': 'call-logd-tests-master',
-                'parent_uuid': MASTER_TENANT,
+                'parent_uuid': str(MASTER_TENANT),
             },
             {
-                'uuid': OTHER_TENANT,
+                'uuid': str(OTHER_TENANT),
                 'name': 'call-logd-tests-other',
-                'parent_uuid': MASTER_TENANT,
+                'parent_uuid': str(MASTER_TENANT),
             },
             {
-                'uuid': SERVICE_TENANT,
+                'uuid': str(SERVICE_TENANT),
                 'name': 'call-logd-tests-other',
-                'parent_uuid': MASTER_TENANT,
+                'parent_uuid': str(MASTER_TENANT),
             },
         )
         with tables_counts(self.database) as info:
@@ -207,18 +206,18 @@ class TestTenant(IntegrationTest):
             # USERS_TENANT is no more
             assert_that(
                 queries.find_all_tenants(),
-                not_(has_item(has_properties(uuid=USERS_TENANT_TYPED))),
+                not_(has_item(has_properties(uuid=USERS_TENANT))),
             )
 
             # other tenants data remain
             assert_that(
                 queries.find_all_call_log(),
-                contains_exactly(has_properties(id=2, tenant_uuid=OTHER_TENANT_TYPED)),
+                contains_exactly(has_properties(id=2, tenant_uuid=OTHER_TENANT)),
             )
 
             assert_that(
-                queries.find_retentions(OTHER_TENANT_TYPED),
-                contains_exactly(has_properties(tenant_uuid=OTHER_TENANT_TYPED)),
+                queries.find_retentions(OTHER_TENANT),
+                contains_exactly(has_properties(tenant_uuid=OTHER_TENANT)),
             )
 
             recordings = queries.find_all_recordings(call_log_id=2)
@@ -229,7 +228,7 @@ class TestTenant(IntegrationTest):
 
             assert_that(
                 queries.find_all_exports(),
-                contains_exactly(has_properties(tenant_uuid=OTHER_TENANT_TYPED)),
+                contains_exactly(has_properties(tenant_uuid=OTHER_TENANT)),
             )
 
             assert_that(self.filesystem.path_exists('/tmp/record2.wav'))

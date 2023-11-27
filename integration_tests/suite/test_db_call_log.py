@@ -145,14 +145,16 @@ class TestCallLog(DBIntegrationTest):
 
         call_log_1 = CallLog(
             date=NOW,
-            tenant_uuid=MASTER_TENANT,
-            participants=[CallLogParticipant(role='source', user_uuid=USER_1_UUID)],
+            tenant_uuid=str(MASTER_TENANT),
+            participants=[
+                CallLogParticipant(role='source', user_uuid=str(USER_1_UUID))
+            ],
             recordings=[
                 Recording(start_time=start_time, end_time=end_time),
                 Recording(start_time=start_time, end_time=end_time),
             ],
         )
-        call_log_2 = CallLog(date=NOW, tenant_uuid=MASTER_TENANT)
+        call_log_2 = CallLog(date=NOW, tenant_uuid=str(MASTER_TENANT))
 
         self.dao.call_log.create_from_list([call_log_1, call_log_2])
 

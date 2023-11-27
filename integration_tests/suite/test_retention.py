@@ -8,9 +8,9 @@ from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import (
-    MASTER_TENANT_TYPED,
-    OTHER_TENANT_TYPED,
-    UNKNOWN_UUID_TYPED,
+    MASTER_TENANT,
+    OTHER_TENANT,
+    UNKNOWN_UUID,
 )
 from .helpers.database import RetentionData, retention
 from .helpers.wait_strategy import CallLogdComponentsWaitStrategy
@@ -21,11 +21,11 @@ class TestRetention(IntegrationTest):
 
     @retention(cdr_days=2, export_days=4, recording_days=2)
     def test_get(self, retention: RetentionData):
-        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT_TYPED))
+        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT))
         assert_that(
             result,
             has_entries(
-                tenant_uuid=str(MASTER_TENANT_TYPED),
+                tenant_uuid=str(MASTER_TENANT),
                 cdr_days=2,
                 export_days=4,
                 recording_days=2,
@@ -36,11 +36,11 @@ class TestRetention(IntegrationTest):
         )
 
     def test_get_not_configured_tenant(self):
-        result = self.call_logd.retention.get(tenant_uuid=str(OTHER_TENANT_TYPED))
+        result = self.call_logd.retention.get(tenant_uuid=str(OTHER_TENANT))
         assert_that(
             result,
             has_entries(
-                tenant_uuid=str(OTHER_TENANT_TYPED),
+                tenant_uuid=str(OTHER_TENANT),
                 cdr_days=None,
                 export_days=None,
                 recording_days=None,
@@ -53,7 +53,7 @@ class TestRetention(IntegrationTest):
     def test_get_unknown_tenant(self):
         assert_that(
             calling(self.call_logd.retention.get).with_args(
-                tenant_uuid=str(UNKNOWN_UUID_TYPED)
+                tenant_uuid=str(UNKNOWN_UUID)
             ),
             raises(CallLogdError).matching(
                 has_properties(status_code=401, error_id='unauthorized-tenant')
@@ -66,20 +66,20 @@ class TestRetention(IntegrationTest):
         tenant = str(retention['tenant_uuid'])
         self.call_logd.retention.update(**args, tenant_uuid=tenant)
 
-        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT_TYPED))
+        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT))
         assert_that(result, has_entries(**args))
 
     def test_update_not_configured(self):
         args = {'cdr_days': 2, 'export_days': 3, 'recording_days': 2}
-        self.call_logd.retention.update(**args, tenant_uuid=str(OTHER_TENANT_TYPED))
+        self.call_logd.retention.update(**args, tenant_uuid=str(OTHER_TENANT))
 
-        result = self.call_logd.retention.get(tenant_uuid=str(OTHER_TENANT_TYPED))
+        result = self.call_logd.retention.get(tenant_uuid=str(OTHER_TENANT))
         assert_that(result, has_entries(**args))
 
     def test_update_unknown_tenant(self):
         assert_that(
             calling(self.call_logd.retention.update).with_args(
-                tenant_uuid=str(UNKNOWN_UUID_TYPED)
+                tenant_uuid=str(UNKNOWN_UUID)
             ),
             raises(CallLogdError).matching(
                 has_properties(status_code=401, error_id='unauthorized-tenant')
@@ -106,7 +106,7 @@ class TestRetention(IntegrationTest):
         tenant = str(retention['tenant_uuid'])
         self.call_logd.retention.update(**args, tenant_uuid=tenant)
 
-        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT_TYPED))
+        result = self.call_logd.retention.get(tenant_uuid=str(MASTER_TENANT))
         assert_that(result, has_entries(**args))
 
         # TODO(fblackburn) code should publish event BEFORE returning HTTP response
