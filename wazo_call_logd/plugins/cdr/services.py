@@ -4,10 +4,11 @@
 import os
 import re
 from datetime import datetime
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from wazo_call_logd.database.models import Export
 from wazo_call_logd.database.queries import DAO
+import wazo_call_logd.database.queries.call_log as call_log_dao
 from wazo_call_logd.datatypes import CallDirection, OrderDirection
 
 from .celery_tasks import export_recording_task
@@ -41,15 +42,23 @@ class CDRService:
     def list(self, search_params: SearchParams):
         searched = search_params.get('search')
         rec_search_params = {}
+        dao_params = dict(search_params)
         if searched:
+            # check if search param refers to recording
             matches = RECORDING_FILENAME_RE.search(searched)
             if matches:
-                del search_params['search']
-                search_params['id'] = matches.group(1)
+                del dao_params['search']
+                dao_params['id'] = matches.group(1)
                 rec_search_params['uuid'] = matches.group(2)
-        call_logs = self._dao.call_log.find_all_in_period(search_params)
+        if user_uuids := search_params.get('user_uuids'):
+            # api level 'user_uuids' is reinterpreted to avoid matching hidden participants
+            del dao_params['user_uuids']
+            dao_params['terminal_user_uuids'] = user_uuids
+        call_logs = self._dao.call_log.find_all_in_period(
+            cast(call_log_dao.ListParams, dao_params)
+        )
         rec_search_params['call_log_ids'] = [call_log.id for call_log in call_logs]
-        count = self._dao.call_log.count_in_period(search_params)
+        count = self._dao.call_log.count_in_period(dao_params)
         return {
             'items': call_logs,
             'filtered': count['filtered'],
