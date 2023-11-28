@@ -4,19 +4,41 @@
 import os
 import re
 from datetime import datetime
+from typing import TypedDict
 
 from wazo_call_logd.database.models import Export
+from wazo_call_logd.database.queries import DAO
+from wazo_call_logd.datatypes import CallDirection, OrderDirection
 
 from .celery_tasks import export_recording_task
 
 RECORDING_FILENAME_RE = re.compile(r'^.+-(\d+)-([a-z0-9-]{36})(.*)?$')
 
 
+class SearchParams(TypedDict, total=False):
+    search: str
+    order: str
+    direction: OrderDirection
+    limit: int
+    offset: int
+    distinct: str
+    start: datetime
+    end: datetime
+    call_direction: CallDirection
+    cdr_ids: list[int]
+    number: str
+    tags: list[str]
+    tenant_uuids: list[str]
+    me_user_uuid: str
+    user_uuids: list[str]
+    recorded: bool
+
+
 class CDRService:
     def __init__(self, dao):
-        self._dao = dao
+        self._dao: DAO = dao
 
-    def list(self, search_params):
+    def list(self, search_params: SearchParams):
         searched = search_params.get('search')
         rec_search_params = {}
         if searched:
