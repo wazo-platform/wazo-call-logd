@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as dt
 
 from typing import Any, TypedDict
+import uuid
 
 import sqlalchemy as sa
 from sqlalchemy import and_, distinct, func, sql
@@ -34,6 +35,7 @@ class ListParams(TypedDict, total=False):
     tenant_uuids: list[str]
     me_user_uuid: str
     user_uuids: list[str]
+    terminal_user_uuids: list[str]
     recorded: bool
 
 
@@ -75,6 +77,7 @@ class CallLogDAO(BaseDAO):
                 order_field = order_field.desc().nullslast()
             if params.get('direction') == 'asc':
                 order_field = order_field.asc().nullsfirst()
+
             if order_field is not None:
                 query = query.order_by(order_field)
 
@@ -201,6 +204,44 @@ class CallLogDAO(BaseDAO):
                 for user_uuid in user_uuids
             )
             query = query.filter(sql.or_(*filters))
+
+        if terminal_user_uuids := params.get('terminal_user_uuids'):
+            # consider only source participant
+            # and destination participant(first 'destination' participant to have answered)
+            # NOTE(clanglois): if no participant has answered, destination participant is
+            # an arbitrary 'destination' participant based on uuid ordering
+            # NOTE(clanglois): destination participant definition must be reimplemented here
+            # in order to be used for filtering because of limitation of relationship
+            filters = sql.or_(
+                (
+                    CallLog.source_participant.has(
+                        CallLogParticipant.user_uuid.in_(
+                            uuid.UUID(terminal_user_uuid)
+                            for terminal_user_uuid in terminal_user_uuids
+                        )
+                    )
+                ),
+                (
+                    Query(CallLogParticipant.user_uuid)
+                    .filter(
+                        CallLogParticipant.role == 'destination',
+                        CallLogParticipant.call_log_id == CallLog.id,
+                    )
+                    .order_by(
+                        sql.desc(CallLogParticipant.answered),
+                        sql.desc(CallLogParticipant.user_uuid),
+                    )
+                    .limit(1)
+                    .subquery()
+                    == sql.any_(
+                        [
+                            uuid.UUID(terminal_user_uuid)
+                            for terminal_user_uuid in terminal_user_uuids
+                        ]
+                    )
+                ),
+            )
+            query = query.filter(filters)
 
         if start_id := params.get('start_id'):
             query = query.filter(CallLog.id >= start_id)
