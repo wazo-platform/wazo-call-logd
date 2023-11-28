@@ -1,16 +1,40 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+import datetime as dt
 
-from typing import Any
+from typing import Any, TypedDict
 
 import sqlalchemy as sa
 from sqlalchemy import and_, distinct, func, sql
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Query, joinedload, subqueryload
 
+from wazo_call_logd.datatypes import CallDirection, OrderDirection
+
 from ..models import CallLog, CallLogParticipant
 from .base import BaseDAO
+
+
+class ListParams(TypedDict, total=False):
+    search: str
+    order: str
+    direction: OrderDirection
+    limit: int
+    offset: int
+    distinct: str
+    start: dt.datetime
+    end: dt.datetime
+    call_direction: CallDirection
+    id: int
+    start_id: int
+    cdr_ids: list[int]
+    number: str
+    tags: list[str]
+    tenant_uuids: list[str]
+    me_user_uuid: str
+    user_uuids: list[str]
+    recorded: bool
 
 
 class CallLogDAO(BaseDAO):
@@ -36,7 +60,7 @@ class CallLogDAO(BaseDAO):
                 session.expunge_all()
                 return cdr
 
-    def find_all_in_period(self, params):
+    def find_all_in_period(self, params: ListParams):
         with self.new_session() as session:
             query = self._list_query(session, params)
             order_field = None
