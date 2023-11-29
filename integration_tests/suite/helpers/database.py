@@ -474,10 +474,11 @@ class DatabaseQueries:
             query = query.filter(Retention.tenant_uuid == tenant_uuid)
             query.delete()
 
-    def find_retentions(self, tenant_uuid):
+    def find_retentions(self, tenant_uuid=None):
         with transaction(self.Session()) as session:
             query = session.query(Retention)
-            query = query.filter(Retention.tenant_uuid == tenant_uuid)
+            if tenant_uuid:
+                query = query.filter(Retention.tenant_uuid == tenant_uuid)
             return query.all()
 
     def delete_recording_by_call_log_id(self, call_log_id):
@@ -528,16 +529,15 @@ class DatabaseQueries:
 
             return call_log
 
-    def find_all_recordings(self, call_log_id):
+    def find_all_recordings(self, call_log_id=None):
         with transaction(self.Session()) as session:
-            query = (
-                session.query(Recording)
-                .filter(Recording.call_log_id == call_log_id)
-                .options(
-                    joinedload(Recording.call_log),
-                )
-            )
-            recordings = query.all()
+            query = session.query(Recording)
+            if call_log_id:
+                query = query.filter(Recording.call_log_id == call_log_id)
+
+            recordings = query.options(
+                joinedload(Recording.call_log),
+            ).all()
             return recordings
 
     def find_all_exports(self, tenant_uuid=None) -> list[Export]:
