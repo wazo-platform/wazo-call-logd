@@ -148,8 +148,8 @@ class MockLine:
         self._name = name
         self._protocol = protocol
         self._users = (
-            users and [LineUserData(uuid=str(user['uuid'])) for user in users]
-        ) or []
+            [LineUserData(uuid=str(user['uuid'])) for user in users] if users else []
+        )
         self._extensions = extensions or []
         self._context = context
         self._tenant_uuid = tenant_uuid and str(tenant_uuid)
