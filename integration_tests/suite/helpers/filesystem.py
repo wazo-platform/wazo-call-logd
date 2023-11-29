@@ -1,6 +1,7 @@
 # Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from contextlib import contextmanager
 from functools import wraps
 
 FILE_USER = 'wazo-call-logd'
@@ -36,16 +37,22 @@ class FileSystemClient:
         return result == 0
 
 
+@contextmanager
+def file_fixture(filesystem: FileSystemClient, path, **file_kwargs):
+    filesystem.create_file(path, **file_kwargs)
+    try:
+        yield
+    finally:
+        filesystem.remove_file(path)
+
+
 def file_(path, service_name=None, **file_kwargs):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
             filesystem = FileSystemClient(self.docker_exec, service_name=service_name)
-            filesystem.create_file(path, **file_kwargs)
-            try:
+            with file_fixture(filesystem, path, **file_kwargs):
                 return func(self, *args, **kwargs)
-            finally:
-                filesystem.remove_file(path)
 
         return wrapped_function
 

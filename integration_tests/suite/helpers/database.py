@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
-from datetime import datetime as dt
+from datetime import datetime as dt, timedelta
 from datetime import timedelta as td
 from functools import wraps
-from typing import Literal, TypedDict, Union, cast
+from typing import Iterator, Literal, TypedDict, Union, cast
 from uuid import UUID, uuid4
 
 import sqlalchemy as sa
@@ -35,28 +35,36 @@ from .constants import MASTER_TENANT, USER_1_UUID
 logger = logging.getLogger(__name__)
 
 
+@contextmanager
+def call_logs_fixture(
+    database: DbHelper, number: int, participant_user=None
+) -> Iterator[list[int]]:
+    call_log_ids = []
+    for _ in range(number):
+        call_log = {'tenant_uuid': MASTER_TENANT}
+        with database.queries() as queries:
+            call_log_id = queries.insert_call_log(**call_log)
+            if participant_user:
+                participant = {
+                    'user_uuid': participant_user,
+                    'call_log_id': call_log_id,
+                }
+                queries.insert_call_log_participant(**participant)
+            call_log_ids.append(call_log_id)
+    try:
+        yield call_log_ids
+    finally:
+        with database.queries() as queries:
+            for call_log_id in call_log_ids:
+                queries.delete_call_log(call_log_id)
+
+
 def call_logs(number, participant_user=None):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            call_log_ids = []
-            for _ in range(number):
-                call_log = {'tenant_uuid': MASTER_TENANT}
-                with self.database.queries() as queries:
-                    call_log_id = queries.insert_call_log(**call_log)
-                    if participant_user:
-                        participant = {
-                            'user_uuid': participant_user,
-                            'call_log_id': call_log_id,
-                        }
-                        queries.insert_call_log_participant(**participant)
-                    call_log_ids.append(call_log_id)
-            try:
+            with call_logs_fixture(self.database, number, participant_user):
                 return func(self, *args, **kwargs)
-            finally:
-                with self.database.queries() as queries:
-                    for call_log_id in call_log_ids:
-                        queries.delete_call_log(call_log_id)
 
         return wrapped_function
 
@@ -76,7 +84,7 @@ class CallLogParticipantData(TypedDict):
     answered: bool
 
 
-class CallLogData(TypedDict):
+class CallLogData(TypedDict, total=False):
     id: int
     tenant_uuid: UUID
     start_time: dt
@@ -85,30 +93,36 @@ class CallLogData(TypedDict):
     recordings: list[RecordingData]
 
 
+@contextmanager
+def call_log_fixture(database: DbHelper, call_log: dict) -> Iterator[CallLogData]:
+    recordings = call_log.pop('recordings', [])
+    participants = call_log.pop('participants', [])
+    call_log.setdefault('tenant_uuid', MASTER_TENANT)
+    with database.queries() as queries:
+        call_log['id'] = queries.insert_call_log(**call_log)
+        call_log['participants'] = participants
+        for participant in participants:
+            participant['call_log_id'] = call_log['id']
+            queries.insert_call_log_participant(**participant)
+        for recording in recordings:
+            recording.setdefault('start_time', dt.utcnow() - td(hours=1))
+            recording.setdefault('end_time', dt.utcnow())
+            recording['call_log_id'] = call_log['id']
+            queries.insert_recording(**recording)
+    try:
+        yield call_log
+    finally:
+        with database.queries() as queries:
+            queries.delete_call_log(call_log['id'])
+            queries.delete_recording_by_call_log_id(call_log['id'])
+
+
 def call_log(**call_log):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            recordings = call_log.pop('recordings', [])
-            participants = call_log.pop('participants', [])
-            call_log.setdefault('tenant_uuid', MASTER_TENANT)
-            with self.database.queries() as queries:
-                call_log['id'] = queries.insert_call_log(**call_log)
-                call_log['participants'] = participants
-                for participant in participants:
-                    participant['call_log_id'] = call_log['id']
-                    queries.insert_call_log_participant(**participant)
-                for recording in recordings:
-                    recording.setdefault('start_time', dt.utcnow() - td(hours=1))
-                    recording.setdefault('end_time', dt.utcnow())
-                    recording['call_log_id'] = call_log['id']
-                    queries.insert_recording(**recording)
-            try:
+            with call_log_fixture(self.database, call_log):
                 return func(self, *args, **kwargs)
-            finally:
-                with self.database.queries() as queries:
-                    queries.delete_call_log(call_log['id'])
-                    queries.delete_recording_by_call_log_id(call_log['id'])
 
         return wrapped_function
 
@@ -125,12 +139,27 @@ ExportStatus = Union[
 ]
 
 
-class ExportData(TypedDict):
+class ExportData(TypedDict, total=False):
     tenant_uuid: UUID
     uuid: UUID
     requested_at: dt
     user_uuid: UUID
     status: ExportStatus
+
+
+@contextmanager
+def export_fixture(database: DbHelper, export: dict) -> Iterator[ExportData]:
+    export.setdefault('requested_at', dt.utcnow())
+    export.setdefault('tenant_uuid', MASTER_TENANT)
+    export.setdefault('user_uuid', USER_1_UUID)
+    export.setdefault('status', 'pending')
+    with database.queries() as queries:
+        export['uuid'] = queries.insert_export(**export)
+    try:
+        yield export
+    finally:
+        with database.queries() as queries:
+            queries.delete_export(export['uuid'])
 
 
 def export(**export):
@@ -139,18 +168,8 @@ def export(**export):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            export.setdefault('requested_at', dt.utcnow())
-            export.setdefault('tenant_uuid', MASTER_TENANT)
-            export.setdefault('user_uuid', USER_1_UUID)
-            export.setdefault('status', 'pending')
-            with self.database.queries() as queries:
-                export['uuid'] = queries.insert_export(**export)
-
-            try:
-                return func(self, *args, export, **kwargs)
-            finally:
-                with self.database.queries() as queries:
-                    queries.delete_export(export['uuid'])
+            with export_fixture(self.database, export) as _export:
+                return func(self, *args, _export, **kwargs)
 
         return wrapped_function
 
@@ -165,22 +184,28 @@ class RecordingData(TypedDict):
     call_log_id: int
 
 
+@contextmanager
+def recording_fixture(database: DbHelper, recording: RecordingData):
+    recording.setdefault('start_time', dt.utcnow() - td(hours=1))
+    recording.setdefault('end_time', dt.utcnow())
+    recording.setdefault('call_log_id', 42)
+    with database.queries() as queries:
+        recording['uuid'] = queries.insert_recording(**recording)
+    try:
+        yield recording
+    finally:
+        with database.queries() as queries:
+            queries.delete_recording(recording['uuid'])
+
+
 def recording(**recording):
     recording = cast(RecordingData, recording)
 
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            recording.setdefault('start_time', dt.utcnow() - td(hours=1))
-            recording.setdefault('end_time', dt.utcnow())
-            recording.setdefault('call_log_id', 42)
-            with self.database.queries() as queries:
-                recording['uuid'] = queries.insert_recording(**recording)
-            try:
-                return func(self, *args, recording, **kwargs)
-            finally:
-                with self.database.queries() as queries:
-                    queries.delete_recording(recording['uuid'])
+            with recording_fixture(self.database, recording) as _recording:
+                return func(self, *args, _recording, **kwargs)
 
         return wrapped_function
 
@@ -191,167 +216,262 @@ class RetentionData(TypedDict):
     tenant_uuid: UUID
 
 
+@contextmanager
+def retention_fixture(database: DbHelper, retention: dict) -> Iterator[RetentionData]:
+    retention.setdefault('tenant_uuid', MASTER_TENANT)
+    with database.queries() as queries:
+        queries.insert_retention(**retention)
+    try:
+        yield retention
+    finally:
+        with database.queries() as queries:
+            queries.delete_retention(retention['tenant_uuid'])
+
+
 def retention(**retention):
     retention = cast(RetentionData, retention)
 
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            retention.setdefault('tenant_uuid', MASTER_TENANT)
-            with self.database.queries() as queries:
-                queries.insert_retention(**retention)
-            try:
-                return func(self, *args, retention, **kwargs)
-            finally:
-                with self.database.queries() as queries:
-                    queries.delete_retention(retention['tenant_uuid'])
+            with retention_fixture(self.database, retention) as _retention:
+                return func(self, *args, _retention, **kwargs)
 
         return wrapped_function
 
     return _decorate
+
+
+class StatQueueData(TypedDict, total=False):
+    tenant_uuid: UUID
+    name: str
+    queue_id: int
+    id: int
+
+
+@contextmanager
+def stat_queue_fixture(cel_database: DbHelper, queue: dict) -> Iterator[StatQueueData]:
+    queue.setdefault('tenant_uuid', MASTER_TENANT)
+    queue.setdefault('name', 'queue')
+    queue.setdefault('queue_id', 1)
+    queue.setdefault('id', queue['queue_id'])
+    with cel_database.queries() as queries:
+        queries.insert_stat_queue(**queue)
+    try:
+        yield queue
+    finally:
+        with cel_database.queries() as queries:
+            queries.delete_stat_queue(queue['id'])
 
 
 def stat_queue(queue):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.cel_database.queries() as queries:
-                queue.setdefault('tenant_uuid', MASTER_TENANT)
-                queue.setdefault('name', 'queue')
-                queue.setdefault('queue_id', 1)
-                queue.setdefault('id', queue['queue_id'])
-                queries.insert_stat_queue(**queue)
-            try:
+            with stat_queue_fixture(self.cel_database, queue):
                 return func(self, *args, **kwargs)
-            finally:
-                with self.cel_database.queries() as queries:
-                    queries.delete_stat_queue(queue['id'])
 
         return wrapped_function
 
     return _decorate
+
+
+class StatAgentData(TypedDict, total=False):
+    tenant_uuid: UUID
+    name: str
+    agent_id: int
+    id: int
+
+
+@contextmanager
+def stat_agent_fixture(cel_database: DbHelper, agent: dict) -> Iterator[StatAgentData]:
+    agent.setdefault('tenant_uuid', MASTER_TENANT)
+    agent.setdefault('name', 'agent')
+    agent.setdefault('agent_id', 1)
+    agent.setdefault('id', agent['agent_id'])
+    with cel_database.queries() as queries:
+        queries.insert_stat_agent(**agent)
+    try:
+        yield agent
+    finally:
+        with cel_database.queries() as queries:
+            queries.delete_stat_agent(agent['id'])
 
 
 def stat_agent(agent):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.cel_database.queries() as queries:
-                agent.setdefault('tenant_uuid', MASTER_TENANT)
-                agent.setdefault('name', 'agent')
-                agent.setdefault('agent_id', 1)
-                agent.setdefault('id', agent['agent_id'])
-                queries.insert_stat_agent(**agent)
-            try:
+            with stat_agent_fixture(self.cel_database, agent):
                 return func(self, *args, **kwargs)
-            finally:
-                with self.cel_database.queries() as queries:
-                    queries.delete_stat_agent(agent['id'])
 
         return wrapped_function
 
     return _decorate
+
+
+class StatAgentPeriodicData(TypedDict, total=False):
+    id: int
+    time: dt
+    login_time: timedelta
+    pause_time: timedelta
+    wrapup_time: timedelta
+    stat_agent_id: int
+
+
+@contextmanager
+def stat_agent_periodic_fixture(
+    cel_database: DbHelper, stat: dict
+) -> Iterator[StatAgentPeriodicData]:
+    with cel_database.queries() as queries:
+        stat.setdefault('time', dt.fromisoformat('2020-10-01 14:00:00'))
+        agent_id = stat.pop('agent_id', 1)
+        stat['stat_agent_id'] = agent_id
+        stat['id'] = queries.insert_stat_agent_periodic(**stat)
+    try:
+        yield stat
+    finally:
+        with cel_database.queries() as queries:
+            queries.delete_stat_agent_periodic(stat['id'])
 
 
 def stat_agent_periodic(stat):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.cel_database.queries() as queries:
-                stat.setdefault('time', '2020-10-01 14:00:00')
-                agent_id = stat.pop('agent_id', 1)
-                stat['stat_agent_id'] = agent_id
-                stat['id'] = queries.insert_stat_agent_periodic(**stat)
-            try:
+            with stat_agent_periodic_fixture(self.cel_database, stat):
                 return func(self, *args, **kwargs)
-            finally:
-                with self.cel_database.queries() as queries:
-                    queries.delete_stat_agent_periodic(stat['id'])
 
         return wrapped_function
 
     return _decorate
+
+
+class StatQueuePeriodicData(TypedDict, total=False):
+    id: int
+    time: dt
+    stat_queue_id: int
+
+
+@contextmanager
+def stat_queue_periodic_fixture(
+    cel_database: DbHelper, stat: dict
+) -> Iterator[StatQueuePeriodicData]:
+    stat.setdefault('time', dt.fromisoformat('2020-10-01 14:00:00'))
+    tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
+    queue_id = stat.pop('queue_id', 1)
+    stat['stat_queue_id'] = queue_id
+    queue_args = {
+        'id': stat['stat_queue_id'],
+        'name': 'queue',
+        'tenant_uuid': tenant_uuid,
+        'queue_id': queue_id,
+    }
+    with cel_database.queries() as queries:
+        queries.insert_stat_queue(**queue_args)
+        stat['id'] = queries.insert_stat_queue_periodic(**stat)
+    try:
+        yield stat
+    finally:
+        with cel_database.queries() as queries:
+            queries.delete_stat_queue_periodic(stat['id'])
+            queries.delete_stat_queue(stat['stat_queue_id'])
 
 
 def stat_queue_periodic(stat):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.cel_database.queries() as queries:
-                stat.setdefault('time', '2020-10-01 14:00:00')
-                tenant_uuid = stat.pop('tenant_uuid', MASTER_TENANT)
-                queue_id = stat.pop('queue_id', 1)
-                stat['stat_queue_id'] = queue_id
-                queue_args = {
-                    'id': stat['stat_queue_id'],
-                    'name': 'queue',
-                    'tenant_uuid': tenant_uuid,
-                    'queue_id': queue_id,
-                }
-                queries.insert_stat_queue(**queue_args)
-                stat['id'] = queries.insert_stat_queue_periodic(**stat)
-            try:
+            with stat_queue_periodic_fixture(self.cel_database, stat):
                 return func(self, *args, **kwargs)
-            finally:
-                with self.cel_database.queries() as queries:
-                    queries.delete_stat_queue_periodic(stat['id'])
-                    queries.delete_stat_queue(stat['stat_queue_id'])
 
         return wrapped_function
 
     return _decorate
+
+
+class StatCallOnQueueData(TypedDict, total=False):
+    id: int
+    callid: str
+    status: str
+    stat_agent_id: int
+    stat_queue_id: int
+
+
+@contextmanager
+def stat_call_on_queue_fixture(
+    cel_database: DbHelper, call: dict
+) -> Iterator[StatCallOnQueueData]:
+    call.setdefault('callid', '123')
+    call.setdefault('status', 'answered')
+    tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT)
+    agent_id = call.pop('agent_id', None)
+    if agent_id:
+        call['stat_agent_id'] = agent_id
+    queue_id = call.pop('queue_id', 1)
+    call['stat_queue_id'] = queue_id
+    queue_args = {
+        'id': call['stat_queue_id'],
+        'name': 'queue',
+        'tenant_uuid': tenant_uuid,
+        'queue_id': queue_id,
+    }
+    with cel_database.queries() as queries:
+        queries.insert_stat_queue(**queue_args)
+        call['id'] = queries.insert_stat_call_on_queue(**call)
+    try:
+        yield call
+    finally:
+        with cel_database.queries() as queries:
+            queries.delete_stat_call_on_queue(call['id'])
+            queries.delete_stat_queue(call['stat_queue_id'])
 
 
 def stat_call_on_queue(call):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.cel_database.queries() as queries:
-                call.setdefault('callid', '123')
-                call.setdefault('status', 'answered')
-                tenant_uuid = call.pop('tenant_uuid', MASTER_TENANT)
-                agent_id = call.pop('agent_id', None)
-                if agent_id:
-                    call['stat_agent_id'] = agent_id
-                queue_id = call.pop('queue_id', 1)
-                call['stat_queue_id'] = queue_id
-                queue_args = {
-                    'id': call['stat_queue_id'],
-                    'name': 'queue',
-                    'tenant_uuid': tenant_uuid,
-                    'queue_id': queue_id,
-                }
-                queries.insert_stat_queue(**queue_args)
-                call['id'] = queries.insert_stat_call_on_queue(**call)
-            try:
+            with stat_call_on_queue_fixture(self.cel_database, call):
                 return func(self, *args, **kwargs)
-            finally:
-                with self.cel_database.queries() as queries:
-                    queries.delete_stat_call_on_queue(call['id'])
-                    queries.delete_stat_queue(call['stat_queue_id'])
 
         return wrapped_function
 
     return _decorate
 
 
+class CelData(TypedDict, total=False):
+    id: int
+    eventtype: str
+    eventtime: dt
+    uniqueid: str
+    linkedid: str
+    processed: bool
+    call_log_id: int
+
+
+@contextmanager
+def cel_database_fixture(cel_database: DbHelper, cel: dict) -> Iterator[CelData]:
+    cel.setdefault('eventtype', 'eventtype')
+    cel.setdefault('eventtime', dt.now())
+    cel.setdefault('uniqueid', uuid4())
+    cel.setdefault('linkedid', uuid4())
+    if cel.pop('processed', False):
+        cel['call_log_id'] = 1
+    with cel_database.queries() as queries:
+        cel['id'] = queries.insert_cel(**cel)
+    try:
+        yield cel
+    finally:
+        with cel_database.queries() as cel_queries:
+            cel_queries.delete_cel(cel['id'])
+
+
 def cel(**cel):
     def _decorate(func):
         @wraps(func)
         def wrapped_function(self, *args, **kwargs):
-            with self.cel_database.queries() as queries:
-                cel.setdefault('eventtype', 'eventtype')
-                cel.setdefault('eventtime', dt.now())
-                cel.setdefault('uniqueid', uuid4())
-                cel.setdefault('linkedid', uuid4())
-                if cel.pop('processed', False):
-                    cel['call_log_id'] = 1
-                cel['id'] = queries.insert_cel(**cel)
-            try:
-                return func(self, *args, cel, **kwargs)
-            finally:
-                with self.cel_database.queries() as cel_queries:
-                    cel_queries.delete_cel(cel['id'])
+            with cel_database_fixture(self.cel_database, cel) as _cel:
+                return func(self, *args, _cel, **kwargs)
 
         return wrapped_function
 
