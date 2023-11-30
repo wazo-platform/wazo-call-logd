@@ -54,11 +54,13 @@ class CDRService:
             # api level 'user_uuids' is reinterpreted to avoid matching hidden participants
             del dao_params['user_uuids']
             dao_params['terminal_user_uuids'] = user_uuids
+
+        count = self._dao.call_log.count_in_period(dao_params)
+
         call_logs = self._dao.call_log.find_all_in_period(
             cast(call_log_dao.ListParams, dao_params)
         )
         rec_search_params['call_log_ids'] = [call_log.id for call_log in call_logs]
-        count = self._dao.call_log.count_in_period(dao_params)
         return {
             'items': call_logs,
             'filtered': count['filtered'],
