@@ -514,7 +514,6 @@ class DbHelper:
 
 @contextmanager
 def transaction(session: BaseSession, close=True):
-    session.begin()
     try:
         yield session
         session.commit()
