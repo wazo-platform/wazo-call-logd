@@ -27,7 +27,7 @@ from .helpers.constants import (
     NOW,
     USER_1_UUID,
 )
-from .helpers.database import call_log, recording
+from .helpers.database import call_log, recording, transaction
 
 
 class TestCallLog(DBIntegrationTest):
@@ -167,10 +167,10 @@ class TestCallLog(DBIntegrationTest):
         result = self.session.query(Recording).all()
         assert_that(result, has_length(2))
 
-        self.session.query(CallLog).delete()
-        self.session.query(CallLogParticipant).delete()
-        self.session.query(Recording).delete()
-        self.session.commit()
+        with transaction(self.session):
+            self.session.query(CallLog).delete()
+            self.session.query(CallLogParticipant).delete()
+            self.session.query(Recording).delete()
 
     @call_log(**cdr(id_=1))
     @call_log(**cdr(id_=2))
