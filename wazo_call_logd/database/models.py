@@ -1,5 +1,6 @@
 # Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 from datetime import timedelta as td
 from datetime import timezone as tz
@@ -104,7 +105,7 @@ class CallLog(Base):
             CallLogParticipant.call_log_id == CallLog.id,
             CallLogParticipant.role == 'destination'
         )''',
-        order_by='desc(CallLogParticipant.answered)',
+        order_by='desc(CallLogParticipant.answered), desc(CallLogParticipant.user_uuid)',
         viewonly=True,
         uselist=False,
     )
