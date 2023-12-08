@@ -27,7 +27,7 @@ from .helpers.constants import (
     NOW,
     USER_1_UUID,
 )
-from .helpers.database import call_log, recording
+from .helpers.database import call_log, recording, transaction
 
 
 class TestCallLog(DBIntegrationTest):
@@ -145,14 +145,16 @@ class TestCallLog(DBIntegrationTest):
 
         call_log_1 = CallLog(
             date=NOW,
-            tenant_uuid=MASTER_TENANT,
-            participants=[CallLogParticipant(role='source', user_uuid=USER_1_UUID)],
+            tenant_uuid=str(MASTER_TENANT),
+            participants=[
+                CallLogParticipant(role='source', user_uuid=str(USER_1_UUID))
+            ],
             recordings=[
                 Recording(start_time=start_time, end_time=end_time),
                 Recording(start_time=start_time, end_time=end_time),
             ],
         )
-        call_log_2 = CallLog(date=NOW, tenant_uuid=MASTER_TENANT)
+        call_log_2 = CallLog(date=NOW, tenant_uuid=str(MASTER_TENANT))
 
         self.dao.call_log.create_from_list([call_log_1, call_log_2])
 
@@ -165,10 +167,10 @@ class TestCallLog(DBIntegrationTest):
         result = self.session.query(Recording).all()
         assert_that(result, has_length(2))
 
-        self.session.query(CallLog).delete()
-        self.session.query(CallLogParticipant).delete()
-        self.session.query(Recording).delete()
-        self.session.commit()
+        with transaction(self.session):
+            self.session.query(CallLog).delete()
+            self.session.query(CallLogParticipant).delete()
+            self.session.query(Recording).delete()
 
     @call_log(**cdr(id_=1))
     @call_log(**cdr(id_=2))

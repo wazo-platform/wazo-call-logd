@@ -36,13 +36,13 @@ from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 
 class TestExportAPI(IntegrationTest):
     @export(
-        tenant_uuid=MASTER_TENANT,
+        tenant_uuid=str(MASTER_TENANT),
         requested_at=datetime.fromisoformat('2021-05-25T15:00:00'),
     )
     def test_get_multitenant(self, export):
         assert_that(
             calling(self.call_logd.export.get).with_args(
-                export['uuid'], tenant_uuid=OTHER_TENANT
+                export['uuid'], tenant_uuid=str(OTHER_TENANT)
             ),
             raises(CallLogdError).matching(has_properties(status_code=404)),
         )
@@ -51,7 +51,7 @@ class TestExportAPI(IntegrationTest):
             result,
             has_entries(
                 uuid=str(export['uuid']),
-                tenant_uuid=MASTER_TENANT,
+                tenant_uuid=str(MASTER_TENANT),
                 status='pending',
                 requested_at='2021-05-25T15:00:00+00:00',
             ),
@@ -129,11 +129,11 @@ class TestExportAPI(IntegrationTest):
         base_url = f'http://127.0.0.1:{port}/1.0'
         api_url = f"{base_url}/exports/{export['uuid']}/download"
 
-        params = {'tenant': MASTER_TENANT, 'token': MASTER_TOKEN}
+        params = {'tenant': str(MASTER_TENANT), 'token': MASTER_TOKEN}
         response = requests.get(api_url, params=params)
         assert_that(response.text, equal_to('zipfile'))
 
-        params = {'tenant': OTHER_TENANT, 'token': MASTER_TOKEN}
+        params = {'tenant': str(OTHER_TENANT), 'token': MASTER_TOKEN}
         response = requests.get(api_url, params=params)
         assert_that(response.status_code, equal_to(404))
 
@@ -411,22 +411,22 @@ class TestRecordingMediaExport(IntegrationTest):
         **{'id': 1},
         date='2021-05-20T15:00:00',
         participants=[
-            {'user_uuid': USER_1_UUID},
+            {'user_uuid': str(USER_1_UUID)},
         ],
     )
     @call_log(
         **{'id': 2},
         date='2021-05-21T15:00:00',
         participants=[
-            {'user_uuid': USER_1_UUID},
-            {'user_uuid': USER_2_UUID},
+            {'user_uuid': str(USER_1_UUID)},
+            {'user_uuid': str(USER_2_UUID)},
         ],
     )
     @call_log(
         **{'id': 3},
         date='2021-05-22T15:00:00',
         participants=[
-            {'user_uuid': USER_2_UUID},
+            {'user_uuid': str(USER_2_UUID)},
         ],
     )
     @file_(path='/tmp/1-recording.wav', content='1-recording')
@@ -436,7 +436,7 @@ class TestRecordingMediaExport(IntegrationTest):
     @recording(call_log_id=2, path='/tmp/2-recording.wav')
     @recording(call_log_id=3, path='/tmp/3-recording.wav')
     def test_create_from_user_uuid(self, rec1, rec2, rec3):
-        export = self.call_logd.cdr.export_recording_media(user_uuid=USER_1_UUID)
+        export = self.call_logd.cdr.export_recording_media(user_uuid=str(USER_1_UUID))
         export_uuid = export['uuid']
 
         until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
@@ -456,7 +456,7 @@ class TestRecordingMediaExport(IntegrationTest):
             ],
         )
 
-        export = self.call_logd.cdr.export_recording_media(user_uuid=USER_2_UUID)
+        export = self.call_logd.cdr.export_recording_media(user_uuid=str(USER_2_UUID))
         export_uuid = export['uuid']
 
         until.assert_(self._export_status_is, export_uuid, 'finished', timeout=5)
@@ -480,21 +480,21 @@ class TestRecordingMediaExport(IntegrationTest):
         **{'id': 1},
         date='2021-05-20T15:00:00',
         participants=[
-            {'user_uuid': USER_1_UUID, 'tags': ['chicoutimi']},
+            {'user_uuid': str(USER_1_UUID), 'tags': ['chicoutimi']},
         ],
     )
     @call_log(
         **{'id': 2},
         date='2021-05-21T15:00:00',
         participants=[
-            {'user_uuid': USER_1_UUID, 'tags': ['chicoutimi', 'quebec']},
+            {'user_uuid': str(USER_1_UUID), 'tags': ['chicoutimi', 'quebec']},
         ],
     )
     @call_log(
         **{'id': 3},
         date='2021-05-22T15:00:00',
         participants=[
-            {'user_uuid': USER_1_UUID, 'tags': ['quebec']},
+            {'user_uuid': str(USER_1_UUID), 'tags': ['quebec']},
         ],
     )
     @file_(path='/tmp/1-recording.wav', content='1-recording')
@@ -731,12 +731,12 @@ class TestRecordingMediaExport(IntegrationTest):
     @call_log(
         **{'id': 2},
         date='2021-05-21T15:00:00',
-        tenant_uuid=OTHER_TENANT,
+        tenant_uuid=str(OTHER_TENANT),
     )
     @call_log(
         **{'id': 3},
         date='2021-05-22T15:00:00',
-        tenant_uuid=OTHER_TENANT,
+        tenant_uuid=str(OTHER_TENANT),
     )
     @file_(path='/tmp/1-recording.wav', content='1-recording')
     @file_(path='/tmp/2-recording.wav', content='2-recording')
@@ -811,7 +811,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_created',
                             required_acl='events.call_logd.export.created',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                 ),
@@ -826,7 +826,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_updated',
                             required_acl='events.call_logd.export.updated',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                     has_entries(
@@ -836,7 +836,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_updated',
                             required_acl='events.call_logd.export.updated',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                 ),
@@ -870,7 +870,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_created',
                             required_acl='events.call_logd.export.created',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                 ),
@@ -885,7 +885,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_updated',
                             required_acl='events.call_logd.export.updated',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                     has_entries(
@@ -895,7 +895,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_updated',
                             required_acl='events.call_logd.export.updated',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                 ),
@@ -930,7 +930,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_created',
                             required_acl='events.call_logd.export.created',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                 ),
@@ -945,7 +945,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_updated',
                             required_acl='events.call_logd.export.updated',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                     has_entries(
@@ -955,7 +955,7 @@ class TestRecordingMediaExport(IntegrationTest):
                         headers=has_entries(
                             name='call_logd_export_updated',
                             required_acl='events.call_logd.export.updated',
-                            tenant_uuid=MASTER_TENANT,
+                            tenant_uuid=str(MASTER_TENANT),
                         ),
                     ),
                 ),

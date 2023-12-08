@@ -1,6 +1,7 @@
 # Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from uuid import UUID
 from hamcrest import has_properties
 
 from .helpers.base import RawCelIntegrationTest, raw_cels
@@ -138,7 +139,7 @@ LINKEDID_END | 2021-08-23 15:07:08.342721-04 |                   | 3925098f-c504
                 destination_exten='1015',
                 destination_name='Olga Romanov',
                 destination_participant=has_properties(
-                    user_uuid='3925098f-c504-4b7d-bf8a-499bb7cc4d92',
+                    user_uuid=UUID('3925098f-c504-4b7d-bf8a-499bb7cc4d92'),
                 ),
             ),
         )
@@ -240,7 +241,7 @@ LINKEDID_END | 2021-08-23 15:07:08.342721-04 |                   | 3925098f-c504
                 destination_exten='1014',
                 destination_name='Nikolai Romanov',
                 destination_participant=has_properties(
-                    user_uuid='a545ea83-595d-4142-a40c-9012acd3068d',
+                    user_uuid=UUID('a545ea83-595d-4142-a40c-9012acd3068d'),
                 ),
             ),
         )

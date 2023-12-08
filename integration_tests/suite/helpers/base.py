@@ -1,11 +1,14 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import logging
 import os
 import random
-from contextlib import contextmanager, wraps
+from contextlib import contextmanager
+from functools import wraps
 from datetime import datetime
+from typing import ClassVar
 
 import pytz
 from dateutil.relativedelta import relativedelta
@@ -19,7 +22,7 @@ from wazo_test_helpers.asset_launching_test_case import (
     NoSuchService,
 )
 from wazo_test_helpers.auth import AuthClient, MockCredentials, MockUserToken
-from wazo_test_helpers.wait_strategy import NoWaitStrategy
+from wazo_test_helpers.wait_strategy import NoWaitStrategy, WaitStrategy
 
 from wazo_call_logd.database.helpers import new_db_session
 from wazo_call_logd.database.queries import DAO
@@ -29,6 +32,8 @@ from .confd import ConfdClient
 from .constants import (
     ALICE,
     BOB,
+    CALL_LOGD_PASSWORD,
+    CALL_LOGD_USERNAME,
     EXPORT_SERVICE_ID,
     EXPORT_SERVICE_KEY,
     MASTER_TENANT,
@@ -45,8 +50,8 @@ from .constants import (
     USER_2_TOKEN,
     USER_2_UUID,
     USERS_TENANT,
-    WAZO_UUID,
     SERVICE_TENANT,
+    WAZO_UUID,
 )
 from .database import DbHelper
 from .email import EmailClient
@@ -153,13 +158,14 @@ class WrongClient:
 
 
 class _BaseIntegrationTest(AssetLaunchingTestCase):
-    bus: CallLogBusClient
-    call_logd: CallLogdClient
-    database: DbHelper
-    cel_database: DbHelper
-    filesystem: FileSystemClient
-    email: EmailClient
-    auth: AuthClient
+    bus: ClassVar[CallLogBusClient | WrongClient]
+    call_logd: ClassVar[CallLogdClient | WrongClient]
+    database: ClassVar[DbHelper | WrongClient]
+    cel_database: ClassVar[DbHelper | WrongClient]
+    filesystem: ClassVar[FileSystemClient]
+    email: ClassVar[EmailClient | WrongClient]
+    auth: ClassVar[AuthClient | WrongClient]
+    wait_strategy: ClassVar[WaitStrategy]
 
     assets_root = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
 
@@ -273,33 +279,45 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         cls.auth.set_token(
             MockUserToken(
                 MASTER_TOKEN,
-                MASTER_USER_UUID,
-                WAZO_UUID,
-                {"tenant_uuid": str(MASTER_TENANT), "uuid": str(MASTER_USER_UUID)},
+                str(MASTER_USER_UUID),
+                str(WAZO_UUID),
+                {
+                    "tenant_uuid": str(MASTER_TENANT),
+                    "uuid": str(MASTER_USER_UUID),
+                },
             )
         )
         cls.auth.set_token(
             MockUserToken(
                 USER_1_TOKEN,
-                USER_1_UUID,
-                WAZO_UUID,
-                {"tenant_uuid": str(USERS_TENANT), "uuid": str(USER_1_UUID)},
+                str(USER_1_UUID),
+                str(WAZO_UUID),
+                {
+                    "tenant_uuid": str(USERS_TENANT),
+                    "uuid": str(USER_1_UUID),
+                },
             )
         )
         cls.auth.set_token(
             MockUserToken(
                 USER_2_TOKEN,
-                USER_2_UUID,
-                WAZO_UUID,
-                {"tenant_uuid": str(USERS_TENANT), "uuid": str(USER_2_UUID)},
+                str(USER_2_UUID),
+                str(WAZO_UUID),
+                {
+                    "tenant_uuid": str(USERS_TENANT),
+                    "uuid": str(USER_2_UUID),
+                },
             )
         )
         cls.auth.set_token(
             MockUserToken(
                 OTHER_USER_TOKEN,
-                OTHER_USER_UUID,
-                WAZO_UUID,
-                {"tenant_uuid": str(OTHER_TENANT), "uuid": str(OTHER_USER_UUID)},
+                str(OTHER_USER_UUID),
+                str(WAZO_UUID),
+                {
+                    "tenant_uuid": str(OTHER_TENANT),
+                    "uuid": str(OTHER_USER_UUID),
+                },
             )
         )
         cls.auth.set_valid_credentials(
@@ -307,26 +325,31 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
             MASTER_TOKEN,
         )
 
+        cls.auth.set_valid_credentials(
+            MockCredentials(CALL_LOGD_USERNAME, CALL_LOGD_PASSWORD),
+            MASTER_TOKEN,
+        )
+
         cls.auth.set_tenants(
             {
-                'uuid': MASTER_TENANT,
+                'uuid': str(MASTER_TENANT),
                 'name': 'call-logd-tests-master',
-                'parent_uuid': MASTER_TENANT,
+                'parent_uuid': str(MASTER_TENANT),
             },
             {
-                'uuid': USERS_TENANT,
+                'uuid': str(USERS_TENANT),
                 'name': 'call-logd-tests-users',
-                'parent_uuid': MASTER_TENANT,
+                'parent_uuid': str(MASTER_TENANT),
             },
             {
-                'uuid': OTHER_TENANT,
+                'uuid': str(OTHER_TENANT),
                 'name': 'call-logd-tests-other',
-                'parent_uuid': MASTER_TENANT,
+                'parent_uuid': str(MASTER_TENANT),
             },
             {
-                'uuid': SERVICE_TENANT,
+                'uuid': str(SERVICE_TENANT),
                 'name': 'call-logd-tests-other',
-                'parent_uuid': MASTER_TENANT,
+                'parent_uuid': str(MASTER_TENANT),
             },
         )
 

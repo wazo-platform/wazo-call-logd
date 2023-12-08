@@ -9,12 +9,12 @@ from wazo_call_logd.database.models import Retention
 
 from .helpers.base import DBIntegrationTest
 from .helpers.constants import MASTER_TENANT, UNKNOWN_UUID
-from .helpers.database import retention
+from .helpers.database import RetentionData, retention
 
 
 class TestRecording(DBIntegrationTest):
     def test_find_or_create(self):
-        tenant_uuid = uuid.UUID(MASTER_TENANT)
+        tenant_uuid = MASTER_TENANT
         result = self.dao.retention.find_or_create(tenant_uuid)
         assert_that(result, has_properties(tenant_uuid=tenant_uuid))
 
@@ -45,9 +45,9 @@ class TestRecording(DBIntegrationTest):
         assert_that(result, equal_to(1))
 
     @retention()
-    def test_find(self, retention):
+    def test_find(self, retention: RetentionData):
         result = self.dao.retention.find(retention['tenant_uuid'])
-        expected = uuid.UUID(retention['tenant_uuid'])
+        expected = retention['tenant_uuid']
         assert_that(result, has_properties(tenant_uuid=expected))
 
         result = self.dao.retention.find(UNKNOWN_UUID)

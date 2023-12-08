@@ -292,7 +292,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-05T13:00:00+00:00'},
                         until=self._get_tomorrow(),
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         queue_id=1,
                         queue_name='queue',
                         received=1,
@@ -309,7 +309,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-06T13:00:00+00:00'},
                         until=self._get_tomorrow(),
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         queue_id=2,
                         queue_name='queue',
                         received=2,
@@ -342,7 +342,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-05T09:00:00-04:00'},
                         until=self._get_tomorrow(timezone),
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         queue_id=1,
                         queue_name='queue',
                         received=1,
@@ -359,7 +359,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-06T09:00:00-04:00'},
                         until=self._get_tomorrow(timezone),
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         queue_id=2,
                         queue_name='queue',
                         received=2,
@@ -392,7 +392,7 @@ class TestStatistics(IntegrationTest):
                     has_entries(
                         **{'from': '2020-10-01T00:00:00+00:00'},
                         until='2020-11-01T00:00:00+00:00',
-                        tenant_uuid=MASTER_TENANT,
+                        tenant_uuid=str(MASTER_TENANT),
                         queue_id=1,
                         queue_name='queue',
                         received=1,
@@ -481,7 +481,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': None},
                     until=self._get_tomorrow(),
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=0,
@@ -513,7 +513,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T07:00:00+00:00'},
                     until=self._get_tomorrow(),
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=9,
@@ -548,7 +548,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=6,
@@ -586,7 +586,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T04:00:00+00:00'},
                     until='2020-10-06T05:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=1,
@@ -603,7 +603,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T05:00:00+00:00'},
                     until='2020-10-06T06:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=36,
@@ -620,7 +620,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T13:00:00+00:00'},
                     until='2020-10-06T14:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=0,
@@ -637,7 +637,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=38,
@@ -676,7 +676,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T13:00:00+00:00'},
                     until='2020-10-06T14:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=3,
@@ -710,7 +710,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T08:00:00+00:00'},
                     until='2020-10-06T09:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=0,
@@ -727,7 +727,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T13:00:00+00:00'},
                     until='2020-10-06T14:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=3,
@@ -744,7 +744,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T16:00:00+00:00'},
                     until='2020-10-06T17:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=3,
@@ -783,7 +783,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-07T00:00:00+00:00'},
                     until='2020-10-08T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2,
@@ -800,7 +800,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-08T00:00:00+00:00'},
                     until='2020-10-09T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=3,
@@ -817,7 +817,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-10T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=5,
@@ -856,7 +856,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T23:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=1,
@@ -873,7 +873,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T23:00:00+00:00'},
                     until='2020-10-07T01:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=1,
@@ -907,7 +907,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-07T00:00:00+00:00'},
                     until='2020-10-07T01:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2,
@@ -924,7 +924,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T23:00:00+00:00'},
                     until='2020-10-07T01:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2,
@@ -964,7 +964,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-07T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=0,
@@ -981,7 +981,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-07T00:00:00+00:00'},
                     until='2020-10-08T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=3,
@@ -998,7 +998,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-06T00:00:00+00:00'},
                     until='2020-10-08T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=3,
@@ -1069,7 +1069,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-01T00:00:00+00:00'},
                     until='2020-11-01T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2 + 3,
@@ -1086,7 +1086,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-10-01T00:00:00+00:00'},
                     until='2020-11-01T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2 + 3,
@@ -1127,7 +1127,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-01-01T00:00:00+00:00'},
                     until='2020-02-01T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=0,
@@ -1144,7 +1144,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-02-01T00:00:00+00:00'},
                     until='2020-03-01T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2,
@@ -1161,7 +1161,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-03-01T00:00:00+00:00'},
                     until='2020-04-01T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=3,
@@ -1178,7 +1178,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-01-01T00:00:00+00:00'},
                     until='2020-04-01T00:00:00+00:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2 + 3,
@@ -1220,7 +1220,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-01-01T00:00:00-05:00'},
                     until='2020-02-01T00:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=0,
@@ -1237,7 +1237,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-02-01T00:00:00-05:00'},
                     until='2020-03-01T00:00:00-05:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2,
@@ -1254,7 +1254,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-03-01T00:00:00-05:00'},
                     until='2020-04-01T00:00:00-04:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=3,
@@ -1271,7 +1271,7 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **{'from': '2020-01-01T00:00:00-05:00'},
                     until='2020-04-01T00:00:00-04:00',
-                    tenant_uuid=MASTER_TENANT,
+                    tenant_uuid=str(MASTER_TENANT),
                     queue_id=1,
                     queue_name='queue',
                     received=2 + 3,
@@ -1312,7 +1312,7 @@ class TestStatistics(IntegrationTest):
         )
 
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'queue_id': 1,
             'queue_name': 'queue',
             'abandoned': 0,
@@ -1378,7 +1378,7 @@ class TestStatistics(IntegrationTest):
         )
 
         common_fields = {
-            'tenant_uuid': MASTER_TENANT,
+            'tenant_uuid': str(MASTER_TENANT),
             'queue_id': 1,
             'queue_name': 'queue',
             'abandoned': 0,

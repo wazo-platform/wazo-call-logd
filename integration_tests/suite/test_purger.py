@@ -99,10 +99,14 @@ class TestCallLogPurger(_BasePurger):
         result = self.session.query(Recording).all()
         assert_that(result, has_length(number))
 
-    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=2), tenant_uuid=MASTER_TENANT)
-    @call_log(**{'id': 2}, date=dt.utcnow() - td(days=4), tenant_uuid=MASTER_TENANT)
-    @call_log(**{'id': 3}, date=dt.utcnow() - td(days=2), tenant_uuid=OTHER_TENANT)
-    @retention(tenant_uuid=MASTER_TENANT, cdr_days=3)
+    @call_log(
+        **{'id': 1}, date=dt.utcnow() - td(days=2), tenant_uuid=str(MASTER_TENANT)
+    )
+    @call_log(
+        **{'id': 2}, date=dt.utcnow() - td(days=4), tenant_uuid=str(MASTER_TENANT)
+    )
+    @call_log(**{'id': 3}, date=dt.utcnow() - td(days=2), tenant_uuid=str(OTHER_TENANT))
+    @retention(tenant_uuid=str(MASTER_TENANT), cdr_days=3)
     def test_purger_by_retention(self, *_):
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(3))
@@ -119,15 +123,19 @@ class TestCallLogPurger(_BasePurger):
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(1))
 
-    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
-    @retention(tenant_uuid=MASTER_TENANT, cdr_days=0)
+    @call_log(
+        **{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=str(MASTER_TENANT)
+    )
+    @retention(tenant_uuid=str(MASTER_TENANT), cdr_days=0)
     def test_purger_when_retention_is_zero(self, *_):
         days_to_keep = 365
         self._purge(days_to_keep)
         result = self.session.query(CallLog).all()
         assert_that(result, has_length(0))
 
-    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
+    @call_log(
+        **{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=str(MASTER_TENANT)
+    )
     def test_purger_when_default_days_is_customized(self, *_):
         config = self.dao.config.find_or_create()
         config.retention_cdr_days = 42
@@ -180,15 +188,21 @@ class TestExportPurger(_BasePurger):
         assert_that(not self.filesystem.path_exists('/tmp/3'))
 
     @export(
-        requested_at=dt.utcnow() - td(days=1), path='/tmp/1', tenant_uuid=MASTER_TENANT
+        requested_at=dt.utcnow() - td(days=1),
+        path='/tmp/1',
+        tenant_uuid=str(MASTER_TENANT),
     )
     @export(
-        requested_at=dt.utcnow() - td(days=3), path='/tmp/2', tenant_uuid=MASTER_TENANT
+        requested_at=dt.utcnow() - td(days=3),
+        path='/tmp/2',
+        tenant_uuid=str(MASTER_TENANT),
     )
     @export(
-        requested_at=dt.utcnow() - td(days=1), path='/tmp/3', tenant_uuid=OTHER_TENANT
+        requested_at=dt.utcnow() - td(days=1),
+        path='/tmp/3',
+        tenant_uuid=str(OTHER_TENANT),
     )
-    @retention(tenant_uuid=MASTER_TENANT, export_days=3)
+    @retention(tenant_uuid=str(MASTER_TENANT), export_days=3)
     @file_('/tmp/1', service_name='purge-db')
     @file_('/tmp/2', service_name='purge-db')
     @file_('/tmp/3', service_name='purge-db')
@@ -212,9 +226,11 @@ class TestExportPurger(_BasePurger):
         assert_that(not self.filesystem.path_exists('/tmp/3'))
 
     @export(
-        requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT
+        requested_at=dt.utcnow() - td(days=2),
+        path='/tmp/1',
+        tenant_uuid=str(MASTER_TENANT),
     )
-    @retention(tenant_uuid=MASTER_TENANT, export_days=0)
+    @retention(tenant_uuid=str(MASTER_TENANT), export_days=0)
     @file_('/tmp/1', service_name='purge-db')
     def test_purger_when_retention_is_zero(self, *_):
         days_to_keep = 365
@@ -237,7 +253,9 @@ class TestExportPurger(_BasePurger):
         self._assert_len_export(0)
 
     @export(
-        requested_at=dt.utcnow() - td(days=2), path='/tmp/1', tenant_uuid=MASTER_TENANT
+        requested_at=dt.utcnow() - td(days=2),
+        path='/tmp/1',
+        tenant_uuid=str(MASTER_TENANT),
     )
     @file_('/tmp/1', service_name='purge-db')
     def test_purger_when_default_days_is_customized(self, *_):
@@ -298,13 +316,17 @@ class TestRecordingPurger(_BasePurger):
         assert_that(not self.filesystem.path_exists('/tmp/2'))
         assert_that(not self.filesystem.path_exists('/tmp/3'))
 
-    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=2), tenant_uuid=MASTER_TENANT)
-    @call_log(**{'id': 2}, date=dt.utcnow() - td(days=4), tenant_uuid=MASTER_TENANT)
-    @call_log(**{'id': 3}, date=dt.utcnow() - td(days=2), tenant_uuid=OTHER_TENANT)
+    @call_log(
+        **{'id': 1}, date=dt.utcnow() - td(days=2), tenant_uuid=str(MASTER_TENANT)
+    )
+    @call_log(
+        **{'id': 2}, date=dt.utcnow() - td(days=4), tenant_uuid=str(MASTER_TENANT)
+    )
+    @call_log(**{'id': 3}, date=dt.utcnow() - td(days=2), tenant_uuid=str(OTHER_TENANT))
     @recording(call_log_id=1, path='/tmp/1')
     @recording(call_log_id=2, path='/tmp/2')
     @recording(call_log_id=3, path='/tmp/3')
-    @retention(tenant_uuid=MASTER_TENANT, recording_days=3)
+    @retention(tenant_uuid=str(MASTER_TENANT), recording_days=3)
     @file_('/tmp/1', service_name='purge-db')
     @file_('/tmp/2', service_name='purge-db')
     @file_('/tmp/3', service_name='purge-db')
@@ -327,9 +349,11 @@ class TestRecordingPurger(_BasePurger):
         assert_that(not self.filesystem.path_exists('/tmp/2'))
         assert_that(not self.filesystem.path_exists('/tmp/3'))
 
-    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
+    @call_log(
+        **{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=str(MASTER_TENANT)
+    )
     @recording(call_log_id=1, path='/tmp/1')
-    @retention(tenant_uuid=MASTER_TENANT, recording_days=0)
+    @retention(tenant_uuid=str(MASTER_TENANT), recording_days=0)
     @file_('/tmp/1', service_name='purge-db')
     def test_purger_when_retention_is_zero(self, *_):
         days_to_keep = 365
@@ -346,7 +370,9 @@ class TestRecordingPurger(_BasePurger):
         self._assert_len_recording_path(0)
         assert_that(not self.filesystem.path_exists('/tmp/1'))
 
-    @call_log(**{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=MASTER_TENANT)
+    @call_log(
+        **{'id': 1}, date=dt.utcnow() - td(days=1), tenant_uuid=str(MASTER_TENANT)
+    )
     @recording(call_log_id=1, path='/tmp/1')
     @file_('/tmp/1', service_name='purge-db')
     def test_purger_when_default_days_is_customizedd(self, *_):
