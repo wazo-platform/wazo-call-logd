@@ -541,7 +541,7 @@ class DatabaseQueries:
 
     def find_tenant(self, tenant_uuid) -> Tenant | None:
         with transaction(self.Session()) as session:
-            tenant = session.get(Tenant, tenant_uuid)
+            tenant = session.query(Tenant).get(tenant_uuid)
             return tenant
 
     def insert_call_log(self, **kwargs):
