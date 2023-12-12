@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
@@ -21,9 +21,13 @@ MASTER_TENANT = UUID('4eb57648-b914-446b-a69f-58643ae08dd4')
 MASTER_USER_UUID = UUID('5b6e5030-0f23-499a-8030-4a390392aad2')
 
 USERS_TENANT = UUID('f0fe8e3a-2d7a-4dd7-8e93-8229d51cfe04')
-USER_1_UUID = UUID('b17d9f99-fcc7-4257-8e89-3d0e36e0b48d')
-USER_2_UUID = UUID('f79fd307-467c-4851-b614-e65bc8d922fc')
-USER_3_UUID = UUID('2ab10cc9-3c80-4781-b050-8481fcfc2b31')
+
+# NOTE(clanglois): those uuid values should remain lexicographically ordered
+# (i.e. USER_1_UUID < USER_2_UUID < USER_3_UUID)
+# because some tests depend on it for a stable result
+USER_1_UUID = UUID('2ab10cc9-3c80-4781-b050-8481fcfc2b31')
+USER_2_UUID = UUID('b17d9f99-fcc7-4257-8e89-3d0e36e0b48d')
+USER_3_UUID = UUID('f79fd307-467c-4851-b614-e65bc8d922fc')
 
 OTHER_TENANT = UUID('0a5afd22-6325-49b1-8e35-b04618e78b58')
 OTHER_USER_UUID = UUID('35faa8d3-3d89-4a72-b897-0706125c7a35')

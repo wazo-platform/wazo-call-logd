@@ -16,6 +16,7 @@ from hamcrest import (
 )
 
 from wazo_call_logd.database.models import CallLog, CallLogParticipant, Recording
+from wazo_call_logd.database.queries.call_log import ListParams
 
 from .helpers.base import DBIntegrationTest, cdr
 from .helpers.constants import (
@@ -26,6 +27,8 @@ from .helpers.constants import (
     MINUTES,
     NOW,
     USER_1_UUID,
+    USER_2_UUID,
+    USER_3_UUID,
 )
 from .helpers.database import call_log, recording, transaction
 
@@ -85,6 +88,77 @@ class TestCallLog(DBIntegrationTest):
                     id=2,
                     recordings=empty(),
                 ),
+            ),
+        )
+
+    @call_log(
+        id=1,
+        participants=[
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination', 'answered': False},
+            {'user_uuid': USER_3_UUID, 'role': 'destination', 'answered': True},
+        ],
+    )
+    @call_log(
+        id=2,
+        participants=[
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination', 'answered': True},
+            {'user_uuid': USER_3_UUID, 'role': 'destination', 'answered': True},
+        ],
+    )
+    @call_log(
+        id=3,
+        participants=[
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination', 'answered': True},
+            {'user_uuid': USER_3_UUID, 'role': 'destination', 'answered': False},
+        ],
+    )
+    @call_log(
+        id=4,
+        participants=[
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination', 'answered': False},
+            {'user_uuid': USER_3_UUID, 'role': 'destination', 'answered': False},
+        ],
+    )
+    def test_find_all_in_period_when_terminal_user_uuids(self):
+        # NOTE(clanglois): this test depends on the lexicographic ordering of USER_1_UUID, USER_2_UUID, and USER_3_UUID
+
+        params1: ListParams = {'terminal_user_uuids': [str(USER_1_UUID)]}
+        result1 = self.dao.call_log.find_all_in_period(params1)
+        assert all(
+            call_log.source_participant.user_uuid == USER_1_UUID for call_log in result1
+        )
+        assert_that(
+            result1,
+            contains_inanyorder(
+                has_properties(id=1),
+                has_properties(id=2),
+                has_properties(id=3),
+                has_properties(id=4),
+            ),
+        )
+
+        params2: ListParams = {'terminal_user_uuids': [str(USER_2_UUID)]}
+        result2 = self.dao.call_log.find_all_in_period(params2)
+        assert all(
+            call_log.destination_participant.user_uuid == USER_2_UUID
+            for call_log in result2
+        )
+        assert_that(result2, contains_inanyorder(has_properties(id=3)))
+
+        params3: ListParams = {'terminal_user_uuids': [str(USER_3_UUID)]}
+        result3 = self.dao.call_log.find_all_in_period(params3)
+        assert all(
+            call_log.destination_participant.user_uuid == USER_3_UUID
+            for call_log in result3
+        )
+        assert_that(
+            result3,
+            contains_inanyorder(
+                has_properties(id=1), has_properties(id=2), has_properties(id=4)
             ),
         )
 

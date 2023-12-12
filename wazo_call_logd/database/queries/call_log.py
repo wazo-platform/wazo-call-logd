@@ -1,16 +1,41 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+import datetime as dt
 
-from typing import Any
+from typing import Any, TypedDict
 
 import sqlalchemy as sa
 from sqlalchemy import and_, distinct, func, sql
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Query, joinedload, subqueryload
+
+from wazo_call_logd.datatypes import CallDirection, OrderDirection
 
 from ..models import CallLog, CallLogParticipant
 from .base import BaseDAO
+
+
+class ListParams(TypedDict, total=False):
+    search: str
+    order: str
+    direction: OrderDirection
+    limit: int
+    offset: int
+    distinct: str
+    start: dt.datetime
+    end: dt.datetime
+    call_direction: CallDirection
+    id: int
+    start_id: int
+    cdr_ids: list[int]
+    number: str
+    tags: list[str]
+    tenant_uuids: list[str]
+    me_user_uuid: str
+    user_uuids: list[str]
+    terminal_user_uuids: list[str]
+    recorded: bool
 
 
 class CallLogDAO(BaseDAO):
@@ -36,7 +61,7 @@ class CallLogDAO(BaseDAO):
                 session.expunge_all()
                 return cdr
 
-    def find_all_in_period(self, params):
+    def find_all_in_period(self, params: ListParams):
         with self.new_session() as session:
             query = self._list_query(session, params)
             order_field = None
@@ -51,6 +76,7 @@ class CallLogDAO(BaseDAO):
                 order_field = order_field.desc().nullslast()
             if params.get('direction') == 'asc':
                 order_field = order_field.asc().nullsfirst()
+
             if order_field is not None:
                 query = query.order_by(order_field)
 
@@ -162,7 +188,9 @@ class CallLogDAO(BaseDAO):
             )
 
         if tenant_uuids := params.get('tenant_uuids'):
-            query = query.filter(CallLog.tenant_uuid.in_(tenant_uuids))
+            query = query.filter(
+                CallLog.tenant_uuid.in_(str(uuid) for uuid in tenant_uuids)
+            )
 
         if me_user_uuid := params.get('me_user_uuid'):
             query = query.filter(
@@ -177,6 +205,47 @@ class CallLogDAO(BaseDAO):
                 for user_uuid in user_uuids
             )
             query = query.filter(sql.or_(*filters))
+
+        if terminal_user_uuids := params.get('terminal_user_uuids'):
+            # consider only source participant
+            # and destination participant(first 'destination' participant to have answered)
+            # NOTE(clanglois): if no participant has answered, destination participant is
+            # an arbitrary 'destination' participant based on uuid ordering
+            # NOTE(clanglois): destination participant definition must be reimplemented here
+            # in order to be used for filtering because of limitation of relationship
+            filters = sql.or_(
+                (
+                    CallLog.source_participant.has(
+                        CallLogParticipant.user_uuid.in_(
+                            str(terminal_user_uuid)
+                            for terminal_user_uuid in terminal_user_uuids
+                        )
+                    )
+                ),
+                (
+                    Query(CallLogParticipant.user_uuid)
+                    .filter(
+                        CallLogParticipant.role == 'destination',
+                        CallLogParticipant.call_log_id == CallLog.id,
+                    )
+                    .order_by(
+                        sql.desc(CallLogParticipant.answered),
+                        sql.desc(CallLogParticipant.user_uuid),
+                    )
+                    .limit(1)
+                    .subquery()
+                    == sql.any_(
+                        sql.cast(
+                            [
+                                str(terminal_user_uuid)
+                                for terminal_user_uuid in terminal_user_uuids
+                            ],
+                            ARRAY(UUID),
+                        )
+                    )
+                ),
+            )
+            query = query.filter(filters)
 
         if start_id := params.get('start_id'):
             query = query.filter(CallLog.id >= start_id)
