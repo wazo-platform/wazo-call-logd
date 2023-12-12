@@ -94,58 +94,33 @@ class TestCallLog(DBIntegrationTest):
     @call_log(
         id=1,
         participants=[
-            {'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'},
-            {'user_uuid': USER_2_UUID, 'line_id': '2', 'role': 'destination'},
-            {
-                'user_uuid': USER_3_UUID,
-                'line_id': '3',
-                'role': 'destination',
-                'answered': True,
-            },
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination', 'answered': False},
+            {'user_uuid': USER_3_UUID, 'role': 'destination', 'answered': True},
         ],
     )
     @call_log(
         id=2,
         participants=[
-            {'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'},
-            {
-                'user_uuid': USER_2_UUID,
-                'line_id': '2',
-                'role': 'destination',
-                'answered': True,
-            },
-            {
-                'user_uuid': USER_3_UUID,
-                'line_id': '3',
-                'role': 'destination',
-                'answered': True,
-            },
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination', 'answered': True},
+            {'user_uuid': USER_3_UUID, 'role': 'destination', 'answered': True},
         ],
     )
     @call_log(
         id=3,
         participants=[
-            {'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'},
-            {
-                'user_uuid': USER_2_UUID,
-                'line_id': '2',
-                'role': 'destination',
-                'answered': True,
-            },
-            {
-                'user_uuid': USER_3_UUID,
-                'line_id': '3',
-                'role': 'destination',
-                'answered': False,
-            },
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination', 'answered': True},
+            {'user_uuid': USER_3_UUID, 'role': 'destination', 'answered': False},
         ],
     )
     @call_log(
         id=4,
         participants=[
-            {'user_uuid': USER_1_UUID, 'line_id': '1', 'role': 'source'},
-            {'user_uuid': USER_2_UUID, 'line_id': '2', 'role': 'destination'},
-            {'user_uuid': USER_3_UUID, 'line_id': '3', 'role': 'destination'},
+            {'user_uuid': USER_1_UUID, 'role': 'source'},
+            {'user_uuid': USER_2_UUID, 'role': 'destination', 'answered': False},
+            {'user_uuid': USER_3_UUID, 'role': 'destination', 'answered': False},
         ],
     )
     def test_find_all_in_period_when_terminal_user_uuids(self):
