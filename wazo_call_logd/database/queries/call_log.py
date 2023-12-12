@@ -4,11 +4,10 @@ from __future__ import annotations
 import datetime as dt
 
 from typing import Any, TypedDict
-import uuid
 
 import sqlalchemy as sa
 from sqlalchemy import and_, distinct, func, sql
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Query, joinedload, subqueryload
 
 from wazo_call_logd.datatypes import CallDirection, OrderDirection
@@ -189,7 +188,9 @@ class CallLogDAO(BaseDAO):
             )
 
         if tenant_uuids := params.get('tenant_uuids'):
-            query = query.filter(CallLog.tenant_uuid.in_(tenant_uuids))
+            query = query.filter(
+                CallLog.tenant_uuid.in_(str(tid) for tid in tenant_uuids)
+            )
 
         if me_user_uuid := params.get('me_user_uuid'):
             query = query.filter(
@@ -216,7 +217,7 @@ class CallLogDAO(BaseDAO):
                 (
                     CallLog.source_participant.has(
                         CallLogParticipant.user_uuid.in_(
-                            uuid.UUID(terminal_user_uuid)
+                            str(terminal_user_uuid)
                             for terminal_user_uuid in terminal_user_uuids
                         )
                     )
@@ -234,10 +235,13 @@ class CallLogDAO(BaseDAO):
                     .limit(1)
                     .subquery()
                     == sql.any_(
-                        [
-                            uuid.UUID(terminal_user_uuid)
-                            for terminal_user_uuid in terminal_user_uuids
-                        ]
+                        sql.cast(
+                            [
+                                str(terminal_user_uuid)
+                                for terminal_user_uuid in terminal_user_uuids
+                            ],
+                            ARRAY(UUID),
+                        )
                     )
                 ),
             )
