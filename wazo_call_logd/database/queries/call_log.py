@@ -189,7 +189,7 @@ class CallLogDAO(BaseDAO):
 
         if tenant_uuids := params.get('tenant_uuids'):
             query = query.filter(
-                CallLog.tenant_uuid.in_(str(tid) for tid in tenant_uuids)
+                CallLog.tenant_uuid.in_(str(uuid) for uuid in tenant_uuids)
             )
 
         if me_user_uuid := params.get('me_user_uuid'):
