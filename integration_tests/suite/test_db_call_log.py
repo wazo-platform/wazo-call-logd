@@ -126,7 +126,6 @@ class TestCallLog(DBIntegrationTest):
     def test_find_all_in_period_when_terminal_user_uuids(self):
         # NOTE(clanglois): this test depends on the lexicographic ordering of USER_1_UUID, USER_2_UUID, and USER_3_UUID
 
-        # same source participant matched in all 3 cases
         params1: ListParams = {'terminal_user_uuids': [str(USER_1_UUID)]}
         result1 = self.dao.call_log.find_all_in_period(params1)
         assert all(
@@ -142,7 +141,6 @@ class TestCallLog(DBIntegrationTest):
             ),
         )
 
-        # USERS_2_UUID only matched as destination participant in 1 case
         params2: ListParams = {'terminal_user_uuids': [str(USER_2_UUID)]}
         result2 = self.dao.call_log.find_all_in_period(params2)
         assert all(
@@ -151,7 +149,6 @@ class TestCallLog(DBIntegrationTest):
         )
         assert_that(result2, contains_inanyorder(has_properties(id=3)))
 
-        # USERS_3_UUID matched as destination participant in 3 cases
         params3: ListParams = {'terminal_user_uuids': [str(USER_3_UUID)]}
         result3 = self.dao.call_log.find_all_in_period(params3)
         assert all(

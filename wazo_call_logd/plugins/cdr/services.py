@@ -45,7 +45,6 @@ class CDRService:
         rec_search_params = {}
         dao_params = dict(search_params)
         if searched:
-            # check if search param refers to recording
             matches = RECORDING_FILENAME_RE.search(searched)
             if matches:
                 del dao_params['search']
