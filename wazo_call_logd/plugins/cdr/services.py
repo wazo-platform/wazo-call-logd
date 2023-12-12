@@ -1,10 +1,11 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
-
+from __future__ import annotations
 import os
 import re
 from datetime import datetime
 from typing import TypedDict, cast
+from uuid import UUID
 
 from wazo_call_logd.database.models import Export
 from wazo_call_logd.database.queries import DAO
@@ -29,9 +30,9 @@ class SearchParams(TypedDict, total=False):
     cdr_ids: list[int]
     number: str
     tags: list[str]
-    tenant_uuids: list[str]
-    me_user_uuid: str
-    user_uuids: list[str]
+    tenant_uuids: list[UUID]
+    me_user_uuid: UUID
+    user_uuids: list[UUID]
     recorded: bool
 
 
