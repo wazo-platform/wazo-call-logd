@@ -37,10 +37,12 @@ logger = logging.getLogger(__name__)
 
 def main():
     _print_deprecation_notice()
-    setup_logging('/dev/null', debug=False)
+    parser = argparse.ArgumentParser(description='Call logs generator')
+    options = parse_args(parser)
+    setup_logging('/dev/null', debug=options.debug)
     silence_loggers(['urllib3.connectionpool'], level=logging.WARNING)
     with pidfile_context(PIDFILENAME):
-        _generate_call_logs()
+        _generate_call_logs(options)
 
 
 def _print_deprecation_notice():
@@ -51,10 +53,7 @@ def _print_deprecation_notice():
         )
 
 
-def _generate_call_logs():
-    parser = argparse.ArgumentParser(description='Call logs generator')
-    options = parse_args(parser)
-
+def _generate_call_logs(options):
     file_config = {
         key: value
         for key, value in read_config_file_hierarchy(DEFAULT_CONFIG).items()
@@ -123,6 +122,7 @@ def parse_args(parser):
         help='Minimum number of CEL entries to process',
     )
     group.add_argument('-d', '--days', type=int, help='Number of days to process')
+    group.add_argument('--debug', action='store_true', help='Enable debug messages')
     return parser.parse_args()
 
 
