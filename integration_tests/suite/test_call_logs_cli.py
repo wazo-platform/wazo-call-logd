@@ -76,7 +76,7 @@ LINKEDID_END | 2015-06-18 14:17:37.545342 | Elès 45  | 1045    | s     | user  
     )
     def test_does_not_process_more_cel_than_cel_count_param(self):
         with self.no_call_logs():
-            self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
+            self.docker_exec(['wazo-call-logs', '-D', '--cel-count', '12'])
 
             with self.database.queries() as queries:
                 call_logs = queries.find_all_call_log()
@@ -139,8 +139,8 @@ LINKEDID_END | 2013-01-01 10:00:11 | Bob Marley    |    1002 | s     | user    |
     )
     def test_process_cel_after_those_already_processed(self):
         with self.no_call_logs():
-            self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
-            self.docker_exec(['wazo-call-logs', '--cel-count', '12'])
+            self.docker_exec(['wazo-call-logs', '-D', '--cel-count', '12'])
+            self.docker_exec(['wazo-call-logs', '-D', '--cel-count', '12'])
 
             with self.database.queries() as queries:
                 call_logs = queries.find_all_call_log()
@@ -180,7 +180,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
     )
     def test_process_complete_call(self):
         with self.no_call_logs():
-            self.docker_exec(['wazo-call-logs', '--cel-count', '1'])
+            self.docker_exec(['wazo-call-logs', '-D', '--cel-count', '1'])
 
             with self.database.queries() as queries:
                 call_logs = queries.find_all_call_log()
@@ -224,7 +224,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
     )
     def test_process_partially_processed_call(self):
         with self.no_call_logs():
-            self.docker_exec(['wazo-call-logs', '--cel-count', '20'])
+            self.docker_exec(['wazo-call-logs', '-D', '--cel-count', '20'])
 
             with self.database.queries() as queries:
                 call_logs = queries.find_all_call_log()
@@ -245,7 +245,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
                 )
 
     def test_only_one_cli_can_be_executed(self):
-        output = self.docker_exec(['sh', '-c', 'wazo-call-logs & wazo-call-logs'])
+        output = self.docker_exec(['sh', '-c', 'wazo-call-logs -D & wazo-call-logs -D'])
         assert_that(
             output.decode('utf-8'),
             contains_string('An other instance of ourself is probably running'),
@@ -255,7 +255,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
     @call_log(**cdr(id_=1))
     @recording(call_log_id=1)
     def test_delete_all(self, cel, _):
-        self.docker_exec(['wazo-call-logs', 'delete', '--all'])
+        self.docker_exec(['wazo-call-logs', '-D', 'delete', '--all'])
         result = self.session.query(Recording).all()
         assert_that(result, empty())
 
@@ -270,7 +270,7 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
     @call_log(**cdr(id_=2, start_time=NOW - td(days=2)))
     @recording(call_log_id=2)
     def test_delete_older(self, *_):
-        self.docker_exec(['wazo-call-logs', 'delete', '--days', '1'])
+        self.docker_exec(['wazo-call-logs', '-D', 'delete', '--days', '1'])
 
         result = self.session.query(CallLog).all()
         assert_that(result, contains_exactly(has_properties(id=2)))
