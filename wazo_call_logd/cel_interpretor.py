@@ -178,6 +178,7 @@ class AbstractCELInterpretor:
 
     def interpret_cels(self, cels: list[CEL], call_log: RawCallLog):
         for cel in cels:
+            assert call_log
             call_log = self.interpret_cel(cel, call_log)
         return call_log
 
@@ -379,7 +380,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_wazo_conference(self, cel, call):
         extra = extract_cel_extra(cel.extra)
         if not extra:
-            return
+            logger.error(
+                'Cannot interpret WAZO_CONFERENCE event(cel.id=%s), missing extra data',
+                cel.id,
+            )
+            return call
 
         _, name = extra['extra'].split('NAME: ', 1)
         call.destination_name = name
@@ -388,7 +393,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_wazo_meeting_name(self, cel, call):
         extra = extract_cel_extra(cel.extra)
         if not extra:
-            return
+            logger.error(
+                'Cannot interpret WAZO_MEETING_NAME event(cel.id=%s), missing extra data',
+                cel.id,
+            )
+            return call
         call.destination_name = extra['extra']
         if MEETING_EXTENSION_REGEX.match(call.destination_exten):
             call.extension_filter.add_exten(call.destination_exten)
@@ -400,7 +409,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_wazo_user_missed_call(self, cel, call):
         extra = extract_cel_extra(cel.extra)
         if not extra:
-            return
+            logger.error(
+                'Cannot interpret WAZO_USER_MISSED_CALL event(cel.id=%s), missing extra data',
+                cel.id,
+            )
+            return call
 
         (
             wazo_tenant_uuid,
