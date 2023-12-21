@@ -21,6 +21,7 @@ from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
 from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
+from xivo_dao.alchemy.cel import CEL
 
 from wazo_call_logd.database.models import (
     Base,
@@ -634,6 +635,11 @@ class DatabaseQueries:
             )
 
             return call_logs
+
+    def find_all_cels(self):
+        session = self.Session()
+        call_logs = session.query(CEL).order_by(CEL.eventtime).all()
+        return call_logs
 
     def find_last_call_log(self) -> CallLog | None:
         with transaction(self.Session()) as session:
