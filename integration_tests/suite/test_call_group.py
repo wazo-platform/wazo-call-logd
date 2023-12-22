@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from uuid import UUID
+
 from hamcrest import has_properties
 
 from .helpers.base import RawCelIntegrationTest, raw_cels

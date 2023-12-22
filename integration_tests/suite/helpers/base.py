@@ -6,8 +6,8 @@ import logging
 import os
 import random
 from contextlib import contextmanager
-from functools import wraps
 from datetime import datetime
+from functools import wraps
 from typing import ClassVar
 
 import pytz
@@ -44,13 +44,13 @@ from .constants import (
     OTHER_USER_TOKEN,
     OTHER_USER_UUID,
     SECONDS,
+    SERVICE_TENANT,
     TIME_FORMAT,
     USER_1_TOKEN,
     USER_1_UUID,
     USER_2_TOKEN,
     USER_2_UUID,
     USERS_TENANT,
-    SERVICE_TENANT,
     WAZO_UUID,
 )
 from .database import DbHelper

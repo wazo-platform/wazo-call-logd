@@ -26,9 +26,7 @@ class DatetimeRelativeMatcher(BaseMatcher[datetime]):
 
     def describe_mismatch(self, item: Any, mismatch_description: Description) -> None:
         if not isinstance(item, datetime):
-            super(DatetimeRelativeMatcher, self).describe_mismatch(
-                item, mismatch_description
-            )
+            super().describe_mismatch(item, mismatch_description)
         elif item.tzinfo and not self.reference.tzinfo:
             mismatch_description.append_description_of(item).append_text(
                 " is timezone aware but reference datetime is naive"
@@ -90,7 +88,7 @@ class DatetimeMatcher(BaseMatcher[datetime]):
 
     def describe_mismatch(self, item: Any, mismatch_description: Description) -> None:
         if not isinstance(item, datetime):
-            super(DatetimeMatcher, self).describe_mismatch(item, mismatch_description)
+            super().describe_mismatch(item, mismatch_description)
         else:
             attributes_mismatch = [
                 name for name, value in self._attributes_match(item).items() if value

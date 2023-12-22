@@ -1,8 +1,8 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
-import datetime as dt
 
+import datetime as dt
 from typing import Any, TypedDict
 
 import sqlalchemy as sa

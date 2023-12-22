@@ -4,15 +4,16 @@
 import argparse
 import logging
 
+from wazo_auth_client import Client as AuthClient
 from xivo import xivo_logging
 from xivo.chain_map import ChainMap
 from xivo.config_helper import read_config_file_hierarchy
 from xivo_dao import init_db_from_config
-from wazo_auth_client import Client as AuthClient
-from wazo_call_logd.database.models import Tenant
-from wazo_call_logd.database.helpers import new_db_session
-from wazo_call_logd.database.queries.tenant import TenantDAO
+
 from wazo_call_logd.config import DEFAULT_CONFIG, _load_key_file
+from wazo_call_logd.database.helpers import new_db_session
+from wazo_call_logd.database.models import Tenant
+from wazo_call_logd.database.queries.tenant import TenantDAO
 from wazo_call_logd.purger import CallLogsPurger, ExportsPurger, RecordingsPurger
 
 logger = logging.getLogger('wazo-call-logd-sync-db')
@@ -59,7 +60,7 @@ def main():
     del config['auth']['username']
     del config['auth']['password']
     tenants = AuthClient(token=token, **config['auth']).tenants.list()['items']
-    auth_tenants = set(str(tenant['uuid']) for tenant in tenants)
+    auth_tenants = {str(tenant['uuid']) for tenant in tenants}
     logger.debug('wazo-auth tenants: %s', auth_tenants)
 
     init_db_from_config(config)

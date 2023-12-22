@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt
+from datetime import timedelta
 from datetime import timedelta as td
 from functools import wraps
-from typing import Iterator, Literal, TypedDict, Union, cast
+from typing import Literal, TypedDict, Union, cast
 from uuid import UUID, uuid4
 
 import sqlalchemy as sa
-from sqlalchemy.orm import scoped_session, sessionmaker, joinedload, selectinload
 from sqlalchemy.orm import Session as BaseSession
+from sqlalchemy.orm import joinedload, scoped_session, selectinload, sessionmaker
 from sqlalchemy.sql import text
 from xivo_dao.alchemy.stat_agent import StatAgent
 from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic

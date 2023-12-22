@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from uuid import UUID
+
 from wazo_test_helpers.bus import BusClient
 
 

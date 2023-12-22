@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
-
 from typing import TypedDict
 from uuid import UUID
+
 import requests
 
 

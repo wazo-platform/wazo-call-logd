@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import dateutil
 from datetime import datetime, timedelta, tzinfo
 from typing import Any
 
+import dateutil
 from hamcrest.core.base_matcher import BaseMatcher, Description
 
 
@@ -43,9 +43,7 @@ class DatetimeRelativeMatcher(BaseMatcher[datetime]):
         try:
             item = dateutil.parser.isoparse(item)
         except ValueError:
-            super(DatetimeRelativeMatcher, self).describe_mismatch(
-                item, mismatch_description
-            )
+            super().describe_mismatch(item, mismatch_description)
             mismatch_description.append_text(
                 ' where {repr(item)} is of type {type(item)}'
             )
@@ -115,7 +113,7 @@ class DatetimeMatcher(BaseMatcher[datetime]):
 
     def describe_mismatch(self, item: Any, mismatch_description: Description) -> None:
         if not isinstance(item, datetime):
-            super(DatetimeMatcher, self).describe_mismatch(item, mismatch_description)
+            super().describe_mismatch(item, mismatch_description)
         else:
             attributes_mismatch = [
                 name for name, value in self._attributes_match(item).items() if value
