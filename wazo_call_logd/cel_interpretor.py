@@ -1,24 +1,23 @@
 # Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
-from datetime import datetime
 
 import json
 import logging
 import re
 import urllib.parse
-import dateutil
+from datetime import datetime
 from typing import Callable, TypedDict
 
+import dateutil
 from xivo.asterisk.line_identity import identity_from_channel
 from xivo_dao.alchemy.cel import CEL
 
 from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
+from .exceptions import CELInterpretationError
 from .raw_call_log import BridgeInfo, RawCallLog
 from .utils import find
-from .exceptions import CELInterpretationError
-
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +127,7 @@ def _extract_originate_all_lines_variables(extra: dict) -> OriginateAllLinesInfo
     if len(key_pairs) < 2:
         return None
     expected_keys = {'user_uuid', 'tenant_uuid'}
-    unexpected_keys = set(key for key, _ in key_pairs) - expected_keys
+    unexpected_keys = {key for key, _ in key_pairs} - expected_keys
     info = {key: value for key, value in key_pairs if key in expected_keys}
     if unexpected_keys:
         logger.warning('Unexpected keys(%s) in event data payload', unexpected_keys)

@@ -1,15 +1,16 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+
 import os
 import re
 from datetime import datetime
 from typing import TypedDict, cast
 from uuid import UUID
 
+import wazo_call_logd.database.queries.call_log as call_log_dao
 from wazo_call_logd.database.models import Export
 from wazo_call_logd.database.queries import DAO
-import wazo_call_logd.database.queries.call_log as call_log_dao
 from wazo_call_logd.datatypes import CallDirection, OrderDirection
 
 from .celery_tasks import export_recording_task

@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import logging
 from collections import namedtuple
+from collections.abc import Iterator
 from itertools import groupby
 from operator import attrgetter
-from typing import Iterator, Tuple
 
 from wazo_confd_client import Client as ConfdClient
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo_dao.alchemy.cel import CEL
-from wazo_call_logd.cel_interpretor import AbstractCELInterpretor
 
+from wazo_call_logd.cel_interpretor import AbstractCELInterpretor
 from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
@@ -158,7 +158,7 @@ class _ParticipantsProcessor:
 
 def _group_cels_by_shared_channels(
     cels: list[CEL],
-) -> Iterator[Tuple[set[str], list[CEL]]]:
+) -> Iterator[tuple[set[str], list[CEL]]]:
     cels = sorted(cels, key=attrgetter('linkedid'))
     linkedid_sequences = [
         (linkedid, list(cels))
@@ -171,7 +171,7 @@ def _group_cels_by_shared_channels(
     # then a and c are also correlated
     correlation_groups: list[(set[str], set[str], list[CEL])] = []
     for linkedid, cels in linkedid_sequences:
-        uniqueids = set(cel.uniqueid for cel in cels)
+        uniqueids = {cel.uniqueid for cel in cels}
         correlated_sequences = False
         for (
             correlated_uniqueids,
@@ -223,11 +223,11 @@ class CallLogsGenerator:
                 linkedids,
             )
 
-            terminated_links = set(
+            terminated_links = {
                 cel.linkedid
                 for cel in cels_by_call
                 if cel.eventtype == CELEventType.linkedid_end
-            )
+            }
 
             if linkedids != terminated_links:
                 unterminated_links = linkedids - terminated_links

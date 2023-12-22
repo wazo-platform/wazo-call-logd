@@ -14,9 +14,7 @@ from xivo.status import StatusAggregator, TokenStatus
 from xivo.token_renewer import TokenRenewer
 
 from wazo_call_logd import celery
-from wazo_call_logd.cel_interpretor import (
-    default_interpretors,
-)
+from wazo_call_logd.cel_interpretor import default_interpretors
 from wazo_call_logd.generator import CallLogsGenerator
 from wazo_call_logd.manager import CallLogsManager
 from wazo_call_logd.writer import CallLogsWriter

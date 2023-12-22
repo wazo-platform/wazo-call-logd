@@ -343,9 +343,9 @@ class TestGroupCelsBySharedChannels(TestCase):
         cel_sequence_2 = self._generate_cel_sequence(
             linkedid_2, lambda: next(uniqueid_cycle_2), cel_count=10
         )
-        assert set(cel.uniqueid for cel in cel_sequence_1) & set(
+        assert {cel.uniqueid for cel in cel_sequence_1} & {
             cel.uniqueid for cel in cel_sequence_2
-        )
+        }
 
         groups = list(_group_cels_by_shared_channels(cel_sequence_1 + cel_sequence_2))
 
@@ -378,7 +378,7 @@ class TestGroupCelsBySharedChannels(TestCase):
         cel_sequence_2 = self._generate_cel_sequence(
             linkedid_2, lambda: next(uniqueids), cel_count=10
         )
-        assert set(cel.uniqueid for cel in cel_sequence_1).isdisjoint(
+        assert {cel.uniqueid for cel in cel_sequence_1}.isdisjoint(
             cel.uniqueid for cel in cel_sequence_2
         )
 
@@ -422,7 +422,7 @@ class TestGroupCelsBySharedChannels(TestCase):
         cel_sequence_2 = self._generate_cel_sequence(
             linkedid_2, lambda: next(uniqueids), cel_count=10
         )
-        assert set(cel.uniqueid for cel in cel_sequence_1).isdisjoint(
+        assert {cel.uniqueid for cel in cel_sequence_1}.isdisjoint(
             cel.uniqueid for cel in cel_sequence_2
         )
 
@@ -434,10 +434,10 @@ class TestGroupCelsBySharedChannels(TestCase):
         cel_sequence_3 = self._generate_cel_sequence(
             linkedid_3, lambda: next(uniqueids), cel_count=10
         )
-        assert set(cel.uniqueid for cel in cel_sequence_1).isdisjoint(
+        assert {cel.uniqueid for cel in cel_sequence_1}.isdisjoint(
             cel.uniqueid for cel in cel_sequence_3
         )
-        assert set(cel.uniqueid for cel in cel_sequence_2).intersection(
+        assert {cel.uniqueid for cel in cel_sequence_2}.intersection(
             cel.uniqueid for cel in cel_sequence_3
         )
 

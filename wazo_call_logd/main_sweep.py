@@ -19,9 +19,7 @@ from xivo.xivo_logging import setup_logging, silence_loggers
 from xivo_dao import init_db_from_config
 
 from wazo_call_logd.bus import BusPublisher
-from wazo_call_logd.cel_interpretor import (
-    default_interpretors,
-)
+from wazo_call_logd.cel_interpretor import default_interpretors
 from wazo_call_logd.config import DEFAULT_CONFIG
 from wazo_call_logd.database.helpers import new_db_session
 from wazo_call_logd.database.queries import DAO

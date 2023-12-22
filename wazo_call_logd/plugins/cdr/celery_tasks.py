@@ -10,9 +10,9 @@ from email import utils as email_utils
 from email.message import EmailMessage
 from zipfile import ZIP_DEFLATED, ZipFile
 
+from celery import Task
 from wazo_auth_client import Client as AuthClient
 
-from celery import Task
 from wazo_call_logd.bus import BusPublisher
 from wazo_call_logd.email import TemplateFormatter
 from wazo_call_logd.plugins.export.notifier import ExportNotifier

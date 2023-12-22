@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 import multiprocessing
 
-from xivo.status import Status
-
 from celery import Celery
+from xivo.status import Status
 
 app = Celery()
 
@@ -36,9 +35,8 @@ def start_celery(argv: tuple[str, ...]) -> int | None:
     Until we can update to Celery >= 5.0.3 where it was re-added.
     https://github.com/celery/celery/pull/6481/files
     """
-    from click.exceptions import Exit
-
     from celery.bin.celery import celery
+    from click.exceptions import Exit
 
     celery.params[0].default = app
 

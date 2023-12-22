@@ -7,11 +7,7 @@ from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
-from .helpers.constants import (
-    MASTER_TENANT,
-    OTHER_TENANT,
-    UNKNOWN_UUID,
-)
+from .helpers.constants import MASTER_TENANT, OTHER_TENANT, UNKNOWN_UUID
 from .helpers.database import RetentionData, retention
 from .helpers.wait_strategy import CallLogdComponentsWaitStrategy
 

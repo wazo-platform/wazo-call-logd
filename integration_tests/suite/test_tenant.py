@@ -1,11 +1,12 @@
 # Copyright 2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import logging
 from contextlib import ExitStack, contextmanager
 from datetime import datetime as dt
 from datetime import timedelta as td
-import logging
 from types import SimpleNamespace
+
 from hamcrest import (
     assert_that,
     contains_exactly,
@@ -17,21 +18,15 @@ from hamcrest import (
 from wazo_test_helpers import until
 
 from .helpers.base import IntegrationTest
-from .helpers.constants import (
-    MASTER_TENANT,
-    OTHER_TENANT,
-    SERVICE_TENANT,
-    USERS_TENANT,
-)
+from .helpers.constants import MASTER_TENANT, OTHER_TENANT, SERVICE_TENANT, USERS_TENANT
 from .helpers.database import (
     DbHelper,
     call_log_fixture,
-    retention_fixture,
     export_fixture,
+    retention_fixture,
 )
 from .helpers.filesystem import file_fixture
 from .helpers.wait_strategy import CallLogdComponentsWaitStrategy
-
 
 logger = logging.getLogger(__name__)
 

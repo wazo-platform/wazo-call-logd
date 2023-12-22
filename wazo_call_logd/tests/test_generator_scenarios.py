@@ -1,32 +1,25 @@
 # Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
+
+import logging
 from dataclasses import dataclass, fields
 from datetime import datetime, timedelta
-
 from functools import wraps
-import logging
-
 from typing import get_type_hints
 from unittest import TestCase
 from unittest.mock import MagicMock, Mock, create_autospec
 from uuid import uuid4
 
-from hamcrest import (
-    assert_that,
-    contains_inanyorder,
-    has_properties,
-)
+from hamcrest import assert_that, contains_inanyorder, has_properties
 from requests import HTTPError
 
 # from xivo_dao.alchemy.cel import CEL
 from wazo_confd_client import Client as ConfdClient
-from wazo_call_logd.cel_interpretor import (
-    default_interpretors,
-    parse_eventtime,
-)
 
+from wazo_call_logd.cel_interpretor import default_interpretors, parse_eventtime
 from wazo_call_logd.generator import CallLogsGenerator
+
 from .helpers.hamcrest.datetime_close_to import datetime_close_to
 
 logger = logging.getLogger(__name__)
