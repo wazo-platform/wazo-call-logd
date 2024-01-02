@@ -35,10 +35,12 @@ logger = logging.getLogger(__name__)
 
 def main():
     _print_deprecation_notice()
-    setup_logging('/dev/null', debug=False)
+    parser = argparse.ArgumentParser(description='Call logs generator')
+    options = parse_args(parser)
+    setup_logging('/dev/null', debug=options.debug)
     silence_loggers(['urllib3.connectionpool'], level=logging.WARNING)
     with pidfile_context(PIDFILENAME):
-        _generate_call_logs()
+        _generate_call_logs(options)
 
 
 def _print_deprecation_notice():
@@ -49,21 +51,22 @@ def _print_deprecation_notice():
         )
 
 
-def _generate_call_logs():
-    parser = argparse.ArgumentParser(description='Call logs generator')
-    options = parse_args(parser)
-
+def _generate_call_logs(cli_options: argparse.Namespace):
     file_config = {
         key: value
         for key, value in read_config_file_hierarchy(DEFAULT_CONFIG).items()
         if key in ('confd', 'bus', 'auth', 'db_uri', 'cel_db_uri')
     }
+
     key_config = {}
     auth_username = file_config['auth'].get('username')
     auth_password = file_config['auth'].get('password')
     if not (auth_username and auth_password):
         key_config = load_key_file(ChainMap(file_config, DEFAULT_CONFIG))
+
     config = ChainMap(key_config, file_config, DEFAULT_CONFIG)
+    logger.debug('Config: %s', config)
+
     set_xivo_uuid(config, logger)
     init_db_from_config({'db_uri': config['cel_db_uri']})
     DBSession = new_db_session(config['db_uri'])
@@ -86,7 +89,7 @@ def _generate_call_logs():
     publisher = BusPublisher(service_uuid=config['uuid'], **config['bus'])
     manager = CallLogsManager(dao, generator, writer, publisher)
 
-    options = vars(options)
+    options = vars(cli_options)
     with token_renewer:
         if options.get('action') == 'delete':
             if options.get('all'):
@@ -100,7 +103,7 @@ def _generate_call_logs():
                 manager.generate_from_count(cel_count=options['cel_count'])
 
 
-def parse_args(parser):
+def parse_args(parser: argparse.ArgumentParser):
     group_action = parser.add_mutually_exclusive_group()
     group_action.add_argument(
         'action', nargs='?', choices=['delete', 'generate'], default='generate'
@@ -121,6 +124,14 @@ def parse_args(parser):
         help='Minimum number of CEL entries to process',
     )
     group.add_argument('-d', '--days', type=int, help='Number of days to process')
+    parser.add_argument(
+        '-D',
+        '--debug',
+        action='store_true',
+        dest='debug',
+        default=False,
+        help='Enable debug logging',
+    )
     return parser.parse_args()
 
 
