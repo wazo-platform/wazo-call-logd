@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -278,9 +278,11 @@ class CallLogDAO(BaseDAO):
             query = query.filter(CallLog.id.in_(call_log_ids))
             query.delete(synchronize_session=False)
 
-    def delete(self, older=None):
+    def delete(self, older=None) -> list[int]:
         with self.new_session() as session:
             query = session.query(CallLog)
             if older:
                 query = query.filter(CallLog.date >= older)
+            matched_rows = query.with_entities(CallLog.id).all()
             query.delete()
+            return [_id for (_id,) in matched_rows]
