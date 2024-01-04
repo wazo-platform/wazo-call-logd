@@ -1,4 +1,4 @@
-# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -23,7 +23,8 @@ class CallLogsManager:
 
     def delete_from_days(self, days):
         older = datetime.now() - timedelta(days=days)
-        self.dao.call_log.delete(older=older)
+        deleted_call_log_ids = self.dao.call_log.delete(older=older)
+        self.dao.cel.unassociate_all_from_call_log_ids(deleted_call_log_ids)
 
     def generate_from_days(self, days):
         older_cel = datetime.now() - timedelta(days=days)
