@@ -1,4 +1,4 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime as dt
@@ -269,11 +269,44 @@ LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    |
     @recording(call_log_id=1)
     @call_log(**cdr(id_=2, start_time=NOW - td(days=2)))
     @recording(call_log_id=2)
+    @raw_cels(
+        '''\
+        eventtype    | eventtime           | cid_name      | cid_num | exten | context | channame            |     uniqueid |     linkedid | call_log_id
+        CHAN_START   | 2013-01-01 08:00:00 | Bob Marley    |    1002 | 1001  | default | SIP/z77kvm-00000028 | 1375994780.1 | 1375994780.1 | 1
+        APP_START    | 2013-01-01 08:00:01 | Bob Marley    |    1002 | s     | user    | SIP/z77kvm-00000028 | 1375994780.1 | 1375994780.1 | 1
+        CHAN_START   | 2013-01-01 08:00:02 | Alice Aglisse |    1001 | s     | default | SIP/hg63xv-00000013 | 1375994780.2 | 1375994780.1 | 1
+        ANSWER       | 2013-01-01 08:00:03 | Alice Aglisse |    1001 | s     | default | SIP/hg63xv-00000013 | 1375994780.2 | 1375994780.1 | 1
+        ANSWER       | 2013-01-01 08:00:04 | Bob Marley    |    1002 | s     | user    | SIP/z77kvm-00000028 | 1375994780.1 | 1375994780.1 | 1
+        BRIDGE_START | 2013-01-01 08:00:05 | Bob Marley    |    1002 | s     | user    | SIP/z77kvm-00000028 | 1375994780.1 | 1375994780.1 | 1
+        BRIDGE_END   | 2013-01-01 08:00:06 | Bob Marley    |    1002 | s     | user    | SIP/z77kvm-00000028 | 1375994780.1 | 1375994780.1 | 1
+        HANGUP       | 2013-01-01 08:00:07 | Alice Aglisse |    1001 |       | user    | SIP/hg63xv-00000013 | 1375994780.2 | 1375994780.1 | 1
+        CHAN_END     | 2013-01-01 08:00:08 | Alice Aglisse |    1001 |       | user    | SIP/hg63xv-00000013 | 1375994780.2 | 1375994780.1 | 1
+        HANGUP       | 2013-01-01 08:00:09 | Bob Marley    |    1002 | s     | user    | SIP/z77kvm-00000028 | 1375994780.1 | 1375994780.1 | 1
+        CHAN_END     | 2013-01-01 08:00:10 | Bob Marley    |    1002 | s     | user    | SIP/z77kvm-00000028 | 1375994780.1 | 1375994780.1 | 1
+        LINKEDID_END | 2013-01-01 08:00:11 | Bob Marley    |    1002 | s     | user    | SIP/z77kvm-00000028 | 1375994780.1 | 1375994780.1 | 1
+        '''
+    )
     def test_delete_older(self, *_):
+        with self.cel_database.queries() as queries:
+            result = queries.find_all_cels()
+            assert len(result) == 12
+            assert all(cel.call_log_id == 1 for cel in result)
+
         self.docker_exec(['wazo-call-logs', '-D', 'delete', '--days', '1'])
 
-        result = self.session.query(CallLog).all()
-        assert_that(result, contains_exactly(has_properties(id=2)))
+        with self.database.queries() as queries:
+            result = queries.find_all_call_log()
+            assert_that(result, contains_exactly(has_properties(id=2)))
 
-        result = self.session.query(Recording).all()
-        assert_that(result, contains_exactly(has_properties(call_log_id=2)))
+            result = queries.find_all_recordings()
+            assert_that(result, contains_exactly(has_properties(call_log_id=2)))
+
+        unprocessed_cels = (
+            self.cel_session.query(CEL).filter(CEL.call_log_id.is_(None)).all()
+        )
+        assert unprocessed_cels
+        assert len(unprocessed_cels) == 12
+        assert all(
+            cel.call_log_id is None and cel.linkedid == '1375994780.1'
+            for cel in unprocessed_cels
+        )

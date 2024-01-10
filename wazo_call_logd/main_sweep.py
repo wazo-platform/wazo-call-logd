@@ -1,4 +1,4 @@
-# Copyright 2012-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2012-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -68,7 +68,9 @@ def _generate_call_logs(cli_options: argparse.Namespace):
     logger.debug('Config: %s', config)
 
     set_xivo_uuid(config, logger)
+    logger.debug('CEL database is %s', config['cel_db_uri'])
     init_db_from_config({'db_uri': config['cel_db_uri']})
+    logger.debug('call-logd database is %s', config['db_uri'])
     DBSession = new_db_session(config['db_uri'])
     CELDBSession = new_db_session(config['cel_db_uri'])
     dao = DAO(DBSession, CELDBSession)

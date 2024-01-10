@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime as dt
@@ -260,8 +260,8 @@ class TestCallLog(DBIntegrationTest):
     @call_log(**cdr(id_=2))
     @call_log(**cdr(id_=3))
     def test_delete_all(self):
-        self.dao.call_log.delete()
-
+        matched_call_logs = self.dao.call_log.delete()
+        assert {1, 2, 3} == set(matched_call_logs)
         result = self.session.query(CallLog).all()
         assert_that(result, empty())
 
@@ -270,7 +270,7 @@ class TestCallLog(DBIntegrationTest):
     @call_log(**cdr(id_=3, start_time=NOW))
     def test_delete_older(self):
         older = NOW - td(hours=1)
-        self.dao.call_log.delete(older=older)
-
+        matched_call_logs = self.dao.call_log.delete(older=older)
+        assert {1, 3} == set(matched_call_logs)
         result = self.session.query(CallLog).all()
         assert_that(result, contains_exactly(has_property('id', 2)))
