@@ -68,9 +68,9 @@ def _generate_call_logs(cli_options: argparse.Namespace):
     logger.debug('Config: %s', config)
 
     set_xivo_uuid(config, logger)
-    logger.info('CEL database is %s', config['cel_db_uri'])
+    logger.debug('CEL database is %s', config['cel_db_uri'])
     init_db_from_config({'db_uri': config['cel_db_uri']})
-    logger.info('call-logd database is %s', config['db_uri'])
+    logger.debug('call-logd database is %s', config['db_uri'])
     DBSession = new_db_session(config['db_uri'])
     CELDBSession = new_db_session(config['cel_db_uri'])
     dao = DAO(DBSession, CELDBSession)
