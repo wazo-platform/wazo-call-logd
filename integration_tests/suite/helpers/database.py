@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -16,12 +16,12 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import joinedload, scoped_session, selectinload, sessionmaker
 from sqlalchemy.sql import text
+from xivo_dao.alchemy.cel import CEL
 from xivo_dao.alchemy.stat_agent import StatAgent
 from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
 from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
 from xivo_dao.alchemy.stat_queue import StatQueue
 from xivo_dao.alchemy.stat_queue_periodic import StatQueuePeriodic
-from xivo_dao.alchemy.cel import CEL
 
 from wazo_call_logd.database.models import (
     Base,
