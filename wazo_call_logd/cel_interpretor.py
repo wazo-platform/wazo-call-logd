@@ -1,4 +1,4 @@
-# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -103,12 +103,11 @@ def _extract_user_missed_call_variables(extra):
 
 
 def _extract_call_log_destination_variables(extra: dict) -> dict:
-    extra_tokens = extra['extra'].split(',')
+    extra_tokens = extra['extra'].split(',', 2)
     extra_dict = dict()
     for token in extra_tokens:
-        key = token.split(': ')[0].strip()
-        value = token.split(': ')[1].strip()
-        extra_dict[key] = value
+        key, value = token.split(': ', 1)
+        extra_dict[key.strip()] = value.strip()
 
     return extra_dict
 
