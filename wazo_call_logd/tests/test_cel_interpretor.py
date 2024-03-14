@@ -1,4 +1,4 @@
-# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import urllib.parse
@@ -24,6 +24,7 @@ from ..cel_interpretor import (
     AbstractCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
+    _extract_call_log_destination_variables,
     _extract_user_missed_call_variables,
     _parse_wazo_originate_all_lines_extra,
     bridge_info,
@@ -553,3 +554,53 @@ class TestCallerCELInterpretor(TestCase):
                 )
             ),
         )
+
+
+class TestExtractCallLogDestinationVariables(TestCase):
+    def test_extraction(self):
+        samples = [
+            (
+                {
+                    'extra': 'type: user,uuid: 0890d326-d4a4-47d0-894b-16201ae1d911,name: Alice'
+                },
+                {
+                    'type': 'user',
+                    'uuid': '0890d326-d4a4-47d0-894b-16201ae1d911',
+                    'name': 'Alice',
+                },
+            ),
+            (
+                {
+                    'extra': 'type: meeting,uuid: 8018307b-d5b6-4d70-9267-ca5cf708c342,name: Meeting A,B'
+                },
+                {
+                    'type': 'meeting',
+                    'uuid': '8018307b-d5b6-4d70-9267-ca5cf708c342',
+                    'name': 'Meeting A,B',
+                },
+            ),
+            (
+                {
+                    "extra": "type: meeting,uuid: e2ff6005-ea3f-4e67-a760-45d20e8a8a16,name: Test meeting"
+                },
+                {
+                    'type': 'meeting',
+                    'uuid': 'e2ff6005-ea3f-4e67-a760-45d20e8a8a16',
+                    'name': 'Test meeting',
+                },
+            ),
+            (
+                {
+                    'extra': 'type: meeting,uuid: 8018307b-d5b6-4d70-9267-ca5cf708c342,name: Meeting: AB'
+                },
+                {
+                    'type': 'meeting',
+                    'uuid': '8018307b-d5b6-4d70-9267-ca5cf708c342',
+                    'name': 'Meeting: AB',
+                },
+            ),
+        ]
+
+        for extra, expected in samples:
+            result = _extract_call_log_destination_variables(extra)
+            assert_that(result, equal_to(expected), f'Failed for {extra}')
