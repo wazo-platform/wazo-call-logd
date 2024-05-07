@@ -599,6 +599,16 @@ class TestExtractCallLogDestinationVariables(TestCase):
                     'name': 'Meeting: AB',
                 },
             ),
+            (
+                {
+                    'extra': 'type: group,id: 7,name: grp-tenant-9fa27e38-907a-4345-a5b5-6f63b250bcf0'
+                },
+                {
+                    'type': 'group',
+                    'id': '7',
+                    'name': 'grp-tenant-9fa27e38-907a-4345-a5b5-6f63b250bcf0',
+                },
+            ),
         ]
 
         for extra, expected in samples:
