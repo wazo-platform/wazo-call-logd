@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import EXCLUDE, post_dump, post_load, pre_dump, pre_load
@@ -78,12 +78,18 @@ class DestinationUserDetails(BaseDestinationDetailsSchema):
     user_name = fields.String()
 
 
+class DestinationGroupDetails(BaseDestinationDetailsSchema):
+    group_name = fields.String()
+    group_id = fields.Integer()
+
+
 class DestinationDetailsField(fields.Nested):
     destination_details_schemas = {
         'conference': DestinationConferenceDetails,
         'meeting': DestinationMeetingDetails,
         'user': DestinationUserDetails,
         'unknown': DestinationUnknownDetails,
+        'group': DestinationGroupDetails,
     }
 
     def __init__(self, *args, **kwargs):
