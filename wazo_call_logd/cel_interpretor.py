@@ -594,7 +594,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
     def interpret_bridge_enter(self, cel: CEL, call: RawCallLog):
         extra_dict = extract_cel_extra(cel.extra)
-        bridge = extra_dict and bridge_info(extra_dict)
+        bridge = bridge_info(extra_dict) if extra_dict else None
         if not bridge:
             logger.error(
                 "Failed to extract expected bridge details from bridge_enter cel(id=%s)",
