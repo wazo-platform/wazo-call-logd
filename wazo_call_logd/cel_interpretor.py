@@ -103,7 +103,7 @@ def _extract_user_missed_call_variables(extra):
 
 
 def _extract_call_log_destination_variables(extra: dict) -> dict:
-    extra_tokens = extra['extra'].split(',')
+    extra_tokens = extra['extra'].split(',', 2)
     extra_dict = dict()
     for token in extra_tokens:
         key, value = token.split(': ', 1)
