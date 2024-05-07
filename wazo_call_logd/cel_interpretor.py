@@ -521,6 +521,19 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'meeting_uuid': extra_dict['uuid'],
                 'meeting_name': extra_dict['name'],
             }
+        elif extra_dict['type'] == 'group':
+            destination_details = {
+                'type': extra_dict['type'],
+                'group_id': extra_dict['id'],
+                'group_name': extra_dict['name'],
+            }
+            call.destination_name = destination_details['group_name']
+            logger.debug(
+                'Setting destination name %s from WAZO_CALL_LOG_DESTINATION(type=%s)',
+                call.destination_name,
+                extra_dict['type'],
+            )
+
         else:
             logger.error('unknown destination type')
             return call
