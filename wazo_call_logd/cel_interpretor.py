@@ -250,7 +250,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.destination_exten = call.extension_filter.filter(cel.exten)
         call.source_line_identity = identity_from_channel(cel.channame)
         call.raw_participants[cel.channame].update(role='source')
-
+        logger.debug(
+            'Setting source line identity info from chan_start event (id=%s)', cel.id
+        )
         return call
 
     def interpret_chan_end(self, cel, call):
@@ -267,8 +269,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_app_start(self, cel, call):
         call.user_field = cel.userfield
         if cel.cid_name != '':
+            logger.debug('Setting source name from app_start event (id=%s)', cel.id)
             call.source_name = cel.cid_name
         if cel.cid_num != '':
+            logger.debug('Setting source exten from app_start event (id=%s)', cel.id)
             call.source_exten = call.extension_filter.filter(cel.cid_num)
 
         return call
@@ -277,6 +281,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.destination_exten:
             call.destination_exten = cel.cid_num
         if not call.requested_exten:
+            logger.debug(
+                'Setting requested_exten from caller answer event (id=%s)', cel.id
+            )
             call.requested_exten = call.extension_filter.filter(cel.cid_num)
 
         return call
@@ -386,6 +393,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         _, name = extra['extra'].split('NAME: ', 1)
         call.destination_name = name
+        logger.debug(
+            'Identified destination name from WAZO_CONFERENCE(id=%s): %s', name, cel.id
+        )
         return call
 
     def interpret_wazo_meeting_name(self, cel, call):
@@ -397,6 +407,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             )
             return call
         call.destination_name = extra['extra']
+        logger.debug(
+            'Identified destination name from WAZO_MEETING_NAME(id=%s): %s',
+            call.destination_name,
+            cel.id,
+        )
+
         if MEETING_EXTENSION_REGEX.match(call.destination_exten):
             call.extension_filter.add_exten(call.destination_exten)
             # Don't call filter.filter_call() yet, to avoid empty exten during interpret.
@@ -473,8 +489,14 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         call.set_tenant_uuid(wazo_tenant_uuid)
         call.destination_exten = destination_exten
-        call.source_name = source_name
         call.destination_name = destination_name
+        logger.debug(
+            'Identified destination ("%s" <%s>) from WAZO_USER_MISSED_CALL(id=%s): %s',
+            call.destination_name,
+            call.destination_exten,
+            cel.id,
+        )
+        call.source_name = source_name
         call.source_exten = cel.cid_num
         call.source_line_identity = identity_from_channel(cel.channame)
         return call
@@ -485,6 +507,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             return call
 
         extra_dict = _extract_call_log_destination_variables(extra)
+        logger.debug('wazo_call_log_destination payload: %s', extra_dict)
 
         if 'type' not in extra_dict.keys():
             logger.error('required destination type is not found.')
@@ -506,14 +529,20 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "role": 'destination',
                 "name": destination_details['user_name'],
             }
-            call.participants_info.append(participant_info)
-            call.destination_name = participant_info["name"]
-
             logger.debug(
                 "identified destination participant (user_uuid=%s, user_name=%s)"
                 " from WAZO_CALL_LOG_DESTINATION",
                 destination_details['user_uuid'],
                 destination_details['user_name'],
+            )
+            call.participants_info.append(participant_info)
+
+            call.destination_name = participant_info["name"]
+            logger.debug(
+                'Setting destination name %s '
+                'from WAZO_CALL_LOG_DESTINATION(type=%s)',
+                call.destination_name,
+                extra_dict['type'],
             )
         elif extra_dict['type'] == 'meeting':
             destination_details = {
