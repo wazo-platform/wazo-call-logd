@@ -52,6 +52,9 @@ class RawCallLog:
         self.cel_ids: list[int] = []
         self.interpret_callee_bridge_enter: bool = True
         self.interpret_caller_xivo_user_fwd: bool = True
+        # flag to indicate if authoritative destination information is identified
+        # and should not be overwritten
+        self.authoritative_destination_info: bool = False
         self._tenant_uuid: str = None  # type: ignore[assignment]
         self.pending_wait_for_mobile_peers: set[str] = set()
         self.caller_id_by_channels: dict[str, tuple[str, str]] = {}

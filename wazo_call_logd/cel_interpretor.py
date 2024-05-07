@@ -529,7 +529,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             }
             call.destination_name = destination_details['group_name']
             logger.debug(
-                'Setting destination name %s from WAZO_CALL_LOG_DESTINATION(type=%s)',
+                'Setting destination name %s '
+                'from WAZO_CALL_LOG_DESTINATION(type=%s)',
                 call.destination_name,
                 extra_dict['type'],
             )
@@ -545,6 +546,13 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             )
             for key, value in destination_details.items()
         ]
+        # we assume information from WAZO_CALL_LOG_DESTINATION
+        # is authoritative and should not be overwritten by other events
+        logger.debug(
+            'setting destination info from WAZO_CALL_LOG_DESTINATION '
+            'as authoritative'
+        )
+        call.authoritative_destination_info = True
         return call
 
 
@@ -572,13 +580,31 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 call.pending_wait_for_mobile_peers.add(matches.group(1))
             elif self._is_a_pending_wait_for_mobile_cel(cel, call):
                 call.interpret_callee_bridge_enter = False
-                call.destination_exten = cel.cid_num
-                call.destination_name = cel.cid_name
+                if not call.authoritative_destination_info:
+                    call.destination_exten = cel.cid_num
+                    call.destination_name = cel.cid_name
+                    logger.debug(
+                        'Setting destination "%s" <%s> from mobile CHAN_START event(id=%s) '
+                        'of channel %s',
+                        call.destination_name,
+                        call.destination_exten,
+                        cel.id,
+                        cel.uniqueid,
+                    )
                 call.destination_internal_exten = cel.cid_num
                 call.destination_internal_context = cel.context
             else:
-                call.destination_exten = cel.cid_num
-                call.destination_name = cel.cid_name
+                if not call.authoritative_destination_info:
+                    call.destination_exten = cel.cid_num
+                    call.destination_name = cel.cid_name
+                    logger.debug(
+                        'Setting destination "%s" <%s> from CHAN_START event(id=%s) '
+                        'of channel %s',
+                        cel.cid_name,
+                        cel.cid_num,
+                        cel.id,
+                        cel.uniqueid,
+                    )
                 if not call.requested_name:
                     call.requested_name = cel.cid_name
 
@@ -624,7 +650,10 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         call.raw_participants[cel.channame].update(answered=True)
         # only consider the first bridge_enter for destination identity info
-        if call.interpret_callee_bridge_enter:
+        if (
+            call.interpret_callee_bridge_enter
+            and not call.authoritative_destination_info
+        ):
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
@@ -651,13 +680,23 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 if peer not in call.raw_participants:
                     continue
                 call.raw_participants[peer].update(answered=True)
-            cid_name, cid_number = call.caller_id_by_channels[cel.channame]
-            if cid_name:
-                call.destination_name = cid_name
-                call.destination_internal_name = cid_name
-            if cid_number:
-                call.destination_exten = cid_number
-                call.destination_internal_exten = cid_number
+            if not call.authoritative_destination_info:
+                cid_name, cid_number = call.caller_id_by_channels[cel.channame]
+                if cid_name:
+                    logger.debug(
+                        'Setting destination_name and destination_internal_name '
+                        'from channel %s callerid',
+                        cel.channame,
+                    )
+                    call.destination_name = cid_name
+                if cid_number:
+                    logger.debug(
+                        'Setting destination_exten and destination_internal_exten '
+                        'from channel %s callerid',
+                        cel.channame,
+                    )
+                    call.destination_exten = cid_number
+                    call.destination_internal_exten = cid_number
         else:
             logger.debug('callee(%s) entered bridge with no peer', cel.channame)
 
