@@ -679,11 +679,6 @@ class TestCallLogGenerationScenarios(TestCase):
         '''
     )
     def test_incoming_call_to_linear_ring_group(self, cels):
-        """
-        an incoming call to a linear ring group
-        no answer
-        """
-
         user_1_uuid = 'ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6'
         user_2_uuid = '31be0853-dde6-48cd-986d-85bc708754a1'
         user_3_uuid = '81ea4378-1647-4eae-ad83-26178bdc2890'
