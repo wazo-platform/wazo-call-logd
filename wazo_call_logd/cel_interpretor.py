@@ -554,7 +554,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             destination_details = {
                 'type': extra_dict['type'],
                 'group_id': extra_dict['id'],
-                'group_name': extra_dict['name'],
+                'group_name': extra_dict['label'],
             }
             call.destination_name = destination_details['group_name']
             logger.debug(
@@ -578,8 +578,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         # we assume information from WAZO_CALL_LOG_DESTINATION
         # is authoritative and should not be overwritten by other events
         logger.debug(
-            'setting destination info from WAZO_CALL_LOG_DESTINATION '
-            'as authoritative'
+            'setting destination info from WAZO_CALL_LOG_DESTINATION(id=%s) '
+            'as authoritative',
+            cel.id,
         )
         call.authoritative_destination_info = True
         return call
