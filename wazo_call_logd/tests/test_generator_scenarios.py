@@ -679,59 +679,6 @@ class TestCallLogGenerationScenarios(TestCase):
         '''
     )
     def test_incoming_call_to_linear_ring_group(self, cels):
-        user_1_uuid = 'ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6'
-        user_2_uuid = '31be0853-dde6-48cd-986d-85bc708754a1'
-        user_3_uuid = '81ea4378-1647-4eae-ad83-26178bdc2890'
-        tenant_uuid = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
-
-        users = [
-            mock_user(uuid=user_1_uuid, tenant_uuid=tenant_uuid, line_ids=["1"]),
-            mock_user(uuid=user_2_uuid, tenant_uuid=tenant_uuid, line_ids=["2"]),
-            mock_user(uuid=user_3_uuid, tenant_uuid=tenant_uuid, line_ids=["3"]),
-        ]
-
-        lines = [
-            mock_line(
-                id=1,
-                tenant_uuid=tenant_uuid,
-                users=[{'uuid': user_1_uuid}],
-                protocol='sip',
-                name='9EYlfTvB',
-                context='default-key-4wfgx-internal',
-            ),
-            mock_line(
-                id=2,
-                tenant_uuid=tenant_uuid,
-                users=[{'uuid': user_2_uuid}],
-                protocol='sip',
-                name='rNXlGVeY',
-                context='default-key-4wfgx-internal',
-            ),
-            mock_line(
-                id=3,
-                tenant_uuid=tenant_uuid,
-                users=[{'uuid': user_3_uuid}],
-                protocol='sip',
-                name='ceQsPZwZ',
-                context='default-key-4wfgx-internal',
-            ),
-        ]
-
-        contexts = [
-            mock_context(
-                id=1, name='default-key-4wfgx-internal', tenant_uuid=tenant_uuid
-            ),
-            mock_context(
-                id=2, name='default-key-4wfgx-from-extern', tenant_uuid=tenant_uuid
-            ),
-        ]
-
-        self.generator.confd = mock_confd_client(
-            users=users,
-            lines=lines,
-            contexts=contexts,
-        )
-
         call_logs = self.generator.call_logs_from_cel(cels)
         assert call_logs
         assert len(call_logs) == 1
