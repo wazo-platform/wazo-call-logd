@@ -1,4 +1,4 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -155,6 +155,8 @@ class Destination(Base):
                     'meeting_uuid',
                     'meeting_name',
                     'conference_id',
+                    'group_label',
+                    'group_id',
                 ]
             ),
             name='call_logd_call_log_destination_details_key_check',

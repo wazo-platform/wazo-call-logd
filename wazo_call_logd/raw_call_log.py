@@ -1,4 +1,4 @@
-# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -52,13 +52,16 @@ class RawCallLog:
         self.cel_ids: list[int] = []
         self.interpret_callee_bridge_enter: bool = True
         self.interpret_caller_xivo_user_fwd: bool = True
+        # flag to indicate if authoritative destination information is identified
+        # and should not be overwritten
+        self.authoritative_destination_info: bool = False
         self._tenant_uuid: str = None  # type: ignore[assignment]
         self.pending_wait_for_mobile_peers: set[str] = set()
-        self.caller_id_by_channels: dict[str, str] = {}
+        self.caller_id_by_channels: dict[str, tuple[str, str]] = {}
         self.extension_filter: ExtensionFilter = ExtensionFilter(
             DEFAULT_HIDDEN_EXTENSIONS
         )
-        self.bridges: dict[str, BridgeInfo] | None = {}
+        self.bridges: dict[str, BridgeInfo] = {}
         self.destination_details: list = []
 
     @property

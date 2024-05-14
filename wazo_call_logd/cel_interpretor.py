@@ -250,7 +250,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.destination_exten = call.extension_filter.filter(cel.exten)
         call.source_line_identity = identity_from_channel(cel.channame)
         call.raw_participants[cel.channame].update(role='source')
-
+        logger.debug(
+            'Setting source line identity info from chan_start event (id=%s)', cel.id
+        )
         return call
 
     def interpret_chan_end(self, cel, call):
@@ -267,8 +269,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_app_start(self, cel, call):
         call.user_field = cel.userfield
         if cel.cid_name != '':
+            logger.debug('Setting source name from app_start event (id=%s)', cel.id)
             call.source_name = cel.cid_name
         if cel.cid_num != '':
+            logger.debug('Setting source exten from app_start event (id=%s)', cel.id)
             call.source_exten = call.extension_filter.filter(cel.cid_num)
 
         return call
@@ -277,6 +281,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not call.destination_exten:
             call.destination_exten = cel.cid_num
         if not call.requested_exten:
+            logger.debug(
+                'Setting requested_exten from caller answer event (id=%s)', cel.id
+            )
             call.requested_exten = call.extension_filter.filter(cel.cid_num)
 
         return call
@@ -386,6 +393,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         _, name = extra['extra'].split('NAME: ', 1)
         call.destination_name = name
+        logger.debug(
+            'Identified destination name from WAZO_CONFERENCE(id=%s): %s', name, cel.id
+        )
         return call
 
     def interpret_wazo_meeting_name(self, cel, call):
@@ -397,6 +407,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             )
             return call
         call.destination_name = extra['extra']
+        logger.debug(
+            'Identified destination name from WAZO_MEETING_NAME(id=%s): %s',
+            call.destination_name,
+            cel.id,
+        )
+
         if MEETING_EXTENSION_REGEX.match(call.destination_exten):
             call.extension_filter.add_exten(call.destination_exten)
             # Don't call filter.filter_call() yet, to avoid empty exten during interpret.
@@ -473,8 +489,14 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         call.set_tenant_uuid(wazo_tenant_uuid)
         call.destination_exten = destination_exten
-        call.source_name = source_name
         call.destination_name = destination_name
+        logger.debug(
+            'Identified destination ("%s" <%s>) from WAZO_USER_MISSED_CALL(id=%s): %s',
+            call.destination_name,
+            call.destination_exten,
+            cel.id,
+        )
+        call.source_name = source_name
         call.source_exten = cel.cid_num
         call.source_line_identity = identity_from_channel(cel.channame)
         return call
@@ -485,6 +507,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             return call
 
         extra_dict = _extract_call_log_destination_variables(extra)
+        logger.debug('wazo_call_log_destination payload: %s', extra_dict)
 
         if 'type' not in extra_dict.keys():
             logger.error('required destination type is not found.')
@@ -506,14 +529,20 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "role": 'destination',
                 "name": destination_details['user_name'],
             }
-            call.participants_info.append(participant_info)
-            call.destination_name = participant_info["name"]
-
             logger.debug(
                 "identified destination participant (user_uuid=%s, user_name=%s)"
                 " from WAZO_CALL_LOG_DESTINATION",
                 destination_details['user_uuid'],
                 destination_details['user_name'],
+            )
+            call.participants_info.append(participant_info)
+
+            call.destination_name = participant_info["name"]
+            logger.debug(
+                'Setting destination name %s '
+                'from WAZO_CALL_LOG_DESTINATION(type=%s)',
+                call.destination_name,
+                extra_dict['type'],
             )
         elif extra_dict['type'] == 'meeting':
             destination_details = {
@@ -521,6 +550,20 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'meeting_uuid': extra_dict['uuid'],
                 'meeting_name': extra_dict['name'],
             }
+        elif extra_dict['type'] == 'group':
+            destination_details = {
+                'type': extra_dict['type'],
+                'group_id': extra_dict['id'],
+                'group_label': extra_dict['label'],
+            }
+            call.destination_name = destination_details['group_label']
+            logger.debug(
+                'Setting destination name %s '
+                'from WAZO_CALL_LOG_DESTINATION(type=%s)',
+                call.destination_name,
+                extra_dict['type'],
+            )
+
         else:
             logger.error('unknown destination type')
             return call
@@ -532,6 +575,14 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             )
             for key, value in destination_details.items()
         ]
+        # we assume information from WAZO_CALL_LOG_DESTINATION
+        # is authoritative and should not be overwritten by other events
+        logger.debug(
+            'setting destination info from WAZO_CALL_LOG_DESTINATION(id=%s) '
+            'as authoritative',
+            cel.id,
+        )
+        call.authoritative_destination_info = True
         return call
 
 
@@ -559,13 +610,31 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 call.pending_wait_for_mobile_peers.add(matches.group(1))
             elif self._is_a_pending_wait_for_mobile_cel(cel, call):
                 call.interpret_callee_bridge_enter = False
-                call.destination_exten = cel.cid_num
-                call.destination_name = cel.cid_name
+                if not call.authoritative_destination_info:
+                    call.destination_exten = cel.cid_num
+                    call.destination_name = cel.cid_name
+                    logger.debug(
+                        'Setting destination "%s" <%s> from mobile CHAN_START event(id=%s) '
+                        'of channel %s',
+                        call.destination_name,
+                        call.destination_exten,
+                        cel.id,
+                        cel.uniqueid,
+                    )
                 call.destination_internal_exten = cel.cid_num
                 call.destination_internal_context = cel.context
             else:
-                call.destination_exten = cel.cid_num
-                call.destination_name = cel.cid_name
+                if not call.authoritative_destination_info:
+                    call.destination_exten = cel.cid_num
+                    call.destination_name = cel.cid_name
+                    logger.debug(
+                        'Setting destination "%s" <%s> from CHAN_START event(id=%s) '
+                        'of channel %s',
+                        cel.cid_name,
+                        cel.cid_num,
+                        cel.id,
+                        cel.uniqueid,
+                    )
                 if not call.requested_name:
                     call.requested_name = cel.cid_name
 
@@ -594,7 +663,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
     def interpret_bridge_enter(self, cel: CEL, call: RawCallLog):
         extra_dict = extract_cel_extra(cel.extra)
-        bridge = extra_dict and bridge_info(extra_dict)
+        bridge = bridge_info(extra_dict) if extra_dict else None
         if not bridge:
             logger.error(
                 "Failed to extract expected bridge details from bridge_enter cel(id=%s)",
@@ -611,7 +680,10 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         call.raw_participants[cel.channame].update(answered=True)
         # only consider the first bridge_enter for destination identity info
-        if call.interpret_callee_bridge_enter:
+        if (
+            call.interpret_callee_bridge_enter
+            and not call.authoritative_destination_info
+        ):
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
             call.destination_name = cel.cid_name
@@ -638,13 +710,23 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 if peer not in call.raw_participants:
                     continue
                 call.raw_participants[peer].update(answered=True)
-            cid_name, cid_number = call.caller_id_by_channels[cel.channame]
-            if cid_name:
-                call.destination_name = cid_name
-                call.destination_internal_name = cid_name
-            if cid_number:
-                call.destination_exten = cid_number
-                call.destination_internal_exten = cid_number
+            if not call.authoritative_destination_info:
+                cid_name, cid_number = call.caller_id_by_channels[cel.channame]
+                if cid_name:
+                    logger.debug(
+                        'Setting destination_name and destination_internal_name '
+                        'from channel %s callerid',
+                        cel.channame,
+                    )
+                    call.destination_name = cid_name
+                if cid_number:
+                    logger.debug(
+                        'Setting destination_exten and destination_internal_exten '
+                        'from channel %s callerid',
+                        cel.channame,
+                    )
+                    call.destination_exten = cid_number
+                    call.destination_internal_exten = cid_number
         else:
             logger.debug('callee(%s) entered bridge with no peer', cel.channame)
 
