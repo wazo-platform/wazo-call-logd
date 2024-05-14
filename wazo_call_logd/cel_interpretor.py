@@ -554,9 +554,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             destination_details = {
                 'type': extra_dict['type'],
                 'group_id': extra_dict['id'],
-                'group_name': extra_dict['label'],
+                'group_label': extra_dict['label'],
             }
-            call.destination_name = destination_details['group_name']
+            call.destination_name = destination_details['group_label']
             logger.debug(
                 'Setting destination name %s '
                 'from WAZO_CALL_LOG_DESTINATION(type=%s)',

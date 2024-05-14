@@ -155,7 +155,7 @@ class Destination(Base):
                     'meeting_uuid',
                     'meeting_name',
                     'conference_id',
-                    'group_name',
+                    'group_label',
                     'group_id',
                 ]
             ),

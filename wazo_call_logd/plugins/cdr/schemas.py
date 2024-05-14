@@ -79,7 +79,7 @@ class DestinationUserDetails(BaseDestinationDetailsSchema):
 
 
 class DestinationGroupDetails(BaseDestinationDetailsSchema):
-    group_name = fields.String()
+    group_label = fields.String()
     group_id = fields.Integer()
 
 
