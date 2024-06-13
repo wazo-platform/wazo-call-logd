@@ -15,6 +15,7 @@ class RecordingSchema(Schema):
     end_time = fields.DateTime()
     deleted = fields.Boolean()
     filename = fields.String()
+    conversation_id = fields.String()
 
 
 class RecordingMediaDeleteRequestSchema(Schema):
@@ -119,6 +120,7 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
+    conversation_id = fields.String()
     destination_details = DestinationDetailsField(
         BaseDestinationDetailsSchema,
         attribute='destination_details_dict',
@@ -145,7 +147,9 @@ class CDRSchema(Schema):
     source_name = fields.String()
     source_user_uuid = fields.UUID()
     tags = fields.List(fields.String(), attribute='marshmallow_tags')
-    recordings = fields.Nested('RecordingSchema', many=True, default=[])
+    recordings = fields.Nested(
+        'RecordingSchema', many=True, default=[], exclude=('conversation_id',)
+    )
 
     @pre_dump
     def _compute_fields(self, data, **kwargs):

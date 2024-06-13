@@ -238,6 +238,10 @@ class CallLogsGenerator:
                 continue
 
             call_log = RawCallLog()
+
+            # NOTE (jalie): can use min() here because linkedid use same format
+            # Should probably do something in the case we have many linkedids
+            call_log.conversation_id = min(linkedids)
             call_log.cel_ids = [cel.id for cel in cels_by_call]
 
             interpretor = self._get_interpretor(cels_by_call)
