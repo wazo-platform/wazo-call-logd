@@ -1,4 +1,4 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ class ExportAuthResource(AuthResource):
         token_uuid = extract_token_id_from_query_or_header()
         if not token_uuid:
             raise tenant_helpers.InvalidToken()
-        g.token = tenant_helpers.Tokens(auth_client).get(token_uuid)
+        g.token = tenant_helpers.Token(token_uuid, auth_client)
         auth_client.set_token(g.token.uuid)
 
     def query_or_header_visible_tenants(self, recurse=True):
