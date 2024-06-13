@@ -246,6 +246,7 @@ class Recording(Base):
         ),
         nullable=False,
     )
+    conversation_id = association_proxy('call_log', 'conversation_id')
 
     @property
     def filename(self):

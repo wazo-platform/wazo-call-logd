@@ -8,7 +8,7 @@ from typing import Any, TypedDict
 import sqlalchemy as sa
 from sqlalchemy import and_, distinct, func, sql
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
-from sqlalchemy.orm import Query, joinedload, subqueryload
+from sqlalchemy.orm import Query, joinedload, subqueryload, selectinload
 
 from wazo_call_logd.datatypes import CallDirection, OrderDirection
 
@@ -51,6 +51,7 @@ class CallLogDAO(BaseDAO):
             query = session.query(CallLog).options(
                 joinedload('participants'),
                 joinedload('recordings'),
+                selectinload('recordings.call_log'),
                 subqueryload('source_participant'),
                 subqueryload('destination_participant'),
             )
@@ -113,6 +114,7 @@ class CallLogDAO(BaseDAO):
         query = query.options(
             joinedload('participants'),
             joinedload('recordings'),
+            selectinload('recordings.call_log'),
             subqueryload('source_participant'),
             subqueryload('destination_participant'),
         )
