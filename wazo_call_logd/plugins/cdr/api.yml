@@ -25,6 +25,7 @@ paths:
       - $ref: '#/parameters/distinct'
       - $ref: '#/parameters/recorded'
       - $ref: '#/parameters/format'
+      - $ref: '#/parameters/conversation_id'
       responses:
         '200':
           description: List CDR
@@ -347,6 +348,12 @@ parameters:
   email:
     name: email
     description: E-mail address
+    type: string
+    in: query
+  conversation_id:
+    name: conversation_id
+    description: Filter by conversation identifier
+    required: false
     type: string
     in: query
 definitions:

@@ -258,6 +258,9 @@ class CallLogDAO(BaseDAO):
             else:
                 query = query.filter(~CallLog.recordings.any())
 
+        if conversation_id := params.get('conversation_id'):
+            query = query.filter(CallLog.conversation_id == conversation_id)
+
         return query
 
     def create_from_list(self, call_logs):

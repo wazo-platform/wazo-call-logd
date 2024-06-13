@@ -7,6 +7,7 @@ from xivo.mallow.validate import Length, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
 
 NUMBER_REGEX = r'^_?[0-9]+_?$'
+CONVERSATION_ID_REGEX = r'^[0-9]+\.[0-9]+$'
 
 
 class RecordingSchema(Schema):
@@ -183,6 +184,12 @@ class CDRListRequestSchema(CDRListingBase):
     distinct = fields.String(validate=OneOf(['peer_exten']), missing=None)
     recorded = fields.Boolean(missing=None)
     format = fields.String(validate=OneOf(['csv', 'json']), missing=None)
+    conversation_id = fields.String(
+        validate=Regexp(
+            CONVERSATION_ID_REGEX, error='not a valid conversation identifier'
+        ),
+        missing=None,
+    )
 
     @post_load
     def map_order_field(self, in_data, **kwargs):
