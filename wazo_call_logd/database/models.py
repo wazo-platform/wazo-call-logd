@@ -60,6 +60,7 @@ class CallLog(Base):
     destination_line_identity = Column(String(255))
     direction = Column(String(255))
     user_field = Column(String(255))
+    conversation_id = Column(String(255), index=True)
 
     recordings = relationship(
         'Recording',
