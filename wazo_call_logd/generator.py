@@ -1,4 +1,4 @@
-# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -169,7 +169,7 @@ def _group_cels_by_shared_channels(
     # this correlation is transitive,
     # i.e. if a channel is shared between sequence a and b, and between b and c,
     # then a and c are also correlated
-    correlation_groups: list[(set[str], set[str], list[CEL])] = []
+    correlation_groups: list[tuple[set[str], set[str], list[CEL]]] = []
     for linkedid, cels in linkedid_sequences:
         uniqueids = {cel.uniqueid for cel in cels}
         correlated_sequences = False
