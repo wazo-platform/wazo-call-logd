@@ -1,5 +1,10 @@
 # Changelog
 
+## 24.09
+
+* The `/cdr` resource now includes the `conversation_id` field
+* The `/cdr` endpoint is now filterable by `conversation_id` value
+
 ## 23.01
 
 * Bus configuration keys changed:
