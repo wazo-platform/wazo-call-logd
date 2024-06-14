@@ -8,7 +8,7 @@ from typing import Any, TypedDict
 import sqlalchemy as sa
 from sqlalchemy import and_, distinct, func, sql
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
-from sqlalchemy.orm import Query, joinedload, subqueryload, selectinload
+from sqlalchemy.orm import Query, joinedload, selectinload, subqueryload
 
 from wazo_call_logd.datatypes import CallDirection, OrderDirection
 
