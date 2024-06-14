@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -2322,5 +2322,63 @@ class TestListCDR(IntegrationTest):
                 items=empty(),
                 filtered=0,
                 total=1,
+            ),
+        )
+
+    @call_log(**{'id': 1, 'conversation_id': '1718292864.11'})
+    @call_log(**{'id': 2, 'conversation_id': '1718286954.10'})
+    @call_log(**{'id': 3, 'conversation_id': '1718286868.8'})
+    def test_list_by_conversation_id(self):
+        assert_that(
+            self.call_logd.cdr.list(conversation_id='1718292864.11'),
+            has_entries(
+                items=has_items(
+                    has_entries(
+                        id=1,
+                        conversation_id='1718292864.11',
+                    )
+                ),
+                filtered=1,
+                total=3,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list(conversation_id='1718286868.8'),
+            has_entries(
+                items=has_items(
+                    has_entries(
+                        id=3,
+                        conversation_id='1718286868.8',
+                    ),
+                ),
+                filtered=1,
+                total=3,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list(conversation_id='1234567890.0'),
+            has_entries(
+                items=empty(),
+                filtered=0,
+                total=3,
+            ),
+        )
+
+        assert_that(
+            calling(self.call_logd.cdr.list).with_args(conversation_id='invalid.id'),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=400,
+                    message='Sent data is invalid',
+                    details=has_entries(
+                        conversation_id=has_items(
+                            has_entries(
+                                message='not a valid conversation identifier',
+                            ),
+                        ),
+                    ),
+                )
             ),
         )
