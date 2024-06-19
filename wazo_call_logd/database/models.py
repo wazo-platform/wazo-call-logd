@@ -60,6 +60,7 @@ class CallLog(Base):
     destination_line_identity = Column(String(255))
     direction = Column(String(255))
     user_field = Column(String(255))
+    conversation_id = Column(String(255))
 
     recordings = relationship(
         'Recording',
@@ -115,6 +116,7 @@ class CallLog(Base):
     cel_ids = []
 
     __table_args__ = (
+        Index('call_logd_call_log__idx__conversation_id', 'conversation_id'),
         CheckConstraint(
             direction.in_(['inbound', 'internal', 'outbound']),
             name='call_logd_call_log_direction_check',
@@ -245,6 +247,7 @@ class Recording(Base):
         ),
         nullable=False,
     )
+    conversation_id = association_proxy('call_log', 'conversation_id')
 
     @property
     def filename(self):

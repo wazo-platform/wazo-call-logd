@@ -50,6 +50,7 @@ class RawCallLog:
         self.participants: list[CallLogParticipant] = []
         self.recordings: list = []
         self.cel_ids: list[int] = []
+        self.conversation_id: str | None = None
         self.interpret_callee_bridge_enter: bool = True
         self.interpret_caller_xivo_user_fwd: bool = True
         # flag to indicate if authoritative destination information is identified
@@ -108,6 +109,7 @@ class RawCallLog:
             source_line_identity=self.source_line_identity,
             direction=self.direction,
             destination_details=self.destination_details,
+            conversation_id=self.conversation_id,
         )
         result.participants = self.participants
         result.cel_ids = self.cel_ids

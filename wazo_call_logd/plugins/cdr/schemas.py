@@ -7,6 +7,7 @@ from xivo.mallow.validate import Length, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
 
 NUMBER_REGEX = r'^_?[0-9]+_?$'
+CONVERSATION_ID_REGEX = r'^[0-9]+\.[0-9]+$'
 
 
 class RecordingSchema(Schema):
@@ -15,6 +16,7 @@ class RecordingSchema(Schema):
     end_time = fields.DateTime()
     deleted = fields.Boolean()
     filename = fields.String()
+    conversation_id = fields.String()
 
 
 class RecordingMediaDeleteRequestSchema(Schema):
@@ -119,6 +121,7 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
+    conversation_id = fields.String()
     destination_details = DestinationDetailsField(
         BaseDestinationDetailsSchema,
         attribute='destination_details_dict',
@@ -145,7 +148,9 @@ class CDRSchema(Schema):
     source_name = fields.String()
     source_user_uuid = fields.UUID()
     tags = fields.List(fields.String(), attribute='marshmallow_tags')
-    recordings = fields.Nested('RecordingSchema', many=True, default=[])
+    recordings = fields.Nested(
+        'RecordingSchema', many=True, default=[], exclude=('conversation_id',)
+    )
 
     @pre_dump
     def _compute_fields(self, data, **kwargs):
@@ -179,6 +184,12 @@ class CDRListRequestSchema(CDRListingBase):
     distinct = fields.String(validate=OneOf(['peer_exten']), missing=None)
     recorded = fields.Boolean(missing=None)
     format = fields.String(validate=OneOf(['csv', 'json']), missing=None)
+    conversation_id = fields.String(
+        validate=Regexp(
+            CONVERSATION_ID_REGEX, error='not a valid conversation identifier'
+        ),
+        missing=None,
+    )
 
     @post_load
     def map_order_field(self, in_data, **kwargs):
