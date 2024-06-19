@@ -1,4 +1,4 @@
-# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
@@ -338,7 +338,7 @@ class TestGroupCelsBySharedChannels(TestCase):
         linkedid_2 = '123456789.5'
         # uniqueids sequence for this linkedid overlap first sequence over the first 3 elements
         uniqueid_cycle_2 = itertools.cycle(
-            linkedid_1.replace('.0', f'.{i+3}') for i in range(5)
+            linkedid_1.replace('.0', f'.{i + 3}') for i in range(5)
         )
         cel_sequence_2 = self._generate_cel_sequence(
             linkedid_2, lambda: next(uniqueid_cycle_2), cel_count=10
