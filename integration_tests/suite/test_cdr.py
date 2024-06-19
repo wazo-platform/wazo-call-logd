@@ -2382,3 +2382,62 @@ class TestListCDR(IntegrationTest):
                 )
             ),
         )
+
+    @call_log(
+        **{'id': 10},
+        conversation_id='123.1',
+        tenant_uuid=str(USERS_TENANT),
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'}
+        ],
+    )
+    @call_log(
+        **{'id': 11},
+        conversation_id='123.2',
+        tenant_uuid=str(USERS_TENANT),
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'}
+        ],
+    )
+    @call_log(
+        **{'id': 12},
+        conversation_id='123.3',
+        tenant_uuid=str(USERS_TENANT),
+        participants=[
+            {'user_uuid': str(USER_2_UUID), 'line_id': '1', 'role': 'source'}
+        ],
+    )
+    def test_user_list_by_conversation_id(self):
+        self.call_logd.set_token(USER_1_TOKEN)
+
+        assert_that(
+            self.call_logd.cdr.list_from_user(conversation_id='123.1'),
+            has_entries(
+                items=has_items(
+                    has_entries(id=10),
+                ),
+                filtered=1,
+                total=2,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list_from_user(conversation_id='123.3'),
+            has_entries(
+                items=empty(),
+                filtered=0,
+                total=2,
+            ),
+        )
+
+        self.call_logd.set_token(USER_2_TOKEN)
+        assert_that(
+            self.call_logd.cdr.list_from_user(conversation_id='123.3'),
+            has_entries(
+                items=has_items(
+                    has_entries(id=12),
+                ),
+                filtered=1,
+                total=1,
+            ),
+        )
