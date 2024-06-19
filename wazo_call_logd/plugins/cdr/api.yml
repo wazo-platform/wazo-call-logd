@@ -181,6 +181,7 @@ paths:
       - $ref: '#/parameters/distinct'
       - $ref: '#/parameters/recorded'
       - $ref: '#/parameters/format'
+      - $ref: '#/parameters/conversation_id'
       responses:
         '200':
           description: List CDR
@@ -215,6 +216,7 @@ paths:
       - $ref: '#/parameters/distinct'
       - $ref: '#/parameters/recorded'
       - $ref: '#/parameters/format'
+      - $ref: '#/parameters/conversation_id'
       responses:
         '200':
           description: List CDR
@@ -447,6 +449,8 @@ definitions:
         - inbound
         - internal
         - outbound
+      conversation_id:
+        type: string
       tags:
         type: array
         items:
