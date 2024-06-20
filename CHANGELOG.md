@@ -2,7 +2,8 @@
 
 ## 24.09
 
-* The `CDR` resource now includes the `conversation_id` field
+* The `CDR` resource now includes the `conversation_id` field.
+* The `conversation_id` field is only valid for calls placed *after* the upgrade to 24.09.
 
 * The following endpoints are now filterable by `conversation_id` value
 
