@@ -5,7 +5,7 @@ https://github.com/wazo-platform/xivo-dao/archive/master.zip
 https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 https://github.com/wazo-platform/wazo-lib-rest-client/archive/master.zip  # from xivo-*-client
 alembic==1.4.3
-celery==5.0.0
+celery==5.0.0  # not compatible with pip >= 24
 cheroot==8.5.2
 flask-cors==3.0.9
 flask-restful==0.3.8
