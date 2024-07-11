@@ -491,7 +491,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.destination_exten = destination_exten
         call.destination_name = destination_name
         logger.debug(
-            'Identified destination ("%s" <%s>) from WAZO_USER_MISSED_CALL(id=%s): %s',
+            'Identified destination ("%s" <%s>) from WAZO_USER_MISSED_CALL(id=%s)',
             call.destination_name,
             call.destination_exten,
             cel.id,
