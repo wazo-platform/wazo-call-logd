@@ -37,7 +37,7 @@ class ExportAuthResource(AuthResource):
     def _set_up_token_helper_to_verify_tenant(self):
         token_uuid = extract_token_id_from_query_or_header()
         if not token_uuid:
-            raise tenant_helpers.InvalidToken()
+            raise tenant_helpers.InvalidTokenAPIException()
         g.token = tenant_helpers.Token(token_uuid, auth_client)
         auth_client.set_token(g.token.uuid)
 
