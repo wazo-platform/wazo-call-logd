@@ -1,16 +1,19 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
 import logging
 import os
 import random
+import string
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
 from typing import ClassVar
 
 import pytz
+import yaml
 from dateutil.relativedelta import relativedelta
 from hamcrest import assert_that
 from requests.packages import urllib3
@@ -55,7 +58,7 @@ from .constants import (
 )
 from .database import DbHelper
 from .email import EmailClient
-from .filesystem import FileSystemClient
+from .filesystem import FileSystemClient, file_fixture
 from .wait_strategy import CallLogdEverythingUpWaitStrategy
 
 urllib3.disable_warnings()
@@ -264,6 +267,31 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def make_email(cls):
         return EmailClient('smtp', execute=cls.docker_exec)
+
+    @classmethod
+    def restart_call_logd(cls):
+        cls.restart_service('call-logd')
+        cls.call_logd = cls.make_call_logd()
+        cls.filesystem = cls.make_filesystem()
+
+    @classmethod
+    @contextmanager
+    def call_logd_with_config(cls, config: dict) -> Generator[None, None, None]:
+        filesystem = FileSystemClient(
+            execute=cls.docker_exec,
+            service_name='call-logd',
+            root=True,
+        )
+        name = ''.join(random.choice(string.ascii_lowercase) for _ in range(6))
+        config_file = f'/etc/wazo-call-logd/conf.d/10-{name}.yml'
+        content = yaml.dump(config)
+        try:
+            with file_fixture(filesystem, config_file, content=content):
+                cls.restart_call_logd()
+                yield
+        finally:
+            cls.restart_call_logd()
+            cls.wait_strategy.wait(cls)
 
     @contextmanager
     def auth_stopped(self):

@@ -1,4 +1,4 @@
-# Copyright 2021-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -15,7 +15,8 @@ class FileSystemClient:
         self.root = root
 
     def create_file(self, path, content='content', mode='666', root=False):
-        command = ['sh', '-c', f'echo -n {content} > {path}']
+        # FIXME: use Filesystem from wazo-test-helpers
+        command = ['sh', '-c', f'head -c -1 <<EOF > {path}\n{content}\nEOF']
         self.execute(command, service_name=self.service_name)
         command = ['chmod', mode, path]
         self.execute(command, service_name=self.service_name)

@@ -1,4 +1,4 @@
-# Copyright 2015-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2015-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -6,17 +6,19 @@ import logging
 from flask import request
 from requests import HTTPError
 from werkzeug.local import LocalProxy as Proxy
-from xivo import auth_verifier
+from xivo.auth_verifier import required_acl, required_tenant
+from xivo.flask.headers import extract_token_id_from_query_or_header
 from xivo.rest_api_helpers import APIException
 
 from .exceptions import TokenWithUserUUIDRequiredError
 from .http_server import app
 
 logger = logging.getLogger(__name__)
-required_acl = auth_verifier.required_acl
-extract_token_id_from_query_or_header = (
-    auth_verifier.extract_token_id_from_query_or_header
-)
+
+__all__ = [
+    'required_acl',
+    'extract_token_id_from_query_or_header',
+]
 
 
 class _NotInitializedException(APIException):
@@ -31,7 +33,7 @@ def init_master_tenant(token):
 
 
 def required_master_tenant():
-    return auth_verifier.required_tenant(master_tenant_uuid)
+    return required_tenant(master_tenant_uuid)
 
 
 def _get_master_tenant_uuid():
