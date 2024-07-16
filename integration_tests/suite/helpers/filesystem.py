@@ -16,7 +16,7 @@ class FileSystemClient:
 
     def create_file(self, path, content='content', mode='666', root=False):
         # FIXME: use Filesystem from wazo-test-helpers
-        command = ['sh', '-c', f'cat <<EOF > {path}\n{content}\nEOF']
+        command = ['sh', '-c', f'head -c -1 <<EOF > {path}\n{content}\nEOF']
         self.execute(command, service_name=self.service_name)
         command = ['chmod', mode, path]
         self.execute(command, service_name=self.service_name)
