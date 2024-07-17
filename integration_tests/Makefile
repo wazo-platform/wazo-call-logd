@@ -13,7 +13,7 @@ purge-db:
 	docker build --no-cache -t wazo-purge-db-test -f docker/Dockerfile-purge-db-test ..
 
 call-logd:
-	docker build -t wazoplatform/wazo-call-logd ..
+	docker build --no-cache -t wazoplatform/wazo-call-logd ..
 	docker build --no-cache -t wazo-call-logd-test -f docker/Dockerfile-call-logd-test ..
 
 cel-db:
