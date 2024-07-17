@@ -1,4 +1,4 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, contains, has_entries, has_properties
@@ -52,7 +52,7 @@ class TestRetention(IntegrationTest):
                 tenant_uuid=str(UNKNOWN_UUID)
             ),
             raises(CallLogdError).matching(
-                has_properties(status_code=401, error_id='unauthorized-tenant')
+                has_properties(status_code=401, error_id='unauthorized')
             ),
         )
 
@@ -78,7 +78,7 @@ class TestRetention(IntegrationTest):
                 tenant_uuid=str(UNKNOWN_UUID)
             ),
             raises(CallLogdError).matching(
-                has_properties(status_code=401, error_id='unauthorized-tenant')
+                has_properties(status_code=401, error_id='unauthorized')
             ),
         )
 
