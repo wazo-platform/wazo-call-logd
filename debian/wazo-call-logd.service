@@ -10,6 +10,7 @@ ExecStartPre=/usr/bin/install -d -o wazo-call-logd -g wazo-call-logd /run/wazo-c
 ExecStart=/usr/bin/wazo-call-logd
 Restart=on-failure
 RestartSec=5
+SyslogIdentifier=wazo-call-logd
 
 [Install]
 WantedBy=multi-user.target

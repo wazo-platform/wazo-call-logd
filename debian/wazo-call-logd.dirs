@@ -2,3 +2,4 @@ etc/wazo-call-logd/conf.d
 etc/nginx/locations/https-enabled
 var/lib/wazo-call-logd/exports
 var/lib/wazo-call-logd/templates
+etc/rsyslog.d
