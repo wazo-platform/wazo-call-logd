@@ -20,6 +20,7 @@ from hamcrest import (
     has_key,
     has_length,
     has_properties,
+    not_,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
 from wazo_test_helpers.auth import MockUserToken
@@ -412,6 +413,7 @@ class TestGetCDRId(IntegrationTest):
                         end_time='2017-03-23T00:01:26+00:00',
                         deleted=False,
                         filename=f'2017-03-23T00_01_01UTC-12-{recording_uuid_1}.wav',
+                        storage_path='/tmp/foobar.wav',
                     ),
                     has_entries(
                         uuid=uuid_(),
@@ -419,6 +421,7 @@ class TestGetCDRId(IntegrationTest):
                         end_time='2017-03-23T00:02:26+00:00',
                         deleted=True,
                         filename=f'2017-03-23T00_01_27UTC-12-{recording_uuid_2}.wav',
+                        storage_path=None,
                     ),
                 ),
             ),
@@ -498,11 +501,13 @@ class TestGetCDRId(IntegrationTest):
                 recording_1_end_time='2017-03-23T00:01:26+00:00',
                 recording_1_deleted='False',
                 recording_1_filename=f'2017-03-23T00_01_01UTC-12-{recording_uuid_1}.wav',
+                recording_1_storage_path='/tmp/foobar.wav',
                 recording_2_uuid=uuid_(),
                 recording_2_start_time='2017-03-23T00:01:27+00:00',
                 recording_2_end_time='2017-03-23T00:02:26+00:00',
                 recording_2_deleted='True',
                 recording_2_filename=f'2017-03-23T00_01_27UTC-12-{recording_uuid_2}.wav',
+                recording_2_storage_path='',
             ),
         )
 
@@ -874,6 +879,7 @@ class TestListCDR(IntegrationTest):
                                 start_time='2017-03-23T00:01:01+00:00',
                                 end_time='2017-03-23T00:02:26+00:00',
                                 deleted=False,
+                                storage_path='/tmp/foobar.wav',
                             )
                         ),
                     ),
@@ -963,6 +969,7 @@ class TestListCDR(IntegrationTest):
                     recording_1_start_time='2017-03-23T00:01:01+00:00',
                     recording_1_end_time='2017-03-23T00:01:26+00:00',
                     recording_1_deleted='False',
+                    recording_1_storage_path='/tmp/foobar.wav',
                 ),
                 has_entries(
                     id='34',
@@ -1669,7 +1676,7 @@ class TestListCDR(IntegrationTest):
                 filtered=1,
                 total=3,
                 items=contains_inanyorder(
-                    has_entries(id=1),
+                    all_of(has_entries(id=1), not_(has_key('storage_path')))
                 ),
             ),
         )

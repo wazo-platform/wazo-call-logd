@@ -1,5 +1,9 @@
 # Changelog
 
+## 24.11
+
+* The CDR recording resource now includes the `storage_path` field.
+
 ## 24.09
 
 * The `CDR` resource now includes the `conversation_id` field.

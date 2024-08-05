@@ -17,6 +17,7 @@ class RecordingSchema(Schema):
     deleted = fields.Boolean()
     filename = fields.String()
     conversation_id = fields.String()
+    storage_path = fields.String(attribute='path')
 
 
 class RecordingMediaDeleteRequestSchema(Schema):
@@ -173,6 +174,15 @@ class CDRSchema(Schema):
         return data
 
 
+class UserCDRSchema(CDRSchema):
+    recordings = fields.Nested(
+        'RecordingSchema',
+        many=True,
+        default=[],
+        exclude=('conversation_id', 'storage_path'),
+    )
+
+
 class CDRListRequestSchema(CDRListingBase):
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
     order = fields.String(
@@ -203,3 +213,7 @@ class CDRSchemaList(Schema):
     items = fields.Nested(CDRSchema, many=True)
     total = fields.Integer()
     filtered = fields.Integer()
+
+
+class UserCDRSchemaList(CDRSchemaList):
+    items = fields.Nested(UserCDRSchema, many=True)
