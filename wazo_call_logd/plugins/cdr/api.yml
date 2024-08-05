@@ -472,5 +472,10 @@ definitions:
         format: date-time
       deleted:
         type: boolean
+        description: Was the recording file deleted from the storage?
       filename:
         type: string
+        description: The file name suggestion when downloading the file.
+      storage_path:
+        type: string
+        description: The full path to the recording file, on the server file system.
