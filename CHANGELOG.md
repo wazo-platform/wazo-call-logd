@@ -1,5 +1,9 @@
 # Changelog
 
+## 24.12
+
+* The CDR recording resource attribute `uuid` is now equal to the recording filename.
+
 ## 24.09
 
 * The `CDR` resource now includes the `conversation_id` field.
