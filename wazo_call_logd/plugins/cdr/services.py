@@ -69,8 +69,8 @@ class CDRService:
             'total': count['total'],
         }
 
-    def get(self, cdr_id, tenant_uuids):
-        return self._dao.call_log.get_by_id(cdr_id, tenant_uuids)
+    def get(self, cdr_id, tenant_uuids, user_uuids=None):
+        return self._dao.call_log.get_by_id(cdr_id, tenant_uuids, user_uuids)
 
 
 class RecordingService:

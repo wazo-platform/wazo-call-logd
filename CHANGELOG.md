@@ -3,6 +3,9 @@
 ## 24.12
 
 * The CDR recording resource attribute `uuid` is now equal to the recording filename.
+* New endpoint to allow users to get CDR recording media:
+
+  * `GET /users/me/cdr/<cdr_id>/recordings/<recording_uuid>/media`
 
 ## 24.09
 

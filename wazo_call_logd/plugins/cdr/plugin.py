@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from wazo_auth_client import Client as AuthClient
@@ -11,6 +11,7 @@ from .http import (
     CDRUserMeResource,
     CDRUserResource,
     RecordingMediaItemResource,
+    RecordingMediaItemUserMeResource,
     RecordingsMediaExportResource,
     RecordingsMediaResource,
 )
@@ -63,4 +64,9 @@ class Plugin:
             CDRUserMeResource,
             '/users/me/cdr',
             resource_class_args=[auth_client, cdr_service],
+        )
+        api.add_resource(
+            RecordingMediaItemUserMeResource,
+            '/users/me/cdr/<int:cdr_id>/recordings/<uuid:recording_uuid>/media',
+            resource_class_args=[recording_service, cdr_service, auth_client],
         )

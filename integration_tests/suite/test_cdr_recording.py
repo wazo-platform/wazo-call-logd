@@ -1,4 +1,4 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -18,6 +18,13 @@ from .helpers.base import IntegrationTest
 from .helpers.constants import MASTER_TENANT as MAIN_TENANT
 from .helpers.constants import MASTER_TOKEN as MAIN_TOKEN
 from .helpers.constants import OTHER_TENANT as SUB_TENANT
+from .helpers.constants import (
+    USER_1_TOKEN,
+    USER_1_UUID,
+    USER_2_UUID,
+    USER_3_UUID,
+    USERS_TENANT,
+)
 from .helpers.database import call_log
 from .helpers.filesystem import file_
 
@@ -147,6 +154,71 @@ class TestRecording(IntegrationTest):
         params = {'tenant': str(SUB_TENANT), 'token': MAIN_TOKEN}
         response = requests.get(api_url, params=params)
         assert_that(response.status_code, equal_to(404))
+
+    @call_log(
+        **{'id': 1},
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'role': 'source'},
+            {'user_uuid': str(USER_2_UUID), 'role': 'destination'},
+        ],
+        recordings=[{'path': '/tmp/foobar.wav'}],
+        tenant_uuid=str(USERS_TENANT),
+    )
+    @call_log(
+        **{'id': 2},
+        participants=[
+            {'user_uuid': str(USER_2_UUID), 'role': 'source'},
+            {'user_uuid': str(USER_3_UUID), 'role': 'destination'},
+        ],
+        recordings=[{'path': '/tmp/barbaz.wav'}],
+        tenant_uuid=str(USERS_TENANT),
+    )
+    @file_('/tmp/foobar.wav', content='my-recording-content-1')
+    @file_('/tmp/barbaz.wav', content='my-recording-content-2')
+    def test_get_media_user(self):
+        recording_1 = self.call_logd.cdr.get_by_id(1)['recordings'][0]
+        recording_1_uuid = recording_1['uuid']
+        recording_2_uuid = self.call_logd.cdr.get_by_id(2)['recordings'][0]['uuid']
+        self.call_logd.set_token(USER_1_TOKEN)
+
+        # get media from correct recording = OK
+        response = self.call_logd.cdr.get_recording_media_from_user(1, recording_1_uuid)
+        expected_filename = recording_1['filename']
+        assert_that(response.text, equal_to('my-recording-content-1'))
+        assert_that(
+            response.headers['Content-Disposition'],
+            equal_to(f'attachment; filename={expected_filename}'),
+        )
+
+        # get media with wrong tenant = error
+        assert_that(
+            calling(self.call_logd.cdr.get_recording_media_from_user).with_args(
+                1, recording_1_uuid, tenant_uuid=str(SUB_TENANT)
+            ),
+            raises(CallLogdError).matching(
+                has_properties(status_code=401, error_id='unauthorized')
+            ),
+        )
+
+        # get media from wrong CDR ID = error
+        assert_that(
+            calling(self.call_logd.cdr.get_recording_media_from_user).with_args(
+                2, recording_1_uuid
+            ),
+            raises(CallLogdError).matching(
+                has_properties(status_code=404, error_id='cdr-not-found-with-given-id')
+            ),
+        )
+
+        # get media from wrong recording UUID = error
+        assert_that(
+            calling(self.call_logd.cdr.get_recording_media_from_user).with_args(
+                1, recording_2_uuid
+            ),
+            raises(CallLogdError).matching(
+                has_properties(status_code=404, error_id='recording-not-found')
+            ),
+        )
 
     # Deleting
 

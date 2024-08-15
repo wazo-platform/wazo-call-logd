@@ -354,3 +354,43 @@ class RecordingMediaItemResource(CDRAuthResource):
                 'Recording file already deleted: "%s". Marking as such.', recording.path
             )
         return '', 204
+
+
+class RecordingMediaItemUserMeResource(CDRAuthResource):
+    def __init__(self, recording_service, cdr_service, auth_client):
+        super().__init__(cdr_service)
+        self.auth_client = auth_client
+        self.recording_service = recording_service
+
+    @required_acl(
+        'call-logd.users.me.cdr.{cdr_id}.recordings.{recording_uuid}.media.read',
+    )
+    def get(self, cdr_id, recording_uuid):
+        user_uuid = get_token_pbx_user_uuid_from_request(self.auth_client)
+        tenant_uuids = self.query_or_header_visible_tenants(recurse=False)
+        cdr = self.cdr_service.get(cdr_id, tenant_uuids, user_uuids=[user_uuid])
+        if not cdr:
+            raise CDRNotFoundException(details={'cdr_id': cdr_id})
+
+        recording = self.recording_service.find_by(
+            uuid=recording_uuid, call_log_id=cdr_id
+        )
+        if not recording:
+            raise RecordingNotFoundException(recording_uuid)
+
+        if not recording.path:
+            raise RecordingMediaNotFoundException(recording_uuid)
+
+        try:
+            return send_file(
+                recording.path,
+                mimetype='audio/wav',
+                as_attachment=True,
+                attachment_filename=recording.filename,
+            )
+        except PermissionError:
+            logger.error('Permission denied: "%s"', recording.path)
+            raise RecordingMediaFSPermissionException(recording_uuid, recording.path)
+        except FileNotFoundError:
+            logger.error('Recording file not found: "%s"', recording.path)
+            raise RecordingMediaFSNotFoundException(recording_uuid, recording.path)

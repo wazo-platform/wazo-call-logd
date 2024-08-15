@@ -227,6 +227,23 @@ paths:
       produces:
         - application/json
         - text/csv; charset=utf-8
+  /users/me/cdr/{cdr_id}/recordings/{recording_uuid}/media:
+    get:
+      summary: Get a recording media from a user
+      description: |
+        **Required ACL:** `call-logd.users.me.cdr.{cdr_id}.recordings.{recording_uuid}.media.read`
+      tags:
+        - cdr
+      parameters:
+        - $ref: '#/parameters/cdr_id'
+        - $ref: '#/parameters/recording_uuid'
+      responses:
+        '200':
+          description: Get a recording media
+        '404':
+          $ref: '#/responses/NotFoundError'
+      produces:
+      - audio/wav
 
 parameters:
   format:
@@ -339,7 +356,7 @@ parameters:
     name: recording_uuid
     description: UUID of the recording
     required: true
-    type: integer
+    type: string
     in: path
   recorded:
     name: recorded
