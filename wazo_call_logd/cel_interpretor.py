@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import urllib.parse
+import uuid
 from datetime import datetime
 from typing import Callable, TypedDict
 
@@ -26,6 +27,14 @@ WAIT_FOR_MOBILE_REGEX = re.compile(r'^Local/(\S+)@wazo_wait_for_registration-\S+
 MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
 KEY_PAIR_SEQ_REGEX = re.compile(r'\s*(\w+):\s*([^,:]+),?')
+UUID_REGEX = re.compile(
+    r'[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}'
+)
+# The recording path regex must be kept synced with CALL_RECORDING_FILENAME_TEMPLATE
+# in wazo-calld and wazo-agid
+RECORDING_PATH_REGEX = re.compile(
+    rf'/var/lib/wazo/sounds/tenants/({UUID_REGEX.pattern})/monitor/({UUID_REGEX.pattern}).wav'
+)
 
 
 def default_interpretors() -> list[AbstractCELInterpretor]:
@@ -337,6 +346,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             path=extra['filename'],
             mixmonitor_id=extra['mixmonitor_id'],
         )
+        if matches := RECORDING_PATH_REGEX.match(extra['filename']):
+            recording_uuid_str = matches.group(2)
+            recording.uuid = uuid.UUID(recording_uuid_str)
+
         call.recordings.append(recording)
         return call
 
@@ -742,6 +755,10 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             path=extra['filename'],
             mixmonitor_id=extra['mixmonitor_id'],
         )
+        if matches := RECORDING_PATH_REGEX.match(extra['filename']):
+            recording_uuid_str = matches.group(2)
+            recording.uuid = uuid.UUID(recording_uuid_str)
+
         call.recordings.append(recording)
         return call
 

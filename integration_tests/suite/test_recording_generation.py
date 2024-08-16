@@ -1,6 +1,7 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import uuid
 from datetime import datetime as dt
 from datetime import timezone
 
@@ -22,7 +23,7 @@ eventtype        | eventtime              | channame            | uniqueid      
 CHAN_START       | 2021-01-01 00:00:00.01 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 APP_START        | 2021-01-01 00:00:00.02 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 CHAN_START       | 2021-01-01 00:00:00.03 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
-MIXMONITOR_START | 2021-01-01 00:00:00.04 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/foobar.wav","mixmonitor_id":"0x000000000001"}
+MIXMONITOR_START | 2021-01-01 00:00:00.04 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/var/lib/wazo/sounds/tenants/54eb71f8-1f4b-4ae4-8730-638062fbe521/monitor/aaf26cdf-7e59-4630-b703-9c0bfb7c158c.wav","mixmonitor_id":"0x000000000001"}
 ANSWER           | 2021-01-01 00:00:00.05 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
 ANSWER           | 2021-01-01 00:00:00.06 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
 BRIDGE_ENTER     | 2021-01-01 00:00:00.07 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
@@ -43,7 +44,8 @@ LINKEDID_END     | 2021-01-01 00:00:00.16 | SIP/aaaaaa-00000001 | 1000000000.01 
             has_properties(
                 start_time=dt.fromisoformat('2021-01-01 00:00:00.040000+00:00'),
                 end_time=dt.fromisoformat('2021-01-01 00:00:00.090000+00:00'),
-                path='/tmp/foobar.wav',
+                path='/var/lib/wazo/sounds/tenants/54eb71f8-1f4b-4ae4-8730-638062fbe521/monitor/aaf26cdf-7e59-4630-b703-9c0bfb7c158c.wav',
+                uuid=uuid.UUID('aaf26cdf-7e59-4630-b703-9c0bfb7c158c'),
             ),
         )
 
