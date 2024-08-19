@@ -46,7 +46,7 @@ class CallLogDAO(BaseDAO):
         CallLog.destination_exten,
     )
 
-    def get_by_id(self, cdr_id, tenant_uuids):
+    def get_by_id(self, cdr_id, tenant_uuids, user_uuids):
         with self.new_session() as session:
             query = session.query(CallLog).options(
                 joinedload('participants'),
@@ -55,7 +55,10 @@ class CallLogDAO(BaseDAO):
                 subqueryload('source_participant'),
                 subqueryload('destination_participant'),
             )
-            query = self._apply_filters(query, {'tenant_uuids': tenant_uuids})
+            filters = {'tenant_uuids': tenant_uuids}
+            if user_uuids:
+                filters |= {'user_uuids': user_uuids}
+            query = self._apply_filters(query, filters)
             query = query.filter(CallLog.id == cdr_id)
             cdr = query.one_or_none()
             if cdr:
