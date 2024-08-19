@@ -117,7 +117,7 @@ class TestRecording(IntegrationTest):
         recordings=[{'path': '/tmp/11-recording.wav'}],
     )
     @file_('/tmp/11-recording.wav', content='11-recording')
-    def test_get_media_mutli_tenant(self):
+    def test_get_media_multi_tenant(self):
         rec_uuid = self.call_logd.cdr.get_by_id(10)['recordings'][0]['uuid']
         assert_that(
             calling(self.call_logd.cdr.get_recording_media).with_args(
@@ -316,7 +316,7 @@ class TestRecording(IntegrationTest):
         recordings=[{'path': '/tmp/11-recording.wav'}],
     )
     @file_('/tmp/11-recording.wav', content='11-recording')
-    def test_delete_media_mutli_tenant(self):
+    def test_delete_media_multi_tenant(self):
         rec_uuid = self.call_logd.cdr.get_by_id(10)['recordings'][0]['uuid']
         assert_that(
             calling(self.call_logd.cdr.delete_recording_media).with_args(
@@ -484,7 +484,7 @@ class TestRecording(IntegrationTest):
     )
     @file_('/tmp/10-recording.wav', content='10-recording')
     @file_('/tmp/11-recording.wav', content='11-recording')
-    def test_delete_media_mutli_tenant_multi_cdr(self):
+    def test_delete_media_multi_tenant_multi_cdr(self):
         assert_that(
             calling(self.call_logd.cdr.delete_cdrs_recording_media).with_args(
                 [10, 11], tenant_uuid=str(SUB_TENANT)
