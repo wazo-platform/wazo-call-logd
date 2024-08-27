@@ -543,6 +543,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "role": 'destination',
                 "name": destination_details['user_name'],
             }
+            if not call.requested_type:
+                participant_info['tags'] = '{requested_user}'
             logger.debug(
                 "identified destination participant (user_uuid=%s, user_name=%s)"
                 " from WAZO_CALL_LOG_DESTINATION",
@@ -577,6 +579,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 call.destination_name,
                 extra_dict['type'],
             )
+
+        if not call.requested_type:
+            call.requested_type = extra_dict['type']
 
         else:
             logger.error('unknown destination type')

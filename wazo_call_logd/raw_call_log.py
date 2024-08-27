@@ -37,6 +37,7 @@ class RawCallLog:
         self.requested_context: str | None = None
         self.requested_internal_exten: str | None = None
         self.requested_internal_context: str | None = None
+        self.requested_type: str | None = None
         self.destination_name: str | None = None
         self.destination_exten: str | None = None
         self.destination_internal_exten: str | None = None

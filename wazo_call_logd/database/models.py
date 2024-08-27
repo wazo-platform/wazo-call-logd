@@ -10,9 +10,10 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import CheckConstraint, Column, ForeignKey, Index
-from sqlalchemy.sql import case, select, text
+from sqlalchemy.sql import and_, case, select, text
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String, Text
 from sqlalchemy_utils import UUIDType, generic_repr
 
@@ -124,6 +125,26 @@ class CallLog(Base):
         ),
     )
 
+    @hybrid_property
+    def requested_user_uuid(self):
+        for participant in self.participants:
+            if participant.requested:
+                return participant.user_uuid
+        return None
+
+    @requested_user_uuid.expression
+    def requested_user_uuid(cls):
+        return (
+            select([CallLogParticipant.user_uuid])
+            .where(
+                and_(
+                    CallLogParticipant.requested.is_(True),
+                    CallLogParticipant.call_log_id == cls.id,
+                )
+            )
+            .as_scalar()
+        )
+
 
 @generic_repr
 class Destination(Base):
@@ -198,7 +219,9 @@ class CallLogParticipant(Base):
         ),
         nullable=False,
     )
-    tags = Column(ARRAY(String(128)), nullable=False, server_default='{}')
+    tags = Column(
+        MutableList.as_mutable(ARRAY(String(128))), nullable=False, server_default='{}'
+    )
     answered = Column(Boolean, nullable=False, server_default='false')
     requested = Column(Boolean, nullable=False, server_default='false')
 

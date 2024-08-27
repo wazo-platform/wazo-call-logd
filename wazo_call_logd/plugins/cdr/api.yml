@@ -435,6 +435,8 @@ definitions:
         type: string
       requested_internal_tenant_uuid:
         type: string
+      requested_user_uuid:
+        type: string
       destination_details:
         type: object
         description: Contains the `type` of the called destination; which can be either `user`, `conference`, `meeting`, or `unknown` by default. Also contains useful information about the destination (`id` and `name`).
