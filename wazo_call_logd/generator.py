@@ -80,8 +80,8 @@ class _ParticipantsProcessor:
             confd_participant = self._fetch_participant_from_channel(channel_name)
             if not confd_participant:
                 continue
-            raw_attributes.update(**confd_participant._asdict())
 
+            raw_attributes.update(**confd_participant._asdict())
             participant = CallLogParticipant(user_uuid=confd_participant.uuid)
             participant.line_id = confd_participant.line_id
             participant.tags = confd_participant.tags
@@ -136,6 +136,7 @@ class _ParticipantsProcessor:
                     tags=confd_participant.tags,
                     answered=False,
                     role=user_participants_info[-1]['role'],
+                    requested=user_participants_info[-1]['requested'],
                 )
                 unreached_participants.append(participant)
 
@@ -147,6 +148,7 @@ class _ParticipantsProcessor:
                 ):
                     if 'answered' in participant_info and participant.answered is None:
                         participant.answered = participant_info['answered']
+                    participant.requested = participant_info.get('requested', False)
             elif user_participants_info:
                 # tricky cases where cel-based user mentions
                 # do not correspond one-to-one with opened channels

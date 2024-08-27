@@ -542,9 +542,13 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "user_uuid": destination_details['user_uuid'],
                 "role": 'destination',
                 "name": destination_details['user_name'],
+                "requested": False,
+                "tags": [],
             }
+
             if not call.requested_type:
-                participant_info['tags'] = '{requested_user}'
+                participant_info['requested'] = True
+
             logger.debug(
                 "identified destination participant (user_uuid=%s, user_name=%s)"
                 " from WAZO_CALL_LOG_DESTINATION",
@@ -580,12 +584,12 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 extra_dict['type'],
             )
 
-        if not call.requested_type:
-            call.requested_type = extra_dict['type']
-
         else:
             logger.error('unknown destination type')
             return call
+
+        if not call.requested_type:
+            call.requested_type = extra_dict['type']
 
         call.destination_details = [
             Destination(
@@ -961,11 +965,17 @@ class LocalOriginateCELInterpretor:
                 )
                 call.set_tenant_uuid(info['tenant_uuid'])
                 call.raw_participants[wazo_originate_all_lines.channame].update(
-                    role='source'
+                    role='source', requested=False
                 )
-                call.participants_info.append(
-                    {'user_uuid': info['user_uuid'], 'role': 'source'}
-                )
+                participant_info = {
+                    'user_uuid': info['user_uuid'],
+                    'role': 'source',
+                    'requested': False,
+                }
+                if not call.requested_type:
+                    participant_info['requested'] = True
+                    call.requested_type = 'all_lines'
+                call.participants_info.append(participant_info)
 
         return call
 
