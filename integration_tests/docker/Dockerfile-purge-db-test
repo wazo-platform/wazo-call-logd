@@ -7,6 +7,6 @@ WORKDIR /usr/src/wazo-call-logd
 
 ENV PYTHONDONTWRITEBYTECODE='true'
 
-RUN python setup.py develop
+RUN python3 -m pip install -e .
 
 ENTRYPOINT ["./integration_tests/docker/entrypoint.sh"]
