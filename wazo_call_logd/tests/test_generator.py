@@ -287,9 +287,17 @@ class TestParticipantsProcessor(TestCase):
     def test_participant_identified_from_channel(self):
         call_log = mock_call()
         channel_name = "PJSIP/rgcZLNGE-00000028"
-        call_log.raw_participants[channel_name] = {"role": "destination"}
+        call_log.raw_participants[channel_name] = {
+            "role": "destination",
+            "requested": True,
+        }
         call_log.participants_info = [
-            {"user_uuid": "some-user-uuid", "answered": True, "role": "destination"}
+            {
+                "user_uuid": "some-user-uuid",
+                "answered": True,
+                "role": "destination",
+                "requested": True,
+            }
         ]
 
         confd_user = mock_data_dict(
@@ -306,7 +314,10 @@ class TestParticipantsProcessor(TestCase):
             call_log.participants,
             contains_exactly(
                 has_properties(
-                    answered=True, user_uuid="some-user-uuid", role="destination"
+                    answered=True,
+                    user_uuid="some-user-uuid",
+                    role="destination",
+                    requested=True,
                 )
             ),
         )
