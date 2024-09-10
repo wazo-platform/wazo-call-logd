@@ -200,6 +200,7 @@ class CallLogParticipant(Base):
     )
     tags = Column(ARRAY(String(128)), nullable=False, server_default='{}')
     answered = Column(Boolean, nullable=False, server_default='false')
+    requested = Column(Boolean, nullable=False, server_default='false')
 
     call_log = relationship('CallLog', uselist=False, viewonly=True)
 
