@@ -136,7 +136,7 @@ class _ParticipantsProcessor:
                     tags=confd_participant.tags,
                     answered=False,
                     role=user_participants_info[-1]['role'],
-                    requested=user_participants_info[-1]['requested'],
+                    requested=user_participants_info[-1].get('requested', False),
                 )
                 unreached_participants.append(participant)
 
