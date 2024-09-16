@@ -19,7 +19,6 @@ from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
 from .exceptions import CELInterpretationError
 from .raw_call_log import BridgeInfo, RawCallLog
-from .utils import find
 
 logger = logging.getLogger(__name__)
 
@@ -459,16 +458,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "name": source_name,
                 "role": "source",
             }
-            # Check for previously registered information on the same user
-            participant_info = find(
-                reversed(call.participants_info),
-                lambda p: p.get("user_uuid") == source_user_uuid
-                and p.get("role") == "source",
+            call.insert_or_update_participants_info(
+                info,
+                lambda p: p.get('user_uuid') == source_user_uuid
+                and p.get('role') == 'source',
             )
-            if participant_info:
-                participant_info.update(info)
-            else:
-                call.participants_info.append(info)
 
             logger.debug(
                 "identified source participant info(user_uuid=%s, user_name=%s)"
@@ -483,16 +477,11 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "name": destination_name,
                 "role": "destination",
             }
-            if (
-                call.participants_info
-                and "user_uuid" in call.participants_info[-1]
-                and call.participants_info[-1]["user_uuid"] == destination_user_uuid
-            ):
-                # last destination participant registered is the same user,
-                # e.g. from WAZO_CALL_LOG_DESTINATION
-                call.participants_info[-1].update(info)
-            else:
-                call.participants_info.append(info)
+            call.insert_or_update_participants_info(
+                info,
+                lambda p: p.get('user_uuid') == destination_user_uuid
+                and p.get('role') == 'destination',
+            )
 
             logger.debug(
                 "identified destination participant info (user_uuid=%s, user_name=%s)"
@@ -542,12 +531,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "user_uuid": destination_details['user_uuid'],
                 "role": 'destination',
                 "name": destination_details['user_name'],
-                "requested": False,
+                "requested": (not call.requested_type),
                 "tags": [],
             }
-
-            if not call.requested_type:
-                participant_info['requested'] = True
 
             logger.debug(
                 "identified destination participant (user_uuid=%s, user_name=%s)"
@@ -970,12 +956,14 @@ class LocalOriginateCELInterpretor:
                 participant_info = {
                     'user_uuid': info['user_uuid'],
                     'role': 'source',
-                    'requested': False,
+                    'requested': (not call.requested_type),
                 }
-                if not call.requested_type:
-                    participant_info['requested'] = True
-                    call.requested_type = 'all_lines'
-                call.participants_info.append(participant_info)
+                call.insert_or_update_participants_info(
+                    participant_info,
+                    lambda p: p.get('user_uuid') == info['user_uuid']
+                    and p.get('role') == 'source',
+                )
+                call.requested_type = 'all_lines'
 
         return call
 
