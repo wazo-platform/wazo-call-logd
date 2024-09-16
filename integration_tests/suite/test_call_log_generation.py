@@ -1,4 +1,4 @@
-# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime, timedelta
@@ -1998,5 +1998,60 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 date_answer=datetime_close_to(
                     '2023-09-06 18:07:28+00:00', delta=timedelta(seconds=1)
                 ),
+            ),
+        )
+
+    @raw_cels(
+        '''
+                eventtype         |           eventtime           |   linkedid    |   uniqueid    |   cid_num   |    cid_name    |                                channame                                | peer |                                                                                                                                    extra
+        ---------------------------+-------------------------------+---------------+---------------+-------------+----------------+------------------------------------------------------------------------+------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        LINKEDID_END              | 2024-09-12 15:26:57.971581-04 | 1726169196.48 | 1726169196.48 | 8005555555  | 8005555555     | PJSIP/gaE9Jvrm-00000030                                                |      |
+        CHAN_END                  | 2024-09-12 15:26:57.971581-04 | 1726169196.48 | 1726169196.48 | 8005555555  | 8005555555     | PJSIP/gaE9Jvrm-00000030                                                |      |
+        HANGUP                    | 2024-09-12 15:26:57.971581-04 | 1726169196.48 | 1726169196.48 | 8005555555  | 8005555555     | PJSIP/gaE9Jvrm-00000030                                                |      | {"hangupcause":16,"hangupsource":"PJSIP/gaE9Jvrm-00000030","dialstatus":"NOANSWER"}
+        CHAN_END                  | 2024-09-12 15:26:57.970649-04 | 1726169196.48 | 1726169211.50 | 18005555555 |                | PJSIP/voipms_trunk_748c564b-97cd-415c-b4fd-3327227cb92b_80253-00000032 |      |
+        HANGUP                    | 2024-09-12 15:26:57.970649-04 | 1726169196.48 | 1726169211.50 | 18005555555 |                | PJSIP/voipms_trunk_748c564b-97cd-415c-b4fd-3327227cb92b_80253-00000032 |      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_START                | 2024-09-12 15:26:51.496732-04 | 1726169196.48 | 1726169211.50 |             | wazo           | PJSIP/voipms_trunk_748c564b-97cd-415c-b4fd-3327227cb92b_80253-00000032 |      |
+        APP_START                 | 2024-09-12 15:26:51.496033-04 | 1726169196.48 | 1726169196.48 | 8005555555  | 8005555555     | PJSIP/gaE9Jvrm-00000030                                                |      |
+        XIVO_OUTCALL              | 2024-09-12 15:26:51.476418-04 | 1726169196.48 | 1726169196.48 | 8005555555  | 8005555555     | PJSIP/gaE9Jvrm-00000030                                                |      | {"extra":""}
+        ANSWER                    | 2024-09-12 15:26:47.117047-04 | 1726169196.48 | 1726169196.48 | 1005        | Pierre Laroche | PJSIP/gaE9Jvrm-00000030                                                |      |
+        CHAN_END                  | 2024-09-12 15:26:47.115065-04 | 1726169196.48 | 1726169197.49 | 1101        | Ytof Meyachev  | PJSIP/RqNklSdO-00000031                                                |      |
+        HANGUP                    | 2024-09-12 15:26:47.115065-04 | 1726169196.48 | 1726169197.49 | 1101        | Ytof Meyachev  | PJSIP/RqNklSdO-00000031                                                |      | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        WAZO_USER_MISSED_CALL     | 2024-09-12 15:26:47.115067-04 | 1726169196.48 | 1726169196.48 | 1005        | Pierre Laroche | PJSIP/gaE9Jvrm-00000030                                                |      | {"extra":"wazo_tenant_uuid: 748c564b-97cd-415c-b4fd-3327227cb92b,source_user_uuid: 32cb9344-1bc1-483b-ab37-616d9a591b8d,destination_user_uuid: 955b0906-85c2-411b-84e8-13c776d66ab4,destination_exten: 1101,source_name: Pierre%20Laroche,destination_name: Ytof%20Meyachev"}
+        XIVO_USER_FWD             | 2024-09-12 15:26:47.114945-04 | 1726169196.48 | 1726169196.48 | 1005        | Pierre Laroche | PJSIP/gaE9Jvrm-00000030                                                |      | {"extra":"NUM:1101,CONTEXT:internal,NAME:Ytof Meyachev"}
+        CHAN_START                | 2024-09-12 15:26:37.101052-04 | 1726169196.48 | 1726169197.49 | 1101        | Ytof Meyachev  | PJSIP/RqNklSdO-00000031                                                |      |
+        APP_START                 | 2024-09-12 15:26:37.099692-04 | 1726169196.48 | 1726169196.48 | 1005        | Pierre Laroche | PJSIP/gaE9Jvrm-00000030                                                |      |
+        WAZO_CALL_LOG_DESTINATION | 2024-09-12 15:26:37.050197-04 | 1726169196.48 | 1726169196.48 | 1005        | Pierre Laroche | PJSIP/gaE9Jvrm-00000030                                                |      | {"extra":"type: user,uuid: 955b0906-85c2-411b-84e8-13c776d66ab4,name: Ytof Meyachev"}
+        CHAN_START                | 2024-09-12 15:26:36.5991-04   | 1726169196.48 | 1726169196.48 | 1005        | Pierre Laroche | PJSIP/gaE9Jvrm-00000030                                                |      |
+        '''
+    )
+    def test_call_noanswer_forward_to_external_number_sets_requested_user_uuid(self):
+        tenant_uuid = '748c564b-97cd-415c-b4fd-3327227cb92b'
+        user1_uuid = '32cb9344-1bc1-483b-ab37-616d9a591b8d'
+        user2_uuid = '955b0906-85c2-411b-84e8-13c776d66ab4'
+        self.confd.set_users(
+            MockUser(user1_uuid, tenant_uuid),
+            MockUser(user2_uuid, tenant_uuid),
+        )
+
+        self._assert_last_call_log_matches(
+            '1726169196.48',
+            has_properties(
+                id=not_none(),
+                participants=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user1_uuid),
+                        role='source',
+                        answered=False,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user2_uuid),
+                        role='destination',
+                        answered=False,
+                        requested=True,
+                    ),
+                ),
+                requested_user_uuid=UUID(user2_uuid),
             ),
         )
