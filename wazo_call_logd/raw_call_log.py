@@ -7,11 +7,12 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import DefaultDict, Literal
+from typing import Callable, DefaultDict, Literal
 
 from wazo_call_logd.database.models import CallLog, CallLogParticipant
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.extension_filter import DEFAULT_HIDDEN_EXTENSIONS, ExtensionFilter
+from wazo_call_logd.utils import find
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class RawCallLog:
         self.requested_context: str | None = None
         self.requested_internal_exten: str | None = None
         self.requested_internal_context: str | None = None
+        self.requested_type: str | None = None
         self.destination_name: str | None = None
         self.destination_exten: str | None = None
         self.destination_internal_exten: str | None = None
@@ -45,7 +47,7 @@ class RawCallLog:
         self.user_field: str | None = None
         self.date_answer: datetime | None = None
         self.source_line_identity: str | None = None
-        self.direction: Literal['source', 'destination', 'internal'] = 'internal'
+        self.direction: Literal['internal', 'inbound', 'outbound'] = 'internal'
         self.raw_participants: DefaultDict[str, dict] = defaultdict(dict)
         self.participants_info: list[dict] = []
         self.participants: list[CallLogParticipant] = []
@@ -117,3 +119,11 @@ class RawCallLog:
         result.recordings = self.recordings
 
         return result
+
+    def insert_or_update_participants_info(
+        self, participant_info: dict, predicate: Callable[[dict], bool]
+    ) -> None:
+        if found := find(self.participants_info, predicate):
+            found.update(participant_info)
+            return
+        self.participants_info.append(participant_info)

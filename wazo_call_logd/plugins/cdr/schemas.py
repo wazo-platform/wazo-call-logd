@@ -140,6 +140,7 @@ class CDRSchema(Schema):
     requested_extension = fields.String(attribute='requested_exten')
     requested_internal_context = fields.String()
     requested_internal_extension = fields.String(attribute='requested_internal_exten')
+    requested_user_uuid = fields.UUID()
     source_extension = fields.String(attribute='source_exten')
     source_internal_context = fields.String()
     source_internal_name = fields.String()

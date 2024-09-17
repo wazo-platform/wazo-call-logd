@@ -446,6 +446,20 @@ class TestCallerCELInterpretor(TestCase):
             ),
         )
 
+    def test_interpret_wazo_internal_call_has_requested_user_tag(self):
+        cel = Mock(
+            eventtype='WAZO_CALL_LOG_DESTINATION',
+            extra='{"extra":"type: user,uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,'
+            'name: Willy Wonka"}',
+        )
+
+        self.call.requested_type = None
+        result = self.caller_cel_interpretor.interpret_wazo_call_log_destination(
+            cel, self.call
+        )
+
+        assert_that(result.participants_info[0]['requested'], True)
+
     def test_interpret_wazo_incoming_call_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
