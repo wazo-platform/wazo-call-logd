@@ -1,5 +1,9 @@
 # Changelog
 
+## 24.13
+
+* The CDR resource now contains a new field called `requested_user_uuid`
+
 ## 24.12
 
 * The CDR recording resource attribute `uuid` is now equal to the recording filename.
