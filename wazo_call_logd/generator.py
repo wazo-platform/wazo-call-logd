@@ -306,9 +306,9 @@ class CallLogsGenerator:
         if not call_log.tenant_uuid:
             # NOTE(sileht): requested_context
             if call_log.requested_context:
-                contexts = self.confd.contexts.list(name=call_log.requested_context)[
-                    'items'
-                ]
+                contexts = self.confd.contexts.list(
+                    name=call_log.requested_context, recurse=True
+                )['items']
                 if contexts:
                     call_log.set_tenant_uuid(contexts[0]['tenant_uuid'])
                     return

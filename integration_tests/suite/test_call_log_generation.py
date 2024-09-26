@@ -1018,6 +1018,51 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
     @raw_cels(
         '''\
+ eventtype    | eventtime                     | cid_name  | cid_num | exten | context     | channame           | uniqueid      | linkedid
+
+ CHAN_START   | 2024-09-24 09:37:44.351668-04 | AF Test 1 | 14201   | 42307 | from-extern | SIP/trunk-00000011 | 1727185064.17 | 1727185064.17
+ HANGUP       | 2024-09-24 09:37:44.412237-04 | AF Test 1 | 14201   | s     | did         | SIP/trunk-00000011 | 1727185064.17 | 1727185064.17
+ CHAN_END     | 2024-09-24 09:37:44.412237-04 | AF Test 1 | 14201   | s     | did         | SIP/trunk-00000011 | 1727185064.17 | 1727185064.17
+ LINKEDID_END | 2024-09-24 09:37:44.412237-04 | AF Test 1 | 14201   | s     | did         | SIP/trunk-00000011 | 1727185064.17 | 1727185064.17
+    '''
+    )
+    def test_early_hung_up_incoming_call(self):
+        self.confd.set_users(
+            MockUser(USER_1_UUID, USERS_TENANT, line_ids=[1]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='42307',
+                users=[{'uuid': USER_1_UUID}],
+                tenant_uuid=USERS_TENANT,
+                extensions=[{'exten': '42307', 'context': 'default'}],
+            )
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=USERS_TENANT)
+        )
+        self._assert_last_call_log_matches(
+            '1727185064.17',
+            has_properties(
+                tenant_uuid=USERS_TENANT,
+                date=datetime.fromisoformat('2024-09-24 09:37:44.351668-04:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2024-09-24 09:37:44.412237-04:00'),
+                source_name='AF Test 1',
+                source_exten='14201',
+                source_line_identity='sip/trunk',
+                requested_name=None,
+                requested_exten='42307',
+                requested_context='from-extern',
+                destination_name=None,
+                destination_exten='42307',
+                destination_line_identity=None,
+            ),
+        )
+
+    @raw_cels(
+        '''\
  eventtype     | eventtime             | cid_name   |    cid_num  | exten             | context     | channame                | uniqueid      | linkedid      | extra
 
  CHAN_START    | 2020-04-06 14:44:08.0 | fb          | 0123456789 | 000101            | from-extern | PJSIP/dev_44-0000001b   | 1586198648.35 | 1586198648.35 |
