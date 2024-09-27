@@ -67,6 +67,7 @@ class RawCallLog:
         )
         self.bridges: dict[str, BridgeInfo] = {}
         self.destination_details: list = []
+        self.was_forwarded: bool = False
 
     @property
     def tenant_uuid(self) -> str:
