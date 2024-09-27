@@ -383,28 +383,31 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         return call
 
     def interpret_xivo_outcall(self, cel, call: RawCallLog):
-        if call.was_forwarded:
+        if not call.was_forwarded:
+            call.direction = 'outbound'
+        else:
+            call.destination_details.clear()
             call.destination_exten = call.extension_filter.filter(cel.cid_num)
             call.destination_name = cel.cid_name
-            call.destination_details.clear()
-            return call
-
-        call.direction = 'outbound'
+            logger.debug('call was forwarded, identified a new external destination')
         return call
 
     def interpret_xivo_user_fwd(self, cel, call: RawCallLog):
         call.was_forwarded = True
+        extra = re.match(EXTRA_USER_FWD_REGEX, cel.extra)
 
-        if match := re.match(EXTRA_USER_FWD_REGEX, cel.extra):
-            call.destination_exten = call.extension_filter.filter(match.group(1))
+        # Replace destination_exten here because WAZO_USER_MISSED_CALL event
+        # doesn't produce the correct destination extension
+        if extra:
+            call.destination_exten = call.extension_filter.filter(extra.group(1))
 
         if call.interpret_caller_xivo_user_fwd:
-            if match:
+            if extra:
                 call.requested_internal_exten = call.extension_filter.filter(
-                    match.group(1)
+                    extra.group(1)
                 )
-                call.requested_internal_context = match.group(2)
-                call.requested_name = match.group(3)
+                call.requested_internal_context = extra.group(2)
+                call.requested_name = extra.group(3)
             call.interpret_caller_xivo_user_fwd = False
         return call
 
@@ -504,10 +507,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             )
 
         call.set_tenant_uuid(wazo_tenant_uuid)
-
-        # Destination extension returned by the event is the requested exten
-        # See WAZO_ENTRY_EXTEN vs XIVO_DST_USERNUM
-
         call.destination_name = destination_name
         logger.debug(
             'Identified destination ("%s" <%s>) from WAZO_USER_MISSED_CALL(id=%s)',
