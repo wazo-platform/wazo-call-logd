@@ -277,6 +277,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_app_start(self, cel, call):
         call.user_field = cel.userfield
+
+        if call.was_forwarded:
+            return call
+
         if cel.cid_name != '':
             logger.debug('Setting source name from app_start event (id=%s)', cel.id)
             call.source_name = cel.cid_name
@@ -378,20 +382,32 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.set_tenant_uuid(extra['extra'])
         return call
 
-    def interpret_xivo_outcall(self, cel, call):
-        call.direction = 'outbound'
-
+    def interpret_xivo_outcall(self, cel, call: RawCallLog):
+        if not call.was_forwarded:
+            call.direction = 'outbound'
+        else:
+            call.destination_details.clear()
+            call.destination_exten = call.extension_filter.filter(cel.cid_num)
+            call.destination_name = cel.cid_name
+            logger.debug('call was forwarded, identified a new external destination')
         return call
 
-    def interpret_xivo_user_fwd(self, cel, call):
+    def interpret_xivo_user_fwd(self, cel, call: RawCallLog):
+        call.was_forwarded = True
+        extra = re.match(EXTRA_USER_FWD_REGEX, cel.extra)
+
+        # Replace destination_exten here because WAZO_USER_MISSED_CALL event
+        # doesn't produce the correct destination extension on multiple forwards
+        if extra:
+            call.destination_exten = call.extension_filter.filter(extra.group(1))
+
         if call.interpret_caller_xivo_user_fwd:
-            match = re.match(EXTRA_USER_FWD_REGEX, cel.extra)
-            if match:
+            if extra:
                 call.requested_internal_exten = call.extension_filter.filter(
-                    match.group(1)
+                    extra.group(1)
                 )
-                call.requested_internal_context = match.group(2)
-                call.requested_name = match.group(3)
+                call.requested_internal_context = extra.group(2)
+                call.requested_name = extra.group(3)
             call.interpret_caller_xivo_user_fwd = False
         return call
 
@@ -433,7 +449,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
         return call
 
-    def interpret_wazo_user_missed_call(self, cel, call):
+    def interpret_wazo_user_missed_call(self, cel, call: RawCallLog):
         extra = extract_cel_extra(cel.extra)
         if not extra:
             logger.error(
@@ -446,7 +462,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             wazo_tenant_uuid,
             source_user_uuid,
             destination_user_uuid,
-            destination_exten,
+            _,
             source_name,
             destination_name,
         ) = _extract_user_missed_call_variables(extra)
@@ -491,7 +507,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             )
 
         call.set_tenant_uuid(wazo_tenant_uuid)
-        call.destination_exten = destination_exten
         call.destination_name = destination_name
         logger.debug(
             'Identified destination ("%s" <%s>) from WAZO_USER_MISSED_CALL(id=%s)',
@@ -504,7 +519,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.source_line_identity = identity_from_channel(cel.channame)
         return call
 
-    def interpret_wazo_call_log_destination(self, cel, call):
+    def interpret_wazo_call_log_destination(self, cel, call: RawCallLog):
         extra = extract_cel_extra(cel.extra)
         if not extra:
             return call
@@ -689,9 +704,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         call.raw_participants[cel.channame].update(answered=True)
         # only consider the first bridge_enter for destination identity info
-        if (
-            call.interpret_callee_bridge_enter
-            and not call.authoritative_destination_info
+        if call.interpret_callee_bridge_enter and (
+            not call.authoritative_destination_info or call.was_forwarded
         ):
             if cel.cid_num and cel.cid_num != 's':
                 call.destination_exten = cel.cid_num
@@ -770,7 +784,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
 
 class LocalOriginateCELInterpretor:
-    def interpret_cels(self, cels, call):
+    def interpret_cels(self, cels, call: RawCallLog):
         uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
         try:
             (

@@ -2024,7 +2024,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         CHAN_START                | 2024-09-12 15:26:36.5991-04   | 1726169196.48 | 1726169196.48 | 1005        | Pierre Laroche | PJSIP/gaE9Jvrm-00000030                                                |      |
         '''
     )
-    def test_call_noanswer_forward_to_external_number_sets_requested_user_uuid(self):
+    def test_noanswer_forward_to_external_unanswered(self):
         tenant_uuid = '748c564b-97cd-415c-b4fd-3327227cb92b'
         user1_uuid = '32cb9344-1bc1-483b-ab37-616d9a591b8d'
         user2_uuid = '955b0906-85c2-411b-84e8-13c776d66ab4'
@@ -2053,5 +2053,254 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     ),
                 ),
                 requested_user_uuid=UUID(user2_uuid),
+                destination_name='8005555555',
+                destination_exten='8005555555',
+                direction='internal',
+            ),
+        )
+
+    @raw_cels(
+        '''
+                eventtype         |           eventtime           |   linkedid    |   uniqueid    |   cid_num   |    cid_name    |                                channame                                |                                  peer                                  |                                                                                                                                    extra
+        ---------------------------+-------------------------------+---------------+---------------+-------------+----------------+------------------------------------------------------------------------+------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        CHAN_START                | 2024-09-25 07:47:54.519754-04 | 1727264874.60 | 1727264874.60 | 1005        | Alice          | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        |
+        WAZO_CALL_LOG_DESTINATION | 2024-09-25 07:47:54.752473-04 | 1727264874.60 | 1727264874.60 | 1005        | Alice          | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        | {"extra":"type: user,uuid: dd72098c-d36d-443d-9520-514a61bab7b0,name: Bob"}
+        APP_START                 | 2024-09-25 07:47:54.776121-04 | 1727264874.60 | 1727264874.60 | 1005        | Alice          | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        |
+        CHAN_START                | 2024-09-25 07:47:54.777757-04 | 1727264874.60 | 1727264874.61 | 1101        | Bob            | PJSIP/RqNklSdO-0000003d                                                |                                                                        |
+        XIVO_USER_FWD             | 2024-09-25 07:48:04.785437-04 | 1727264874.60 | 1727264874.60 | 1005        | Alice          | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        | {"extra":"NUM:1101,CONTEXT:default,NAME:Bob"}
+        HANGUP                    | 2024-09-25 07:48:04.785933-04 | 1727264874.60 | 1727264874.61 | 1101        | Bob            | PJSIP/RqNklSdO-0000003d                                                |                                                                        | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 2024-09-25 07:48:04.785933-04 | 1727264874.60 | 1727264874.61 | 1101        | Bob            | PJSIP/RqNklSdO-0000003d                                                |                                                                        |
+        WAZO_USER_MISSED_CALL     | 2024-09-25 07:48:04.786499-04 | 1727264874.60 | 1727264874.60 | 1005        | Alice          | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        | {"extra":"wazo_tenant_uuid: 942c3750-1b76-4b99-b23e-3977d35d7e63,source_user_uuid: 2405cd5e-2fdf-43b7-acb2-7b9cb41e6b74,destination_user_uuid: dd72098c-d36d-443d-9520-514a61bab7b0,destination_exten: 1101,source_name: Alice,destination_name: Bob"}
+        ANSWER                    | 2024-09-25 07:48:04.78783-04  | 1727264874.60 | 1727264874.60 | 1005        | Alice          | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        |
+        XIVO_OUTCALL              | 2024-09-25 07:48:09.181816-04 | 1727264874.60 | 1727264874.60 | 8005551234  | 8005551234     | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        | {"extra":""}
+        APP_START                 | 2024-09-25 07:48:09.206325-04 | 1727264874.60 | 1727264874.60 | 8005551234  | 8005551234     | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        |
+        CHAN_START                | 2024-09-25 07:48:09.207235-04 | 1727264874.60 | 1727264889.62 |             | wazo           | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e |                                                                        |
+        ANSWER                    | 2024-09-25 07:48:18.059829-04 | 1727264874.60 | 1727264889.62 | 18005551234 |                | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e |                                                                        |
+        BRIDGE_ENTER              | 2024-09-25 07:48:18.062554-04 | 1727264874.60 | 1727264889.62 | 18005551234 |                | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e |                                                                        | {"bridge_id":"832143b6-4da0-40ae-834f-d3522c3db9f9","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER              | 2024-09-25 07:48:18.063297-04 | 1727264874.60 | 1727264874.60 | 8005551234  | 8005551234     | PJSIP/gaE9Jvrm-0000003c                                                | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e | {"bridge_id":"832143b6-4da0-40ae-834f-d3522c3db9f9","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT               | 2024-09-25 07:48:25.625376-04 | 1727264874.60 | 1727264874.60 | 8005551234  | 8005551234     | PJSIP/gaE9Jvrm-0000003c                                                | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e | {"bridge_id":"832143b6-4da0-40ae-834f-d3522c3db9f9","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT               | 2024-09-25 07:48:25.626214-04 | 1727264874.60 | 1727264889.62 | 18005551234 |                | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e |                                                                        | {"bridge_id":"832143b6-4da0-40ae-834f-d3522c3db9f9","bridge_technology":"simple_bridge"}
+        HANGUP                    | 2024-09-25 07:48:25.645114-04 | 1727264874.60 | 1727264874.60 | 8005551234  | 8005551234     | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        | {"hangupcause":16,"hangupsource":"PJSIP/gaE9Jvrm-0000003c","dialstatus":"ANSWER"}
+        CHAN_END                  | 2024-09-25 07:48:25.645114-04 | 1727264874.60 | 1727264874.60 | 8005551234  | 8005551234     | PJSIP/gaE9Jvrm-0000003c                                                |                                                                        |
+        HANGUP                    | 2024-09-25 07:48:25.645283-04 | 1727264874.60 | 1727264889.62 | 18005551234 |                | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e |                                                                        | {"hangupcause":16,"hangupsource":"PJSIP/gaE9Jvrm-0000003c","dialstatus":""}
+        CHAN_END                  | 2024-09-25 07:48:25.645283-04 | 1727264874.60 | 1727264889.62 | 18005551234 |                | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e |                                                                        |
+        LINKEDID_END              | 2024-09-25 07:48:25.645283-04 | 1727264874.60 | 1727264889.62 | 18005551234 |                | PJSIP/voipms_trunk_942c3750-1b76-4b99-b23e-3977d35d7e63_80253-0000003e |                                                                        |
+        '''
+    )
+    def test_noanswer_forward_to_external_answered(self):
+        tenant_uuid = '942c3750-1b76-4b99-b23e-3977d35d7e63'
+        user1_uuid = '2405cd5e-2fdf-43b7-acb2-7b9cb41e6b74'  # Alice
+        user2_uuid = 'dd72098c-d36d-443d-9520-514a61bab7b0'  # Bob
+
+        self.confd.set_users(
+            MockUser(user1_uuid, tenant_uuid),
+            MockUser(user2_uuid, tenant_uuid),
+        )
+        self.confd.set_lines(
+            MockLine(
+                1, 'gaE9Jvrm', users=[{'uuid': user1_uuid}], tenant_uuid=tenant_uuid
+            ),
+            MockLine(
+                2, 'RqNklSdO', users=[{'uuid': user2_uuid}], tenant_uuid=tenant_uuid
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=tenant_uuid)
+        )
+
+        self._assert_last_call_log_matches(
+            '1727264874.60',
+            has_properties(
+                id=not_none(),
+                participants=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user1_uuid),
+                        role='source',
+                        answered=False,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user2_uuid),
+                        role='destination',
+                        answered=False,
+                        requested=True,
+                    ),
+                ),
+                source_name='Alice',
+                source_exten='1005',
+                requested_user_uuid=UUID(user2_uuid),
+                destination_name='',
+                destination_exten='18005551234',
+                direction='internal',
+            ),
+        )
+
+    @raw_cels(
+        '''
+                eventtype         |           eventtime           |   linkedid    |   uniqueid    | cid_num |    cid_name    |        channame         |          peer           |                                                                                                                                    extra
+        ---------------------------+-------------------------------+---------------+---------------+---------+----------------+-------------------------+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        LINKEDID_END              | 2024-09-17 10:20:25.295201-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         |
+        CHAN_END                  | 2024-09-17 10:20:25.295201-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         |
+        HANGUP                    | 2024-09-17 10:20:25.295201-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         | {"hangupcause":16,"hangupsource":"PJSIP/XDMfWj7y-00000038","dialstatus":"ANSWER"}
+        CHAN_END                  | 2024-09-17 10:20:25.279021-04 | 1726582804.54 | 1726582819.56 | 1002    | Charlie        | PJSIP/XDMfWj7y-00000038 |                         |
+        HANGUP                    | 2024-09-17 10:20:25.279021-04 | 1726582804.54 | 1726582819.56 | 1002    | Charlie        | PJSIP/XDMfWj7y-00000038 |                         | {"hangupcause":16,"hangupsource":"PJSIP/XDMfWj7y-00000038","dialstatus":""}
+        BRIDGE_EXIT               | 2024-09-17 10:20:25.278891-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         | {"bridge_id":"c024db6c-6c0b-461c-93d0-0df01c2c7f75","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT               | 2024-09-17 10:20:25.278442-04 | 1726582804.54 | 1726582819.56 | 1002    | Charlie        | PJSIP/XDMfWj7y-00000038 | PJSIP/gaE9Jvrm-00000036 | {"bridge_id":"c024db6c-6c0b-461c-93d0-0df01c2c7f75","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER              | 2024-09-17 10:20:23.358048-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 | PJSIP/XDMfWj7y-00000038 | {"bridge_id":"c024db6c-6c0b-461c-93d0-0df01c2c7f75","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER              | 2024-09-17 10:20:23.3573-04   | 1726582804.54 | 1726582819.56 | 1002    | Charlie        | PJSIP/XDMfWj7y-00000038 |                         | {"bridge_id":"c024db6c-6c0b-461c-93d0-0df01c2c7f75","bridge_technology":"simple_bridge"}
+        ANSWER                    | 2024-09-17 10:20:23.353935-04 | 1726582804.54 | 1726582819.56 | 1002    | Charlie        | PJSIP/XDMfWj7y-00000038 |                         |
+        CHAN_START                | 2024-09-17 10:20:19.355982-04 | 1726582804.54 | 1726582819.56 | 1002    | Charlie        | PJSIP/XDMfWj7y-00000038 |                         |
+        APP_START                 | 2024-09-17 10:20:19.354994-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         |
+        WAZO_CALL_LOG_DESTINATION | 2024-09-17 10:20:19.333518-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         | {"extra":"type: user,uuid: f60991f6-34be-4426-a7a9-148d5e1e784f,name: Charlie"}
+        ANSWER                    | 2024-09-17 10:20:14.887723-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         |
+        WAZO_USER_MISSED_CALL     | 2024-09-17 10:20:14.886201-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         | {"extra":"wazo_tenant_uuid: e724461a-23f0-4095-a06d-8457a2fe744b,source_user_uuid: 2e9e5f77-7077-475f-a596-b72670fdb142,destination_user_uuid: 8de43937-8a90-4f53-b230-99f71ec2cef0,destination_exten: 1101,source_name: Alice,destination_name: Bob"}
+        CHAN_END                  | 2024-09-17 10:20:14.885947-04 | 1726582804.54 | 1726582804.55 | 1101    | Bob            | PJSIP/RqNklSdO-00000037 |                         |
+        HANGUP                    | 2024-09-17 10:20:14.885947-04 | 1726582804.54 | 1726582804.55 | 1101    | Bob            | PJSIP/RqNklSdO-00000037 |                         | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        XIVO_USER_FWD             | 2024-09-17 10:20:14.885131-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         | {"extra":"NUM:1101,CONTEXT:default,NAME:Bob"}
+        CHAN_START                | 2024-09-17 10:20:04.879588-04 | 1726582804.54 | 1726582804.55 | 1101    | Bob            | PJSIP/RqNklSdO-00000037 |                         |
+        APP_START                 | 2024-09-17 10:20:04.877063-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         |
+        WAZO_CALL_LOG_DESTINATION | 2024-09-17 10:20:04.845845-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         | {"extra":"type: user,uuid: 8de43937-8a90-4f53-b230-99f71ec2cef0,name: Bob"}
+        CHAN_START                | 2024-09-17 10:20:04.595002-04 | 1726582804.54 | 1726582804.54 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000036 |                         |
+        '''
+    )
+    def test_noanswer_forward_to_internal_answered(self):
+        tenant_uuid = 'e724461a-23f0-4095-a06d-8457a2fe744b'  # Tenant
+        user1_uuid = '2e9e5f77-7077-475f-a596-b72670fdb142'  # Alice
+        user2_uuid = '8de43937-8a90-4f53-b230-99f71ec2cef0'  # Bob
+        user3_uuid = 'f60991f6-34be-4426-a7a9-148d5e1e784f'  # Charlie
+        self.confd.set_users(
+            MockUser(user1_uuid, tenant_uuid),
+            MockUser(user2_uuid, tenant_uuid),
+            MockUser(user3_uuid, tenant_uuid),
+        )
+
+        self.confd.set_lines(
+            MockLine(
+                1, 'gaE9Jvrm', users=[{'uuid': user1_uuid}], tenant_uuid=tenant_uuid
+            ),
+            MockLine(
+                2, 'RqNklSdO', users=[{'uuid': user2_uuid}], tenant_uuid=tenant_uuid
+            ),
+            MockLine(
+                3, 'XDMfWj7y', users=[{'uuid': user3_uuid}], tenant_uuid=tenant_uuid
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=tenant_uuid)
+        )
+
+        self._assert_last_call_log_matches(
+            '1726582804.54',
+            has_properties(
+                id=not_none(),
+                participants=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user1_uuid),
+                        role='source',
+                        answered=False,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user2_uuid),
+                        role='destination',
+                        answered=False,
+                        requested=True,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user3_uuid),
+                        role='destination',
+                        answered=True,
+                        requested=False,
+                    ),
+                ),
+                source_name='Alice',
+                source_exten='1005',
+                requested_user_uuid=UUID(user2_uuid),
+                destination_name='Charlie',
+                destination_exten='1002',
+                direction='internal',
+            ),
+        )
+
+    @raw_cels(
+        '''
+                eventtype         |           eventtime           |   linkedid   |   uniqueid   | cid_num |    cid_name    |        channame         | peer |                                                                                                                                    extra
+        ---------------------------+-------------------------------+--------------+--------------+---------+----------------+-------------------------+------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        CHAN_START                | 2024-09-25 14:09:02.856019-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      |
+        WAZO_CALL_LOG_DESTINATION | 2024-09-25 14:09:03.095458-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      | {"extra":"type: user,uuid: 9d15818c-53fc-4eef-bb96-44fb5d95867a,name: Bob"}
+        APP_START                 | 2024-09-25 14:09:03.113708-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      |
+        CHAN_START                | 2024-09-25 14:09:03.114061-04 | 1727287742.3 | 1727287743.4 | 1101    | Bob            | PJSIP/RqNklSdO-00000004 |      |
+        XIVO_USER_FWD             | 2024-09-25 14:09:13.12653-04  | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      | {"extra":"NUM:1101,CONTEXT:default,NAME:Bob"}
+        WAZO_USER_MISSED_CALL     | 2024-09-25 14:09:13.126603-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      | {"extra":"wazo_tenant_uuid: 4e067e3b-6ac6-4b30-8f71-71576c0c9784,source_user_uuid: ed9aac06-f6ca-4ab4-9143-23d1f44f973e,destination_user_uuid: 9d15818c-53fc-4eef-bb96-44fb5d95867a,destination_exten: 1101,source_name: Alice,destination_name: Bob"}
+        ANSWER                    | 2024-09-25 14:09:13.127775-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      |
+        HANGUP                    | 2024-09-25 14:09:13.12901-04  | 1727287742.3 | 1727287743.4 | 1101    | Bob            | PJSIP/RqNklSdO-00000004 |      | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 2024-09-25 14:09:13.12901-04  | 1727287742.3 | 1727287743.4 | 1101    | Bob            | PJSIP/RqNklSdO-00000004 |      |
+        WAZO_CALL_LOG_DESTINATION | 2024-09-25 14:09:17.487632-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      | {"extra":"type: user,uuid: c24dde47-afa7-42a2-9d75-3d748481aa88,name: Charlie"}
+        APP_START                 | 2024-09-25 14:09:17.524799-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      |
+        XIVO_USER_FWD             | 2024-09-25 14:09:17.527012-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      | {"extra":"NUM:1002,CONTEXT:default,NAME:Charlie"}
+        WAZO_USER_MISSED_CALL     | 2024-09-25 14:09:17.52712-04  | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      | {"extra":"wazo_tenant_uuid: 4e067e3b-6ac6-4b30-8f71-71576c0c9784,source_user_uuid: ed9aac06-f6ca-4ab4-9143-23d1f44f973e,destination_user_uuid: c24dde47-afa7-42a2-9d75-3d748481aa88,destination_exten: 1101,source_name: Alice,destination_name: Charlie"}
+        HANGUP                    | 2024-09-25 14:09:21.939533-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      | {"hangupcause":3,"hangupsource":"PJSIP/gaE9Jvrm-00000003","dialstatus":"NOANSWER"}
+        CHAN_END                  | 2024-09-25 14:09:21.939533-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      |
+        LINKEDID_END              | 2024-09-25 14:09:21.939533-04 | 1727287742.3 | 1727287742.3 | 1005    | Alice          | PJSIP/gaE9Jvrm-00000003 |      |
+        '''
+    )
+    def test_noanswer_forward_to_internal_unanswered(self):
+        tenant_uuid = '4e067e3b-6ac6-4b30-8f71-71576c0c9784'
+        user1_uuid = 'ed9aac06-f6ca-4ab4-9143-23d1f44f973e'  # Alice
+        user2_uuid = '9d15818c-53fc-4eef-bb96-44fb5d95867a'  # Bob
+        user3_uuid = 'c24dde47-afa7-42a2-9d75-3d748481aa88'  # Charlie
+
+        self.confd.set_users(
+            MockUser(user1_uuid, tenant_uuid),
+            MockUser(user2_uuid, tenant_uuid),
+            MockUser(user3_uuid, tenant_uuid),
+        )
+        self.confd.set_lines(
+            MockLine(
+                1, 'gaE9Jvrm', users=[{'uuid': user1_uuid}], tenant_uuid=tenant_uuid
+            ),
+            MockLine(
+                2, 'RqNklSdO', users=[{'uuid': user2_uuid}], tenant_uuid=tenant_uuid
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=tenant_uuid)
+        )
+
+        self._assert_last_call_log_matches(
+            '1727287742.3',
+            has_properties(
+                id=not_none(),
+                participants=contains_inanyorder(
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user1_uuid),
+                        role='source',
+                        answered=False,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user2_uuid),
+                        role='destination',
+                        answered=False,
+                        requested=True,
+                    ),
+                    has_properties(
+                        uuid=not_none(),
+                        user_uuid=UUID(user3_uuid),
+                        role='destination',
+                        answered=False,
+                        requested=False,
+                    ),
+                ),
+                source_name='Alice',
+                source_exten='1005',
+                source_user_uuid=UUID(user1_uuid),
+                requested_user_uuid=UUID(user2_uuid),
+                destination_name='Charlie',
+                direction='internal',
             ),
         )
