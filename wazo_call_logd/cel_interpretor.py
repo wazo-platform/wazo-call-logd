@@ -397,7 +397,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         extra = re.match(EXTRA_USER_FWD_REGEX, cel.extra)
 
         # Replace destination_exten here because WAZO_USER_MISSED_CALL event
-        # doesn't produce the correct destination extension
+        # doesn't produce the correct destination extension on multiple forwards
         if extra:
             call.destination_exten = call.extension_filter.filter(extra.group(1))
 
