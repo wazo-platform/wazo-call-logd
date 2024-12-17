@@ -170,6 +170,7 @@ class Destination(Base):
 
     __table_args__ = (
         Index('call_logd_call_log_destination__idx__uuid', 'uuid'),
+        Index('call_logd_call_log_destination__idx__call_log_id', 'call_log_id'),
         CheckConstraint(
             destination_details_key.in_(
                 [
@@ -254,6 +255,7 @@ class CallLogParticipant(Base):
 @generic_repr
 class Recording(Base):
     __tablename__ = 'call_logd_recording'
+    __table_args__ = (Index('call_logd_recording__idx__call_log_id', 'call_log_id'),)
 
     uuid = Column(
         UUIDType(),
