@@ -24,17 +24,19 @@ class RecordingMediaDeleteRequestSchema(Schema):
 
 
 class CDRListingBase(Schema):
-    from_ = fields.DateTime(data_key='from', attribute='start', missing=None)
-    until = fields.DateTime(attribute='end', missing=None)
-    search = fields.String(missing=None)
+    from_ = fields.DateTime(data_key='from', attribute='start', load_default=None)
+    until = fields.DateTime(attribute='end', load_default=None)
+    search = fields.String(load_default=None)
     call_direction = fields.String(
-        validate=OneOf(['internal', 'inbound', 'outbound']), missing=None
+        validate=OneOf(['internal', 'inbound', 'outbound']), load_default=None
     )
-    number = fields.String(validate=Regexp(NUMBER_REGEX), missing=None)
-    tags = fields.List(fields.String(), missing=[])
-    user_uuid = fields.List(fields.String(), missing=[], attribute='user_uuids')
-    from_id = fields.Integer(validate=Range(min=0), attribute='start_id', missing=None)
-    recurse = fields.Boolean(missing=False)
+    number = fields.String(validate=Regexp(NUMBER_REGEX), load_default=None)
+    tags = fields.List(fields.String(), load_default=[])
+    user_uuid = fields.List(fields.String(), load_default=[], attribute='user_uuids')
+    from_id = fields.Integer(
+        validate=Range(min=0), attribute='start_id', load_default=None
+    )
+    recurse = fields.Boolean(load_default=False)
 
     @pre_load
     def convert_tags_and_user_uuid_to_list(self, data, **kwargs):
@@ -47,11 +49,11 @@ class CDRListingBase(Schema):
 
 
 class RecordingMediaExportRequestSchema(CDRListingBase):
-    email = fields.Email(missing=None)
+    email = fields.Email(load_default=None)
 
 
 class RecordingMediaExportBodySchema(Schema):
-    cdr_ids = fields.List(fields.Integer(), missing=None)
+    cdr_ids = fields.List(fields.Integer(), load_default=None)
 
 
 class RecordingMediaExportSchema(Schema):
@@ -59,7 +61,7 @@ class RecordingMediaExportSchema(Schema):
 
 
 class BaseDestinationDetailsSchema(Schema):
-    type = fields.String(required=True, default='unknown')
+    type = fields.String(required=True, dump_default='unknown')
 
 
 class DestinationConferenceDetails(BaseDestinationDetailsSchema):
@@ -119,7 +121,7 @@ class CDRSchema(Schema):
     end = fields.DateTime(attribute='date_end')
     answered = fields.Boolean(attribute='marshmallow_answered')
     answer = fields.DateTime(attribute='date_answer')
-    duration = fields.TimeDelta(default=None, attribute='marshmallow_duration')
+    duration = fields.TimeDelta(dump_default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
     conversation_id = fields.String()
     destination_details = DestinationDetailsField(
@@ -150,7 +152,7 @@ class CDRSchema(Schema):
     source_user_uuid = fields.UUID()
     tags = fields.List(fields.String(), attribute='marshmallow_tags')
     recordings = fields.Nested(
-        'RecordingSchema', many=True, default=[], exclude=('conversation_id',)
+        'RecordingSchema', many=True, dump_default=[], exclude=('conversation_id',)
     )
 
     @pre_dump
@@ -175,21 +177,21 @@ class CDRSchema(Schema):
 
 
 class CDRListRequestSchema(CDRListingBase):
-    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='desc')
+    direction = fields.String(validate=OneOf(['asc', 'desc']), load_default='desc')
     order = fields.String(
         validate=OneOf(set(CDRSchema().fields) - {'end', 'tags', 'recordings'}),
-        missing='start',
+        load_default='start',
     )
-    limit = fields.Integer(validate=Range(min=0), missing=1000)
-    offset = fields.Integer(validate=Range(min=0), missing=None)
-    distinct = fields.String(validate=OneOf(['peer_exten']), missing=None)
-    recorded = fields.Boolean(missing=None)
-    format = fields.String(validate=OneOf(['csv', 'json']), missing=None)
+    limit = fields.Integer(validate=Range(min=0), load_default=1000)
+    offset = fields.Integer(validate=Range(min=0), load_default=None)
+    distinct = fields.String(validate=OneOf(['peer_exten']), load_default=None)
+    recorded = fields.Boolean(load_default=None)
+    format = fields.String(validate=OneOf(['csv', 'json']), load_default=None)
     conversation_id = fields.String(
         validate=Regexp(
             CONVERSATION_ID_REGEX, error='not a valid conversation identifier'
         ),
-        missing=None,
+        load_default=None,
     )
 
     @post_load
