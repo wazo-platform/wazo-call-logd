@@ -1,4 +1,4 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import time
@@ -15,7 +15,7 @@ HOUR_REGEX = r"^([0,1][0-9]|2[0-3]):[0-5][0-9]$"
 class _StatisticsPeriodSchema(Schema):
     from_ = fields.String(attribute='from', data_key='from')
     until = fields.String()
-    tenant_uuid = fields.UUID(default=None)
+    tenant_uuid = fields.UUID(dump_default=None)
 
     @pre_dump
     def convert_from_and_until_to_isoformat(self, data, **kwargs):
@@ -27,13 +27,13 @@ class _StatisticsPeriodSchema(Schema):
 
 
 class AgentStatisticsSchema(_StatisticsPeriodSchema):
-    agent_id = fields.Integer(default=None)
-    agent_number = fields.String(default=None)
-    answered = fields.Integer(default=0)
-    conversation_time = fields.Integer(default=0)
-    login_time = fields.Integer(default=0)
-    pause_time = fields.Integer(default=0)
-    wrapup_time = fields.Integer(default=0)
+    agent_id = fields.Integer(dump_default=None)
+    agent_number = fields.String(dump_default=None)
+    answered = fields.Integer(dump_default=0)
+    conversation_time = fields.Integer(dump_default=0)
+    login_time = fields.Integer(dump_default=0)
+    pause_time = fields.Integer(dump_default=0)
+    wrapup_time = fields.Integer(dump_default=0)
 
 
 class AgentStatisticsSchemaList(Schema):
@@ -42,44 +42,44 @@ class AgentStatisticsSchemaList(Schema):
 
 
 class QueueStatisticsSchema(_StatisticsPeriodSchema):
-    queue_id = fields.Integer(default=None)
-    queue_name = fields.String(default=None)
-    received = fields.Integer(attribute='total', default=0)
-    answered = fields.Integer(default=0)
-    abandoned = fields.Integer(default=0)
-    closed = fields.Integer(default=0)
-    not_answered = fields.Integer(attribute='timeout', default=0)
-    saturated = fields.Integer(default=0)
-    blocked = fields.Integer(attribute='blocking', default=0)
-    average_waiting_time = fields.Integer(default=None)
-    answered_rate = fields.Float(default=None)
-    quality_of_service = fields.Float(attribute='qos', default=None)
+    queue_id = fields.Integer(dump_default=None)
+    queue_name = fields.String(dump_default=None)
+    received = fields.Integer(attribute='total', dump_default=0)
+    answered = fields.Integer(dump_default=0)
+    abandoned = fields.Integer(dump_default=0)
+    closed = fields.Integer(dump_default=0)
+    not_answered = fields.Integer(attribute='timeout', dump_default=0)
+    saturated = fields.Integer(dump_default=0)
+    blocked = fields.Integer(attribute='blocking', dump_default=0)
+    average_waiting_time = fields.Integer(dump_default=None)
+    answered_rate = fields.Float(dump_default=None)
+    quality_of_service = fields.Float(attribute='qos', dump_default=None)
 
 
 class _QoSSchema(Schema):
-    min_ = fields.Integer(default=None, attribute='min', data_key='min')
-    max_ = fields.Integer(default=None, attribute='max', data_key='max')
-    answered = fields.Integer(default=0)
-    abandoned = fields.Integer(default=0)
+    min_ = fields.Integer(dump_default=None, attribute='min', data_key='min')
+    max_ = fields.Integer(dump_default=None, attribute='max', data_key='max')
+    answered = fields.Integer(dump_default=0)
+    abandoned = fields.Integer(dump_default=0)
 
 
 class QueueStatisticsQoSSchema(_StatisticsPeriodSchema):
-    queue_id = fields.Integer(default=None)
-    queue_name = fields.String(default=None)
+    queue_id = fields.Integer(dump_default=None)
+    queue_name = fields.String(dump_default=None)
     quality_of_service = fields.List(fields.Nested(_QoSSchema))
 
 
 class _StatisticsListRequestSchema(Schema):
-    from_ = fields.DateTime(data_key='from', missing=None)
-    until = fields.DateTime(missing=None)
+    from_ = fields.DateTime(data_key='from', load_default=None)
+    until = fields.DateTime(load_default=None)
     day_start_time = fields.String(attribute='start_time', validate=Regexp(HOUR_REGEX))
     day_end_time = fields.String(attribute='end_time', validate=Regexp(HOUR_REGEX))
     week_days = fields.List(
         fields.Integer(),
-        missing=[1, 2, 3, 4, 5, 6, 7],
+        load_default=[1, 2, 3, 4, 5, 6, 7],
         validate=ContainsOnly([1, 2, 3, 4, 5, 6, 7]),
     )
-    timezone = fields.String(validate=OneOf(pytz.all_timezones), missing='UTC')
+    timezone = fields.String(validate=OneOf(pytz.all_timezones), load_default='UTC')
 
     def _normalize_datetime(self, dt, timezone):
         if not dt.tzinfo:
@@ -157,7 +157,7 @@ class QueueStatisticsRequestSchema(QueueStatisticsListRequestSchema):
 
 class QueueStatisticsQoSRequestSchema(_StatisticsListRequestSchema):
     interval = fields.String(validate=OneOf(['hour', 'day', 'month']))
-    qos_thresholds = fields.List(fields.Integer(validate=Range(min=0)), missing=[])
+    qos_thresholds = fields.List(fields.Integer(validate=Range(min=0)), load_default=[])
 
     @pre_load
     def convert_qos_thresholds_to_list(self, data, **kwargs):
