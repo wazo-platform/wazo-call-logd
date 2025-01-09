@@ -1,4 +1,4 @@
-# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import timedelta as td
@@ -290,3 +290,9 @@ class TestCEL(DBIntegrationTest):
                 has_property('id', cel2['id']),
             ),
         )
+
+    @cel(linkedid='1', channame='Message/ast_msg_queue')
+    def test_find_last_unprocessed_ignore_sip_chat_messages(self, cel):
+        older = NOW - td(hours=1)
+        result = self.dao.cel.find_last_unprocessed(older=older)
+        assert_that(result, empty())
