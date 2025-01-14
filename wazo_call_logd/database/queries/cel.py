@@ -1,4 +1,4 @@
-# Copyright 2013-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo_dao.alchemy.cel import CEL
@@ -56,6 +56,7 @@ class CELDAO(BaseDAO):
             subquery = (
                 session.query(CEL.uniqueid)
                 .filter(CEL.call_log_id.is_(None))
+                .filter(CEL.channame != 'Message/ast_msg_queue')  # ignore SIP chat
                 .order_by(CEL.eventtime.desc())
             )
 
