@@ -249,20 +249,28 @@ class CallLogsGenerator:
 
             interpretor = self._get_interpretor(cels_by_call)
             logger.debug('interpreting cels using %s', interpretor.__class__.__name__)
-            call_log = interpretor.interpret_cels(cels_by_call, call_log)
-
-            self._remove_duplicate_participants(call_log)
-            self._fetch_participants(call_log)
-            self._ensure_tenant_uuid_is_set(call_log)
-            self._fill_extensions_from_participants(call_log)
-            self._remove_incomplete_recordings(call_log)
-
             try:
-                result.append(call_log.to_call_log())
-            except InvalidCallLogException as e:
-                logger.debug(
-                    'Invalid call log detected(linkedids %s): %s', linkedids, e
+                call_log = interpretor.interpret_cels(cels_by_call, call_log)
+
+                self._remove_duplicate_participants(call_log)
+                self._fetch_participants(call_log)
+                self._ensure_tenant_uuid_is_set(call_log)
+                self._fill_extensions_from_participants(call_log)
+                self._remove_incomplete_recordings(call_log)
+
+                try:
+                    result.append(call_log.to_call_log())
+                except InvalidCallLogException as e:
+                    logger.debug(
+                        'Invalid call log detected(linkedids %s): %s', linkedids, e
+                    )
+            except Exception as e:
+                logger.exception(
+                    'CEL interpretation failure for linkedid group %s: %s', linkedids, e
                 )
+                # this CEL sequence failed to be interpreted,
+                # but the next one should be given a chance
+                continue
 
         return result
 

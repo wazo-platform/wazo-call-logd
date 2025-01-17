@@ -1,4 +1,4 @@
-# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -696,3 +696,79 @@ class TestCallLogGenerationScenarios(TestCase):
         assert {
             prop: getattr(call_logs[0], prop) for prop in expected_properties
         } == expected_properties
+
+    @raw_cels(
+        '''
+        eventtype                      | eventtime                         | cid_name              | cid_num       | cid_ani   | exten     | context       | channame                  | linkedid      | uniqueid          | extra
+        --------------------------------+-----------------------------------+-----------------------+---------------+-----------+-----------+---------------+---------------------------+---------------+-------------------+-------------------------------------------------------------------------------------------------------------------------------------------------
+        CHAN_START                     | 2022-07-21 09:31:28.178728        | Harry Potter          | 1603          |           | 91800     | mycontext     | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+        XIVO_INCALL                    | 2022-07-21 09:31:28.236466        | Harry Potter          | 1603          | 1603      | s         | did           | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"extra":}
+        WAZO_CALL_LOG_DESTINATION      | 2022-07-21 09:31:28.73542         | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"extra":"type"}
+        APP_START                      | 2022-07-21 09:31:28.758777        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+        CHAN_START                     | 2022-07-21 09:31:28.764391        | Harry Potter          | 1603          |           | s         | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      |
+        ANSWER                         | 2022-07-21 09:31:31.637187        | Harry Potter          | 1603          | 1603      | s         | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      |
+        ANSWER                         | 2022-07-21 09:31:31.637723        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+        BRIDGE_ENTER                   | 2022-07-21 09:31:31.641326        | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER                   | 2022-07-21 09:31:31.643468        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT                    | 2022-07-21 09:31:36.363285        | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+        HANGUP                         | 2022-07-21 09:31:36.36417         | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000001","dialstatus":""}
+        CHAN_END                       | 2022-07-21 09:31:36.36417         | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000001   | 1658410288.0  | 1658410288.1      |
+        BRIDGE_EXIT                    | 2022-07-21 09:31:36.367518        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+        HANGUP                         | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000001","dialstatus":"ANSWER"}
+        CHAN_END                       | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+        LINKEDID_END                   | 2022-07-21 09:31:36.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000000   | 1658410288.0  | 1658410288.0      |
+        CHAN_START                     | 2022-07-21 09:31:37.178728        | Harry Potter          | 1603          |           | 91800     | mycontext     | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      |
+        XIVO_INCALL                    | 2022-07-21 09:31:37.236466        | Harry Potter          | 1603          | 1603      | s         | did           | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      | {"extra":"006a72c4-eb68-481a-808f-33b28ec109c8"}
+        WAZO_CALL_LOG_DESTINATION      | 2022-07-21 09:31:37.73542         | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      | {"extra":"type: user,uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,name: Harry Potter"}
+        APP_START                      | 2022-07-21 09:31:37.758777        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      |
+        CHAN_START                     | 2022-07-21 09:31:37.764391        | Harry Potter          | 1603          |           | s         | mycontext     | PJSIP/cul113qn-00000003   | 1658410289.0  | 1658410289.1      |
+        ANSWER                         | 2022-07-21 09:31:38.637187        | Harry Potter          | 1603          | 1603      | s         | mycontext     | PJSIP/cul113qn-00000003   | 1658410289.0  | 1658410289.1      |
+        ANSWER                         | 2022-07-21 09:31:38.637723        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      |
+        BRIDGE_ENTER                   | 2022-07-21 09:31:38.641326        | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000003   | 1658410289.0  | 1658410289.1      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER                   | 2022-07-21 09:31:38.643468        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT                    | 2022-07-21 09:31:39.363285        | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000003   | 1658410289.0  | 1658410289.1      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+        HANGUP                         | 2022-07-21 09:31:39.36417         | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000003   | 1658410289.0  | 1658410289.1      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000002","dialstatus":""}
+        CHAN_END                       | 2022-07-21 09:31:39.36417         | Harry Potter          | 1603          | 1603      |           | mycontext     | PJSIP/cul113qn-00000003   | 1658410289.0  | 1658410289.1      |
+        BRIDGE_EXIT                    | 2022-07-21 09:31:39.367518        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      | {"bridge_id":"4a665fad-b8d1-4c47-9b7f-f4b48ee38fed","bridge_technology":"simple_bridge"}
+        HANGUP                         | 2022-07-21 09:31:39.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      | {"hangupcause":16,"hangupsource":"PJSIP/cul113qn-00000002","dialstatus":"ANSWER"}
+        CHAN_END                       | 2022-07-21 09:31:39.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      |
+        LINKEDID_END                   | 2022-07-21 09:31:39.373807        | Harry Potter          | 1603          | 1603      | s         | user          | PJSIP/cul113qn-00000002   | 1658410289.0  | 1658410289.0      |
+        '''
+    )
+    def test_bad_apple(self, cels: list[CEL]):
+        """
+        CELs contains two similar calls, but first CEL sequence is corrupted(bad extra values) and will fail to process,
+        while second CEL sequence will be processed correctly
+        """
+        tenant_uuid = '006a72c4-eb68-481a-808f-33b28ec109c8'
+        user_uuid = 'cb79f29b-f69a-4b93-85c2-49dcce119a9f'
+        user_name = 'Harry Potter'
+        self.generator.confd = mock_confd_client(
+            users=[mock_user(uuid=user_uuid, tenant_uuid=tenant_uuid)]
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert call_logs
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                tenant_uuid='006a72c4-eb68-481a-808f-33b28ec109c8',
+                direction='inbound',
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='user',
+                    ),
+                    has_properties(
+                        destination_details_key='user_uuid',
+                        destination_details_value=user_uuid,
+                    ),
+                    has_properties(
+                        destination_details_key='user_name',
+                        destination_details_value=user_name,
+                    ),
+                ),
+            ),
+        )
