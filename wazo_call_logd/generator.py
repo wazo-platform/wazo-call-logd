@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -257,6 +257,7 @@ class CallLogsGenerator:
                 self._ensure_tenant_uuid_is_set(call_log)
                 self._fill_extensions_from_participants(call_log)
                 self._remove_incomplete_recordings(call_log)
+                self._handle_recording_pauses(call_log)
 
                 try:
                     result.append(call_log.to_call_log())
@@ -377,3 +378,12 @@ class CallLogsGenerator:
                 continue
             new_recordings.append(recording)
         call_log.recordings = new_recordings
+
+    def _handle_recording_pauses(self, call_log: RawCallLog):
+        recordings_seen = {}
+        for recording in call_log.recordings:
+            if recording_seen := recordings_seen.get(recording.uuid):
+                recording_seen.end_time = recording.end_time
+            else:
+                recordings_seen[recording.uuid] = recording
+        call_log.recordings = list(recordings_seen.values())

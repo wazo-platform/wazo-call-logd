@@ -1,4 +1,4 @@
-# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -231,6 +231,43 @@ LINKEDID_END     | 2021-01-01 00:00:00.18 | SIP/aaaaaa-00000001 | 1000000000.01 
                     '2023-05-31 15:11:43.75487', '%Y-%m-%d %H:%M:%S.%f'
                 ).replace(tzinfo=timezone.utc),
                 path='/var/lib/wazo/sounds/tenants/54eb71f8-1f4b-4ae4-8730-638062fbe521/monitor/aaf26cdf-7e59-4630-b703-9c0bfb7c158b.wav',
+            ),
+        )
+
+    @raw_cels(
+        '''\
+         eventtype         |           eventtime           |        channame         |   uniqueid   |   linkedid   |                                                                               extra
+---------------------------+-------------------------------+-------------------------+--------------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ CHAN_START                | 2025-02-03 15:03:32.767382-05 | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 |
+ WAZO_CALL_LOG_DESTINATION | 2025-02-03 15:03:33.609642-05 | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 | {"extra":"type: user,uuid: f6cb32d4-3364-424a-a7b2-d09c7df891ff,name: Paul Telephone"}
+ APP_START                 | 2025-02-03 15:03:33.650214-05 | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 |
+ CHAN_START                | 2025-02-03 15:03:33.650788-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 |
+ ANSWER                    | 2025-02-03 15:03:34.288465-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 |
+ ANSWER                    | 2025-02-03 15:03:34.290543-05 | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 |
+ BRIDGE_ENTER              | 2025-02-03 15:03:34.29341-05  | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"bridge_id":"474e49e9-20d1-4e85-b0d4-9ac764cec932","bridge_technology":"simple_bridge"}
+ BRIDGE_ENTER              | 2025-02-03 15:03:34.29406-05  | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 | {"bridge_id":"474e49e9-20d1-4e85-b0d4-9ac764cec932","bridge_technology":"simple_bridge"}
+ MIXMONITOR_START          | 2025-02-03 15:03:38.173476-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"filename":"/var/lib/wazo/sounds/tenants/bebbeda2-ab4a-43af-a5e8-ab859ed2f40b/monitor/01fec193-2562-43f3-8150-794821cab101.wav","mixmonitor_id":"0x55e2de861b80"}
+ MIXMONITOR_STOP           | 2025-02-03 15:03:39.275808-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"mixmonitor_id":"0x55e2de861b80"}
+ MIXMONITOR_START          | 2025-02-03 15:03:43.259039-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"filename":"/var/lib/wazo/sounds/tenants/bebbeda2-ab4a-43af-a5e8-ab859ed2f40b/monitor/01fec193-2562-43f3-8150-794821cab101.wav","mixmonitor_id":"0x55e2de81ae70"}
+ MIXMONITOR_STOP           | 2025-02-03 15:03:45.236598-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"mixmonitor_id":"0x55e2de81ae70"}
+ MIXMONITOR_START          | 2025-02-03 15:03:48.725291-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"filename":"/var/lib/wazo/sounds/tenants/bebbeda2-ab4a-43af-a5e8-ab859ed2f40b/monitor/01fec193-2562-43f3-8150-794821cab101.wav","mixmonitor_id":"0x55e2de7de160"}
+ MIXMONITOR_STOP           | 2025-02-03 15:03:50.656679-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"mixmonitor_id":"0x55e2de7de160"}
+ BRIDGE_EXIT               | 2025-02-03 15:03:54.043383-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"bridge_id":"474e49e9-20d1-4e85-b0d4-9ac764cec932","bridge_technology":"simple_bridge"}
+ CHAN_END                  | 2025-02-03 15:03:54.048109-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 |
+ HANGUP                    | 2025-02-03 15:03:54.048109-05 | PJSIP/w6hpvj79-00000007 | 1738613013.7 | 1738613012.6 | {"hangupcause":16,"hangupsource":"PJSIP/w6hpvj79-00000007","dialstatus":""}
+ BRIDGE_EXIT               | 2025-02-03 15:03:54.04878-05  | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 | {"bridge_id":"474e49e9-20d1-4e85-b0d4-9ac764cec932","bridge_technology":"simple_bridge"}
+ LINKEDID_END              | 2025-02-03 15:03:54.054537-05 | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 |
+ HANGUP                    | 2025-02-03 15:03:54.054537-05 | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 | {"hangupcause":16,"hangupsource":"PJSIP/w6hpvj79-00000007","dialstatus":"ANSWER"}
+ CHAN_END                  | 2025-02-03 15:03:54.054537-05 | PJSIP/o6k761rn-00000006 | 1738613012.6 | 1738613012.6 |
+        '''
+    )
+    def test_recording_pause_resume(self):
+        self._assert_last_recordings_match(
+            '1738613012.6',
+            has_properties(
+                start_time=dt.fromisoformat('2025-02-03 20:03:38.173476+00:00'),
+                end_time=dt.fromisoformat('2025-02-03 20:03:50.656679+00:00'),
+                path='/var/lib/wazo/sounds/tenants/bebbeda2-ab4a-43af-a5e8-ab859ed2f40b/monitor/01fec193-2562-43f3-8150-794821cab101.wav',
             ),
         )
 
