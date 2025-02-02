@@ -5,8 +5,8 @@ Revises: 6190f9a543ef
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '57909180a021'
@@ -28,6 +28,7 @@ destination_table = sa.table(
         'call_log_id',
     ),
 )
+
 
 def upgrade():
     op.drop_constraint(

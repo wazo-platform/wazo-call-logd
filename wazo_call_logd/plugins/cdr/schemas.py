@@ -86,6 +86,7 @@ class DestinationGroupDetails(BaseDestinationDetailsSchema):
     group_label = fields.String()
     group_id = fields.Integer()
 
+
 class DestinationQueueDetails(BaseDestinationDetailsSchema):
     queue_name = fields.String()
     queue_id = fields.Integer()

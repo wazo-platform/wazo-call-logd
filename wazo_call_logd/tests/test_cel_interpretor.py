@@ -624,9 +624,7 @@ class TestExtractCallLogDestinationVariables(TestCase):
                 },
             ),
             (
-                {
-                    'extra': 'type: queue,id: 7,name: SUPPORT'
-                },
+                {'extra': 'type: queue,id: 7,name: SUPPORT'},
                 {
                     'type': 'queue',
                     'id': '7',
