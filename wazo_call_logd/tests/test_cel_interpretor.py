@@ -623,6 +623,16 @@ class TestExtractCallLogDestinationVariables(TestCase):
                     'name': 'grp-tenant-9fa27e38-907a-4345-a5b5-6f63b250bcf0',
                 },
             ),
+            (
+                {
+                    'extra': 'type: queue,id: 7,name: SUPPORT'
+                },
+                {
+                    'type': 'queue',
+                    'id': '7',
+                    'name': 'SUPPORT',
+                },
+            ),
         ]
 
         for extra, expected in samples:
