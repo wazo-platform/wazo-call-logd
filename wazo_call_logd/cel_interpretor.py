@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -353,7 +353,8 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if matches := RECORDING_PATH_REGEX.match(extra['filename']):
             recording_uuid_str = matches.group(2)
             recording.uuid = uuid.UUID(recording_uuid_str)
-
+        else:
+            recording.uuid = uuid.uuid4()
         call.recordings.append(recording)
         return call
 
