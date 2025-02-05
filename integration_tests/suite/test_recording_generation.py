@@ -271,6 +271,43 @@ LINKEDID_END     | 2021-01-01 00:00:00.18 | SIP/aaaaaa-00000001 | 1000000000.01 
             ),
         )
 
+    @raw_cels(
+        '''\
+         eventtype         |           eventtime           |        channame         |   uniqueid   |   linkedid   |                                                                               extra
+---------------------------+-------------------------------+-------------------------+--------------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ CHAN_START                | 2025-02-03 15:03:32.767382-05 | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 |
+ WAZO_CALL_LOG_DESTINATION | 2025-02-03 15:03:33.609642-05 | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 | {"extra":"type: user,uuid: f6cb32d4-3364-424a-a7b2-d09c7df891ff,name: Paul Telephone"}
+ APP_START                 | 2025-02-03 15:03:33.650214-05 | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 |
+ CHAN_START                | 2025-02-03 15:03:33.650788-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 |
+ ANSWER                    | 2025-02-03 15:03:34.288465-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 |
+ ANSWER                    | 2025-02-03 15:03:34.290543-05 | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 |
+ BRIDGE_ENTER              | 2025-02-03 15:03:34.29341-05  | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"bridge_id":"474e49e9-20d1-4e85-b0d4-9ac764cec934","bridge_technology":"simple_bridge"}
+ BRIDGE_ENTER              | 2025-02-03 15:03:34.29406-05  | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 | {"bridge_id":"474e49e9-20d1-4e85-b0d4-9ac764cec934","bridge_technology":"simple_bridge"}
+ MIXMONITOR_START          | 2025-02-03 15:03:38.173477-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"filename":"/tmp/record1.wav","mixmonitor_id":"0x55e2de861b81"}
+ MIXMONITOR_STOP           | 2025-02-03 15:03:39.275808-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"mixmonitor_id":"0x55e2de861b81"}
+ MIXMONITOR_START          | 2025-02-03 15:03:43.259039-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"filename":"/tmp/record1.wav","mixmonitor_id":"0x55e2de81ae71"}
+ MIXMONITOR_STOP           | 2025-02-03 15:03:45.236598-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"mixmonitor_id":"0x55e2de81ae71"}
+ MIXMONITOR_START          | 2025-02-03 15:03:48.725291-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"filename":"/tmp/record1.wav","mixmonitor_id":"0x55e2de7de161"}
+ MIXMONITOR_STOP           | 2025-02-03 15:03:50.656680-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"mixmonitor_id":"0x55e2de7de161"}
+ BRIDGE_EXIT               | 2025-02-03 15:03:54.043383-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"bridge_id":"474e49e9-20d1-4e85-b0d4-9ac764cec934","bridge_technology":"simple_bridge"}
+ CHAN_END                  | 2025-02-03 15:03:54.048109-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 |
+ HANGUP                    | 2025-02-03 15:03:54.048109-05 | PJSIP/w6hpvj79-00000007 | 1738613019.7 | 1738613019.6 | {"hangupcause":16,"hangupsource":"PJSIP/w6hpvj79-00000007","dialstatus":""}
+ BRIDGE_EXIT               | 2025-02-03 15:03:54.04878-05  | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 | {"bridge_id":"474e49e9-20d1-4e85-b0d4-9ac764cec934","bridge_technology":"simple_bridge"}
+ LINKEDID_END              | 2025-02-03 15:03:54.054537-05 | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 |
+ HANGUP                    | 2025-02-03 15:03:54.054537-05 | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 | {"hangupcause":16,"hangupsource":"PJSIP/w6hpvj79-00000007","dialstatus":"ANSWER"}
+ CHAN_END                  | 2025-02-03 15:03:54.054537-05 | PJSIP/o6k761rn-00000006 | 1738613019.6 | 1738613019.6 |
+        '''
+    )
+    def test_recording_pause_resume_non_standard_filename_generated_uuid(self):
+        self._assert_last_recordings_match(
+            '1738613019.6',
+            has_properties(
+                start_time=dt.fromisoformat('2025-02-03 20:03:38.173477+00:00'),
+                end_time=dt.fromisoformat('2025-02-03 20:03:50.656680+00:00'),
+                path='/tmp/record1.wav',
+            ),
+        )
+
     def _get_last_call_log_generated(self):
         with self.database.queries() as queries:
 
