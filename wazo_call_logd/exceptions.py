@@ -1,5 +1,9 @@
-# Copyright 2013-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 from xivo.rest_api_helpers import APIException
 
@@ -40,3 +44,19 @@ class CELInterpretationError(Exception):
         )
         self.event_name = event_name
         self.raw_data = raw_data
+
+
+class CELInterpretorError(Exception):
+    """
+    Generic error raised when a CEL interpretor fails to interpret a CEL sequence
+    """
+
+    def __init__(
+        self, msg: str | None = None, linkedids: Sequence[int] | None = None
+    ) -> None:
+        super().__init__(
+            msg
+            or 'Unexpected CEL sequence'
+            + ('' if not linkedids else f' for linkedids {linkedids}')
+        )
+        self.linkedids = linkedids and tuple(linkedids)
