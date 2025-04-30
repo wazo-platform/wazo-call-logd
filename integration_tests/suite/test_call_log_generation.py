@@ -1,4 +1,4 @@
-# Copyright 2022-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime, timedelta
@@ -1013,6 +1013,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_name='Bob Marley',
                 destination_exten='1002',
                 destination_line_identity='sip/hg63xv',
+                blocked=False,
             ),
         )
 
@@ -1135,6 +1136,38 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_name='Bob Marley',
                 destination_exten='1002',
                 destination_line_identity='sip/hg63xv',
+            ),
+        )
+
+    @raw_cels(
+        f'''\
+ eventtype              | eventtime             | cid_name   |    cid_num   | exten | context     | channame            |      uniqueid |      linkedid | extra
+
+ CHAN_START             | 2013-01-01 11:02:38.0 | 612345678  |  612345678   | 1002  | from-extern | SIP/trunk-00000028  | 1376063558.17 | 1376063558.17 |
+ WAZO_USER_BLOCKED_CALL | 2013-01-01 11:02:45.2 |            | +33612345678 | s     | user        | SIP/trunk-00000028  | 1376063558.17 | 1376063558.17 | {{"extra":"wazo_tenant_uuid: d5ae9076-0291-4a61-be7e-100b3bd3f681, destination_user_uuid: {USER_1_UUID}, blocked_caller_id_num: %2B33612345678, blocked_caller_id_name: bad_caller, blocked_number_uuid: eabdbf4d-8956-4744-9e79-f01744af938a"}}
+ HANGUP                 | 2013-01-01 11:02:45.3 |            | +33612345678 | s     | user        | SIP/trunk-00000028  | 1376063558.17 | 1376063558.17 |
+ CHAN_END               | 2013-01-01 11:02:45.4 |            | +33612345678 | s     | user        | SIP/trunk-00000028  | 1376063558.17 | 1376063558.17 |
+ LINKEDID_END           | 2013-01-01 11:02:45.5 |            | +33612345678 | s     | user        | SIP/trunk-00000028  | 1376063558.17 | 1376063558.17 |
+    '''
+    )
+    def test_blocked_incoming_call(self):
+        self.confd.set_users(
+            MockUser(USER_1_UUID, USERS_TENANT),
+        )
+        self._assert_last_call_log_matches(
+            '1376063558.17',
+            has_properties(
+                date=datetime.fromisoformat('2013-01-01 11:02:38.000000+00:00'),
+                date_answer=None,
+                date_end=datetime.fromisoformat('2013-01-01 11:02:45.400000+00:00'),
+                source_name='bad_caller',
+                source_exten='+33612345678',
+                source_line_identity='sip/trunk',
+                requested_exten='1002',
+                requested_context='from-extern',
+                destination_exten='1002',
+                destination_user_uuid=USER_1_UUID,
+                blocked=True,
             ),
         )
 

@@ -1,4 +1,4 @@
-# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -60,6 +60,7 @@ class CallLog(Base):
     destination_internal_exten = Column(Text)
     destination_internal_context = Column(Text)
     destination_line_identity = Column(String(255))
+    blocked = Column(Boolean)
     direction = Column(String(255))
     user_field = Column(String(255))
     conversation_id = Column(String(255))

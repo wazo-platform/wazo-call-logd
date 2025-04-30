@@ -1,4 +1,4 @@
-# Copyright 2022-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -30,5 +30,6 @@ class CELEventType:
     xivo_outcall = 'XIVO_OUTCALL'
     xivo_user_fwd = 'XIVO_USER_FWD'
     wazo_user_missed_call = 'WAZO_USER_MISSED_CALL'
+    wazo_user_blocked_call = 'WAZO_USER_BLOCKED_CALL'
     wazo_call_log_destination = 'WAZO_CALL_LOG_DESTINATION'
     wazo_originate_all_lines = 'WAZO_ORIGINATE_ALL_LINES'
