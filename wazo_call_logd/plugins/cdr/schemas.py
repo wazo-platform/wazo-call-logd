@@ -1,10 +1,12 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import EXCLUDE, post_dump, post_load, pre_dump, pre_load
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
+
+from wazo_call_logd.datatypes import CallStatus
 
 NUMBER_REGEX = r'^_?[0-9]+_?$'
 CONVERSATION_ID_REGEX = r'^[0-9]+\.[0-9]+$'
@@ -123,6 +125,7 @@ class CDRSchema(Schema):
     answer = fields.DateTime(attribute='date_answer')
     duration = fields.TimeDelta(dump_default=None, attribute='marshmallow_duration')
     call_direction = fields.String(attribute='direction')
+    call_status = fields.String(attribute='marshmallow_call_status')
     conversation_id = fields.String()
     destination_details = DestinationDetailsField(
         BaseDestinationDetailsSchema,
@@ -160,6 +163,12 @@ class CDRSchema(Schema):
         data.marshmallow_answered = True if data.date_answer else False
         if data.date_answer and data.date_end:
             data.marshmallow_duration = data.date_end - data.date_answer
+
+        data.marshmallow_call_status = CallStatus.UNKNOWN.value
+        if data.marshmallow_answered:
+            data.marshmallow_call_status = CallStatus.ANSWERED.value
+        if data.blocked:
+            data.marshmallow_call_status = CallStatus.BLOCKED.value
         return data
 
     @post_dump
@@ -187,6 +196,7 @@ class CDRListRequestSchema(CDRListingBase):
     distinct = fields.String(validate=OneOf(['peer_exten']), load_default=None)
     recorded = fields.Boolean(load_default=None)
     format = fields.String(validate=OneOf(['csv', 'json']), load_default=None)
+    call_status = fields.Enum(CallStatus, by_value=True)
     conversation_id = fields.String(
         validate=Regexp(
             CONVERSATION_ID_REGEX, error='not a valid conversation identifier'

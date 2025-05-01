@@ -380,13 +380,12 @@ parameters:
     in: query
   call_status:
     name: call_status
-    description: Filter by call statuses (comma-separated status strings)
+    description: Filter by call statuses (comma-separated status strings). Defaults to non-blocked calls.
     required: false
-    type: array
-    items:
-      $ref: '#/definitions/call_status'
-    collectionFormat: csv
-    default: 'answered,unknown'
+    type: string
+    enum:
+      - answered
+      - blocked
     in: query
 definitions:
   call_status:
