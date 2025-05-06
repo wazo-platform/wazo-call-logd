@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -11,10 +11,12 @@ from sqlalchemy import and_, distinct, func, sql
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Query, joinedload, selectinload, subqueryload
 
-from wazo_call_logd.datatypes import CallDirection, OrderDirection
+from wazo_call_logd.datatypes import CallDirection, CallStatus, OrderDirection
 
 from ..models import CallLog, CallLogParticipant
 from .base import BaseDAO
+
+DEFAULT_CALL_STATUS = '__default_call_status'
 
 
 class ListParams(TypedDict, total=False):
@@ -27,6 +29,7 @@ class ListParams(TypedDict, total=False):
     start: dt.datetime
     end: dt.datetime
     call_direction: CallDirection
+    call_status: CallStatus
     id: int
     start_id: int
     cdr_ids: list[int]
@@ -140,6 +143,7 @@ class CallLogDAO(BaseDAO):
 
             session.expunge_all()
 
+            params.setdefault('call_status', DEFAULT_CALL_STATUS)
             subquery = self._list_query(session, params).subquery()
             filtered = session.query(func.count(distinct(subquery.c.id))).scalar()
 
@@ -264,6 +268,16 @@ class CallLogDAO(BaseDAO):
 
         if conversation_id := params.get('conversation_id'):
             query = query.filter(CallLog.conversation_id == conversation_id)
+
+        if call_status := params.get('call_status'):
+            if call_status == CallStatus.ANSWERED:
+                query = query.filter(CallLog.date_answer != None)  # noqa
+            elif call_status == CallStatus.BLOCKED:
+                query = query.filter(CallLog.blocked == True)  # noqa
+            elif call_status == DEFAULT_CALL_STATUS:
+                query = query.filter(
+                    sql.or_(CallLog.blocked == False, CallLog.blocked == None)  # noqa
+                )
 
         return query
 

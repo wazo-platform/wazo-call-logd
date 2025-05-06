@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -12,6 +12,7 @@ from hamcrest import (
     calling,
     contains_exactly,
     contains_inanyorder,
+    contains_string,
     empty,
     equal_to,
     has_entries,
@@ -383,6 +384,7 @@ class TestGetCDRId(IntegrationTest):
                 id=12,
                 tenant_uuid=str(MASTER_TENANT),
                 answered=True,
+                call_status='answered',
                 start='2017-03-23T00:00:00+00:00',
                 answer='2017-03-23T00:01:00+00:00',
                 end='2017-03-23T00:02:27+00:00',
@@ -474,6 +476,7 @@ class TestGetCDRId(IntegrationTest):
                 id='12',
                 tenant_uuid=str(MASTER_TENANT),
                 answered='True',
+                call_status='answered',
                 start='2017-03-23T00:00:00+00:00',
                 answer='2017-03-23T00:01:00+00:00',
                 end='2017-03-23T00:02:27+00:00',
@@ -862,6 +865,7 @@ class TestListCDR(IntegrationTest):
                         id=12,
                         tenant_uuid=str(MASTER_TENANT),
                         answered=True,
+                        call_status='answered',
                         start='2017-03-23T00:00:00+00:00',
                         answer='2017-03-23T00:01:00+00:00',
                         end='2017-03-23T00:02:27+00:00',
@@ -953,6 +957,7 @@ class TestListCDR(IntegrationTest):
                     id='12',
                     tenant_uuid=str(MASTER_TENANT),
                     answered='True',
+                    call_status='answered',
                     start='2017-03-23T00:00:00+00:00',
                     answer='2017-03-23T00:01:00+00:00',
                     end='2017-03-23T00:02:27+00:00',
@@ -2438,6 +2443,154 @@ class TestListCDR(IntegrationTest):
         self.call_logd.set_token(USER_2_TOKEN)
         assert_that(
             self.call_logd.cdr.list_from_user(conversation_id='123.3'),
+            has_entries(
+                items=has_items(
+                    has_entries(id=12),
+                ),
+                filtered=1,
+                total=1,
+            ),
+        )
+
+    @call_log(
+        **{'id': 1},
+        blocked=False,
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:27',
+    )
+    @call_log(**{'id': 2}, blocked=True)
+    @call_log(**{'id': 3}, blocked=False)
+    def test_list_by_call_status(self):
+        # default = don't list blocked calls
+        assert_that(
+            self.call_logd.cdr.list(),
+            has_entries(
+                items=has_items(
+                    has_entries(
+                        id=1,
+                    ),
+                    has_entries(
+                        id=3,
+                    ),
+                ),
+                filtered=2,
+                total=3,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list(call_status='answered'),
+            has_entries(
+                items=has_items(
+                    has_entries(
+                        id=1,
+                    )
+                ),
+                filtered=1,
+                total=3,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list(call_status='blocked'),
+            has_entries(
+                items=has_items(
+                    has_entries(
+                        id=2,
+                    ),
+                ),
+                filtered=1,
+                total=3,
+            ),
+        )
+
+        assert_that(
+            calling(self.call_logd.cdr.list).with_args(call_status='invalid'),
+            raises(CallLogdError).matching(
+                has_properties(
+                    status_code=400,
+                    message='Sent data is invalid',
+                    details=has_entries(
+                        call_status=has_entries(
+                            message=contains_string('Must be one of'),
+                        ),
+                    ),
+                )
+            ),
+        )
+
+    @call_log(
+        **{'id': 10},
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:27',
+        blocked=False,
+        conversation_id='123.1',
+        tenant_uuid=str(USERS_TENANT),
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'}
+        ],
+    )
+    @call_log(
+        **{'id': 11},
+        blocked=True,
+        conversation_id='123.2',
+        tenant_uuid=str(USERS_TENANT),
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'}
+        ],
+    )
+    @call_log(
+        **{'id': 12},
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:27',
+        conversation_id='123.3',
+        tenant_uuid=str(USERS_TENANT),
+        participants=[
+            {'user_uuid': str(USER_2_UUID), 'line_id': '1', 'role': 'source'}
+        ],
+    )
+    def test_user_list_by_call_status(self):
+        self.call_logd.set_token(USER_1_TOKEN)
+
+        # default = don't list blocked calls
+        assert_that(
+            self.call_logd.cdr.list_from_user(),
+            has_entries(
+                items=has_items(
+                    has_entries(id=10),
+                ),
+                filtered=1,
+                total=2,
+            ),
+        )
+        assert_that(
+            self.call_logd.cdr.list_from_user(call_status='answered'),
+            has_entries(
+                items=has_items(
+                    has_entries(id=10),
+                ),
+                filtered=1,
+                total=2,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list_from_user(call_status='blocked'),
+            has_entries(
+                items=has_items(
+                    has_entries(id=11),
+                ),
+                filtered=1,
+                total=2,
+            ),
+        )
+
+        self.call_logd.set_token(USER_2_TOKEN)
+        assert_that(
+            self.call_logd.cdr.list_from_user(call_status='answered'),
             has_entries(
                 items=has_items(
                     has_entries(id=12),

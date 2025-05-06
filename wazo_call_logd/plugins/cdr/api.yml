@@ -26,6 +26,7 @@ paths:
       - $ref: '#/parameters/recorded'
       - $ref: '#/parameters/format'
       - $ref: '#/parameters/conversation_id'
+      - $ref: '#/parameters/call_status'
       responses:
         '200':
           description: List CDR
@@ -182,6 +183,7 @@ paths:
       - $ref: '#/parameters/recorded'
       - $ref: '#/parameters/format'
       - $ref: '#/parameters/conversation_id'
+      - $ref: '#/parameters/call_status'
       responses:
         '200':
           description: List CDR
@@ -217,6 +219,7 @@ paths:
       - $ref: '#/parameters/recorded'
       - $ref: '#/parameters/format'
       - $ref: '#/parameters/conversation_id'
+      - $ref: '#/parameters/call_status'
       responses:
         '200':
           description: List CDR
@@ -375,7 +378,22 @@ parameters:
     required: false
     type: string
     in: query
+  call_status:
+    name: call_status
+    description: Filter by call statuses (comma-separated status strings). Defaults to non-blocked calls.
+    required: false
+    type: string
+    enum:
+      - answered
+      - blocked
+    in: query
 definitions:
+  call_status:
+    type: string
+    enum:
+      - answered
+      - blocked
+      - unknown
   CDRList:
     type: object
     properties:
@@ -478,6 +496,8 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Recording'
+      call_status:
+        $ref: '#/definitions/call_status'
   Recording:
     type: object
     properties:

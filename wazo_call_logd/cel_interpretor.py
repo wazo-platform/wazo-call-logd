@@ -111,6 +111,23 @@ def _extract_user_missed_call_variables(extra):
     )
 
 
+def _extract_user_blocked_call_variables(extra):
+    extra_tokens = extra['extra'].split(',')
+    wazo_tenant_uuid = extra_tokens[0].split(': ')[1]
+    destination_user_uuid = extra_tokens[1].split(': ')[1]
+    source_callerid_name = urllib.parse.unquote(extra_tokens[2].split(': ')[1])
+    source_callerid_num = urllib.parse.unquote(extra_tokens[3].split(': ')[1])
+    blocked_number_uuid = extra_tokens[4].split(': ')[1]
+
+    return (
+        wazo_tenant_uuid,
+        destination_user_uuid,
+        source_callerid_name,
+        source_callerid_num,
+        blocked_number_uuid,
+    )
+
+
 def _extract_call_log_destination_variables(extra: dict) -> dict:
     extra_tokens = extra['extra'].split(',', 2)
     extra_dict = dict()
@@ -246,6 +263,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.wazo_meeting_name: self.interpret_wazo_meeting_name,
             CELEventType.wazo_conference: self.interpret_wazo_conference,
             CELEventType.wazo_user_missed_call: self.interpret_wazo_user_missed_call,
+            CELEventType.wazo_user_blocked_call: self.interpret_wazo_user_blocked_call,
             CELEventType.wazo_call_log_destination: self.interpret_wazo_call_log_destination,
         }
 
@@ -518,6 +536,42 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         call.source_name = source_name
         call.source_exten = cel.cid_num
         call.source_line_identity = identity_from_channel(cel.channame)
+        return call
+
+    def interpret_wazo_user_blocked_call(self, cel, call: RawCallLog):
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            logger.error(
+                'Cannot interpret WAZO_USER_BLOCKED_CALL event (cel.id=%s), missing extra data',
+                cel.id,
+            )
+            return call
+
+        (
+            wazo_tenant_uuid,
+            destination_user_uuid,
+            blocked_callerid_num,
+            blocked_callerid_name,
+            _,
+        ) = _extract_user_blocked_call_variables(extra)
+
+        info = {
+            "user_uuid": destination_user_uuid,
+            "answered": False,
+            "role": "destination",
+        }
+        call.insert_or_update_participants_info(
+            info,
+            lambda p: p.get('user_uuid') == destination_user_uuid
+            and p.get('role') == 'destination',
+        )
+
+        call.set_tenant_uuid(wazo_tenant_uuid)
+        call.source_name = blocked_callerid_name
+        call.source_exten = blocked_callerid_num
+        call.source_line_identity = identity_from_channel(cel.channame)
+        call.blocked = True
+
         return call
 
     def interpret_wazo_call_log_destination(self, cel, call: RawCallLog):

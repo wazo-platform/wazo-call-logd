@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -36,6 +36,7 @@ class SearchParams(TypedDict, total=False):
     me_user_uuid: UUID
     user_uuids: list[UUID]
     recorded: bool
+    call_status: str
     conversation_id: str
 
 

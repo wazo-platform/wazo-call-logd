@@ -1,4 +1,4 @@
-# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -68,6 +68,7 @@ class RawCallLog:
         self.bridges: dict[str, BridgeInfo] = {}
         self.destination_details: list = []
         self.was_forwarded: bool = False
+        self.blocked: bool = False
 
     @property
     def tenant_uuid(self) -> str:
@@ -114,6 +115,7 @@ class RawCallLog:
             direction=self.direction,
             destination_details=self.destination_details,
             conversation_id=self.conversation_id,
+            blocked=self.blocked,
         )
         result.participants = self.participants
         result.cel_ids = self.cel_ids
