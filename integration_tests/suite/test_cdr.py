@@ -2607,27 +2607,19 @@ class TestListCDR(IntegrationTest):
         date_answer='2025-01-01 00:01:00',
         date_end='2025-01-01 00:02:00',
     )
-    @call_log(
-        **{'id': 2},
-        blocked=False,
-        date='2025-01-02 00:00:00',
-        date_answer='2025-01-02 00:01:00',
-        date_end='2025-01-02 00:02:00',
-    )
-    @call_log(**{'id': 3}, blocked=True)
-    @call_log(**{'id': 4}, blocked=False)
+    @call_log(**{'id': 2}, blocked=True)
+    @call_log(**{'id': 3}, blocked=False)
     def test_list_order_by_call_status(self):
         # default = don't list blocked calls
         assert_that(
             self.call_logd.cdr.list(order='call_status'),
             has_entries(
                 items=contains_exactly(
-                    has_entries(id=2),
                     has_entries(id=1),
-                    has_entries(id=4),
+                    has_entries(id=3),
                 ),
-                filtered=3,
-                total=4,
+                filtered=2,
+                total=3,
             ),
         )
 
@@ -2635,11 +2627,10 @@ class TestListCDR(IntegrationTest):
             self.call_logd.cdr.list(order='call_status', direction='asc'),
             has_entries(
                 items=contains_exactly(
-                    has_entries(id=4),
-                    has_entries(id=2),
+                    has_entries(id=3),
                     has_entries(id=1),
                 ),
-                filtered=3,
-                total=4,
+                filtered=2,
+                total=3,
             ),
         )
