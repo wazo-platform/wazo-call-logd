@@ -7,7 +7,7 @@ import datetime as dt
 from typing import Any, TypedDict
 
 import sqlalchemy as sa
-from sqlalchemy import and_, distinct, func, sql
+from sqlalchemy import and_, case, distinct, func, sql
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Query, joinedload, selectinload, subqueryload
 
@@ -78,6 +78,14 @@ class CallLogDAO(BaseDAO):
                     order_field = CallLog.date_end - CallLog.date_answer
                 elif params['order'] == 'marshmallow_answered':
                     order_field = CallLog.date_answer
+                elif params['order'] == 'marshmallow_call_status':
+                    order_field = case(
+                        [
+                            (CallLog.date_answer.isnot(None), 3),
+                            (CallLog.blocked.is_(True), 2),
+                        ],
+                        else_=1,
+                    )
                 else:
                     order_field = getattr(CallLog, params['order'])
             if params.get('direction') == 'desc':

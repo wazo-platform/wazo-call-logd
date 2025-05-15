@@ -2599,3 +2599,38 @@ class TestListCDR(IntegrationTest):
                 total=1,
             ),
         )
+
+    @call_log(
+        **{'id': 1},
+        blocked=False,
+        date='2025-01-01 00:00:00',
+        date_answer='2025-01-01 00:01:00',
+        date_end='2025-01-01 00:02:00',
+    )
+    @call_log(**{'id': 2}, blocked=True)
+    @call_log(**{'id': 3}, blocked=False)
+    def test_list_order_by_call_status(self):
+        # default = don't list blocked calls
+        assert_that(
+            self.call_logd.cdr.list(order='call_status'),
+            has_entries(
+                items=contains_exactly(
+                    has_entries(id=1),
+                    has_entries(id=3),
+                ),
+                filtered=2,
+                total=3,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list(order='call_status', direction='asc'),
+            has_entries(
+                items=contains_exactly(
+                    has_entries(id=3),
+                    has_entries(id=1),
+                ),
+                filtered=2,
+                total=3,
+            ),
+        )
