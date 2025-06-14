@@ -89,6 +89,11 @@ class DestinationGroupDetails(BaseDestinationDetailsSchema):
     group_id = fields.Integer()
 
 
+class DestinationQueueDetails(BaseDestinationDetailsSchema):
+    queue_name = fields.String()
+    queue_id = fields.Integer()
+
+
 class DestinationDetailsField(fields.Nested):
     destination_details_schemas = {
         'conference': DestinationConferenceDetails,
@@ -96,6 +101,7 @@ class DestinationDetailsField(fields.Nested):
         'user': DestinationUserDetails,
         'unknown': DestinationUnknownDetails,
         'group': DestinationGroupDetails,
+        'queue': DestinationQueueDetails,
     }
 
     def __init__(self, *args, **kwargs):
