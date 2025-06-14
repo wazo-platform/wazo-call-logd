@@ -17,7 +17,7 @@ from xivo_dao.alchemy.cel import CEL
 
 from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
-from .exceptions import CELInterpretationError
+from .exceptions import CELInterpretationError, CELInterpretorError
 from .raw_call_log import BridgeInfo, RawCallLog
 
 logger = logging.getLogger(__name__)
@@ -839,59 +839,15 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
 
 class LocalOriginateCELInterpretor:
-    def interpret_cels(self, cels, call: RawCallLog):
-        uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
-        try:
-            (
-                local_channel1,
-                local_channel2,
-                source_channel,
-            ) = starting_channels = uniqueids[:3]
-        except ValueError:  # in case a CHAN_START is missing...
-            return call
-
-        try:
-            local_channel1_start = next(
-                cel
-                for cel in cels
-                if cel.uniqueid == local_channel1 and cel.eventtype == 'CHAN_START'
-            )
-            source_channel_answer = next(
-                cel
-                for cel in cels
-                if cel.uniqueid == source_channel and cel.eventtype == 'ANSWER'
-            )
-            source_channel_end = next(
-                cel
-                for cel in cels
-                if cel.uniqueid == source_channel and cel.eventtype == 'CHAN_END'
-            )
-            local_channel2_answer = next(
-                cel
-                for cel in cels
-                if cel.uniqueid == local_channel2 and cel.eventtype == 'ANSWER'
-            )
-        except StopIteration:
-            return call
-
-        call.date = parse_eventtime(local_channel1_start.eventtime)
-        call.date_end = parse_eventtime(source_channel_end.eventtime)
-        call.source_name = source_channel_answer.cid_name
-        call.source_exten = source_channel_answer.cid_num
-        call.source_line_identity = identity_from_channel(
-            source_channel_answer.channame
-        )
-        call.raw_participants[source_channel_answer.channame].update(role='source')
-
-        call.destination_exten = local_channel2_answer.cid_num
-
+    def _interpret_recordings(self, cels, call: RawCallLog):
         # Adding all recordings
         for cel in cels:
             if cel.eventtype != CELEventType.mixmonitor_start:
                 continue
             extra = extract_cel_extra(cel.extra)
             if not is_valid_mixmonitor_start_extra(extra):
-                return call
+                logger.error('Invalid mixmonitor_start extra: %s', extra)
+                raise CELInterpretationError(cel.eventtype, extra)
 
             recording = Recording(
                 start_time=parse_eventtime(cel.eventtime),
@@ -906,7 +862,7 @@ class LocalOriginateCELInterpretor:
                 continue
             extra = extract_cel_extra(cel.extra)
             if not is_valid_mixmonitor_stop_extra(extra):
-                return call
+                raise CELInterpretationError(cel.eventtype, extra)
 
             for recording in call.recordings:
                 if recording.mixmonitor_id == extra['mixmonitor_id']:
@@ -917,74 +873,9 @@ class LocalOriginateCELInterpretor:
             if not recording.end_time:
                 recording.end_time = call.date_end
 
-        local_channel1_app_start = next(
-            (
-                cel
-                for cel in cels
-                if cel.uniqueid == local_channel1 and cel.eventtype == 'APP_START'
-            ),
-            None,
-        )
-        if local_channel1_app_start:
-            call.user_field = local_channel1_app_start.userfield
+        return call
 
-        other_channels_start = [
-            cel
-            for cel in cels
-            if cel.uniqueid not in starting_channels and cel.eventtype == 'CHAN_START'
-        ]
-        non_local_other_channels = [
-            cel.uniqueid
-            for cel in other_channels_start
-            if not cel.channame.lower().startswith('local/')
-        ]
-        other_channels_bridge_enter = [
-            cel
-            for cel in cels
-            if cel.uniqueid in non_local_other_channels
-            and cel.eventtype == 'BRIDGE_ENTER'
-        ]
-        destination_channel = (
-            other_channels_bridge_enter[-1].uniqueid
-            if other_channels_bridge_enter
-            else None
-        )
-
-        if destination_channel:
-            try:
-                # in outgoing calls, destination ANSWER event has more callerid
-                # information than START event
-                destination_channel_answer = next(
-                    cel
-                    for cel in cels
-                    if cel.uniqueid == destination_channel and cel.eventtype == 'ANSWER'
-                )
-                # take the last bridge enter/exit to skip local channel optimization
-                destination_channel_bridge_enter = next(
-                    reversed(
-                        [
-                            cel
-                            for cel in cels
-                            if cel.uniqueid == destination_channel
-                            and cel.eventtype == 'BRIDGE_ENTER'
-                        ]
-                    )
-                )
-            except StopIteration:
-                return call
-
-            call.destination_name = destination_channel_answer.cid_name
-            call.destination_exten = destination_channel_answer.cid_num
-            call.destination_line_identity = identity_from_channel(
-                destination_channel_answer.channame
-            )
-            call.raw_participants[destination_channel_answer.channame].update(
-                role='destination'
-            )
-            call.date_answer = parse_eventtime(
-                destination_channel_bridge_enter.eventtime
-            )
-
+    def _interpret_direction(self, cels, call: RawCallLog):
         is_incall = any([True for cel in cels if cel.eventtype == 'XIVO_INCALL'])
         is_outcall = any([True for cel in cels if cel.eventtype == 'XIVO_OUTCALL'])
         if is_incall:
@@ -992,6 +883,9 @@ class LocalOriginateCELInterpretor:
         if is_outcall:
             call.direction = 'outbound'
 
+        return call
+
+    def _interpret_wazo_originate_all_lines(self, cels, call: RawCallLog):
         # extract tenant and user info from WAZO_ORIGINATE_ALL_LINES custom event
         try:
             wazo_originate_all_lines = next(
@@ -1033,6 +927,190 @@ class LocalOriginateCELInterpretor:
                     and p.get('role') == 'source',
                 )
                 call.requested_type = 'all_lines'
+
+        return call
+
+    def interpret_cels(self, cels, call: RawCallLog):
+        uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
+        linkedids = {cel.linkedid for cel in cels}
+
+        try:
+            (
+                local_channel1,
+                local_channel2,
+                source_channel,
+            ) = starting_channels = uniqueids[:3]
+        except ValueError:  # in case a CHAN_START is missing...
+            logger.exception('local originate missing expected initial cels')
+            raise CELInterpretorError(
+                'local originate cel sequence missing expected initial cels',
+                linkedids=linkedids,
+            )
+
+        try:
+            local_channel1_start = next(
+                cel
+                for cel in cels
+                if cel.uniqueid == local_channel1 and cel.eventtype == 'CHAN_START'
+            )
+        except StopIteration:
+            logger.error(
+                'local originate missing CHAN_START cel for channel %s', local_channel1
+            )
+            raise CELInterpretorError(
+                f'local originate missing CHAN_START cel for channel {local_channel1}',
+                linkedids=linkedids,
+            )
+
+        try:
+            source_channel_answer = next(
+                cel
+                for cel in cels
+                if cel.uniqueid == source_channel and cel.eventtype == 'ANSWER'
+            )
+        except StopIteration:
+            logger.error(
+                'local originate missing ANSWER cel for channel %s', source_channel
+            )
+            raise CELInterpretorError(
+                f'local originate missing ANSWER cel for channel {source_channel}',
+                linkedids=linkedids,
+            )
+
+        try:
+            source_channel_end = next(
+                cel
+                for cel in cels
+                if cel.uniqueid == source_channel and cel.eventtype == 'CHAN_END'
+            )
+        except StopIteration:
+            logger.error(
+                'local originate missing CHAN_END cel for channel %s', source_channel
+            )
+            raise CELInterpretorError(
+                f'local originate missing CHAN_END cel for channel {source_channel}',
+                linkedids=linkedids,
+            )
+
+        try:
+            local_channel2_answer = next(
+                cel
+                for cel in cels
+                if cel.uniqueid == local_channel2 and cel.eventtype == 'ANSWER'
+            )
+        except StopIteration:
+            logger.error(
+                'local originate missing ANSWER cel for channel %s', local_channel2
+            )
+            raise CELInterpretorError(
+                f'local originate missing ANSWER cel for channel {local_channel2}',
+                linkedids=linkedids,
+            )
+
+        # basic/guaranteed info
+        call.date = parse_eventtime(local_channel1_start.eventtime)
+        call.date_end = parse_eventtime(source_channel_end.eventtime)
+        call.source_name = source_channel_answer.cid_name
+        call.source_exten = source_channel_answer.cid_num
+        call.source_line_identity = identity_from_channel(
+            source_channel_answer.channame
+        )
+        call.raw_participants[source_channel_answer.channame].update(role='source')
+
+        call.destination_exten = local_channel2_answer.cid_num
+
+        try:
+            call = self._interpret_recordings(cels, call)
+        except CELInterpretationError:
+            logger.error(
+                'failed to interpret recording info for call (id=%s, linkedids=%s)',
+                call.id,
+                linkedids,
+            )
+
+        local_channel1_app_start = next(
+            (
+                cel
+                for cel in cels
+                if cel.uniqueid == local_channel1 and cel.eventtype == 'APP_START'
+            ),
+            None,
+        )
+
+        # identify call user field
+        if local_channel1_app_start:
+            call.user_field = local_channel1_app_start.userfield
+
+        # identify other relevant channels
+        other_channels_start = [
+            cel
+            for cel in cels
+            if cel.uniqueid not in starting_channels and cel.eventtype == 'CHAN_START'
+        ]
+        non_local_other_channels = [
+            cel.uniqueid
+            for cel in other_channels_start
+            if not cel.channame.lower().startswith('local/')
+        ]
+        other_channels_bridge_enter = [
+            cel
+            for cel in cels
+            if cel.uniqueid in non_local_other_channels
+            and cel.eventtype == 'BRIDGE_ENTER'
+        ]
+        destination_channel = (
+            other_channels_bridge_enter[-1].uniqueid
+            if other_channels_bridge_enter
+            else None
+        )
+
+        # identify destination info
+        if destination_channel:
+            try:
+                # in outgoing calls, destination ANSWER event has more callerid
+                # information than START event
+                destination_channel_answer = next(
+                    cel
+                    for cel in cels
+                    if cel.uniqueid == destination_channel and cel.eventtype == 'ANSWER'
+                )
+                # take the last bridge enter/exit to skip local channel optimization
+                destination_channel_bridge_enter = next(
+                    reversed(
+                        [
+                            cel
+                            for cel in cels
+                            if cel.uniqueid == destination_channel
+                            and cel.eventtype == 'BRIDGE_ENTER'
+                        ]
+                    )
+                )
+            except StopIteration:
+                # no answer or bridge enter found for destination channel
+                # call was not answered?
+                logger.debug(
+                    'No answer or bridge enter found for destination channel (uniqueid=%s), '
+                    'cannot set destination info',
+                    destination_channel,
+                )
+            else:
+                call.destination_name = destination_channel_answer.cid_name
+                call.destination_exten = destination_channel_answer.cid_num
+                call.destination_line_identity = identity_from_channel(
+                    destination_channel_answer.channame
+                )
+                call.raw_participants[destination_channel_answer.channame].update(
+                    role='destination'
+                )
+                call.date_answer = parse_eventtime(
+                    destination_channel_bridge_enter.eventtime
+                )
+
+        # identify call direction
+        call = self._interpret_direction(cels, call)
+
+        # extract tenant and user info from WAZO_ORIGINATE_ALL_LINES custom event
+        call = self._interpret_wazo_originate_all_lines(cels, call)
 
         return call
 
