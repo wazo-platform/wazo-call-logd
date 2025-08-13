@@ -17,7 +17,7 @@ from xivo_dao.alchemy.cel import CEL
 
 from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
-from .exceptions import CELInterpretationError
+from .exceptions import CELInterpretationError, InvalidCallLogException
 from .raw_call_log import BridgeInfo, RawCallLog
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,8 @@ UUID_REGEX = re.compile(
 RECORDING_PATH_REGEX = re.compile(
     rf'/var/lib/wazo/sounds/tenants/({UUID_REGEX.pattern})/monitor/({UUID_REGEX.pattern}).wav'
 )
+
+DESTINATION_KEYS_REGEX = re.compile(r'(?:^|,)(\w+):')
 
 
 def default_interpretors() -> list[AbstractCELInterpretor]:
@@ -129,7 +131,22 @@ def _extract_user_blocked_call_variables(extra):
 
 
 def _extract_call_log_destination_variables(extra: dict) -> dict:
-    extra_tokens = extra['extra'].split(',', 2)
+    if 'extra' not in extra:
+        raise InvalidCallLogException(
+            'Missing expected \'extra\' key in CEL extra payload'
+        )
+
+    raw_data = extra['extra']
+
+    # Use regex to find all keys and count them
+    matches = DESTINATION_KEYS_REGEX.findall(raw_data)
+
+    if not matches:
+        raise InvalidCallLogException('Missing expected keys in CEL extra payload')
+    # Split by comma with count = number of keys - 1
+    split_count = len(matches) - 1
+    extra_tokens = raw_data.split(',', split_count)
+
     extra_dict = dict()
     for token in extra_tokens:
         key, value = token.split(': ', 1)

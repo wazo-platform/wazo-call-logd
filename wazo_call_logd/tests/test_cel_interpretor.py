@@ -1,4 +1,4 @@
-# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import urllib.parse
@@ -7,6 +7,7 @@ from unittest.mock import Mock, create_autospec, sentinel
 
 from hamcrest import (
     assert_that,
+    calling,
     contains_exactly,
     contains_inanyorder,
     equal_to,
@@ -14,11 +15,11 @@ from hamcrest import (
     has_properties,
     none,
     not_none,
+    raises,
     same_instance,
 )
-from pytest import raises
 
-from wazo_call_logd.exceptions import CELInterpretationError
+from wazo_call_logd.exceptions import CELInterpretationError, InvalidCallLogException
 
 from ..cel_interpretor import (
     AbstractCELInterpretor,
@@ -623,8 +624,26 @@ class TestExtractCallLogDestinationVariables(TestCase):
                     'name': 'grp-tenant-9fa27e38-907a-4345-a5b5-6f63b250bcf0',
                 },
             ),
+            (
+                {
+                    'extra': 'type: queue,id: 2,label: My Queue Name,tenant_uuid: 82f60c78-fc94-4936-b3fb-7b276c69df9d'
+                },
+                {
+                    'type': 'queue',
+                    'id': '2',
+                    'label': 'My Queue Name',
+                    'tenant_uuid': '82f60c78-fc94-4936-b3fb-7b276c69df9d',
+                },
+            ),
         ]
 
         for extra, expected in samples:
             result = _extract_call_log_destination_variables(extra)
             assert_that(result, equal_to(expected), f'Failed for {extra}')
+
+        assert_that(
+            calling(_extract_call_log_destination_variables).with_args(
+                {'extra': 'not a valid extra'}
+            ),
+            raises(InvalidCallLogException),
+        )
