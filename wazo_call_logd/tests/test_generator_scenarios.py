@@ -799,7 +799,7 @@ class TestCallLogGenerationScenarios(TestCase):
                 source_exten='10006',
                 requested_exten='30001',
                 destination_exten='30001',
-                destination_name='q-11668931',
+                destination_name='My Queue Name',
                 direction='internal',
                 tenant_uuid='82f60c78-fc94-4936-b3fb-7b276c69df9d',
                 destination_details=contains_inanyorder(

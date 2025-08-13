@@ -7,7 +7,6 @@ from unittest.mock import Mock, create_autospec, sentinel
 
 from hamcrest import (
     assert_that,
-    calling,
     contains_exactly,
     contains_inanyorder,
     equal_to,
@@ -15,9 +14,9 @@ from hamcrest import (
     has_properties,
     none,
     not_none,
-    raises,
     same_instance,
 )
+from pytest import raises
 
 from wazo_call_logd.exceptions import CELInterpretationError, InvalidCallLogException
 
@@ -641,9 +640,5 @@ class TestExtractCallLogDestinationVariables(TestCase):
             result = _extract_call_log_destination_variables(extra)
             assert_that(result, equal_to(expected), f'Failed for {extra}')
 
-        assert_that(
-            calling(_extract_call_log_destination_variables).with_args(
-                {'extra': 'not a valid extra'}
-            ),
-            raises(InvalidCallLogException),
-        )
+        with raises(InvalidCallLogException):
+            _extract_call_log_destination_variables({'extra': 'not a valid extra'})
