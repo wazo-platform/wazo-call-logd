@@ -26,7 +26,7 @@ EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?
 WAIT_FOR_MOBILE_REGEX = re.compile(r'^Local/(\S+)@wazo_wait_for_registration-\S+;2$')
 MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
-KEY_PAIR_SEQ_REGEX = re.compile(r'\s*(\w+):\s*([^,:]+),?')
+
 UUID_REGEX = re.compile(
     r'[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}'
 )
@@ -36,7 +36,7 @@ RECORDING_PATH_REGEX = re.compile(
     rf'/var/lib/wazo/sounds/tenants/({UUID_REGEX.pattern})/monitor/({UUID_REGEX.pattern}).wav'
 )
 
-DESTINATION_KEYS_REGEX = re.compile(r'(?:^|,)(\w+):')
+KEY_PAIR_KEY_REGEX = re.compile(r'(?:^|,\s*)(\w+):')
 
 
 def default_interpretors() -> list[AbstractCELInterpretor]:
@@ -50,7 +50,70 @@ def default_interpretors() -> list[AbstractCELInterpretor]:
 
 
 def parse_key_pair_sequence(text: str) -> list[tuple[str, str]]:
-    key_pairs = KEY_PAIR_SEQ_REGEX.findall(text)
+    """Parse a string containing key-value pairs separated by commas.
+
+    This function uses KEY_PAIR_KEY_REGEX to find keys and extracts values between them.
+    It can handle values that contain commas and colons, making it suitable for parsing
+    complex CEL extra data.
+
+    Args:
+        text: A string containing key-value pairs in the format "key1: value1,key2: value2"
+
+    Returns:
+        A list of tuples, each containing (key, value) pairs
+
+    Examples:
+        Basic key-value pairs:
+        >>> parse_key_pair_sequence("key1: value1,key2: value2")
+        [('key1', 'value1'), ('key2', 'value2')]
+
+        Values with commas:
+        >>> parse_key_pair_sequence("type: meeting,name: Meeting A,B, other: foobar")
+        [('type', 'meeting'), ('name', 'Meeting A,B, other: foobar')]
+
+        Values with colons:
+        >>> parse_key_pair_sequence("type: meeting,name: Meeting: AB,last: foobaz")
+        [('type', 'meeting'), ('name', 'Meeting: AB'), ('last', 'foobaz')]
+
+        Single key-value pair:
+        >>> parse_key_pair_sequence("key: value")
+        [('key', 'value')]
+
+        Empty string:
+        >>> parse_key_pair_sequence("")
+        []
+
+        No valid keys:
+        >>> parse_key_pair_sequence("no colons here")
+        []
+    """
+    key_matches = list(KEY_PAIR_KEY_REGEX.finditer(text))
+
+    if not key_matches:
+        return []
+
+    key_pairs = []
+    for i, match in enumerate(key_matches):
+        key = match.group(1)  # The captured key name
+        start_pos = match.end()  # Position after the colon
+
+        # Find the start of the next key (if any)
+        next_start = -1
+        if i + 1 < len(key_matches):
+            next_start = key_matches[i + 1].start()
+
+        # Extract the value between this key and the next key (or end of string)
+        if next_start != -1:
+            # Extract value up to the next key
+            value = text[start_pos:next_start].strip()
+            # Remove trailing comma if present
+            if value.endswith(','):
+                value = value[:-1].strip()
+        else:
+            value = text[start_pos:].strip()
+
+        key_pairs.append((key, value))
+
     return key_pairs
 
 
@@ -139,7 +202,7 @@ def _extract_call_log_destination_variables(extra: dict) -> dict:
     raw_data = extra['extra']
 
     # Use regex to find all keys and count them
-    matches = DESTINATION_KEYS_REGEX.findall(raw_data)
+    matches = KEY_PAIR_KEY_REGEX.findall(raw_data)
 
     if not matches:
         raise InvalidCallLogException('Missing expected keys in CEL extra payload')

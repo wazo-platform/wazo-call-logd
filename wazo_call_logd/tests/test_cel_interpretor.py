@@ -664,8 +664,22 @@ class TestParseKeyPairSequence(TestCase):
             ('', []),
             ('no colons here', []),
             (
-                'key1: value1,key2,key3: value3',
-                [('key1', 'value1'), ('key3', 'value3')],
+                'type: meeting,uuid: 8018307b-d5b6-4d70-9267-ca5cf708c342,name: Meeting A,B, other: foobar',
+                [
+                    ('type', 'meeting'),
+                    ('uuid', '8018307b-d5b6-4d70-9267-ca5cf708c342'),
+                    ('name', 'Meeting A,B'),
+                    ('other', 'foobar'),
+                ],
+            ),
+            (
+                'type: meeting,uuid: 8018307b-d5b6-4d70-9267-ca5cf708c342,name: Meeting: AB,last: foobaz',
+                [
+                    ('type', 'meeting'),
+                    ('uuid', '8018307b-d5b6-4d70-9267-ca5cf708c342'),
+                    ('name', 'Meeting: AB'),
+                    ('last', 'foobaz'),
+                ],
             ),
         ]
 
