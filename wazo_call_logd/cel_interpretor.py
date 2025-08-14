@@ -194,28 +194,10 @@ def _extract_user_blocked_call_variables(extra):
 
 
 def _extract_call_log_destination_variables(extra: dict) -> dict:
-    if 'extra' not in extra:
-        raise InvalidCallLogException(
-            'Missing expected \'extra\' key in CEL extra payload'
-        )
+    if key_pairs := parse_key_pair_sequence(extra.get('extra', '')):
+        return dict(key_pairs)
 
-    raw_data = extra['extra']
-
-    # Use regex to find all keys and count them
-    matches = KEY_PAIR_KEY_REGEX.findall(raw_data)
-
-    if not matches:
-        raise InvalidCallLogException('Missing expected keys in CEL extra payload')
-    # Split by comma with count = number of keys - 1
-    split_count = len(matches) - 1
-    extra_tokens = raw_data.split(',', split_count)
-
-    extra_dict = dict()
-    for token in extra_tokens:
-        key, value = token.split(': ', 1)
-        extra_dict[key.strip()] = value.strip()
-
-    return extra_dict
+    raise InvalidCallLogException('Missing expected keys in CEL extra payload')
 
 
 class OriginateAllLinesInfo(TypedDict):
