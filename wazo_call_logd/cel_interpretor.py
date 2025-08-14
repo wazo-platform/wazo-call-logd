@@ -648,6 +648,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             logger.error('required destination type is not found.')
             return call
 
+        if tenant_uuid := extra_dict.get('tenant_uuid'):
+            call.set_tenant_uuid(tenant_uuid)
+
         if extra_dict['type'] == 'conference':
             destination_details = {
                 'type': extra_dict['type'],
@@ -708,7 +711,6 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'queue_label': extra_dict['label'],
             }
             call.destination_name = extra_dict['label']
-            call.set_tenant_uuid(extra_dict['tenant_uuid'])
             logger.debug(
                 'Setting destination name %s '
                 'from WAZO_CALL_LOG_DESTINATION(type=%s)',
