@@ -31,6 +31,7 @@ from ..cel_interpretor import (
     extract_cel_extra,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
+    parse_key_pair_sequence,
 )
 from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog
@@ -642,3 +643,32 @@ class TestExtractCallLogDestinationVariables(TestCase):
 
         with raises(InvalidCallLogException):
             _extract_call_log_destination_variables({'extra': 'not a valid extra'})
+
+
+class TestParseKeyPairSequence(TestCase):
+    def test_extraction(self):
+        """Test parsing various key-value pair formats."""
+        samples = [
+            (
+                'key1: value1,key2: value2,key3: value3',
+                [('key1', 'value1'), ('key2', 'value2'), ('key3', 'value3')],
+            ),
+            (
+                'user_uuid: some-uuid-value,tenant_uuid: another-uuid-value',
+                [
+                    ('user_uuid', 'some-uuid-value'),
+                    ('tenant_uuid', 'another-uuid-value'),
+                ],
+            ),
+            ('key: value', [('key', 'value')]),
+            ('', []),
+            ('no colons here', []),
+            (
+                'key1: value1,key2,key3: value3',
+                [('key1', 'value1'), ('key3', 'value3')],
+            ),
+        ]
+
+        for text, expected in samples:
+            result = parse_key_pair_sequence(text)
+            assert_that(result, equal_to(expected), f'Failed for {text}')
