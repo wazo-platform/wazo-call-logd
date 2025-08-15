@@ -1,4 +1,4 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from uuid import UUID
@@ -244,5 +244,33 @@ LINKEDID_END | 2021-08-23 15:07:08.342721-04 |                   | 3925098f-c504
                 destination_participant=has_properties(
                     user_uuid=UUID('a545ea83-595d-4142-a40c-9012acd3068d'),
                 ),
+            ),
+        )
+
+    @raw_cels(
+        '''
+                eventtype         |           eventtime           |        userdeftype        | cid_name | cid_num | cid_ani | cid_dnid | exten  |                           context                            |        channame         |     appname     |                                   appdata                                    |   uniqueid   |   linkedid   | peer |                                    extra
+        ---------------------------+-------------------------------+---------------------------+----------+---------+---------+----------+--------+--------------------------------------------------------------+-------------------------+-----------------+------------------------------------------------------------------------------+--------------+--------------+------+-----------------------------------------------------------------------------
+        CHAN_START                | 2025-08-15 11:46:15.024256-04 |                           | Fern     | 10006   |         |          | 20000  | ctx-pcmdev00de-internal-a25ef16e-faaf-41ad-b1ad-aa2d715b6c05 | PJSIP/yeFKZg6L-00000000 |                 |                                                                              | 1755272775.0 | 1755272775.0 |      |
+        WAZO_CALL_LOG_DESTINATION | 2025-08-15 11:46:15.186031-04 | WAZO_CALL_LOG_DESTINATION | Fern     | 10006   | 10006   | 20000    | s      | group                                                        | PJSIP/yeFKZg6L-00000000 | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: group,id: 1,label: test                      | 1755272775.0 | 1755272775.0 |      | {"extra":"type: group,id: 1,label: test"}
+        ANSWER                    | 2025-08-15 11:46:15.296352-04 |                           | Fern     | 10006   | 10006   | 20000    | pickup | xivo-pickup                                                  | PJSIP/yeFKZg6L-00000000 | Answer          |                                                                              | 1755272775.0 | 1755272775.0 |      |
+        APP_START                 | 2025-08-15 11:46:17.090788-04 |                           | Fern     | 10006   | 10006   | 20000    | s      | group                                                        | PJSIP/yeFKZg6L-00000000 | Queue           | grp-pcmdev00de-15257710-fdd8-4635-9cce-c8aa2f884d54,,,,,,wazo-group-answered | 1755272775.0 | 1755272775.0 |      |
+        HANGUP                    | 2025-08-15 11:46:23.19187-04  |                           | Fern     | 10006   | 10006   | 20000    | s      | group                                                        | PJSIP/yeFKZg6L-00000000 |                 |                                                                              | 1755272775.0 | 1755272775.0 |      | {"hangupcause":16,"hangupsource":"PJSIP/yeFKZg6L-00000000","dialstatus":""}
+        CHAN_END                  | 2025-08-15 11:46:23.19187-04  |                           | Fern     | 10006   | 10006   | 20000    | s      | group                                                        | PJSIP/yeFKZg6L-00000000 |                 |                                                                              | 1755272775.0 | 1755272775.0 |      |
+        LINKEDID_END              | 2025-08-15 11:46:23.19187-04  |                           | Fern     | 10006   | 10006   | 20000    | s      | group                                                        | PJSIP/yeFKZg6L-00000000 |                 |                                                                              | 1755272775.0 | 1755272775.0 |      |
+        ''',
+    )
+    def test_call_to_group_no_members(self):
+        self._assert_last_call_log_matches(
+            '1755272775.0',
+            has_properties(
+                source_name='Fern',
+                source_exten='10006',
+                requested_exten='20000',
+                requested_name=None,
+                destination_internal_exten=None,
+                destination_exten='20000',
+                destination_name='test',
+                destination_participant=None,
             ),
         )
