@@ -183,6 +183,8 @@ class Destination(Base):
                     'conference_id',
                     'group_label',
                     'group_id',
+                    'queue_id',
+                    'queue_label',
                 ]
             ),
             name='call_logd_call_log_destination_details_key_check',

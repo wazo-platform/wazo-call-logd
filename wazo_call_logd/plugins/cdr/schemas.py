@@ -89,6 +89,11 @@ class DestinationGroupDetails(BaseDestinationDetailsSchema):
     group_id = fields.Integer()
 
 
+class DestinationQueueDetails(BaseDestinationDetailsSchema):
+    queue_label = fields.String()
+    queue_id = fields.Integer()
+
+
 class DestinationDetailsField(fields.Nested):
     destination_details_schemas = {
         'conference': DestinationConferenceDetails,
