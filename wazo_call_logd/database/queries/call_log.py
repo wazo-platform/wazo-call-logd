@@ -126,9 +126,13 @@ class CallLogDAO(BaseDAO):
             )
         else:
             query = session.query(CallLog)
-        if requested_internal_exten := params['requested_internal_exten']:
+        if requested_internal_exten := params.get('requested_internal_exten'):
             query = query.filter(
                 CallLog.requested_internal_exten == requested_internal_exten
+            )
+        if requested_internal_context := params.get('requested_internal_context'):
+            query = query.filter(
+                CallLog.requested_internal_context == requested_internal_context
             )
 
         query = query.options(

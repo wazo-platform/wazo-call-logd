@@ -2,7 +2,9 @@
 
 ## 25.12
 
-* CDR can be filtered using the query string `requested_internal_extension`
+* CDR can be filtered using the following query string arguments:
+  * `requested_internal_extension`
+  * `requested_internal_context`
 
 ## 24.13
 
