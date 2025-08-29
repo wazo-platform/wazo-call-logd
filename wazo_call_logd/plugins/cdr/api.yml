@@ -5,6 +5,10 @@ paths:
       description: |
         **Required ACL:** `call-logd.cdr.read`
         This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
+
+        Filtering can be done based on many fields that are visible in the query result:
+        - `requested_internal_extension`
+        - `conversation_id`
       tags:
         - cdr
       parameters:

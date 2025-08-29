@@ -1,5 +1,9 @@
 # Changelog
 
+## 25.12
+
+* CDR can be filtered using the query string `requested_internal_extension`
+
 ## 24.13
 
 * The CDR resource now contains a new field called `requested_user_uuid`
