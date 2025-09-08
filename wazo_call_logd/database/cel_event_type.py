@@ -32,4 +32,5 @@ class CELEventType:
     wazo_user_missed_call = 'WAZO_USER_MISSED_CALL'
     wazo_user_blocked_call = 'WAZO_USER_BLOCKED_CALL'
     wazo_call_log_destination = 'WAZO_CALL_LOG_DESTINATION'
+    wazo_call_log_requested_internal = 'WAZO_CALL_LOG_REQUESTED_INTERNAL'
     wazo_originate_all_lines = 'WAZO_ORIGINATE_ALL_LINES'

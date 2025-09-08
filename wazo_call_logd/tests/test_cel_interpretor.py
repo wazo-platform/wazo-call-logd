@@ -1,4 +1,4 @@
-# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import urllib.parse
@@ -18,19 +18,20 @@ from hamcrest import (
 )
 from pytest import raises
 
-from wazo_call_logd.exceptions import CELInterpretationError
+from wazo_call_logd.exceptions import CELInterpretationError, InvalidCallLogException
 
 from ..cel_interpretor import (
     AbstractCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
-    _extract_call_log_destination_variables,
     _extract_user_missed_call_variables,
     _parse_wazo_originate_all_lines_extra,
     bridge_info,
     extract_cel_extra,
+    extract_key_value_pairs_as_dict,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
+    parse_key_pair_sequence,
 )
 from ..database.cel_event_type import CELEventType
 from ..raw_call_log import RawCallLog
@@ -570,6 +571,49 @@ class TestCallerCELInterpretor(TestCase):
         )
 
 
+class TestParseKeyPairSequence(TestCase):
+    def test_extraction(self):
+        """Test parsing various key-value pair formats."""
+        samples = [
+            (
+                'key1: value1,key2: value2,key3: value3',
+                [('key1', 'value1'), ('key2', 'value2'), ('key3', 'value3')],
+            ),
+            (
+                'user_uuid: some-uuid-value,tenant_uuid: another-uuid-value',
+                [
+                    ('user_uuid', 'some-uuid-value'),
+                    ('tenant_uuid', 'another-uuid-value'),
+                ],
+            ),
+            ('key: value', [('key', 'value')]),
+            ('', []),
+            ('no colons here', []),
+            (
+                'type: meeting,uuid: 8018307b-d5b6-4d70-9267-ca5cf708c342,name: Meeting A,B, other: foobar',
+                [
+                    ('type', 'meeting'),
+                    ('uuid', '8018307b-d5b6-4d70-9267-ca5cf708c342'),
+                    ('name', 'Meeting A,B'),
+                    ('other', 'foobar'),
+                ],
+            ),
+            (
+                'type: meeting,uuid: 8018307b-d5b6-4d70-9267-ca5cf708c342,name: Meeting: AB,last: foobaz',
+                [
+                    ('type', 'meeting'),
+                    ('uuid', '8018307b-d5b6-4d70-9267-ca5cf708c342'),
+                    ('name', 'Meeting: AB'),
+                    ('last', 'foobaz'),
+                ],
+            ),
+        ]
+
+        for text, expected in samples:
+            result = parse_key_pair_sequence(text)
+            assert_that(result, equal_to(expected), f'Failed for {text}')
+
+
 class TestExtractCallLogDestinationVariables(TestCase):
     def test_extraction(self):
         samples = [
@@ -623,8 +667,22 @@ class TestExtractCallLogDestinationVariables(TestCase):
                     'name': 'grp-tenant-9fa27e38-907a-4345-a5b5-6f63b250bcf0',
                 },
             ),
+            (
+                {
+                    'extra': 'type: queue,id: 2,label: My Queue Name,tenant_uuid: 82f60c78-fc94-4936-b3fb-7b276c69df9d'
+                },
+                {
+                    'type': 'queue',
+                    'id': '2',
+                    'label': 'My Queue Name',
+                    'tenant_uuid': '82f60c78-fc94-4936-b3fb-7b276c69df9d',
+                },
+            ),
         ]
 
         for extra, expected in samples:
-            result = _extract_call_log_destination_variables(extra)
+            result = extract_key_value_pairs_as_dict(extra)
             assert_that(result, equal_to(expected), f'Failed for {extra}')
+
+        with raises(InvalidCallLogException):
+            extract_key_value_pairs_as_dict({'extra': 'not a valid extra'})

@@ -17,7 +17,7 @@ from xivo_dao.alchemy.cel import CEL
 
 from .database.cel_event_type import CELEventType
 from .database.models import Destination, Recording
-from .exceptions import CELInterpretationError
+from .exceptions import CELInterpretationError, InvalidCallLogException
 from .raw_call_log import BridgeInfo, RawCallLog
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ EXTRA_USER_FWD_REGEX = r'^.*NUM: *(.*?) *, *CONTEXT: *(.*?) *, *NAME: *(.*?) *(?
 WAIT_FOR_MOBILE_REGEX = re.compile(r'^Local/(\S+)@wazo_wait_for_registration-\S+;2$')
 MATCHING_MOBILE_PEER_REGEX = re.compile(r'^PJSIP/(\S+)-\S+$')
 MEETING_EXTENSION_REGEX = re.compile(r'^wazo-meeting-.*$')
-KEY_PAIR_SEQ_REGEX = re.compile(r'\s*(\w+):\s*([^,:]+),?')
+KEY_PAIR_KEY_REGEX = re.compile(r'(?:^|,\s*)(\w+):')
 UUID_REGEX = re.compile(
     r'[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}'
 )
@@ -48,7 +48,29 @@ def default_interpretors() -> list[AbstractCELInterpretor]:
 
 
 def parse_key_pair_sequence(text: str) -> list[tuple[str, str]]:
-    key_pairs = KEY_PAIR_SEQ_REGEX.findall(text)
+    key_matches = list(KEY_PAIR_KEY_REGEX.finditer(text))
+
+    if not key_matches:
+        return []
+
+    key_pairs = []
+    for i, match in enumerate(key_matches):
+        key = match.group(1)
+        start_pos = match.end()
+
+        next_start = -1
+        if i + 1 < len(key_matches):
+            next_start = key_matches[i + 1].start()
+
+        if next_start != -1:
+            value = text[start_pos:next_start].strip()
+            if value.endswith(','):
+                value = value[:-1].strip()
+        else:
+            value = text[start_pos:].strip()
+
+        key_pairs.append((key, value))
+
     return key_pairs
 
 
@@ -128,14 +150,11 @@ def _extract_user_blocked_call_variables(extra):
     )
 
 
-def _extract_call_log_destination_variables(extra: dict) -> dict:
-    extra_tokens = extra['extra'].split(',', 2)
-    extra_dict = dict()
-    for token in extra_tokens:
-        key, value = token.split(': ', 1)
-        extra_dict[key.strip()] = value.strip()
+def extract_key_value_pairs_as_dict(extra: dict) -> dict:
+    if key_pairs := parse_key_pair_sequence(extra.get('extra', '')):
+        return dict(key_pairs)
 
-    return extra_dict
+    raise InvalidCallLogException('Missing expected keys in CEL extra payload')
 
 
 class OriginateAllLinesInfo(TypedDict):
@@ -265,6 +284,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.wazo_user_missed_call: self.interpret_wazo_user_missed_call,
             CELEventType.wazo_user_blocked_call: self.interpret_wazo_user_blocked_call,
             CELEventType.wazo_call_log_destination: self.interpret_wazo_call_log_destination,
+            CELEventType.wazo_call_log_requested_internal: (
+                self.interpret_wazo_call_log_requested_internal
+            ),
         }
 
     def interpret_chan_start(self, cel, call):
@@ -579,7 +601,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         if not extra:
             return call
 
-        extra_dict = _extract_call_log_destination_variables(extra)
+        extra_dict = extract_key_value_pairs_as_dict(extra)
         logger.debug('wazo_call_log_destination payload: %s', extra_dict)
 
         if 'type' not in extra_dict.keys():
@@ -662,6 +684,22 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             cel.id,
         )
         call.authoritative_destination_info = True
+        return call
+
+    def interpret_wazo_call_log_requested_internal(self, cel, call: RawCallLog):
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return call
+
+        extra_dict = extract_key_value_pairs_as_dict(extra)
+        logger.debug('wazo_call_log_requested_internal payload: %s', extra_dict)
+
+        if number := extra_dict.get('number'):
+            call.requested_internal_exten = number
+
+        if context := extra_dict.get('context'):
+            call.requested_internal_context = context
+
         return call
 
 
