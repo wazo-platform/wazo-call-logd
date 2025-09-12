@@ -5,10 +5,6 @@ paths:
       description: |
         **Required ACL:** `call-logd.cdr.read`
         This endpoint allow to use `?token={token_uuid}` and `?tenant={tenant_uuid}` query string to bypass headers
-
-        Filtering can be done based on many fields that are visible in the query result:
-        - `requested_internal_extension`
-        - `conversation_id`
       tags:
         - cdr
       parameters:
@@ -31,6 +27,8 @@ paths:
       - $ref: '#/parameters/format'
       - $ref: '#/parameters/conversation_id'
       - $ref: '#/parameters/call_status'
+      - $ref: '#/parameters/requested_internal_extension'
+      - $ref: '#/parameters/requested_internal_context'
       responses:
         '200':
           description: List CDR
@@ -188,6 +186,8 @@ paths:
       - $ref: '#/parameters/format'
       - $ref: '#/parameters/conversation_id'
       - $ref: '#/parameters/call_status'
+      - $ref: '#/parameters/requested_internal_extension'
+      - $ref: '#/parameters/requested_internal_context'
       responses:
         '200':
           description: List CDR
@@ -224,6 +224,8 @@ paths:
       - $ref: '#/parameters/format'
       - $ref: '#/parameters/conversation_id'
       - $ref: '#/parameters/call_status'
+      - $ref: '#/parameters/requested_internal_extension'
+      - $ref: '#/parameters/requested_internal_context'
       responses:
         '200':
           description: List CDR
@@ -374,6 +376,18 @@ parameters:
   email:
     name: email
     description: E-mail address
+    type: string
+    in: query
+  requested_internal_extension:
+    name: requested_internal_extension
+    description: Filter by requested_internal_extension
+    required: false
+    type: string
+    in: query
+  requested_internal_context:
+    name: requested_internal_context
+    description: Filter by requested_internal_context
+    required: false
     type: string
     in: query
   conversation_id:
