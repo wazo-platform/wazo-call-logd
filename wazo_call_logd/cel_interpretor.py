@@ -9,6 +9,7 @@ import re
 import urllib.parse
 import uuid
 from datetime import datetime
+from itertools import zip_longest
 from typing import Callable, TypedDict
 
 import dateutil
@@ -54,18 +55,14 @@ def parse_key_pair_sequence(text: str) -> list[tuple[str, str]]:
         return []
 
     key_pairs = []
-    for i, match in enumerate(key_matches):
-        key = match.group(1)
-        start_pos = match.end()
+    # iterate pairwise on keys
+    # and extract the value between a key and the next
+    for match1, match2 in zip_longest(key_matches, key_matches[1:]):
+        key = match1.group(1)
+        start_pos = match1.end()
 
-        next_start = -1
-        if i + 1 < len(key_matches):
-            next_start = key_matches[i + 1].start()
-
-        if next_start != -1:
-            value = text[start_pos:next_start].strip()
-            if value.endswith(','):
-                value = value[:-1].strip()
+        if match2:
+            value = text[start_pos : match2.start()].strip().rstrip(",")
         else:
             value = text[start_pos:].strip()
 
