@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from setuptools import find_packages, setup
@@ -13,7 +13,10 @@ setup(
     url='http://wazo.community',
     license='GPLv3',
     packages=find_packages(),
-    package_data={'wazo_call_logd.plugins': ['*/api.yml']},
+    package_data={
+        'wazo_call_logd.plugins': ['*/api.yml'],
+        "wazo_call_logd.database.alembic": ["versions/*.sql"],
+    },
     entry_points={
         'console_scripts': [
             'wazo-call-logd=wazo_call_logd.main:main',
