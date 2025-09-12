@@ -203,6 +203,15 @@ class CDRListRequestSchema(CDRListingBase):
         ),
         load_default=None,
     )
+    requested_internal_extension = fields.String(
+        validate=Regexp(NUMBER_REGEX),
+        load_default=None,
+        attribute='requested_internal_exten',
+    )
+    requested_internal_context = fields.String(
+        validate=Length(min=1, max=255),
+        load_default=None,
+    )
 
     @post_load
     def map_order_field(self, in_data, **kwargs):

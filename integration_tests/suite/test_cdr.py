@@ -1397,6 +1397,71 @@ class TestListCDR(IntegrationTest):
 
     @call_log(
         date='2017-04-11',
+        requested_internal_exten='1001',
+        requested_internal_context='one',
+    )
+    @call_log(
+        date='2017-04-12',
+        requested_internal_exten='1002',
+        requested_internal_context='one',
+    )
+    @call_log(
+        date='2017-04-13',
+        requested_internal_exten='1001',
+        requested_internal_context='two',
+    )
+    @call_log(
+        date='2017-04-14',
+        requested_internal_exten='1002',
+        requested_internal_context='two',
+    )
+    def test_given_call_logs_when_list_cdr_filtering_by_requested_exten_and_context(
+        self,
+    ):
+        result = self.call_logd.cdr.list(requested_internal_extension='1001')
+        assert_that(
+            result,
+            has_entries(
+                filtered=2,
+                total=4,
+                items=contains_inanyorder(
+                    has_entries(
+                        requested_internal_extension='1001',
+                        requested_internal_context='one',
+                    ),
+                    has_entries(
+                        requested_internal_extension='1001',
+                        requested_internal_context='two',
+                    ),
+                ),
+            ),
+        )
+
+        result = self.call_logd.cdr.list(
+            requested_internal_extension='1002', requested_internal_context='one'
+        )
+        assert_that(
+            result,
+            has_entries(
+                filtered=1,
+                total=4,
+                items=contains_inanyorder(
+                    has_entries(
+                        requested_internal_extension='1002',
+                        requested_internal_context='one',
+                    ),
+                ),
+            ),
+        )
+
+        result = self.call_logd.cdr.list(requested_internal_extension='42')
+        assert_that(result, has_entries(filtered=0, total=4, items=empty()))
+
+        result = self.call_logd.cdr.list(requested_internal_context='unknown')
+        assert_that(result, has_entries(filtered=0, total=4, items=empty()))
+
+    @call_log(
+        date='2017-04-11',
         participants=[{'user_uuid': str(USER_1_UUID), 'tags': ['quebec']}],
     )
     @call_log(date='2017-04-12')
