@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Callable, DefaultDict, Literal
+from typing import DefaultDict, Literal
 
 from wazo_call_logd.database.models import CallLog, CallLogParticipant
 from wazo_call_logd.exceptions import InvalidCallLogException
