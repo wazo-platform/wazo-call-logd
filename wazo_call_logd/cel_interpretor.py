@@ -8,9 +8,10 @@ import logging
 import re
 import urllib.parse
 import uuid
+from collections.abc import Callable
 from datetime import datetime
 from itertools import zip_longest
-from typing import Callable, TypedDict
+from typing import TypedDict
 
 import dateutil
 from xivo.asterisk.line_identity import identity_from_channel
