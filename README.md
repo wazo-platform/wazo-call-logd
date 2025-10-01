@@ -7,7 +7,7 @@ wazo-call-logd is a service for collecting statistics on calls made on a Wazo se
 ## Running unit tests
 
 ```shell
-tox --recreate -e py39
+tox --recreate -e py311
 ```
 
 ## Developing integration tests
