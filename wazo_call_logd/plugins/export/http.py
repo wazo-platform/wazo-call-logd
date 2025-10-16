@@ -1,4 +1,4 @@
-# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -92,7 +92,7 @@ class ExportDownloadResource(ExportAuthResource):
                 export.path,
                 mimetype='application/zip',
                 as_attachment=True,
-                attachment_filename=export.filename,
+                download_name=export.filename,
             )
         except PermissionError:
             logger.error('Permission denied: "%s"', export.path)

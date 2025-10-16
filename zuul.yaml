@@ -1,8 +1,8 @@
 - project:
     templates:
-      - wazo-tox-linters-310
-      - wazo-tox-py39
-      - debian-packaging-bullseye
+      - wazo-tox-linters-py311
+      - wazo-tox-py311
+      - debian-packaging-bookworm
     wazo-check:
       jobs:
         - wazo-tox-integration-call-logd
@@ -12,7 +12,7 @@
 
 - job:
     name: wazo-tox-integration-call-logd
-    parent: wazo-tox-integration-py39
+    parent: wazo-tox-integration-py311
     required-projects:
       - wazo-platform/xivo-manage-db
     timeout: 3600

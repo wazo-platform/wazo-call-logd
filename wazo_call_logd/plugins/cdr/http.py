@@ -324,7 +324,7 @@ class RecordingMediaItemResource(CDRAuthResource):
                 recording.path,
                 mimetype='audio/wav',
                 as_attachment=True,
-                attachment_filename=recording.filename,
+                download_name=recording.filename,
             )
         except PermissionError:
             logger.error('Permission denied: "%s"', recording.path)
@@ -388,7 +388,7 @@ class RecordingMediaItemUserMeResource(CDRAuthResource):
                 recording.path,
                 mimetype='audio/wav',
                 as_attachment=True,
-                attachment_filename=recording.filename,
+                download_name=recording.filename,
             )
         except PermissionError:
             logger.error('Permission denied: "%s"', recording.path)
