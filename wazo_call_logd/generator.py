@@ -367,8 +367,18 @@ class CallLogsGenerator:
                 call_log.requested_internal_exten
                 and call_log.requested_internal_context
             ):
+                logger.debug(
+                    'requested_internal_exten and context are not filled properly: %s %s',
+                    call_log.requested_internal_exten,
+                    call_log.requested_internal_context,
+                )
                 call_log.requested_internal_exten = extension['exten']
                 call_log.requested_internal_context = extension['context']
+                logger.debug(
+                    'Set requested_internal_exten and context from extension: %s %s',
+                    call_log.requested_internal_exten,
+                    call_log.requested_internal_context,
+                )
 
     def _remove_incomplete_recordings(self, call_log: RawCallLog):
         new_recordings = []
