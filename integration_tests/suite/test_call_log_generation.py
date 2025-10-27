@@ -2496,6 +2496,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self._assert_last_call_log_matches(
             '1761315615.217',
             has_properties(
+                requested_name='Freddie Mercury',
                 requested_internal_exten='1008',
                 requested_internal_context='default',
             ),

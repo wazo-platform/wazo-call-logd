@@ -888,6 +888,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         if context := extra_dict.get('context'):
             call.requested_internal_context = context
 
+        call.requested_name = cel.cid_name
+
         return call
 
 
