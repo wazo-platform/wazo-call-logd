@@ -2382,3 +2382,122 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 direction='internal',
             ),
         )
+
+    @raw_cels(
+        '''
+            linkedid    |    uniqueid    |           eventtime           |            eventtype             |                               channame                                |    cid_name     |               cid_num                |                 context                 |                                                                 extra
+        ----------------+----------------+-------------------------------+----------------------------------+-----------------------------------------------------------------------+-----------------+--------------------------------------+-----------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:15.763276-04 | CHAN_START                       | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | default                                 |
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:15.793031-04 | WAZO_CALL_LOG_DESTINATION        | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   | {"extra":"type: group,id: 1,label: TestGroup"}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:15.825115-04 | APP_START                        | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   |
+         1761315615.217 | 1761315615.218 | 2025-10-24 10:20:15.825252-04 | CHAN_START                       | Local/group-linear@group-0000004a;1                                   |                 |                                      | group                                   |
+         1761315615.217 | 1761315615.219 | 2025-10-24 10:20:15.825278-04 | CHAN_START                       | Local/group-linear@group-0000004a;2                                   |                 |                                      | group                                   |
+         1761315615.217 | 1761315615.219 | 2025-10-24 10:20:15.86283-04  | APP_START                        | Local/group-linear@group-0000004a;2                                   | Sonia           | 1004                                 | group                                   |
+         1761315615.217 | 1761315615.220 | 2025-10-24 10:20:15.862951-04 | CHAN_START                       | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-0000004b;1 |                 |                                      | usersharedlines                         |
+         1761315615.217 | 1761315615.221 | 2025-10-24 10:20:15.862981-04 | CHAN_START                       | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-0000004b;2 |                 |                                      | usersharedlines                         |
+         1761315615.217 | 1761315615.221 | 2025-10-24 10:20:15.863739-04 | WAZO_ORIGINATE_ALL_LINES         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-0000004b;2 | Sonia           | 1004                                 | usersharedlines                         | {"extra":"user_uuid:f6cb32d4-3364-424a-a7b2-d09c7df891ff,tenant_uuid:bebbeda2-ab4a-43af-a5e8-ab859ed2f40b"}
+         1761315615.217 | 1761315615.221 | 2025-10-24 10:20:15.905031-04 | APP_START                        | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-0000004b;2 | Sonia           | 1004                                 | usersharedlines                         |
+         1761315615.217 | 1761315615.222 | 2025-10-24 10:20:15.905592-04 | CHAN_START                       | PJSIP/w6hpvj79-00000046                                               | Paul Telephone  | 1002                                 | default                                 |
+         1761315615.217 | 1761315615.223 | 2025-10-24 10:20:15.905803-04 | CHAN_START                       | Local/G4rk8xzR@wazo_wait_for_registration-0000004c;1                  |                 |                                      | wazo_wait_for_registration              |
+         1761315615.217 | 1761315615.224 | 2025-10-24 10:20:15.905834-04 | CHAN_START                       | Local/G4rk8xzR@wazo_wait_for_registration-0000004c;2                  |                 |                                      | wazo_wait_for_registration              |
+         1761315615.217 | 1761315615.220 | 2025-10-24 10:20:30.864081-04 | HANGUP                           | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-0000004b;1 |                 | group-linear                         | usersharedlines                         | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+         1761315615.217 | 1761315615.220 | 2025-10-24 10:20:30.864081-04 | CHAN_END                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-0000004b;1 |                 | group-linear                         | usersharedlines                         |
+         1761315615.217 | 1761315615.223 | 2025-10-24 10:20:30.86468-04  | HANGUP                           | Local/G4rk8xzR@wazo_wait_for_registration-0000004c;1                  |                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | wazo_wait_for_registration              | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+         1761315615.217 | 1761315615.223 | 2025-10-24 10:20:30.86468-04  | CHAN_END                         | Local/G4rk8xzR@wazo_wait_for_registration-0000004c;1                  |                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | wazo_wait_for_registration              |
+         1761315615.217 | 1761315615.221 | 2025-10-24 10:20:30.864743-04 | HANGUP                           | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-0000004b;2 | Sonia           | 1004                                 | usersharedlines                         | {"hangupcause":0,"hangupsource":"","dialstatus":"CANCEL"}
+         1761315615.217 | 1761315615.221 | 2025-10-24 10:20:30.864743-04 | CHAN_END                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-0000004b;2 | Sonia           | 1004                                 | usersharedlines                         |
+         1761315615.217 | 1761315615.224 | 2025-10-24 10:20:30.865061-04 | HANGUP                           | Local/G4rk8xzR@wazo_wait_for_registration-0000004c;2                  | Sonia           | 1004                                 | wazo_wait_for_registration              | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+         1761315615.217 | 1761315615.224 | 2025-10-24 10:20:30.865061-04 | CHAN_END                         | Local/G4rk8xzR@wazo_wait_for_registration-0000004c;2                  | Sonia           | 1004                                 | wazo_wait_for_registration              |
+         1761315615.217 | 1761315615.222 | 2025-10-24 10:20:30.865334-04 | HANGUP                           | PJSIP/w6hpvj79-00000046                                               | Paul Telephone  | 1002                                 | default                                 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+         1761315615.217 | 1761315615.222 | 2025-10-24 10:20:30.865334-04 | CHAN_END                         | PJSIP/w6hpvj79-00000046                                               | Paul Telephone  | 1002                                 | default                                 |
+         1761315615.217 | 1761315615.219 | 2025-10-24 10:20:35.86455-04  | APP_START                        | Local/group-linear@group-0000004a;2                                   | Sonia           | 1004                                 | group                                   |
+         1761315615.217 | 1761315635.225 | 2025-10-24 10:20:35.864682-04 | CHAN_START                       | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;1 |                 |                                      | usersharedlines                         |
+         1761315615.217 | 1761315635.226 | 2025-10-24 10:20:35.864748-04 | CHAN_START                       | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;2 |                 |                                      | usersharedlines                         |
+         1761315615.217 | 1761315635.226 | 2025-10-24 10:20:35.86561-04  | WAZO_ORIGINATE_ALL_LINES         | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;2 | Sonia           | 1004                                 | usersharedlines                         | {"extra":"user_uuid:61dd93c7-14e9-4e18-b5d2-6fe65bebacdf,tenant_uuid:bebbeda2-ab4a-43af-a5e8-ab859ed2f40b"}
+         1761315615.217 | 1761315635.226 | 2025-10-24 10:20:35.952665-04 | APP_START                        | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;2 | Sonia           | 1004                                 | usersharedlines                         |
+         1761315615.217 | 1761315635.227 | 2025-10-24 10:20:35.952975-04 | CHAN_START                       | PJSIP/o6k761rn-00000047                                               | Freddie Mercury | 1008                                 | default                                 |
+         1761315615.217 | 1761315635.227 | 2025-10-24 10:20:37.606234-04 | ANSWER                           | PJSIP/o6k761rn-00000047                                               | Freddie Mercury | 1008                                 | default                                 |
+         1761315615.217 | 1761315635.226 | 2025-10-24 10:20:37.606392-04 | ANSWER                           | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;2 | Sonia           | 1004                                 | usersharedlines                         |
+         1761315615.217 | 1761315635.225 | 2025-10-24 10:20:37.606649-04 | ANSWER                           | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;1 | Freddie Mercury | 1008                                 | usersharedlines                         |
+         1761315615.217 | 1761315635.227 | 2025-10-24 10:20:37.606965-04 | BRIDGE_ENTER                     | PJSIP/o6k761rn-00000047                                               | Freddie Mercury | 1008                                 | default                                 | {"bridge_id":"46c7a7b9-63cc-4731-b114-d4a2af88e97d","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315635.226 | 2025-10-24 10:20:37.607184-04 | BRIDGE_ENTER                     | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;2 | Sonia           | 1004                                 | usersharedlines                         | {"bridge_id":"46c7a7b9-63cc-4731-b114-d4a2af88e97d","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315635.225 | 2025-10-24 10:20:37.64058-04  | WAZO_CALL_LOG_REQUESTED_INTERNAL | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;1 | Freddie Mercury | 1008                                 | wazo-group-answered                     | {"extra":"type: user,number: 1008,context: default,tenant_uuid: bebbeda2-ab4a-43af-a5e8-ab859ed2f40b"}
+         1761315615.217 | 1761315615.219 | 2025-10-24 10:20:37.641936-04 | ANSWER                           | Local/group-linear@group-0000004a;2                                   | Sonia           | 1004                                 | group                                   |
+         1761315615.217 | 1761315635.225 | 2025-10-24 10:20:37.642348-04 | BRIDGE_ENTER                     | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;1 | Freddie Mercury | 1008                                 | usersharedlines                         | {"bridge_id":"71b31194-59c0-4118-8e7d-bbe7d127a0b0","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.218 | 2025-10-24 10:20:37.64243-04  | ANSWER                           | Local/group-linear@group-0000004a;1                                   | Freddie Mercury | 1008                                 | group                                   |
+         1761315615.217 | 1761315615.219 | 2025-10-24 10:20:37.642511-04 | BRIDGE_ENTER                     | Local/group-linear@group-0000004a;2                                   | Sonia           | 1004                                 | group                                   | {"bridge_id":"71b31194-59c0-4118-8e7d-bbe7d127a0b0","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:37.643238-04 | ANSWER                           | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   |
+         1761315615.217 | 1761315615.218 | 2025-10-24 10:20:37.64464-04  | BRIDGE_ENTER                     | Local/group-linear@group-0000004a;1                                   | Freddie Mercury | 1008                                 | group                                   | {"bridge_id":"144dfaec-8248-42da-914c-83c68fe1555b","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:37.644793-04 | BRIDGE_ENTER                     | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   | {"bridge_id":"144dfaec-8248-42da-914c-83c68fe1555b","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:37.674738-04 | BRIDGE_EXIT                      | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   | {"bridge_id":"144dfaec-8248-42da-914c-83c68fe1555b","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.219 | 2025-10-24 10:20:37.674874-04 | BRIDGE_EXIT                      | Local/group-linear@group-0000004a;2                                   | Sonia           | 1004                                 | group                                   | {"bridge_id":"71b31194-59c0-4118-8e7d-bbe7d127a0b0","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:37.674879-04 | BRIDGE_ENTER                     | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   | {"bridge_id":"71b31194-59c0-4118-8e7d-bbe7d127a0b0","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.218 | 2025-10-24 10:20:37.67505-04  | BRIDGE_EXIT                      | Local/group-linear@group-0000004a;1                                   | Freddie Mercury | 1008                                 | group                                   | {"bridge_id":"144dfaec-8248-42da-914c-83c68fe1555b","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.218 | 2025-10-24 10:20:37.675109-04 | HANGUP                           | Local/group-linear@group-0000004a;1                                   | Freddie Mercury | 1008                                 | group                                   | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+         1761315615.217 | 1761315615.218 | 2025-10-24 10:20:37.675109-04 | CHAN_END                         | Local/group-linear@group-0000004a;1                                   | Freddie Mercury | 1008                                 | group                                   |
+         1761315615.217 | 1761315615.219 | 2025-10-24 10:20:37.675281-04 | HANGUP                           | Local/group-linear@group-0000004a;2                                   | Sonia           | 1004                                 | group                                   | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
+         1761315615.217 | 1761315615.219 | 2025-10-24 10:20:37.675281-04 | CHAN_END                         | Local/group-linear@group-0000004a;2                                   | Sonia           | 1004                                 | group                                   |
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:37.690693-04 | BRIDGE_EXIT                      | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   | {"bridge_id":"71b31194-59c0-4118-8e7d-bbe7d127a0b0","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315635.226 | 2025-10-24 10:20:37.690836-04 | BRIDGE_EXIT                      | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;2 | Sonia           | 1004                                 | usersharedlines                         | {"bridge_id":"46c7a7b9-63cc-4731-b114-d4a2af88e97d","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:37.690844-04 | BRIDGE_ENTER                     | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   | {"bridge_id":"46c7a7b9-63cc-4731-b114-d4a2af88e97d","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315635.225 | 2025-10-24 10:20:37.690996-04 | BRIDGE_EXIT                      | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;1 | Freddie Mercury | 1008                                 | usersharedlines                         | {"bridge_id":"71b31194-59c0-4118-8e7d-bbe7d127a0b0","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315635.225 | 2025-10-24 10:20:37.691051-04 | HANGUP                           | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;1 | Freddie Mercury | 1008                                 | usersharedlines                         | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+         1761315615.217 | 1761315635.225 | 2025-10-24 10:20:37.691051-04 | CHAN_END                         | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;1 | Freddie Mercury | 1008                                 | usersharedlines                         |
+         1761315615.217 | 1761315635.226 | 2025-10-24 10:20:37.691242-04 | CHAN_END                         | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;2 | Sonia           | 1004                                 | usersharedlines                         |
+         1761315615.217 | 1761315635.226 | 2025-10-24 10:20:37.691242-04 | HANGUP                           | Local/61dd93c7-14e9-4e18-b5d2-6fe65bebacdf@usersharedlines-0000004d;2 | Sonia           | 1004                                 | usersharedlines                         | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
+         1761315615.217 | 1761315635.227 | 2025-10-24 10:20:44.186708-04 | BRIDGE_EXIT                      | PJSIP/o6k761rn-00000047                                               | Freddie Mercury | 1008                                 | default                                 | {"bridge_id":"46c7a7b9-63cc-4731-b114-d4a2af88e97d","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315635.227 | 2025-10-24 10:20:44.186881-04 | CHAN_END                         | PJSIP/o6k761rn-00000047                                               | Freddie Mercury | 1008                                 | default                                 |
+         1761315615.217 | 1761315635.227 | 2025-10-24 10:20:44.186881-04 | HANGUP                           | PJSIP/o6k761rn-00000047                                               | Freddie Mercury | 1008                                 | default                                 | {"hangupcause":16,"hangupsource":"PJSIP/o6k761rn-00000047","dialstatus":""}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:44.187038-04 | BRIDGE_EXIT                      | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   | {"bridge_id":"46c7a7b9-63cc-4731-b114-d4a2af88e97d","bridge_technology":"simple_bridge"}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:44.188074-04 | CHAN_END                         | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   |
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:44.188074-04 | HANGUP                           | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   | {"hangupcause":16,"hangupsource":"PJSIP/o6k761rn-00000047","dialstatus":"ANSWER"}
+         1761315615.217 | 1761315615.217 | 2025-10-24 10:20:44.188074-04 | LINKEDID_END                     | PJSIP/SvLhxTj3-00000045                                               | Sonia           | 1004                                 | group                                   |
+        '''
+    )
+    def test_given_linear_group_call_then_internal_requested_exten_and_context_should_be_answered_callee(
+        self,
+    ):
+        wazo_tenant = UUID('bebbeda2-ab4a-43af-a5e8-ab859ed2f40b')
+        source_user_uuid = UUID('ae97f816-287e-489d-8a7a-b3829024efb3')
+        destination_no_answer_uuid = USER_1_UUID
+        destination_user_uuid = UUID('61dd93c7-14e9-4e18-b5d2-6fe65bebacdf')
+        self.confd.set_users(
+            MockUser(source_user_uuid, wazo_tenant, line_ids=[1]),
+            MockUser(destination_no_answer_uuid, wazo_tenant, line_ids=[2]),
+            MockUser(destination_user_uuid, wazo_tenant, line_ids=[3]),
+        )
+        self.confd.set_lines(
+            MockLine(
+                id=1,
+                name='SvLhxTj3',
+                users=[{'uuid': source_user_uuid}],
+                tenant_uuid=wazo_tenant,
+                extensions=[{'exten': '1004', 'context': 'default'}],
+            ),
+            MockLine(
+                id=2,
+                name='w6hpvj79',
+                users=[{'uuid': destination_no_answer_uuid}],
+                tenant_uuid=wazo_tenant,
+                extensions=[{'exten': '1002', 'context': 'default'}],
+            ),
+            MockLine(
+                id=3,
+                name='o6k761rn',
+                users=[{'uuid': destination_user_uuid}],
+                tenant_uuid=wazo_tenant,
+                extensions=[{'exten': '1008', 'context': 'default'}],
+            ),
+        )
+        self.confd.set_contexts(
+            MockContext(id=1, name='default', tenant_uuid=wazo_tenant)
+        )
+
+        self._assert_last_call_log_matches(
+            '1761315615.217',
+            has_properties(
+                requested_name='Freddie Mercury',
+                requested_internal_exten='1008',
+                requested_internal_context='default',
+            ),
+        )

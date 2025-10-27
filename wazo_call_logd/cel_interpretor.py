@@ -690,7 +690,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             return call
 
         extra_dict = extract_key_value_pairs_as_dict(extra)
-        logger.debug('wazo_call_log_requested_internal payload: %s', extra_dict)
+        logger.debug('caller wazo_call_log_requested_internal payload: %s', extra_dict)
 
         if number := extra_dict.get('number'):
             call.requested_internal_exten = number
@@ -710,6 +710,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             CELEventType.bridge_start: self.interpret_bridge_enter,
             CELEventType.mixmonitor_start: self.interpret_mixmonitor_start,
             CELEventType.mixmonitor_stop: self.interpret_mixmonitor_stop,
+            CELEventType.wazo_call_log_requested_internal: self.interpret_requested_internal,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -871,6 +872,24 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         for recording in call.recordings:
             if recording.mixmonitor_id == extra['mixmonitor_id']:
                 recording.end_time = parse_eventtime(cel.eventtime)
+        return call
+
+    def interpret_requested_internal(self, cel, call: RawCallLog):
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return call
+
+        extra_dict = extract_key_value_pairs_as_dict(extra)
+        logger.debug('callee wazo_call_log_requested_internal payload: %s', extra_dict)
+
+        if number := extra_dict.get('number'):
+            call.requested_internal_exten = number
+
+        if context := extra_dict.get('context'):
+            call.requested_internal_context = context
+
+        call.requested_name = cel.cid_name
+
         return call
 
 
