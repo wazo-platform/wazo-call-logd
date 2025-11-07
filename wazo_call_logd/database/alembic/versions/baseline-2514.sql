@@ -50,6 +50,8 @@ CREATE TABLE public.call_logd_call_log (
     direction character varying(255),
     user_field character varying(255),
     source_internal_name text,
+    conversation_id character varying(255),
+    blocked boolean,
     CONSTRAINT call_logd_call_log_direction_check CHECK (direction IN ('inbound', 'internal', 'outbound'))
 );
 
@@ -60,7 +62,7 @@ CREATE TABLE public.call_logd_call_log_destination (
     destination_details_key character varying(32) NOT NULL,
     destination_details_value character varying(255) NOT NULL,
     call_log_id integer,
-    CONSTRAINT call_logd_call_log_destination_details_key_check CHECK (destination_details_key IN ('type', 'user_uuid', 'user_name', 'meeting_uuid', 'meeting_name', 'conference_id'))
+    CONSTRAINT call_logd_call_log_destination_details_key_check CHECK (destination_details_key IN ('type', 'user_uuid', 'user_name', 'meeting_uuid', 'meeting_name', 'conference_id', 'group_label', 'group_id'))
 );
 
 -- Name: call_logd_call_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
@@ -86,7 +88,8 @@ CREATE TABLE public.call_logd_call_log_participant (
     line_id integer,
     role public.call_logd_call_log_participant_role NOT NULL,
     tags character varying(128)[] DEFAULT '{}'::character varying[] NOT NULL,
-    answered boolean DEFAULT false NOT NULL
+    answered boolean DEFAULT false NOT NULL,
+    requested boolean DEFAULT false NOT NULL
 );
 
 -- Name: call_logd_config; Type: TABLE; Schema: public; Owner: -
@@ -219,6 +222,14 @@ ALTER TABLE ONLY public.call_logd_recording
 ALTER TABLE ONLY public.call_logd_tenant
     ADD CONSTRAINT call_logd_tenant_pkey PRIMARY KEY (uuid);
 
+-- Name: call_logd_call_log__idx__conversation_id; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX call_logd_call_log__idx__conversation_id ON public.call_logd_call_log USING btree (conversation_id);
+
+-- Name: call_logd_call_log_destination__idx__call_log_id; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX call_logd_call_log_destination__idx__call_log_id ON public.call_logd_call_log_destination USING btree (call_log_id);
+
 -- Name: call_logd_call_log_destination__idx__uuid; Type: INDEX; Schema: public; Owner: -
 
 CREATE INDEX call_logd_call_log_destination__idx__uuid ON public.call_logd_call_log_destination USING btree (uuid);
@@ -234,6 +245,10 @@ CREATE INDEX call_logd_call_log_participant__idx__user_uuid ON public.call_logd_
 -- Name: call_logd_export__idx__user_uuid; Type: INDEX; Schema: public; Owner: -
 
 CREATE INDEX call_logd_export__idx__user_uuid ON public.call_logd_export USING btree (user_uuid);
+
+-- Name: call_logd_recording__idx__call_log_id; Type: INDEX; Schema: public; Owner: -
+
+CREATE INDEX call_logd_recording__idx__call_log_id ON public.call_logd_recording USING btree (call_log_id);
 
 -- Name: call_logd_call_log_destination call_logd_call_log_destination_call_log_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 
