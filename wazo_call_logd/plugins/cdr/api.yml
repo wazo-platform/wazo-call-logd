@@ -39,6 +39,29 @@ paths:
       produces:
         - application/json
         - text/csv; charset=utf-8
+  /cdr/statistics:
+    get:
+      summary: Statistics based on CDR
+      description: '**Required ACL:** `call-logd.cdr.statistics.read`'
+      tags:
+        - cdr
+      parameters:
+      - $ref: '#/parameters/tenantuuid'
+      - $ref: '#/parameters/from'
+      - $ref: '#/parameters/until'
+      - $ref: '#/parameters/interval'
+      - $ref: '#/parameters/call_direction'
+      - $ref: '#/parameters/number'
+      - $ref: '#/parameters/tags'
+      - $ref: '#/parameters/user_uuid'
+      - $ref: '#/parameters/recorded'
+      responses:
+        '200':
+          description: Summary CDR Statistics
+          schema:
+            $ref: '#/definitions/CDRStatistics'
+        '400':
+          $ref: '#/responses/InvalidRequest'
   /cdr/recordings/media:
     delete:
       summary: Delete multiple CDRs recording media
@@ -531,3 +554,44 @@ definitions:
         type: boolean
       filename:
         type: string
+  CDRStatistics:
+    type: object
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/CDRStatistic'
+        type: array
+      total:
+        type: integer
+  CDRStatistic:
+    type: object
+    properties:
+      from:
+        description: Start of the statistic interval.
+        type: string
+      until:
+        description: End of the statistic interval.
+        type: string
+      tenant_uuid:
+        description: Tenant UUID of the corresponding call log.
+        format: uuid
+        type: string
+      received:
+        description: Total number of calls received in the interval.
+        type: integer
+      answered:
+        description: Number of calls answered by an agent.
+        type: integer
+      not_answered:
+        description: Number of calls that reached the ring timeout delay.
+        type: integer
+      answered_rate:
+        description: Ratio of answered calls (answered calls / total calls)
+        format: float
+        type: number
+      duration:
+        description: Total calls duration, in seconds.
+        type: integer
+      average_duration:
+        description: Average calls duration, in seconds.
+        type: integer
