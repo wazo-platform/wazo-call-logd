@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from datetime import datetime as dt
 from datetime import timedelta
 from datetime import timedelta as td
 from functools import wraps
-from typing import Literal, TypedDict, Union, cast
+from typing import Literal, TypedDict, cast
 from uuid import UUID, uuid4
 
 import sqlalchemy as sa
@@ -75,7 +75,7 @@ def call_logs(number, participant_user=None):
     return _decorate
 
 
-ParticipantRole = Union[Literal['source'], Literal['destination']]
+ParticipantRole = Literal['source'] | Literal['destination']
 
 
 class CallLogParticipantData(TypedDict):
@@ -134,13 +134,13 @@ def call_log(**call_log):
 
 
 # NOTE(clanglois): this has its place in core codebase utilities as well
-ExportStatus = Union[
-    Literal['pending'],
-    Literal['processing'],
-    Literal['finished'],
-    Literal['deleted'],
-    Literal['error'],
-]
+ExportStatus = (
+    Literal['pending']
+    | Literal['processing']
+    | Literal['finished']
+    | Literal['deleted']
+    | Literal['error']
+)
 
 
 class ExportData(TypedDict, total=False):
