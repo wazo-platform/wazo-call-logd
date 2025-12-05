@@ -75,7 +75,7 @@ def call_logs(number, participant_user=None):
     return _decorate
 
 
-ParticipantRole = Literal['source'] | Literal['destination']
+ParticipantRole = Literal['source', 'destination']
 
 
 class CallLogParticipantData(TypedDict):
@@ -134,13 +134,7 @@ def call_log(**call_log):
 
 
 # NOTE(clanglois): this has its place in core codebase utilities as well
-ExportStatus = (
-    Literal['pending']
-    | Literal['processing']
-    | Literal['finished']
-    | Literal['deleted']
-    | Literal['error']
-)
+ExportStatus = Literal['pending', 'processing', 'finished', 'deleted', 'error']
 
 
 class ExportData(TypedDict, total=False):
