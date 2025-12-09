@@ -8,7 +8,7 @@ from hamcrest import (
     all_of,
     any_of,
     assert_that,
-    contains,
+    contains_exactly,
     contains_inanyorder,
     empty,
     has_entries,
@@ -269,7 +269,7 @@ CHAN_START   | 2019-08-28 15:29:20.778532 | Alice    | 1001    |         | 1002 
                     user_uuids = queries.get_call_log_user_uuids(call_log.id)
                     assert_that(
                         user_uuids,
-                        contains(destination_user_uuid),
+                        contains_exactly(destination_user_uuid),
                     )
 
             until.assert_(call_log_is_missing_source_user, tries=5)
@@ -2061,7 +2061,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             '1694023642.7',
             has_properties(
                 id=not_none(),
-                participants=contains(
+                participants=contains_exactly(
                     has_properties(
                         uuid=not_none(),
                         user_uuid=operator_uuid,
