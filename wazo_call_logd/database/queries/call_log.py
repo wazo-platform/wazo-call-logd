@@ -81,10 +81,8 @@ class CallLogDAO(BaseDAO):
                     order_field = CallLog.date_answer
                 elif params['order'] == 'marshmallow_call_status':
                     order_field = case(
-                        [
-                            (CallLog.date_answer.isnot(None), 3),
-                            (CallLog.blocked.is_(True), 2),
-                        ],
+                        (CallLog.date_answer.isnot(None), 3),
+                        (CallLog.blocked.is_(True), 2),
                         else_=1,
                     )
                 else:

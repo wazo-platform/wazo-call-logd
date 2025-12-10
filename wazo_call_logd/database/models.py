@@ -238,15 +238,13 @@ class CallLogParticipant(Base):
     @peer_exten.expression
     def peer_exten(cls):
         return case(
-            [
-                (
-                    cls.role == 'source',
-                    select([CallLog.requested_exten])
-                    .where(cls.call_log_id == CallLog.id)
-                    .as_scalar(),
-                )
-            ],
-            else_=select([CallLog.source_exten])
+            (
+                cls.role == 'source',
+                select(CallLog.requested_exten)
+                .where(cls.call_log_id == CallLog.id)
+                .as_scalar(),
+            ),
+            else_=select(CallLog.source_exten)
             .where(cls.call_log_id == CallLog.id)
             .as_scalar(),
         )
