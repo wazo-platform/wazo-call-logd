@@ -21,6 +21,7 @@ services:
       - "9298"
     environment:
       XIVO_UUID: "08c56466-8f29-45c7-9856-92bf1ba89b92"
+      SQLALCHEMY_WARN_20: "1"
 
   confd:
     image: wazoplatform/wazo-confd-mock
@@ -50,6 +51,8 @@ services:
     volumes:
       - "../..:/usr/src/wazo-call-logd"
       - "./etc/wazo-purge-db/conf.d/50-default.yml:/etc/wazo-purge-db/conf.d/50-default.yml"
+    environment:
+      SQLALCHEMY_WARN_20: "1"
 
   smtp:
     image: munkyboy/fakesmtp
