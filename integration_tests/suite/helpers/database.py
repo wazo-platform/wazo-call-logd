@@ -539,7 +539,7 @@ class DatabaseQueries:
 
     def find_tenant(self, tenant_uuid) -> Tenant | None:
         with transaction(self.Session()) as session:
-            tenant = session.query(Tenant).get(tenant_uuid)
+            tenant = session.get(Tenant, tenant_uuid)
             return tenant
 
     def insert_call_log(self, **kwargs):
@@ -858,7 +858,7 @@ class DatabaseQueries:
         metadata: sa.MetaData = Base.metadata
 
         counts_queries = {
-            name: sa.select([sa.func.count()]).select_from(table)
+            name: sa.select(sa.func.count()).select_from(table)
             for name, table in metadata.tables.items()
         }
         counts = {}
