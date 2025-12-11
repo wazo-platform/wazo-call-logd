@@ -8,10 +8,9 @@ from datetime import timezone as tz
 
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.mutable import MutableList
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.schema import CheckConstraint, Column, ForeignKey, Index
 from sqlalchemy.sql import and_, case, select, text
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String, Text
@@ -143,7 +142,7 @@ class CallLog(Base):
                     CallLogParticipant.call_log_id == cls.id,
                 )
             )
-            .as_scalar()
+            .scalar_subquery()
         )
 
 
@@ -239,17 +238,15 @@ class CallLogParticipant(Base):
     @peer_exten.expression
     def peer_exten(cls):
         return case(
-            [
-                (
-                    cls.role == 'source',
-                    select([CallLog.requested_exten])
-                    .where(cls.call_log_id == CallLog.id)
-                    .as_scalar(),
-                )
-            ],
-            else_=select([CallLog.source_exten])
+            (
+                cls.role == 'source',
+                select(CallLog.requested_exten)
+                .where(cls.call_log_id == CallLog.id)
+                .scalar_subquery(),
+            ),
+            else_=select(CallLog.source_exten)
             .where(cls.call_log_id == CallLog.id)
-            .as_scalar(),
+            .scalar_subquery(),
         )
 
 

@@ -1,4 +1,4 @@
-# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -14,7 +14,6 @@ from hamcrest import (
     anything,
     assert_that,
     calling,
-    contains,
     contains_exactly,
     contains_inanyorder,
     empty,
@@ -281,7 +280,7 @@ class TestParticipantsProcessor(TestCase):
         ]
         self.confd.users.get.side_effect = requests.exceptions.HTTPError()
         call_log = self.processor(raw_call_log)
-        assert_that(self.confd.mock_calls, contains(anything()))
+        assert_that(self.confd.mock_calls, contains_exactly(anything()))
         assert_that(call_log.participants, is_(empty()))
 
     def test_participant_identified_from_channel(self):

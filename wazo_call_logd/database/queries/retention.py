@@ -1,4 +1,4 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -44,7 +44,7 @@ class RetentionDAO(BaseDAO):
         return retention
 
     def _find_or_create_tenant(self, session, tenant_uuid):
-        tenant = session.query(Tenant).get(tenant_uuid)
+        tenant = session.get(Tenant, tenant_uuid)
         if not tenant:
             tenant = Tenant(uuid=tenant_uuid)
             session.add(tenant)

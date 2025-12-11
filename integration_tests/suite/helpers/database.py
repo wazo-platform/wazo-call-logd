@@ -14,6 +14,7 @@ from typing import Literal, TypedDict, cast
 from uuid import UUID, uuid4
 
 import sqlalchemy as sa
+from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session as BaseSession
 from sqlalchemy.orm import joinedload, scoped_session, selectinload, sessionmaker
 from sqlalchemy.sql import text
@@ -525,7 +526,7 @@ def transaction(session: BaseSession, close=True):
 
 class DatabaseQueries:
     def __init__(self, connection):
-        self.connection = connection
+        self.connection: Connection = connection
         # NOTE(clanglois) expire_on_commit=False is necessary
         # to make object attributes available after session is closed
         self.Session = scoped_session(
@@ -539,7 +540,7 @@ class DatabaseQueries:
 
     def find_tenant(self, tenant_uuid) -> Tenant | None:
         with transaction(self.Session()) as session:
-            tenant = session.query(Tenant).get(tenant_uuid)
+            tenant = session.get(Tenant, tenant_uuid)
             return tenant
 
     def insert_call_log(self, **kwargs):
@@ -762,12 +763,14 @@ class DatabaseQueries:
         """
         )
 
-        cel_id = self.connection.execute(query, **kwargs).scalar()
+        with self.connection.begin():
+            cel_id = self.connection.execute(query, kwargs).scalar()
         return cel_id
 
     def delete_cel(self, cel_id):
         query = text("DELETE FROM cel WHERE id = :id")
-        self.connection.execute(query, id=cel_id)
+        with self.connection.begin():
+            self.connection.execute(query, {"id": cel_id})
 
     def insert_stat_agent(self, **kwargs):
         with transaction(self.Session()) as session:
@@ -858,7 +861,7 @@ class DatabaseQueries:
         metadata: sa.MetaData = Base.metadata
 
         counts_queries = {
-            name: sa.select([sa.func.count()]).select_from(table)
+            name: sa.select(sa.func.count()).select_from(table)
             for name, table in metadata.tables.items()
         }
         counts = {}

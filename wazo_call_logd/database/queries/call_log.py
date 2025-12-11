@@ -9,11 +9,11 @@ from typing import Any, TypedDict
 import sqlalchemy as sa
 from sqlalchemy import and_, case, distinct, func, sql
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
-from sqlalchemy.orm import Query, joinedload, selectinload, subqueryload
+from sqlalchemy.orm import Query, joinedload, subqueryload
 
 from wazo_call_logd.datatypes import CallDirection, CallStatus, OrderDirection
 
-from ..models import CallLog, CallLogParticipant
+from ..models import CallLog, CallLogParticipant, Recording
 from .base import BaseDAO
 
 DEFAULT_CALL_STATUS = '__default_call_status'
@@ -54,11 +54,10 @@ class CallLogDAO(BaseDAO):
     def get_by_id(self, cdr_id, tenant_uuids, user_uuids):
         with self.new_session() as session:
             query = session.query(CallLog).options(
-                joinedload('participants'),
-                joinedload('recordings'),
-                selectinload('recordings.call_log'),
-                subqueryload('source_participant'),
-                subqueryload('destination_participant'),
+                joinedload(CallLog.participants),
+                joinedload(CallLog.recordings).selectinload(Recording.call_log),
+                subqueryload(CallLog.source_participant),
+                subqueryload(CallLog.destination_participant),
             )
             filters = {'tenant_uuids': tenant_uuids}
             if user_uuids:
@@ -81,10 +80,8 @@ class CallLogDAO(BaseDAO):
                     order_field = CallLog.date_answer
                 elif params['order'] == 'marshmallow_call_status':
                     order_field = case(
-                        [
-                            (CallLog.date_answer.isnot(None), 3),
-                            (CallLog.blocked.is_(True), 2),
-                        ],
+                        (CallLog.date_answer.isnot(None), 3),
+                        (CallLog.blocked.is_(True), 2),
                         else_=1,
                     )
                 else:
@@ -136,11 +133,10 @@ class CallLogDAO(BaseDAO):
             )
 
         query = query.options(
-            joinedload('participants'),
-            joinedload('recordings'),
-            selectinload('recordings.call_log'),
-            subqueryload('source_participant'),
-            subqueryload('destination_participant'),
+            joinedload(CallLog.participants),
+            joinedload(CallLog.recordings).selectinload(Recording.call_log),
+            subqueryload(CallLog.source_participant),
+            subqueryload(CallLog.destination_participant),
         )
 
         query = self._apply_user_filter(query, params)
@@ -260,7 +256,7 @@ class CallLogDAO(BaseDAO):
                         sql.desc(CallLogParticipant.user_uuid),
                     )
                     .limit(1)
-                    .subquery()
+                    .scalar_subquery()
                     == sql.any_(
                         sql.cast(
                             [
