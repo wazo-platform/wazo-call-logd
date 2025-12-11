@@ -1,4 +1,4 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import Schema, fields
@@ -58,7 +58,7 @@ class AgentStatDAO(BaseDAO):
             results = []
             schema = StatAgentRow()
             for row in rows:
-                results.append(schema.dump(row))
+                results.append(schema.dump(row._mapping))
             return results
 
     def get_stat_agent(self, agent_id, tenant_uuids=None):
@@ -74,7 +74,7 @@ class AgentStatDAO(BaseDAO):
 
             row = query.first()
             if row:
-                return StatAgentRow().dump(row)
+                return StatAgentRow().dump(row._mapping)
 
     def get_interval(self, tenant_uuids, **filters):
         with self.new_session() as session:
@@ -84,7 +84,7 @@ class AgentStatDAO(BaseDAO):
             rows = query.all()
             results = []
             for row in rows:
-                basic_stats = StatRow().dump(row)
+                basic_stats = StatRow().dump(row._mapping)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 results.append({**basic_stats, **extra_stats})
         return results
@@ -98,7 +98,7 @@ class AgentStatDAO(BaseDAO):
             row = query.first()
             result = None
             if row:
-                basic_stats = StatRow().dump(row)
+                basic_stats = StatRow().dump(row._mapping)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 result = {**basic_stats, **extra_stats}
         return result

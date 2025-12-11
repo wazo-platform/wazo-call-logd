@@ -1,4 +1,4 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import Schema, fields
@@ -57,7 +57,7 @@ class QueueStatDAO(BaseDAO):
             rows = query.all()
             results = []
             for row in rows:
-                results.append(StatQueueRow().dump(row))
+                results.append(StatQueueRow().dump(row._mapping))
             return results
 
     def get_stat_queue(self, queue_id, tenant_uuids=None):
@@ -71,7 +71,7 @@ class QueueStatDAO(BaseDAO):
 
             row = query.first()
             if row:
-                return StatQueueRow().dump(row)
+                return StatQueueRow().dump(row._mapping)
 
     def get_interval_by_queue(self, tenant_uuids, queue_id, **filters):
         with self.new_session() as session:
@@ -82,7 +82,7 @@ class QueueStatDAO(BaseDAO):
             row = query.first()
             result = None
             if row:
-                basic_stats = StatRow().dump(row)
+                basic_stats = StatRow().dump(row._mapping)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 result = {**basic_stats, **extra_stats}
         return result
@@ -95,7 +95,7 @@ class QueueStatDAO(BaseDAO):
             rows = query.all()
             results = []
             for row in rows:
-                basic_stats = StatRow().dump(row)
+                basic_stats = StatRow().dump(row._mapping)
                 extra_stats = self._get_extra_stats(session, basic_stats, **filters)
                 results.append({**basic_stats, **extra_stats})
         return results
