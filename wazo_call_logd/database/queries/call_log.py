@@ -256,7 +256,7 @@ class CallLogDAO(BaseDAO):
                         sql.desc(CallLogParticipant.user_uuid),
                     )
                     .limit(1)
-                    .subquery()
+                    .scalar_subquery()
                     == sql.any_(
                         sql.cast(
                             [

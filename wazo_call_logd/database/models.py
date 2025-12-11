@@ -142,7 +142,7 @@ class CallLog(Base):
                     CallLogParticipant.call_log_id == cls.id,
                 )
             )
-            .as_scalar()
+            .scalar_subquery()
         )
 
 
@@ -242,11 +242,11 @@ class CallLogParticipant(Base):
                 cls.role == 'source',
                 select(CallLog.requested_exten)
                 .where(cls.call_log_id == CallLog.id)
-                .as_scalar(),
+                .scalar_subquery(),
             ),
             else_=select(CallLog.source_exten)
             .where(cls.call_log_id == CallLog.id)
-            .as_scalar(),
+            .scalar_subquery(),
         )
 
 
