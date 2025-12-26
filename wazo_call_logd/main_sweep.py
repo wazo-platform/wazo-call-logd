@@ -1,9 +1,10 @@
-# Copyright 2012-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2012-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
 import logging
 import sys
+from datetime import date
 
 from wazo_auth_client import Client as AuthClient
 from wazo_confd_client import Client as ConfdClient
@@ -101,6 +102,13 @@ def _generate_call_logs(cli_options: argparse.Namespace):
         else:
             if options.get('days'):
                 manager.generate_from_days(days=options['days'])
+            elif start_date := options.get('start-date'):
+                parsed_start_date = date.fromisoformat(start_date)
+                if end_date := options.get('end-date'):
+                    parsed_end_date = date.fromisoformat(end_date)
+                else:
+                    parsed_end_date = date.today()
+                manager.generate_from_dates(parsed_start_date, parsed_end_date)
             else:
                 manager.generate_from_count(cel_count=options['cel_count'])
 
@@ -126,6 +134,13 @@ def parse_args(parser: argparse.ArgumentParser):
         help='Minimum number of CEL entries to process',
     )
     group.add_argument('-d', '--days', type=int, help='Number of days to process')
+    generate_date_range_group = parser.add_argument_group('Date range')
+    generate_date_range_group.add_argument(
+        '-s', '--start-date', type=str, help='Start date'
+    )
+    generate_date_range_group.add_argument(
+        '-e', '--end-date', type=str, help='End date', required=False
+    )
     parser.add_argument(
         '-D',
         '--debug',
