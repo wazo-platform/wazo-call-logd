@@ -1,10 +1,11 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from copy import copy
 from datetime import datetime
+from datetime import timezone as dt_timezone
+from zoneinfo import ZoneInfo
 
-import pytz
 from dateutil.relativedelta import relativedelta
 
 from .exceptions import (
@@ -16,17 +17,15 @@ from .exceptions import (
 
 class _StatisticsService:
     def _generate_subinterval(self, from_, until, time_delta, timezone):
-        from_ = from_.replace(tzinfo=None)
-        until = until.replace(tzinfo=None)
+        from_ = from_.astimezone(dt_timezone.utc)
+        until = until.astimezone(dt_timezone.utc)
         current = from_
         next_datetime = current + time_delta
         while current < until:
-            current_in_tz = timezone.normalize(timezone.localize(current))
-            next_in_tz = timezone.normalize(timezone.localize(next_datetime))
+            current_in_tz = current.astimezone(timezone)
+            next_in_tz = next_datetime.astimezone(timezone)
             yield current_in_tz, next_in_tz
-            current = next_in_tz.replace(
-                tzinfo=None
-            )  # This is essential for DST change
+            current = next_datetime
             next_datetime = current + time_delta
             if next_datetime > until:
                 next_datetime = until
@@ -41,7 +40,7 @@ class _StatisticsService:
         time_delta = time_deltas.get(interval, 'hour')
 
         if time_delta == time_deltas['hour']:
-            if timezone.normalize(from_ + relativedelta(months=1)) < until:
+            if (from_ + relativedelta(months=1)).astimezone(timezone) < until:
                 raise RangeTooLargeException(
                     details='Maximum of 1 month for interval by hour'
                 )
@@ -51,12 +50,10 @@ class _StatisticsService:
             yield from_, until
 
     def _get_tomorrow(self, timezone):
-        today = datetime.now(pytz.utc).astimezone(timezone)
-        return timezone.normalize(
-            timezone.localize(
-                datetime(today.year, today.month, today.day) + relativedelta(days=1)
-            )
-        )
+        today = datetime.now(dt_timezone.utc)
+        return (
+            datetime(today.year, today.month, today.day) + relativedelta(days=1)
+        ).astimezone(timezone)
 
     def _datetime_in_week_days(self, date_time, week_days):
         return date_time.isoweekday() in week_days
@@ -98,15 +95,15 @@ class AgentStatisticsService(_StatisticsService):
         if not stat_agent:
             raise AgentNotFoundException(details={'agent_id': agent_id})
 
-        timezone = pytz.timezone(timezone)
+        timezone = ZoneInfo(timezone)
         if not from_:
             oldest_time = self._dao.find_oldest_time(agent_id)
             if oldest_time:
-                from_ = timezone.normalize(oldest_time)
+                from_ = oldest_time.astimezone(timezone)
         until = until or self._get_tomorrow(timezone)
 
         if interval and from_ and until:
-            for start, end in self._generate_interval(interval, from_, until, timezone):
+            for start, end in self._generate_interval(interval, from_, until):
                 if interval == 'hour':
                     if start_time is not None and end_time is not None:
                         if not self._datetime_in_interval(start, start_time, end_time):
@@ -165,7 +162,7 @@ class AgentStatisticsService(_StatisticsService):
         return {'total': len(agent_stats), 'items': agent_stats}
 
     def list(self, tenant_uuids, timezone, from_=None, until=None, **kwargs):
-        timezone = pytz.timezone(timezone)
+        timezone = ZoneInfo(timezone)
         stat_agents = {
             stat_agent['agent_id']: stat_agent
             for stat_agent in self._dao.get_stat_agents(tenant_uuids)
@@ -190,8 +187,8 @@ class AgentStatisticsService(_StatisticsService):
             if not from_date:
                 from_date = self._dao.find_oldest_time(agent_id)
                 if from_date is not None:
-                    from_date = from_date.astimezone(pytz.utc)
-                    from_date = timezone.normalize(from_date)
+                    from_date = from_date.astimezone(ZoneInfo('UTC'))
+                    from_date = from_date.replace(tzinfo=timezone)
 
             agent_stats_item.update(
                 {
@@ -232,15 +229,15 @@ class QueueStatisticsService(_StatisticsService):
         if not stat_queue:
             raise QueueNotFoundException(details={'queue_id': queue_id})
 
-        timezone = pytz.timezone(timezone)
+        timezone = ZoneInfo(timezone)
         if not from_:
             oldest_time = self._dao.find_oldest_time(queue_id)
             if oldest_time:
-                from_ = timezone.normalize(oldest_time)
+                from_ = oldest_time.astimezone(timezone)
         until = until or self._get_tomorrow(timezone)
 
         if interval and from_ and until:
-            for start, end in self._generate_interval(interval, from_, until, timezone):
+            for start, end in self._generate_interval(interval, from_, until):
                 if interval == 'hour':
                     if start_time is not None and end_time is not None:
                         if not self._datetime_in_interval(start, start_time, end_time):
@@ -324,15 +321,15 @@ class QueueStatisticsService(_StatisticsService):
         if not stat_queue:
             raise QueueNotFoundException(details={'queue_id': queue_id})
 
-        timezone = pytz.timezone(timezone)
+        timezone = ZoneInfo(timezone)
         if not from_:
             oldest_time = self._dao.find_oldest_time(queue_id)
             if oldest_time:
-                from_ = timezone.normalize(oldest_time)
+                from_ = oldest_time.astimezone(timezone)
         until = until or self._get_tomorrow(timezone)
 
         if interval and from_ and until:
-            for start, end in self._generate_interval(interval, from_, until, timezone):
+            for start, end in self._generate_interval(interval, from_, until):
                 if interval == 'hour':
                     if start_time is not None and end_time is not None:
                         if not self._datetime_in_interval(start, start_time, end_time):
@@ -409,7 +406,7 @@ class QueueStatisticsService(_StatisticsService):
         }
 
     def list(self, tenant_uuids, timezone, from_=None, until=None, **kwargs):
-        timezone = pytz.timezone(timezone)
+        timezone = ZoneInfo(timezone)
         stat_queues = {
             stat_queue['queue_id']: stat_queue
             for stat_queue in self._dao.get_stat_queues(tenant_uuids)
@@ -434,8 +431,7 @@ class QueueStatisticsService(_StatisticsService):
             if not from_date:
                 from_date = self._dao.find_oldest_time(queue_id)
                 if from_date is not None:
-                    from_date = from_date.astimezone(pytz.utc)
-                    from_date = timezone.normalize(from_date)
+                    from_date = from_date.astimezone(timezone)
 
             queue_stats_item.update(
                 {

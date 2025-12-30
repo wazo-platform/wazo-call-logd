@@ -1,7 +1,8 @@
 # Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import pytz
+import zoneinfo
+
 from hamcrest import (
     assert_that,
     calling,
@@ -334,7 +335,7 @@ class TestStatistics(IntegrationTest):
     # fmt: on
     def test_list_queue_statistics_when_no_param_except_timezone_with_stats(self):
         results = self.call_logd.queue_statistics.list(timezone='America/Montreal')
-        timezone = pytz.timezone('America/Montreal')
+        timezone = zoneinfo.ZoneInfo('America/Montreal')
         assert_that(
             results,
             has_entries(
