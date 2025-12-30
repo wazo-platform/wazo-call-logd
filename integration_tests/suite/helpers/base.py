@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -7,13 +7,13 @@ import logging
 import os
 import random
 import string
+import zoneinfo
 from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
 from functools import wraps
 from typing import ClassVar
 
-import pytz
 import yaml
 from dateutil.relativedelta import relativedelta
 from hamcrest import assert_that
@@ -390,10 +390,10 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         self.call_logd.set_token(old_token)
 
     def _get_tomorrow(self, timezone=None):
-        timezone = timezone or pytz.utc
-        today = datetime.now(pytz.utc).astimezone(timezone)
-        return timezone.normalize(
-            timezone.localize(datetime(today.year, today.month, today.day))
+        timezone = timezone or zoneinfo.ZoneInfo('UTC')
+        today = datetime.now(zoneinfo.ZoneInfo('UTC')).astimezone(timezone)
+        return (
+            datetime(today.year, today.month, today.day).replace(tzinfo=timezone)
             + relativedelta(days=1)
         ).isoformat(timespec='seconds')
 

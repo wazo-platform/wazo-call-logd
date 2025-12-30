@@ -7,7 +7,6 @@ openapi-spec-validator<0.6.0  # dependency conflict on requests version (>2.31.0
 pyhamcrest
 pytest
 python-dateutil==2.8.1  # from marshmallow, to accept more date formats
-pytz==2022.7.1
 requests
 stevedore  # from wazo-call-logd-client
 
