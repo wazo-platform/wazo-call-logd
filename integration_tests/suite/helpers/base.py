@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from functools import wraps
 from typing import ClassVar
 
 import pytz
+import requests
 import yaml
 from dateutil.relativedelta import relativedelta
 from hamcrest import assert_that
@@ -424,6 +425,41 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         self._Session.remove()
         self._CELSession.rollback()
         self._CELSession.remove()
+
+    def _make_http_request(
+        self, verb: str, endpoint: str, body: str | None, headers: dict = None
+    ):
+        port = self.service_port(9298, 'call-logd')
+        base_url = f'http://127.0.0.1:{port}/1.0/'
+        default_headers = {
+            'X-Auth-Token': MASTER_TOKEN,
+        }
+        req_headers = default_headers if not headers else headers
+
+        match verb.lower():
+            case 'patch':
+                call = requests.patch
+            case 'post':
+                call = requests.post
+            case 'put':
+                call = requests.put
+            case _:
+                raise ValueError('An unexpected http verb was given')
+
+        return call(
+            base_url + endpoint,
+            headers=req_headers,
+            data=body,
+            verify=False,
+        )
+
+    def assert_empty_body_returns_400(self, urls: list[tuple[str, str]]):
+        for method, url in urls:
+            response = self._make_http_request(method, url, '')
+            assert response.status_code == 400, f'Error with url: ({method}) {url}'
+
+            response = self._make_http_request(method, url, None)
+            assert response.status_code == 400, f'Error with url: ({method}) {url}'
 
 
 class IntegrationTest(_BaseIntegrationTest):
