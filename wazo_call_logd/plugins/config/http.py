@@ -1,4 +1,4 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
@@ -23,7 +23,7 @@ class ConfigResource(AuthResource):
     @required_master_tenant()
     @required_acl('call_logd.config.update')
     def patch(self):
-        config_patch = config_patch_schema.load(request.get_json(), many=True)
+        config_patch = config_patch_schema.load(request.get_json(force=True), many=True)
         config = self._config_service.get()
         patched_config = JsonPatch(config_patch).apply(config)
         self._config_service.update_config(patched_config)

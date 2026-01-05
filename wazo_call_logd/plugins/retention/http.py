@@ -1,4 +1,4 @@
-# Copyright 2021-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from flask import request
@@ -34,7 +34,7 @@ class RetentionResource(AuthResource):
     def put(self):
         tenant_uuid = Tenant.autodetect().uuid
         retention = self.service.find_or_create(tenant_uuid)
-        retention_args = RetentionSchema().load(request.get_json())
+        retention_args = RetentionSchema().load(request.get_json(force=True))
         update_model_instance(retention, retention_args)
         self.service.update(retention)
         return '', 204
