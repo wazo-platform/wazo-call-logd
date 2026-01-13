@@ -1,7 +1,8 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import pytz
+import zoneinfo
+
 from hamcrest import (
     assert_that,
     calling,
@@ -334,7 +335,7 @@ class TestStatistics(IntegrationTest):
     # fmt: on
     def test_list_queue_statistics_when_no_param_except_timezone_with_stats(self):
         results = self.call_logd.queue_statistics.list(timezone='America/Montreal')
-        timezone = pytz.timezone('America/Montreal')
+        timezone = zoneinfo.ZoneInfo('America/Montreal')
         assert_that(
             results,
             has_entries(
@@ -1391,16 +1392,23 @@ class TestStatistics(IntegrationTest):
             'quality_of_service': None,
         }
 
-        assert_that(results, has_entries(total=equal_to(4)))
+        assert_that(results, has_entries(total=equal_to(5)))
         assert_that(
             results['items'],
             has_items(
                 has_entries(
                     **common_fields,
                     **{'from': '2020-11-01T00:00:00-04:00'},
+                    until='2020-11-01T01:00:00-04:00',
+                    received=3,
+                    answered=3,
+                ),
+                has_entries(
+                    **common_fields,
+                    **{'from': '2020-11-01T01:00:00-04:00'},
                     until='2020-11-01T01:00:00-05:00',
-                    received=7,
-                    answered=7,
+                    received=4,
+                    answered=4,
                 ),
                 has_entries(
                     **common_fields,

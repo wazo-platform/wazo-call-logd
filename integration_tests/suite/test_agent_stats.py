@@ -1,9 +1,9 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import zoneinfo
 from datetime import timedelta
 
-import pytz
 from hamcrest import (
     assert_that,
     calling,
@@ -259,7 +259,7 @@ class TestStatistics(IntegrationTest):
     # fmt: on
     def test_list_agent_statistics_when_no_param_except_timezone_with_stats(self):
         results = self.call_logd.agent_statistics.list(timezone='America/Montreal')
-        timezone = pytz.timezone('America/Montreal')
+        timezone = zoneinfo.ZoneInfo('America/Montreal')
         assert_that(
             results,
             has_entries(
@@ -1054,7 +1054,7 @@ class TestStatistics(IntegrationTest):
             timezone='America/Montreal',
         )
 
-        assert_that(results, has_entries(total=equal_to(4)))
+        assert_that(results, has_entries(total=equal_to(5)))
         common_fields = {
             'tenant_uuid': str(MASTER_TENANT),
             'agent_id': 42,
@@ -1066,8 +1066,14 @@ class TestStatistics(IntegrationTest):
                 has_entries(
                     **common_fields,
                     **{'from': '2020-11-01T00:00:00-04:00'},
+                    until='2020-11-01T01:00:00-04:00',
+                    login_time=timedelta(minutes=52).total_seconds(),
+                ),
+                has_entries(
+                    **common_fields,
+                    **{'from': '2020-11-01T01:00:00-04:00'},
                     until='2020-11-01T01:00:00-05:00',
-                    login_time=timedelta(minutes=52 + 53).total_seconds(),
+                    login_time=timedelta(minutes=53).total_seconds(),
                 ),
                 has_entries(
                     **common_fields,
@@ -1086,7 +1092,11 @@ class TestStatistics(IntegrationTest):
                     **{'from': '2020-10-31T00:00:00-04:00'},
                     until='2020-11-02T03:00:00-05:00',
                     login_time=timedelta(
-                        minutes=52 + 53 + 54 + 55 + 56
+                        minutes=52
+                        + 53
+                        + 54
+                        + 55
+                        + 56  # Should NOT include 56 because it's not in the interval
                     ).total_seconds(),
                 ),
             ),

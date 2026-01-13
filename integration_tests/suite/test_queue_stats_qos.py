@@ -1,4 +1,4 @@
-# Copyright 2020-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, equal_to, has_entries, has_items
@@ -171,21 +171,34 @@ class TestQueueStatisticsQOS(IntegrationTest):
             'queue_name': 'queue',
         }
 
-        assert_that(results, has_entries(total=equal_to(4)))
+        assert_that(results, has_entries(total=equal_to(5)))
         assert_that(
             results['items'],
             has_items(
                 has_entries(
                     **common_fields,
                     **{'from': '2020-11-01T00:00:00-04:00'},
+                    until='2020-11-01T01:00:00-04:00',
+                    quality_of_service=has_items(
+                        has_entries(min=0, max=5, answered=1, abandoned=1),
+                        has_entries(min=5, max=10, answered=1, abandoned=0),
+                        has_entries(min=10, max=15, answered=2, abandoned=1),
+                        has_entries(min=15, max=20, answered=1, abandoned=0),
+                        has_entries(min=20, max=30, answered=1, abandoned=0),
+                        has_entries(min=30, max=None, answered=0, abandoned=1),
+                    ),
+                ),
+                has_entries(
+                    **common_fields,
+                    **{'from': '2020-11-01T01:00:00-04:00'},
                     until='2020-11-01T01:00:00-05:00',
                     quality_of_service=has_items(
-                        has_entries(min=0, max=5, answered=2, abandoned=2),
-                        has_entries(min=5, max=10, answered=2, abandoned=0),
-                        has_entries(min=10, max=15, answered=4, abandoned=2),
-                        has_entries(min=15, max=20, answered=2, abandoned=0),
-                        has_entries(min=20, max=30, answered=2, abandoned=0),
-                        has_entries(min=30, max=None, answered=0, abandoned=2),
+                        has_entries(min=0, max=5, answered=1, abandoned=1),
+                        has_entries(min=5, max=10, answered=1, abandoned=0),
+                        has_entries(min=10, max=15, answered=2, abandoned=1),
+                        has_entries(min=15, max=20, answered=1, abandoned=0),
+                        has_entries(min=20, max=30, answered=1, abandoned=0),
+                        has_entries(min=30, max=None, answered=0, abandoned=1),
                     ),
                 ),
                 has_entries(

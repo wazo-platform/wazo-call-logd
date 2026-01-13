@@ -1,15 +1,21 @@
-# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import zoneinfo
 from datetime import time
+from functools import lru_cache
 
-import pytz
 from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
 from xivo.mallow import fields
 from xivo.mallow.validate import ContainsOnly, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
 
 HOUR_REGEX = r"^([0,1][0-9]|2[0-3]):[0-5][0-9]$"
+
+
+@lru_cache(maxsize=None)
+def available_timezones():
+    return zoneinfo.available_timezones()
 
 
 class _StatisticsPeriodSchema(Schema):
@@ -79,14 +85,13 @@ class _StatisticsListRequestSchema(Schema):
         load_default=[1, 2, 3, 4, 5, 6, 7],
         validate=ContainsOnly([1, 2, 3, 4, 5, 6, 7]),
     )
-    timezone = fields.String(validate=OneOf(pytz.all_timezones), load_default='UTC')
+    timezone = fields.String(validate=OneOf(available_timezones()), load_default='UTC')
 
     def _normalize_datetime(self, dt, timezone):
         if not dt.tzinfo:
-            return timezone.normalize(timezone.localize(dt))
+            return dt.replace(tzinfo=timezone)
         else:
-            utc_dt = pytz.utc.normalize(dt)
-            return timezone.normalize(utc_dt)
+            return dt.astimezone(timezone)
 
     @pre_load
     def convert_week_days_to_list(self, data, **kwargs):
@@ -109,7 +114,7 @@ class _StatisticsListRequestSchema(Schema):
 
     @post_load
     def default_timezone_on_datetime(self, data, **kwargs):
-        timezone = pytz.timezone(data.get('timezone'))
+        timezone = zoneinfo.ZoneInfo(data.get('timezone'))
         from_ = data.get('from_')
         until = data.get('until')
         if from_:
@@ -122,7 +127,7 @@ class _StatisticsListRequestSchema(Schema):
     def validate_dates(self, data, **kwargs):
         from_ = data.get('from_', None)
         until = data.get('until', None)
-        timezone = pytz.timezone(data.get('timezone'))
+        timezone = zoneinfo.ZoneInfo(data.get('timezone'))
         if from_:
             from_ = self._normalize_datetime(from_, timezone)
         if until:
