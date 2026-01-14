@@ -1,4 +1,4 @@
-# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, equal_to, has_entry, has_key, has_properties
@@ -73,3 +73,6 @@ class TestConfig(IntegrationTest):
         debug_false_config = self.call_logd.config.get()
         assert_that(debug_false_config, has_entry('debug', False))
         assert_that(debug_false_patched_config, equal_to(debug_false_config))
+
+    def test_empty_body_for_patch_config_returns_400(self):
+        self.assert_empty_body_returns_400([('patch', 'config')])
