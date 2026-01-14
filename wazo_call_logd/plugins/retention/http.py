@@ -33,8 +33,8 @@ class RetentionResource(AuthResource):
     @required_acl('call-logd.retention.update')
     def put(self):
         tenant_uuid = Tenant.autodetect().uuid
-        retention = self.service.find_or_create(tenant_uuid)
         retention_args = RetentionSchema().load(request.get_json(force=True))
+        retention = self.service.find_or_create(tenant_uuid)
         update_model_instance(retention, retention_args)
         self.service.update(retention)
         return '', 204
