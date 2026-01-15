@@ -5,6 +5,9 @@
 * `POST` and `PUT` request bodies to endpoints accepting JSON payload are systematically parsed as JSON, with or without a proper `Content-Type` header;
 * `POST` and `PUT` requests to endpoints accepting JSON payload and which are missing a body now return a `400` status response;
    previously those invalid requests could be treated as valid when Content-Type was missing and bodies were not parsed;
+* Support center statistics now handle time transitions better. On summer to winter transitions
+  there will be an additional time interval and on winter to summer transitions there will be one
+  less.
 
 ## 25.12
 
