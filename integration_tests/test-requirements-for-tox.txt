@@ -2,7 +2,7 @@ https://github.com/wazo-platform/wazo-lib-rest-client/archive/master.zip
 https://github.com/wazo-platform/wazo-call-logd-client/archive/master.zip
 https://github.com/wazo-platform/wazo-test-helpers/archive/master.zip
 kombu
-marshmallow==3.18.0
+marshmallow==3.26.2
 openapi-spec-validator<0.6.0  # dependency conflict on requests version (>2.31.0) with wazo clients (=2.25.1)
 pyhamcrest
 pytest
