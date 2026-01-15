@@ -1096,7 +1096,7 @@ class TestStatistics(IntegrationTest):
                         + 53
                         + 54
                         + 55
-                        + 56  # Should NOT include 56 because it's not in the interval
+                        + 56  # WAZO-4393: Should NOT include 56 because it's not in the interval
                     ).total_seconds(),
                 ),
             ),
