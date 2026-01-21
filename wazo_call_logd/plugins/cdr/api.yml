@@ -488,7 +488,7 @@ definitions:
       destination_internal_tenant_uuid:
         type: string
       destination_user_uuid:
-        type: string
+        type: ["string", "null"]
       destination_tenant_uuid:
         type: string
       destination_line_id:
