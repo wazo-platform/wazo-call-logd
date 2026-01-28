@@ -1,4 +1,4 @@
-# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import requests
@@ -219,6 +219,48 @@ class TestRecording(IntegrationTest):
                 has_properties(status_code=404, error_id='recording-not-found')
             ),
         )
+
+    @call_log(
+        **{'id': 1},
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'role': 'source'},
+            {'user_uuid': str(USER_2_UUID), 'role': 'destination'},
+        ],
+        recordings=[{'path': '/tmp/foobar.wav'}],
+        tenant_uuid=str(USERS_TENANT),
+    )
+    @file_('/tmp/foobar.wav', content='my-recording-content')
+    def test_get_media_supports_partial(self):
+        recording = self.call_logd.cdr.get_by_id(1)['recordings'][0]
+        recording_uuid = recording['uuid']
+
+        url = self.call_logd.url('cdr', 1, 'recordings', recording_uuid, 'media')
+        headers = {'X-Auth-Token': MAIN_TOKEN}
+
+        def fetch_media(start: int | None = None, count: int | None = None):
+            req_headers = headers.copy()
+            has_range = start is not None
+
+            if has_range:
+                stop = start + max(count - 1, 0) if count else ''  # type: ignore[operator]
+                req_headers |= {'Range': f'bytes={start}-{stop}'}
+
+            response = requests.get(url, headers=req_headers)
+
+            if content_disposition := response.headers.get('Content-Disposition'):
+                value = 'inline' if has_range else 'attachment'
+                assert content_disposition.startswith(value)
+
+            return response.status_code, response.text
+
+        assert fetch_media() == (200, 'my-recording-content')
+        assert fetch_media(0, 3) == (206, 'my-')
+        assert fetch_media(3, 9) == (206, 'recording')
+        assert fetch_media(12) == (206, '-content')
+        assert fetch_media(0) == (206, 'my-recording-content')
+
+        # test invalid range
+        assert fetch_media(50)[0] == 416
 
     # Deleting
 
