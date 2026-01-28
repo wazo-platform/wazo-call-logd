@@ -319,11 +319,12 @@ class RecordingMediaItemResource(CDRAuthResource):
         if not recording.path:
             raise RecordingMediaNotFoundException(recording_uuid)
 
+        as_attachment = 'range' not in request.headers
         try:
             return send_file(
                 recording.path,
                 mimetype='audio/wav',
-                as_attachment=True,
+                as_attachment=as_attachment,
                 download_name=recording.filename,
             )
         except PermissionError:
@@ -383,11 +384,12 @@ class RecordingMediaItemUserMeResource(CDRAuthResource):
         if not recording.path:
             raise RecordingMediaNotFoundException(recording_uuid)
 
+        as_attachment = 'range' not in request.headers
         try:
             return send_file(
                 recording.path,
                 mimetype='audio/wav',
-                as_attachment=True,
+                as_attachment=as_attachment,
                 download_name=recording.filename,
             )
         except PermissionError:
