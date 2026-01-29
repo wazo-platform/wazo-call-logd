@@ -278,7 +278,7 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
 
     @classmethod
     @contextmanager
-    def call_logd_with_config(cls, config: dict) -> Generator[None, None, None]:
+    def call_logd_with_config(cls, config: dict) -> Generator[None]:
         filesystem = FileSystemClient(
             execute=cls.docker_exec,
             service_name='call-logd',
