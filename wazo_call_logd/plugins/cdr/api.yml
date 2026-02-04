@@ -135,11 +135,22 @@ paths:
       parameters:
         - $ref: '#/parameters/cdr_id'
         - $ref: '#/parameters/recording_uuid'
+        - name: Range
+          description: |
+            Header requesting a chunk of media to be streamed (e.g: bytes=0-1023 to request the first 1024 bytes)
+          required: false
+          in: header
+          type: string
+          pattern: ^bytes=[0-9]+-[0-9]*$
       responses:
         '200':
           description: Get a recording media
+        '206':
+          description: Partial chunk (stream) of a recording media (specified by Range header)
         '404':
           $ref: '#/responses/NotFoundError'
+        '416':
+          description: The requested Range is not satisfiable by the server (invalid value)
       produces:
       - audio/wav
     delete:
@@ -246,11 +257,22 @@ paths:
       parameters:
         - $ref: '#/parameters/cdr_id'
         - $ref: '#/parameters/recording_uuid'
+        - name: Range
+          description: |
+            Header requesting a chunk of media to be streamed (e.g: bytes=0-1023 to request the first 1024 bytes)
+          required: false
+          in: header
+          type: string
+          pattern: ^bytes=[0-9]+-[0-9]*$
       responses:
         '200':
           description: Get a recording media
+        '206':
+          description: Partial chunk (stream) of a recording media (specified by Range header)
         '404':
           $ref: '#/responses/NotFoundError'
+        '416':
+          description: The requested Range is not satisfiable by the server (invalid value)
       produces:
       - audio/wav
 
