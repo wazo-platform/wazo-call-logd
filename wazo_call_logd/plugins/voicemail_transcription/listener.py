@@ -35,6 +35,7 @@ class TranscriptionEventHandler:
         message_id = event['message_id']
         tenant_uuid = event['tenant_uuid']
         user_uuid = event.get('user_uuid')
+        voicemail_id = event.get('voicemail_id')
         transcription_text = event['transcription']
         provider_id = event.get('provider_id')
         language = event.get('language')
@@ -48,6 +49,7 @@ class TranscriptionEventHandler:
             tenant_uuid=tenant_uuid,
             user_uuid=user_uuid,
             transcription_text=transcription_text,
+            voicemail_id=voicemail_id,
             provider_id=provider_id,
             language=language,
             duration=duration,

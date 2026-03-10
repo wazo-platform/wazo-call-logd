@@ -186,6 +186,7 @@ definitions:
         format: uuid
       voicemail_id:
         type: integer
+        description: The voicemail ID (mailbox number)
       transcript:
         type: string
         description: The transcription text
