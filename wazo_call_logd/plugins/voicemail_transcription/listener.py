@@ -23,7 +23,7 @@ class TranscriptionEventHandler:
             self._on_transcription_completed,
         )
         bus_consumer.subscribe(
-            'voicemail_message_deleted',
+            'user_voicemail_message_deleted',
             self._on_voicemail_message_deleted,
         )
         bus_consumer.subscribe(
