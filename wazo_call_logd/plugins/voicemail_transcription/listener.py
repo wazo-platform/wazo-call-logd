@@ -44,7 +44,7 @@ class TranscriptionEventHandler:
             'Received transcription completed event for message %s', message_id
         )
         self.service.create_transcription(
-            message_id=message_id,
+            voicemail_message_id=message_id,
             tenant_uuid=tenant_uuid,
             user_uuid=user_uuid,
             transcription_text=transcription_text,

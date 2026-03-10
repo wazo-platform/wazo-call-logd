@@ -28,7 +28,7 @@ class TestTranscriptionService(TestCase):
         )
 
         result = self.service.create_transcription(
-            message_id='msg-123',
+            voicemail_message_id='msg-123',
             tenant_uuid=TENANT_UUID,
             user_uuid=USER_UUID,
             transcription_text='Hello world',
@@ -46,7 +46,7 @@ class TestTranscriptionService(TestCase):
         )
 
         result = self.service.create_transcription(
-            message_id='msg-123',
+            voicemail_message_id='msg-123',
             tenant_uuid=TENANT_UUID,
             user_uuid=USER_UUID,
             transcription_text='Hello world',
