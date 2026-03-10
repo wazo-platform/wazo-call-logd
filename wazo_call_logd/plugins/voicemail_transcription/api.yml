@@ -1,0 +1,221 @@
+paths:
+  /voicemails/transcriptions:
+    get:
+      summary: List voicemail transcriptions
+      description: '**Required ACL:** `call-logd.voicemails.transcriptions.read`'
+      operationId: list_voicemail_transcriptions
+      tags:
+        - voicemail_transcriptions
+      parameters:
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/voicemail_id'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/search_text'
+      responses:
+        '200':
+          description: List of voicemail transcriptions
+          schema:
+            $ref: '#/definitions/TranscriptionList'
+        '401':
+          $ref: '#/responses/Unauthorized'
+  /users/me/voicemails/transcriptions:
+    get:
+      summary: List voicemail transcriptions for the current user
+      description: '**Required ACL:** `call-logd.users.me.voicemails.transcriptions.read`'
+      operationId: list_user_me_voicemail_transcriptions
+      tags:
+        - voicemail_transcriptions
+        - users
+      parameters:
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/voicemail_id'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/search_text'
+      responses:
+        '200':
+          description: List of voicemail transcriptions for the current user
+          schema:
+            $ref: '#/definitions/TranscriptionList'
+        '401':
+          $ref: '#/responses/Unauthorized'
+  /users/me/voicemails/{voicemail_message_id}/transcription:
+    get:
+      summary: Get a voicemail transcription for the current user
+      description: '**Required ACL:** `call-logd.users.me.voicemails.transcriptions.{voicemail_message_id}.read`'
+      operationId: get_user_me_voicemail_transcription
+      tags:
+        - voicemail_transcriptions
+        - users
+      parameters:
+        - $ref: '#/parameters/voicemail_message_id'
+      responses:
+        '200':
+          description: Voicemail transcription
+          schema:
+            $ref: '#/definitions/Transcription'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '404':
+          $ref: '#/responses/NotFoundError'
+  /users/{user_uuid}/voicemails/transcriptions:
+    get:
+      summary: List voicemail transcriptions for a user
+      description: '**Required ACL:** `call-logd.users.{user_uuid}.voicemails.transcriptions.read`'
+      operationId: list_user_voicemail_transcriptions
+      tags:
+        - voicemail_transcriptions
+        - users
+      parameters:
+        - $ref: '#/parameters/user_uuid'
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/search_text'
+      responses:
+        '200':
+          description: List of voicemail transcriptions for the user
+          schema:
+            $ref: '#/definitions/TranscriptionList'
+        '401':
+          $ref: '#/responses/Unauthorized'
+  /users/{user_uuid}/voicemails/{voicemail_message_id}/transcription:
+    get:
+      summary: Get a voicemail transcription
+      description: '**Required ACL:** `call-logd.users.{user_uuid}.voicemails.transcriptions.{voicemail_message_id}.read`'
+      operationId: get_user_voicemail_transcription
+      tags:
+        - voicemail_transcriptions
+        - users
+      parameters:
+        - $ref: '#/parameters/user_uuid'
+        - $ref: '#/parameters/voicemail_message_id'
+      responses:
+        '200':
+          description: Voicemail transcription
+          schema:
+            $ref: '#/definitions/Transcription'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '404':
+          $ref: '#/responses/NotFoundError'
+
+parameters:
+  user_uuid:
+    name: user_uuid
+    in: path
+    type: string
+    format: uuid
+    required: true
+    description: The user UUID
+  voicemail_message_id:
+    name: voicemail_message_id
+    in: path
+    type: string
+    required: true
+    description: The voicemail message ID, format "0123456789-0123456789"
+  voicemail_id:
+    name: voicemail_id
+    in: query
+    type: array
+    collectionFormat: csv
+    description: The voicemail ID of the message
+    items:
+      type: integer
+  from:
+    name: from
+    in: query
+    type: string
+    description: Filter transcriptions created after this date
+  until:
+    name: until
+    in: query
+    type: string
+    description: Filter transcriptions created before this date
+  limit:
+    name: limit
+    in: query
+    type: integer
+    description: Maximum number of items to return
+  offset:
+    name: offset
+    in: query
+    type: integer
+    description: Number of items to skip
+  order:
+    name: order
+    in: query
+    type: string
+    description: Name of the field to order by
+    enum:
+      - created_at
+      - voicemail_message_id
+  direction:
+    name: direction
+    in: query
+    type: string
+    description: Sort order direction
+    enum:
+      - asc
+      - desc
+  search_text:
+    name: search_text
+    in: query
+    type: string
+    description: Full-text search in transcript content
+
+definitions:
+  Transcription:
+    type: object
+    properties:
+      voicemail_message_id:
+        type: string
+        description: The voicemail message ID
+      tenant_uuid:
+        type: string
+        format: uuid
+      voicemail_id:
+        type: integer
+      transcript:
+        type: string
+        description: The transcription text
+      provider_id:
+        type: string
+        description: Transcription provider/model identifier
+      language:
+        type: string
+        description: Detected language code (ISO 639-1)
+      duration:
+        type: number
+        format: float
+        description: Voicemail duration in seconds
+      created_at:
+        type: string
+        format: date-time
+  TranscriptionList:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/Transcription'
+      total:
+        type: integer
+      filtered:
+        type: integer
+
+responses:
+  Unauthorized:
+    description: Unauthorized
+  NotFoundError:
+    description: Resource not found

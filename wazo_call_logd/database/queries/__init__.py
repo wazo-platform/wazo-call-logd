@@ -1,4 +1,4 @@
-# Copyright 2020-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from .queue_stat import QueueStatDAO
 from .recording import RecordingDAO
 from .retention import RetentionDAO
 from .tenant import TenantDAO
+from .voicemail_transcription import VoicemailTranscriptionDAO
 
 
 class DAO:
@@ -23,6 +24,7 @@ class DAO:
     recording: RecordingDAO
     retention: RetentionDAO
     tenant: TenantDAO
+    voicemail_transcription: VoicemailTranscriptionDAO
 
     cel: CELDAO
     queue_stat: QueueStatDAO
@@ -36,6 +38,7 @@ class DAO:
         'recording': RecordingDAO,
         'retention': RetentionDAO,
         'tenant': TenantDAO,
+        'voicemail_transcription': VoicemailTranscriptionDAO,
     }
 
     _cel_dao = {

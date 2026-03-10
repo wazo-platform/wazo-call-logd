@@ -33,6 +33,7 @@ from wazo_call_logd.database.models import (
     Recording,
     Retention,
     Tenant,
+    VoicemailTranscription,
 )
 
 from .constants import MASTER_TENANT, USER_1_UUID
@@ -235,6 +236,49 @@ def retention(**retention):
         def wrapped_function(self, *args, **kwargs):
             with retention_fixture(self.database, retention) as _retention:
                 return func(self, *args, _retention, **kwargs)
+
+        return wrapped_function
+
+    return _decorate
+
+
+class VoicemailTranscriptionData(TypedDict, total=False):
+    tenant_uuid: UUID
+    uuid: UUID
+    voicemail_message_id: str
+    user_uuid: UUID
+    voicemail_id: int
+    transcription_text: str
+    provider_id: str
+    language: str
+    duration: float
+
+
+@contextmanager
+def voicemail_transcription_fixture(
+    database: DbHelper, transcription: dict
+) -> Iterator[VoicemailTranscriptionData]:
+    transcription.setdefault('tenant_uuid', MASTER_TENANT)
+    transcription.setdefault('transcription_text', 'Hello, this is a voicemail.')
+    with database.queries() as queries:
+        transcription['uuid'] = queries.insert_voicemail_transcription(**transcription)
+    try:
+        yield transcription
+    finally:
+        with database.queries() as queries:
+            queries.delete_voicemail_transcription(transcription['uuid'])
+
+
+def voicemail_transcription(**transcription):
+    transcription = cast(VoicemailTranscriptionData, transcription)
+
+    def _decorate(func):
+        @wraps(func)
+        def wrapped_function(self, *args, **kwargs):
+            with voicemail_transcription_fixture(
+                self.database, transcription
+            ) as _transcription:
+                return func(self, *args, _transcription, **kwargs)
 
         return wrapped_function
 
@@ -598,6 +642,19 @@ class DatabaseQueries:
             if tenant_uuid:
                 query = query.filter(Retention.tenant_uuid == tenant_uuid)
             return query.all()
+
+    def insert_voicemail_transcription(self, **kwargs):
+        with transaction(self.Session()) as session:
+            transcription = VoicemailTranscription(**kwargs)
+            session.add(transcription)
+            session.flush()
+            return transcription.uuid
+
+    def delete_voicemail_transcription(self, transcription_uuid):
+        with transaction(self.Session()) as session:
+            session.query(VoicemailTranscription).filter(
+                VoicemailTranscription.uuid == transcription_uuid
+            ).delete()
 
     def delete_recording_by_call_log_id(self, call_log_id):
         with transaction(self.Session()) as session:
