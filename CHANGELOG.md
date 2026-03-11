@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.04
+
+* New endpoint for voicemail transcriptions:
+
+  * `GET /voicemails/transcriptions`
+
 ## 26.02
 
 * `POST` and `PUT` request bodies to endpoints accepting JSON payload are systematically parsed as JSON, with or without a proper `Content-Type` header;
