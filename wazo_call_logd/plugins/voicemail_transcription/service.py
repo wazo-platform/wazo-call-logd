@@ -43,8 +43,12 @@ class TranscriptionService:
                 'Transcription for message %s already exists, updating',
                 voicemail_message_id,
             )
-            self._dao.voicemail_transcription.get_by_message_id(voicemail_message_id)
-            transcription = self._dao.voicemail_transcription.update(attributes)
+            existing = self._dao.voicemail_transcription.get_by_message_id(
+                voicemail_message_id
+            )
+            transcription = self._dao.voicemail_transcription.update(
+                existing.uuid, attributes
+            )
         self._notifier.created(transcription)
         return transcription
 

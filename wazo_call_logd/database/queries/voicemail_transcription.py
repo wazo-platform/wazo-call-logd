@@ -16,11 +16,11 @@ class VoicemailTranscriptionDAO(BaseDAO):
             session.expunge(transcription)
         return transcription
 
-    def update(self, transcription_attributes: dict):
+    def update(self, uuid, transcription_attributes: dict):
         with self.new_session() as session:
             transcription = (
                 session.query(VoicemailTranscription)
-                .filter(VoicemailTranscription.uuid == transcription_attributes['uuid'])
+                .filter(VoicemailTranscription.uuid == uuid)
                 .one()
             )
             for key, value in transcription_attributes.items():
