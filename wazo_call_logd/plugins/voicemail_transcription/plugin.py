@@ -4,6 +4,7 @@
 from wazo_call_logd.bus import BusConsumer
 from wazo_call_logd.database.queries import DAO
 
+from .bus_consume import TranscriptionEventHandler
 from .http import (
     TranscriptionListResource,
     TranscriptionUserItemResource,
@@ -11,7 +12,6 @@ from .http import (
     TranscriptionUserMeItemResource,
     TranscriptionUserMeListResource,
 )
-from .bus_consume import TranscriptionEventHandler
 from .notifier import TranscriptionNotifier
 from .service import TranscriptionService
 

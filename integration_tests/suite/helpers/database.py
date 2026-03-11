@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -649,6 +649,14 @@ class DatabaseQueries:
             session.add(transcription)
             session.flush()
             return transcription.uuid
+
+    def find_voicemail_transcription_by_message_id(self, message_id):
+        with transaction(self.Session()) as session:
+            return (
+                session.query(VoicemailTranscription)
+                .filter(VoicemailTranscription.voicemail_message_id == message_id)
+                .first()
+            )
 
     def delete_voicemail_transcription(self, transcription_uuid):
         with transaction(self.Session()) as session:
