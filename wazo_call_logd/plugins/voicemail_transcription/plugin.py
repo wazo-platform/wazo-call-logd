@@ -12,6 +12,7 @@ from .http import (
     TranscriptionUserMeListResource,
 )
 from .listener import TranscriptionEventHandler
+from .notifier import TranscriptionNotifier
 from .service import TranscriptionService
 
 
@@ -22,7 +23,8 @@ class Plugin:
         bus_consumer: BusConsumer = dependencies['bus_consumer']
         bus_publisher = dependencies['bus_publisher']
 
-        service = TranscriptionService(dao, bus_publisher)
+        notifier = TranscriptionNotifier(bus_publisher)
+        service = TranscriptionService(dao, notifier)
         event_handler = TranscriptionEventHandler(service)
         event_handler.subscribe(bus_consumer)
 

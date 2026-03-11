@@ -19,8 +19,8 @@ USER_UUID = '66666666-7777-8888-9999-aaaaaaaaaaaa'
 class TestTranscriptionService(TestCase):
     def setUp(self):
         self.dao = Mock()
-        self.bus_publisher = Mock()
-        self.service = TranscriptionService(self.dao, self.bus_publisher)
+        self.notifier = Mock()
+        self.service = TranscriptionService(self.dao, self.notifier)
 
     def test_create_transcription(self):
         self.dao.voicemail_transcription.create.return_value = Mock(
@@ -38,6 +38,9 @@ class TestTranscriptionService(TestCase):
         )
 
         self.dao.voicemail_transcription.create.assert_called_once()
+        self.notifier.created.assert_called_once_with(
+            self.dao.voicemail_transcription.create.return_value
+        )
         assert_that(result, is_(self.dao.voicemail_transcription.create.return_value))
 
     def test_create_transcription_duplicate(self):
@@ -53,6 +56,7 @@ class TestTranscriptionService(TestCase):
         )
 
         assert_that(result, is_(none()))
+        self.notifier.created.assert_not_called()
 
     def test_get_transcription_found(self):
         expected = Mock(voicemail_message_id='msg-123')
@@ -107,6 +111,8 @@ class TestTranscriptionService(TestCase):
         assert_that(result, equal_to(expected))
 
     def test_delete_transcription_found(self):
+        transcription = Mock(voicemail_message_id='msg-123', tenant_uuid=TENANT_UUID)
+        self.dao.voicemail_transcription.get_by_message_id.return_value = transcription
         self.dao.voicemail_transcription.delete_by_message_id.return_value = True
 
         result = self.service.delete_transcription('msg-123')
@@ -114,11 +120,13 @@ class TestTranscriptionService(TestCase):
         self.dao.voicemail_transcription.delete_by_message_id.assert_called_once_with(
             'msg-123', tenant_uuids=None, user_uuid=None
         )
+        self.notifier.deleted.assert_called_once_with('msg-123', TENANT_UUID)
         assert_that(result, is_(True))
 
     def test_delete_transcription_not_found(self):
-        self.dao.voicemail_transcription.delete_by_message_id.return_value = False
+        self.dao.voicemail_transcription.get_by_message_id.return_value = None
 
         result = self.service.delete_transcription('msg-999')
 
         assert_that(result, is_(False))
+        self.notifier.deleted.assert_not_called()

@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 class TranscriptionService:
-    def __init__(self, dao, bus_publisher):
+    def __init__(self, dao, notifier):
         self._dao: DAO = dao
-        self._bus_publisher = bus_publisher
+        self._notifier = notifier
 
     def create_transcription(
         self,
@@ -43,10 +43,12 @@ class TranscriptionService:
             transcription = self._dao.voicemail_transcription.create(transcription)
         except IntegrityError:
             logger.info(
-                'Transcription for message %s already exists, skipping', voicemail_message_id
+                'Transcription for message %s already exists, skipping',
+                voicemail_message_id,
             )
             return None
         logger.debug('Transcription created for message %s', voicemail_message_id)
+        self._notifier.created(transcription)
         return transcription
 
     def get_transcription(self, message_id, tenant_uuids=None, user_uuid=None):
@@ -63,9 +65,15 @@ class TranscriptionService:
         )
 
     def delete_transcription(self, message_id, tenant_uuids=None, user_uuid=None):
+        transcription = self._dao.voicemail_transcription.get_by_message_id(
+            message_id, tenant_uuids=tenant_uuids, user_uuid=user_uuid
+        )
+        if not transcription:
+            return False
         deleted = self._dao.voicemail_transcription.delete_by_message_id(
             message_id, tenant_uuids=tenant_uuids, user_uuid=user_uuid
         )
         if deleted:
             logger.debug('Transcription deleted for message %s', message_id)
+            self._notifier.deleted(message_id, transcription.tenant_uuid)
         return deleted
