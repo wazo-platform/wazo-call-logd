@@ -223,6 +223,15 @@ class TestBusVoicemailTranscription(IntegrationTest):
         )
         self.bus.send_voicemail_transcription_completed(event_data)
 
+        def transcription_created():
+            with self.database.queries() as queries:
+                transcription = queries.find_voicemail_transcription_by_message_id(
+                    message_id
+                )
+                assert_that(transcription, not_none())
+
+        until.assert_(transcription_created, tries=10, interval=1)
+
         def event_received():
             events = accumulator.accumulate(with_headers=True)
             assert_that(
