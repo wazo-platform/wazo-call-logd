@@ -37,7 +37,6 @@ def upgrade():
             ),
             nullable=False,
         ),
-        sa.Column('user_uuid', UUIDType),
         sa.Column('voicemail_id', sa.Integer),
         sa.Column('transcription_text', sa.Text, nullable=False),
         sa.Column('provider_id', sa.Text),
@@ -59,11 +58,6 @@ def upgrade():
         'call_logd_voicemail_transcription__idx__tenant_uuid',
         'call_logd_voicemail_transcription',
         ['tenant_uuid'],
-    )
-    op.create_index(
-        'call_logd_voicemail_transcription__idx__user_uuid',
-        'call_logd_voicemail_transcription',
-        ['user_uuid'],
     )
     op.create_index(
         'call_logd_voicemail_transcription__idx__voicemail_id',

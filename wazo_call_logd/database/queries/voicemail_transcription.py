@@ -6,15 +6,31 @@ from .base import BaseDAO
 
 
 class VoicemailTranscriptionDAO(BaseDAO):
-    def create(self, transcription):
+    def create(self, transcription_attributes: dict):
         with self.new_session() as session:
+            transcription = VoicemailTranscription(**transcription_attributes)
             session.add(transcription)
             session.flush()
+            # NOTE: refresh necessary because of create_at server_default
             session.refresh(transcription)
             session.expunge(transcription)
         return transcription
 
-    def get_by_message_id(self, message_id, tenant_uuids=None, user_uuid=None):
+    def update(self, transcription_attributes: dict):
+        with self.new_session() as session:
+            transcription = (
+                session.query(VoicemailTranscription)
+                .filter(VoicemailTranscription.uuid == transcription_attributes['uuid'])
+                .one()
+            )
+            for key, value in transcription_attributes.items():
+                setattr(transcription, key, value)
+            session.add(transcription)
+            session.flush()
+            session.expunge(transcription)
+            return transcription
+
+    def get_by_message_id(self, message_id, tenant_uuids=None):
         with self.new_session() as session:
             query = session.query(VoicemailTranscription).filter(
                 VoicemailTranscription.voicemail_message_id == message_id,
@@ -23,14 +39,12 @@ class VoicemailTranscriptionDAO(BaseDAO):
                 query = query.filter(
                     VoicemailTranscription.tenant_uuid.in_(tenant_uuids)
                 )
-            if user_uuid is not None:
-                query = query.filter(VoicemailTranscription.user_uuid == user_uuid)
             transcription = query.first()
             if transcription:
                 session.expunge(transcription)
             return transcription
 
-    def find_all(self, tenant_uuids=None, user_uuid=None, **params):
+    def find_all(self, tenant_uuids=None, **params):
         with self.new_session() as session:
             query = session.query(VoicemailTranscription)
 
@@ -38,8 +52,6 @@ class VoicemailTranscriptionDAO(BaseDAO):
                 query = query.filter(
                     VoicemailTranscription.tenant_uuid.in_(tenant_uuids)
                 )
-            if user_uuid is not None:
-                query = query.filter(VoicemailTranscription.user_uuid == user_uuid)
             if params.get('voicemail_id') is not None:
                 query = query.filter(
                     VoicemailTranscription.voicemail_id.in_(params['voicemail_id'])
@@ -60,9 +72,7 @@ class VoicemailTranscriptionDAO(BaseDAO):
             total = query.count()
 
             order_field = getattr(
-                VoicemailTranscription,
-                params.get('order', 'created_at'),
-                VoicemailTranscription.created_at,
+                VoicemailTranscription, params.get('order', 'created_at')
             )
             direction = params.get('direction', 'desc')
             if direction == 'desc':
@@ -87,7 +97,7 @@ class VoicemailTranscriptionDAO(BaseDAO):
                 'filtered': filtered,
             }
 
-    def delete_by_message_id(self, message_id, tenant_uuids=None, user_uuid=None):
+    def delete_by_message_id(self, message_id, tenant_uuids=None):
         with self.new_session() as session:
             query = session.query(VoicemailTranscription).filter(
                 VoicemailTranscription.voicemail_message_id == message_id,
@@ -96,7 +106,5 @@ class VoicemailTranscriptionDAO(BaseDAO):
                 query = query.filter(
                     VoicemailTranscription.tenant_uuid.in_(tenant_uuids)
                 )
-            if user_uuid is not None:
-                query = query.filter(VoicemailTranscription.user_uuid == user_uuid)
             deleted = query.delete()
             return deleted > 0

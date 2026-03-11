@@ -34,7 +34,6 @@ class TranscriptionEventHandler:
     def _on_transcription_completed(self, event):
         message_id = event['message_id']
         tenant_uuid = event['tenant_uuid']
-        user_uuid = event.get('user_uuid')
         voicemail_id = event.get('voicemail_id')
         transcription_text = event['transcription']
         provider_id = event.get('provider_id')
@@ -47,7 +46,6 @@ class TranscriptionEventHandler:
         self.service.create_transcription(
             voicemail_message_id=message_id,
             tenant_uuid=tenant_uuid,
-            user_uuid=user_uuid,
             transcription_text=transcription_text,
             voicemail_id=voicemail_id,
             provider_id=provider_id,

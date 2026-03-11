@@ -5,13 +5,7 @@ from wazo_call_logd.bus import BusConsumer
 from wazo_call_logd.database.queries import DAO
 
 from .bus_consume import TranscriptionEventHandler
-from .http import (
-    TranscriptionListResource,
-    TranscriptionUserItemResource,
-    TranscriptionUserListResource,
-    TranscriptionUserMeItemResource,
-    TranscriptionUserMeListResource,
-)
+from .http import TranscriptionListResource
 from .notifier import TranscriptionNotifier
 from .service import TranscriptionService
 
@@ -31,25 +25,5 @@ class Plugin:
         api.add_resource(
             TranscriptionListResource,
             '/voicemails/transcriptions',
-            resource_class_args=[service],
-        )
-        api.add_resource(
-            TranscriptionUserMeListResource,
-            '/users/me/voicemails/transcriptions',
-            resource_class_args=[service],
-        )
-        api.add_resource(
-            TranscriptionUserMeItemResource,
-            '/users/me/voicemails/<voicemail_message_id>/transcription',
-            resource_class_args=[service],
-        )
-        api.add_resource(
-            TranscriptionUserListResource,
-            '/users/<uuid:user_uuid>/voicemails/transcriptions',
-            resource_class_args=[service],
-        )
-        api.add_resource(
-            TranscriptionUserItemResource,
-            '/users/<uuid:user_uuid>/voicemails/<voicemail_message_id>/transcription',
             resource_class_args=[service],
         )

@@ -395,7 +395,6 @@ class VoicemailTranscription(Base):
         ),
         nullable=False,
     )
-    user_uuid = Column(UUIDType)
     voicemail_id = Column(Integer)
     transcription_text = Column(Text, nullable=False)
     provider_id = Column(Text)
@@ -409,10 +408,6 @@ class VoicemailTranscription(Base):
         Index(
             'call_logd_voicemail_transcription__idx__tenant_uuid',
             'tenant_uuid',
-        ),
-        Index(
-            'call_logd_voicemail_transcription__idx__user_uuid',
-            'user_uuid',
         ),
         Index(
             'call_logd_voicemail_transcription__idx__voicemail_id',

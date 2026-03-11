@@ -246,7 +246,6 @@ class VoicemailTranscriptionData(TypedDict, total=False):
     tenant_uuid: UUID
     uuid: UUID
     voicemail_message_id: str
-    user_uuid: UUID
     voicemail_id: int
     transcription_text: str
     provider_id: str

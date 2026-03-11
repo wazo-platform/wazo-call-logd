@@ -13,7 +13,7 @@ from hamcrest import (
 from wazo_test_helpers import until
 
 from .helpers.base import IntegrationTest
-from .helpers.constants import USER_1_UUID, USERS_TENANT
+from .helpers.constants import USERS_TENANT
 from .helpers.database import voicemail_transcription
 from .helpers.wait_strategy import CallLogdComponentsWaitStrategy
 
@@ -26,7 +26,6 @@ class TestBusVoicemailTranscription(IntegrationTest):
         event_data = {
             'message_id': message_id,
             'tenant_uuid': str(USERS_TENANT),
-            'user_uuid': str(USER_1_UUID),
             'voicemail_id': 42,
             'transcription': 'Hello, this is a test voicemail.',
             'provider_id': 'openai/whisper-1',
@@ -47,7 +46,6 @@ class TestBusVoicemailTranscription(IntegrationTest):
                     has_properties(
                         voicemail_message_id=message_id,
                         tenant_uuid=USERS_TENANT,
-                        user_uuid=USER_1_UUID,
                         voicemail_id=42,
                         transcription_text='Hello, this is a test voicemail.',
                         provider_id='openai/whisper-1',
@@ -86,7 +84,6 @@ class TestBusVoicemailTranscription(IntegrationTest):
                         voicemail_message_id=message_id,
                         tenant_uuid=USERS_TENANT,
                         transcription_text='Minimal transcription.',
-                        user_uuid=none(),
                         voicemail_id=none(),
                         provider_id=none(),
                         language=none(),
@@ -102,12 +99,13 @@ class TestBusVoicemailTranscription(IntegrationTest):
             if transcription:
                 queries.delete_voicemail_transcription(transcription.uuid)
 
-    def test_transcription_completed_duplicate_ignored(self):
+    def test_transcription_completed_duplicate_updates(self):
         message_id = 'bus-test-msg-003'
         event_data = {
             'message_id': message_id,
             'tenant_uuid': str(USERS_TENANT),
             'transcription': 'First transcription.',
+            'language': 'en',
         }
 
         self.bus.send_voicemail_transcription_completed(event_data)
@@ -121,10 +119,12 @@ class TestBusVoicemailTranscription(IntegrationTest):
 
         until.assert_(transcription_created, tries=10, interval=1)
 
-        event_data['transcription'] = 'Second transcription.'
+        # Send again with updated text — should update the existing transcription
+        event_data['transcription'] = 'Updated transcription.'
+        event_data['language'] = 'fr'
         self.bus.send_voicemail_transcription_completed(event_data)
 
-        def still_first_transcription():
+        def transcription_updated():
             with self.database.queries() as queries:
                 transcription = queries.find_voicemail_transcription_by_message_id(
                     message_id
@@ -132,10 +132,13 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 assert_that(transcription, not_none())
                 assert_that(
                     transcription,
-                    has_properties(transcription_text='First transcription.'),
+                    has_properties(
+                        transcription_text='Updated transcription.',
+                        language='fr',
+                    ),
                 )
 
-        until.assert_(still_first_transcription, tries=5, interval=1)
+        until.assert_(transcription_updated, tries=10, interval=1)
 
         with self.database.queries() as queries:
             transcription = queries.find_voicemail_transcription_by_message_id(
@@ -213,7 +216,6 @@ class TestBusVoicemailTranscription(IntegrationTest):
         event_data = {
             'message_id': message_id,
             'tenant_uuid': str(USERS_TENANT),
-            'user_uuid': str(USER_1_UUID),
             'transcription': 'Check bus event.',
             'voicemail_id': 99,
         }
