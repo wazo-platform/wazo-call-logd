@@ -11,7 +11,7 @@ from .http import (
     TranscriptionUserMeItemResource,
     TranscriptionUserMeListResource,
 )
-from .listener import TranscriptionEventHandler
+from .bus_consume import TranscriptionEventHandler
 from .notifier import TranscriptionNotifier
 from .service import TranscriptionService
 
