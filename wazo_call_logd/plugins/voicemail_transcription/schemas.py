@@ -1,6 +1,7 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from marshmallow import pre_load
 from xivo.mallow import fields
 from xivo.mallow.validate import OneOf, Range
 from xivo.mallow_helpers import Schema
@@ -32,6 +33,13 @@ class TranscriptionListRequestSchema(Schema):
     until = fields.DateTime(attribute='end', load_default=None)
     search_text = fields.String(load_default=None)
     voicemail_id = fields.List(fields.Integer(), load_default=None)
+
+    @pre_load
+    def convert_voicemail_id_to_list(self, data, **kwargs):
+        result = data.to_dict()
+        if data.get('voicemail_id'):
+            result['voicemail_id'] = data['voicemail_id'].split(',')
+        return result
 
 
 class TranscriptionListSchema(Schema):

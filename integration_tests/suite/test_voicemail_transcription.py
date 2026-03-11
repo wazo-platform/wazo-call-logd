@@ -50,3 +50,49 @@ class TestVoicemailTranscription(IntegrationTest):
         assert_that(item, has_key('language'))
         assert_that(item, has_key('duration'))
         assert_that(item, has_key('created_at'))
+
+    @voicemail_transcription(
+        voicemail_message_id='1234567890-0000000060',
+        tenant_uuid=str(USERS_TENANT),
+        voicemail_id=100,
+        transcription_text='VM 100 first',
+    )
+    @voicemail_transcription(
+        voicemail_message_id='1234567890-0000000061',
+        tenant_uuid=str(USERS_TENANT),
+        voicemail_id=200,
+        transcription_text='VM 200 msg',
+    )
+    @voicemail_transcription(
+        voicemail_message_id='1234567890-0000000062',
+        tenant_uuid=str(USERS_TENANT),
+        voicemail_id=100,
+        transcription_text='VM 100 second',
+    )
+    def test_list_filter_by_voicemail_id(self, _, __, ___):
+        self.call_logd.set_token(MASTER_TOKEN)
+
+        # Filter by single voicemail_id
+        result = self.call_logd.voicemail_transcription.list_transcriptions(
+            voicemail_id=100,
+        )
+        assert_that(result['total'], equal_to(2))
+        assert_that(
+            result['items'],
+            has_items(
+                has_entries(voicemail_message_id='1234567890-0000000060'),
+                has_entries(voicemail_message_id='1234567890-0000000062'),
+            ),
+        )
+
+        # Filter by multiple voicemail_id (comma-separated)
+        result = self.call_logd.voicemail_transcription.list_transcriptions(
+            voicemail_id='100,200',
+        )
+        assert_that(result['total'], equal_to(3))
+
+        # Filter with no match
+        result = self.call_logd.voicemail_transcription.list_transcriptions(
+            voicemail_id=999,
+        )
+        assert_that(result['total'], equal_to(0))
