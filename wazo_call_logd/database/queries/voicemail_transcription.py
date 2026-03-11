@@ -10,8 +10,9 @@ class VoicemailTranscriptionDAO(BaseDAO):
         with self.new_session() as session:
             session.add(transcription)
             session.flush()
+            session.refresh(transcription)
             session.expunge(transcription)
-            return transcription
+        return transcription
 
     def get_by_message_id(self, message_id, tenant_uuids=None, user_uuid=None):
         with self.new_session() as session:
