@@ -33,7 +33,7 @@ class VoicemailTranscriptionDAO(BaseDAO):
     def get_by_message_id(self, message_id, tenant_uuids=None):
         with self.new_session() as session:
             query = session.query(VoicemailTranscription).filter(
-                VoicemailTranscription.voicemail_message_id == message_id,
+                VoicemailTranscription.message_id == message_id,
             )
             if tenant_uuids is not None:
                 query = query.filter(
@@ -100,7 +100,7 @@ class VoicemailTranscriptionDAO(BaseDAO):
     def delete_by_message_id(self, message_id, tenant_uuids=None):
         with self.new_session() as session:
             query = session.query(VoicemailTranscription).filter(
-                VoicemailTranscription.voicemail_message_id == message_id,
+                VoicemailTranscription.message_id == message_id,
             )
             if tenant_uuids is not None:
                 query = query.filter(

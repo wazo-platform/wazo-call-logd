@@ -44,7 +44,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 assert_that(
                     transcription,
                     has_properties(
-                        voicemail_message_id=message_id,
+                        message_id=message_id,
                         tenant_uuid=USERS_TENANT,
                         voicemail_id=42,
                         transcription_text='Hello, this is a test voicemail.',
@@ -81,7 +81,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 assert_that(
                     transcription,
                     has_properties(
-                        voicemail_message_id=message_id,
+                        message_id=message_id,
                         tenant_uuid=USERS_TENANT,
                         transcription_text='Minimal transcription.',
                         voicemail_id=none(),
@@ -148,12 +148,12 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 queries.delete_voicemail_transcription(transcription.uuid)
 
     @voicemail_transcription(
-        voicemail_message_id='bus-test-msg-004',
+        message_id='bus-test-msg-004',
         tenant_uuid=USERS_TENANT,
         transcription_text='To be deleted.',
     )
     def test_voicemail_message_deleted_removes_transcription(self, transcription):
-        message_id = transcription['voicemail_message_id']
+        message_id = transcription['message_id']
 
         self.bus.send_voicemail_message_deleted(message_id)
 
@@ -165,14 +165,14 @@ class TestBusVoicemailTranscription(IntegrationTest):
         until.assert_(transcription_deleted, tries=10, interval=1)
 
     @voicemail_transcription(
-        voicemail_message_id='bus-test-msg-005',
+        message_id='bus-test-msg-005',
         tenant_uuid=USERS_TENANT,
         transcription_text='To be deleted via global event.',
     )
     def test_global_voicemail_message_deleted_removes_transcription(
         self, transcription
     ):
-        message_id = transcription['voicemail_message_id']
+        message_id = transcription['message_id']
 
         self.bus.send_voicemail_message_deleted(
             message_id, event_name='global_voicemail_message_deleted'
@@ -241,7 +241,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 contains_exactly(
                     has_entries(
                         message=has_entries(
-                            data=has_entries(voicemail_message_id=message_id),
+                            data=has_entries(message_id=message_id),
                         ),
                         headers=has_entries(
                             name='call_logd_voicemail_transcription_created',

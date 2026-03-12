@@ -385,7 +385,7 @@ class VoicemailTranscription(Base):
         server_default=text('uuid_generate_v4()'),
         primary_key=True,
     )
-    voicemail_message_id = Column(String(255), nullable=False, unique=True)
+    message_id = Column(String(255), nullable=False, unique=True)
     tenant_uuid = Column(
         UUIDType,
         ForeignKey(

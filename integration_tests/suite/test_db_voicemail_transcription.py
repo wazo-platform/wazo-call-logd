@@ -13,7 +13,7 @@ from .helpers.database import voicemail_transcription
 class TestDBVoicemailTranscription(DBIntegrationTest):
     def test_create(self):
         body = {
-            'voicemail_message_id': '0000000001-0000000001',
+            'message_id': '0000000001-0000000001',
             'tenant_uuid': MASTER_TENANT,
             'voicemail_id': 42,
             'transcription_text': 'Hello world',
@@ -28,7 +28,7 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         self.session.commit()
 
     @voicemail_transcription(
-        voicemail_message_id='0000000002-0000000001',
+        message_id='0000000002-0000000001',
     )
     def test_get_by_message_id(self, transcription):
         result = self.dao.voicemail_transcription.get_by_message_id(
@@ -37,7 +37,7 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert_that(
             result,
             has_properties(
-                voicemail_message_id='0000000002-0000000001',
+                message_id='0000000002-0000000001',
             ),
         )
 
@@ -48,7 +48,7 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert_that(result, none())
 
     @voicemail_transcription(
-        voicemail_message_id='0000000003-0000000001',
+        message_id='0000000003-0000000001',
         tenant_uuid=str(MASTER_TENANT),
     )
     def test_get_by_message_id_tenant_filter(self, _):
@@ -63,15 +63,15 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert_that(result, none())
 
     @voicemail_transcription(
-        voicemail_message_id='0000000005-0000000001',
+        message_id='0000000005-0000000001',
         transcription_text='First message',
     )
     @voicemail_transcription(
-        voicemail_message_id='0000000005-0000000002',
+        message_id='0000000005-0000000002',
         transcription_text='Second message',
     )
     @voicemail_transcription(
-        voicemail_message_id='0000000005-0000000003',
+        message_id='0000000005-0000000003',
         transcription_text='Third message',
     )
     def test_find_all(self, _, __, ___):
@@ -80,12 +80,12 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert_that(result['items'], has_length(3))
 
     @voicemail_transcription(
-        voicemail_message_id='0000000006-0000000003',
+        message_id='0000000006-0000000003',
         voicemail_id=100,
         transcription_text='VM 100 msg',
     )
     @voicemail_transcription(
-        voicemail_message_id='0000000006-0000000004',
+        message_id='0000000006-0000000004',
         voicemail_id=200,
         transcription_text='VM 200 msg',
     )
@@ -96,15 +96,15 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert_that(result['total'], equal_to(1))
         assert_that(
             result['items'][0],
-            has_properties(voicemail_message_id='0000000006-0000000003'),
+            has_properties(message_id='0000000006-0000000003'),
         )
 
     @voicemail_transcription(
-        voicemail_message_id='0000000007-0000000001',
+        message_id='0000000007-0000000001',
         transcription_text='Call me about the invoice',
     )
     @voicemail_transcription(
-        voicemail_message_id='0000000007-0000000002',
+        message_id='0000000007-0000000002',
         transcription_text='Happy birthday',
     )
     def test_find_all_search(self, _, __):
@@ -114,19 +114,19 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert_that(result['total'], equal_to(1))
         assert_that(
             result['items'][0],
-            has_properties(voicemail_message_id='0000000007-0000000001'),
+            has_properties(message_id='0000000007-0000000001'),
         )
 
     @voicemail_transcription(
-        voicemail_message_id='0000000008-0000000001',
+        message_id='0000000008-0000000001',
         transcription_text='A',
     )
     @voicemail_transcription(
-        voicemail_message_id='0000000008-0000000002',
+        message_id='0000000008-0000000002',
         transcription_text='B',
     )
     @voicemail_transcription(
-        voicemail_message_id='0000000008-0000000003',
+        message_id='0000000008-0000000003',
         transcription_text='C',
     )
     def test_find_all_pagination(self, _, __, ___):
@@ -142,7 +142,7 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert_that(result['items'], has_length(1))
 
     @voicemail_transcription(
-        voicemail_message_id='0000000009-0000000001',
+        message_id='0000000009-0000000001',
     )
     def test_delete_by_message_id(self, _):
         result = self.dao.voicemail_transcription.delete_by_message_id(
@@ -162,7 +162,7 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert_that(result, equal_to(False))
 
     @voicemail_transcription(
-        voicemail_message_id='0000000010-0000000001',
+        message_id='0000000010-0000000001',
         tenant_uuid=str(MASTER_TENANT),
     )
     def test_delete_by_message_id_tenant_filter(self, _):

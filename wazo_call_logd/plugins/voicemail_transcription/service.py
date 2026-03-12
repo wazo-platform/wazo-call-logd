@@ -19,16 +19,17 @@ class TranscriptionService:
 
     def create_transcription(
         self,
-        voicemail_message_id,
+        message_id,
         tenant_uuid,
         transcription_text,
         voicemail_id=None,
         provider_id=None,
         language=None,
         duration=None,
+        **_ignored,
     ):
         attributes = {
-            'voicemail_message_id': voicemail_message_id,
+            'message_id': message_id,
             'tenant_uuid': tenant_uuid,
             'transcription_text': transcription_text,
             'voicemail_id': voicemail_id,
@@ -41,11 +42,9 @@ class TranscriptionService:
         except IntegrityError:
             logger.info(
                 'Transcription for message %s already exists, updating',
-                voicemail_message_id,
+                message_id,
             )
-            existing = self._dao.voicemail_transcription.get_by_message_id(
-                voicemail_message_id
-            )
+            existing = self._dao.voicemail_transcription.get_by_message_id(message_id)
             transcription = self._dao.voicemail_transcription.update(
                 existing.uuid, attributes
             )

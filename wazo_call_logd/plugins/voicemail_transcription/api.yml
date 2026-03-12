@@ -24,12 +24,6 @@ paths:
           $ref: '#/responses/Unauthorized'
 
 parameters:
-  voicemail_message_id:
-    name: voicemail_message_id
-    in: path
-    type: string
-    required: true
-    description: The voicemail message ID, format "0123456789-0123456789"
   voicemail_id:
     name: voicemail_id
     in: query
@@ -65,7 +59,7 @@ parameters:
     description: Name of the field to order by
     enum:
       - created_at
-      - voicemail_message_id
+      - message_id
   direction:
     name: direction
     in: query
@@ -84,7 +78,7 @@ definitions:
   Transcription:
     type: object
     properties:
-      voicemail_message_id:
+      message_id:
         type: string
         description: The voicemail message ID
       tenant_uuid:

@@ -7,6 +7,8 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from .schemas import TranscriptionSchema
+
 if TYPE_CHECKING:
     from .service import TranscriptionService
 
@@ -32,26 +34,12 @@ class TranscriptionEventHandler:
         )
 
     def _on_transcription_completed(self, event):
-        message_id = event['message_id']
-        tenant_uuid = event['tenant_uuid']
-        voicemail_id = event.get('voicemail_id')
-        transcription_text = event['transcription']
-        provider_id = event.get('provider_id')
-        language = event.get('language')
-        duration = event.get('duration')
-
+        data = TranscriptionSchema().load(event)
         logger.debug(
-            'Received transcription completed event for message %s', message_id
+            'Received transcription completed event for message %s',
+            data['message_id'],
         )
-        self.service.create_transcription(
-            voicemail_message_id=message_id,
-            tenant_uuid=tenant_uuid,
-            transcription_text=transcription_text,
-            voicemail_id=voicemail_id,
-            provider_id=provider_id,
-            language=language,
-            duration=duration,
-        )
+        self.service.create_transcription(**data)
 
     def _on_voicemail_message_deleted(self, event):
         message_id = event['message_id']

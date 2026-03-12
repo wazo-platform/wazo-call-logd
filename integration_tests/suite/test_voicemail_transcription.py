@@ -10,12 +10,12 @@ from .helpers.database import voicemail_transcription
 
 class TestVoicemailTranscription(IntegrationTest):
     @voicemail_transcription(
-        voicemail_message_id='1234567890-0000000050',
+        message_id='1234567890-0000000050',
         tenant_uuid=str(USERS_TENANT),
         transcription_text='Admin list all',
     )
     @voicemail_transcription(
-        voicemail_message_id='1234567890-0000000051',
+        message_id='1234567890-0000000051',
         tenant_uuid=str(USERS_TENANT),
         transcription_text='Admin list all 2',
     )
@@ -26,13 +26,13 @@ class TestVoicemailTranscription(IntegrationTest):
         assert_that(
             result['items'],
             has_items(
-                has_entries(voicemail_message_id='1234567890-0000000050'),
-                has_entries(voicemail_message_id='1234567890-0000000051'),
+                has_entries(message_id='1234567890-0000000050'),
+                has_entries(message_id='1234567890-0000000051'),
             ),
         )
 
     @voicemail_transcription(
-        voicemail_message_id='1234567890-0000000040',
+        message_id='1234567890-0000000040',
         tenant_uuid=str(USERS_TENANT),
         transcription_text='Check fields',
     )
@@ -43,7 +43,7 @@ class TestVoicemailTranscription(IntegrationTest):
         assert_that(item, not_(has_key('uuid')))
         assert_that(item, not_(has_key('status')))
         assert_that(item, not_(has_key('user_uuid')))
-        assert_that(item, has_key('voicemail_message_id'))
+        assert_that(item, has_key('message_id'))
         assert_that(item, has_key('voicemail_id'))
         assert_that(item, has_key('provider_id'))
         assert_that(item, has_key('transcript'))
@@ -52,19 +52,19 @@ class TestVoicemailTranscription(IntegrationTest):
         assert_that(item, has_key('created_at'))
 
     @voicemail_transcription(
-        voicemail_message_id='1234567890-0000000060',
+        message_id='1234567890-0000000060',
         tenant_uuid=str(USERS_TENANT),
         voicemail_id=100,
         transcription_text='VM 100 first',
     )
     @voicemail_transcription(
-        voicemail_message_id='1234567890-0000000061',
+        message_id='1234567890-0000000061',
         tenant_uuid=str(USERS_TENANT),
         voicemail_id=200,
         transcription_text='VM 200 msg',
     )
     @voicemail_transcription(
-        voicemail_message_id='1234567890-0000000062',
+        message_id='1234567890-0000000062',
         tenant_uuid=str(USERS_TENANT),
         voicemail_id=100,
         transcription_text='VM 100 second',
@@ -80,8 +80,8 @@ class TestVoicemailTranscription(IntegrationTest):
         assert_that(
             result['items'],
             has_items(
-                has_entries(voicemail_message_id='1234567890-0000000060'),
-                has_entries(voicemail_message_id='1234567890-0000000062'),
+                has_entries(message_id='1234567890-0000000060'),
+                has_entries(message_id='1234567890-0000000062'),
             ),
         )
 

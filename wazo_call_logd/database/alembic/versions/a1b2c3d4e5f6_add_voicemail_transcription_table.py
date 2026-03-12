@@ -26,7 +26,7 @@ def upgrade():
             server_default=sa.text('uuid_generate_v4()'),
             primary_key=True,
         ),
-        sa.Column('voicemail_message_id', sa.String(255), nullable=False, unique=True),
+        sa.Column('message_id', sa.String(255), nullable=False, unique=True),
         sa.Column(
             'tenant_uuid',
             UUIDType,
@@ -50,9 +50,9 @@ def upgrade():
         ),
     )
     op.create_index(
-        'call_logd_voicemail_transcription__idx__voicemail_message_id',
+        'call_logd_voicemail_transcription__idx__message_id',
         'call_logd_voicemail_transcription',
-        ['voicemail_message_id'],
+        ['message_id'],
     )
     op.create_index(
         'call_logd_voicemail_transcription__idx__tenant_uuid',

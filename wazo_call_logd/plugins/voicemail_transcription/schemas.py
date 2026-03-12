@@ -8,7 +8,7 @@ from xivo.mallow_helpers import Schema
 
 
 class TranscriptionSchema(Schema):
-    voicemail_message_id = fields.String()
+    message_id = fields.String()
     tenant_uuid = fields.UUID()
     voicemail_id = fields.Integer()
     transcript = fields.String(attribute='transcription_text')
@@ -22,7 +22,7 @@ class TranscriptionListRequestSchema(Schema):
     limit = fields.Integer(validate=Range(min=0), load_default=1000)
     offset = fields.Integer(validate=Range(min=0), load_default=0)
     order = fields.String(
-        validate=OneOf(['created_at', 'voicemail_message_id']),
+        validate=OneOf(['created_at', 'message_id']),
         load_default='created_at',
     )
     direction = fields.String(

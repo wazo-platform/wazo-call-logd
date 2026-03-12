@@ -23,11 +23,11 @@ class TestTranscriptionService(TestCase):
 
     def test_create_transcription(self):
         self.dao.voicemail_transcription.create.return_value = Mock(
-            voicemail_message_id='msg-123'
+            message_id='msg-123'
         )
 
         result = self.service.create_transcription(
-            voicemail_message_id='msg-123',
+            message_id='msg-123',
             tenant_uuid=TENANT_UUID,
             transcription_text='Hello world',
             provider_id='openai/whisper-1',
@@ -42,8 +42,8 @@ class TestTranscriptionService(TestCase):
         assert_that(result, is_(self.dao.voicemail_transcription.create.return_value))
 
     def test_create_transcription_duplicate_updates(self):
-        existing = Mock(uuid='existing-uuid', voicemail_message_id='msg-123')
-        updated = Mock(voicemail_message_id='msg-123')
+        existing = Mock(uuid='existing-uuid', message_id='msg-123')
+        updated = Mock(message_id='msg-123')
         self.dao.voicemail_transcription.create.side_effect = IntegrityError(
             'duplicate', {}, None
         )
@@ -51,7 +51,7 @@ class TestTranscriptionService(TestCase):
         self.dao.voicemail_transcription.update.return_value = updated
 
         result = self.service.create_transcription(
-            voicemail_message_id='msg-123',
+            message_id='msg-123',
             tenant_uuid=TENANT_UUID,
             transcription_text='Hello world',
         )
@@ -64,7 +64,7 @@ class TestTranscriptionService(TestCase):
         assert_that(result, is_(updated))
 
     def test_get_transcription_found(self):
-        expected = Mock(voicemail_message_id='msg-123')
+        expected = Mock(message_id='msg-123')
         self.dao.voicemail_transcription.get_by_message_id.return_value = expected
 
         result = self.service.get_transcription('msg-123', tenant_uuids=[TENANT_UUID])
@@ -106,7 +106,7 @@ class TestTranscriptionService(TestCase):
         assert_that(result, equal_to(expected))
 
     def test_delete_transcription_found(self):
-        transcription = Mock(voicemail_message_id='msg-123', tenant_uuid=TENANT_UUID)
+        transcription = Mock(message_id='msg-123', tenant_uuid=TENANT_UUID)
         self.dao.voicemail_transcription.get_by_message_id.return_value = transcription
         self.dao.voicemail_transcription.delete_by_message_id.return_value = True
 

@@ -245,7 +245,7 @@ def retention(**retention):
 class VoicemailTranscriptionData(TypedDict, total=False):
     tenant_uuid: UUID
     uuid: UUID
-    voicemail_message_id: str
+    message_id: str
     voicemail_id: int
     transcription_text: str
     provider_id: str
@@ -653,7 +653,7 @@ class DatabaseQueries:
         with transaction(self.Session()) as session:
             return (
                 session.query(VoicemailTranscription)
-                .filter(VoicemailTranscription.voicemail_message_id == message_id)
+                .filter(VoicemailTranscription.message_id == message_id)
                 .first()
             )
 
