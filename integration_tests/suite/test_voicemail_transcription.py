@@ -1,11 +1,61 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, equal_to, has_entries, has_items, has_key, not_
+from hamcrest import (
+    assert_that,
+    calling,
+    equal_to,
+    has_entries,
+    has_items,
+    has_key,
+    has_properties,
+    not_,
+)
+from wazo_call_logd_client.exceptions import CallLogdError
+from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import MASTER_TOKEN, USERS_TENANT
 from .helpers.database import voicemail_transcription
+
+
+class TestInputParameters(IntegrationTest):
+    def test_list_transcriptions_with_wrong_parameters_returns_400(self):
+        self.call_logd.set_token(MASTER_TOKEN)
+        erroneous_bodies = [
+            # limit
+            {'limit': 'abcd'},
+            {'limit': -1},
+            {'limit': '12:345'},
+            # offset
+            {'offset': 'abcd'},
+            {'offset': -1},
+            {'offset': '12:345'},
+            # direction
+            {'direction': 'abcd'},
+            {'direction': 'ascending'},
+            {'direction': 'DESC'},
+            # order
+            {'order': 'abcd'},
+            {'order': 'unknown_field'},
+            {'order': 'tenant_uuid'},
+            # from
+            {'from_': 'abcd'},
+            {'from_': '12:345'},
+            {'from_': '2017-042-10'},
+            # until
+            {'until': 'abcd'},
+            {'until': '12:345'},
+            {'until': '2017-042-10'},
+        ]
+        for body in erroneous_bodies:
+            assert_that(
+                calling(
+                    self.call_logd.voicemail_transcription.list_transcriptions
+                ).with_args(**body),
+                raises(CallLogdError).matching(has_properties(status_code=400)),
+                body,
+            )
 
 
 class TestVoicemailTranscription(IntegrationTest):
