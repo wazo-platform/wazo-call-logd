@@ -27,7 +27,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
             'message_id': message_id,
             'tenant_uuid': str(USERS_TENANT),
             'voicemail_id': 42,
-            'transcription': 'Hello, this is a test voicemail.',
+            'transcription_text': 'Hello, this is a test voicemail.',
             'provider_id': 'openai/whisper-1',
             'language': 'en',
             'duration': 15.5,
@@ -67,7 +67,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
         event_data = {
             'message_id': message_id,
             'tenant_uuid': str(USERS_TENANT),
-            'transcription': 'Minimal transcription.',
+            'transcription_text': 'Minimal transcription.',
         }
 
         self.bus.send_voicemail_transcription_completed(event_data)
@@ -104,7 +104,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
         event_data = {
             'message_id': message_id,
             'tenant_uuid': str(USERS_TENANT),
-            'transcription': 'First transcription.',
+            'transcription_text': 'First transcription.',
             'language': 'en',
         }
 
@@ -120,7 +120,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
         until.assert_(transcription_created, tries=10, interval=1)
 
         # Send again with updated text — should update the existing transcription
-        event_data['transcription'] = 'Updated transcription.'
+        event_data['transcription_text'] = 'Updated transcription.'
         event_data['language'] = 'fr'
         self.bus.send_voicemail_transcription_completed(event_data)
 
@@ -191,7 +191,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
         event_data = {
             'message_id': message_id,
             'tenant_uuid': str(USERS_TENANT),
-            'transcription': 'Still alive.',
+            'transcription_text': 'Still alive.',
         }
         self.bus.send_voicemail_transcription_completed(event_data)
 
@@ -216,7 +216,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
         event_data = {
             'message_id': message_id,
             'tenant_uuid': str(USERS_TENANT),
-            'transcription': 'Check bus event.',
+            'transcription_text': 'Check bus event.',
             'voicemail_id': 99,
         }
 

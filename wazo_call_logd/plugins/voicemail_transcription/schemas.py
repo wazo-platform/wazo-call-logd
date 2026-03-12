@@ -11,7 +11,7 @@ class TranscriptionSchema(Schema):
     message_id = fields.String()
     tenant_uuid = fields.UUID()
     voicemail_id = fields.Integer()
-    transcript = fields.String(attribute='transcription_text')
+    transcription_text = fields.String()
     provider_id = fields.String()
     language = fields.String()
     duration = fields.Float()

@@ -46,7 +46,7 @@ class TestVoicemailTranscription(IntegrationTest):
         assert_that(item, has_key('message_id'))
         assert_that(item, has_key('voicemail_id'))
         assert_that(item, has_key('provider_id'))
-        assert_that(item, has_key('transcript'))
+        assert_that(item, has_key('transcription_text'))
         assert_that(item, has_key('language'))
         assert_that(item, has_key('duration'))
         assert_that(item, has_key('created_at'))
