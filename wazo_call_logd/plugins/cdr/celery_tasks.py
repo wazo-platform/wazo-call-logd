@@ -1,4 +1,4 @@
-# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -112,11 +112,14 @@ class RecordingExportTask(Task):
         dao.export.update(export)
         notifier.updated(export)
         if email:
-            self._send_email(task_uuid, 'Wazo user', email, config, connection_info)
+            self._send_email(
+                task_uuid, tenant_uuid, 'Wazo user', email, config, connection_info
+            )
 
     def _send_email(
         self,
         task_uuid,
+        tenant_uuid,
         destination_name,
         destination_address,
         config,
@@ -155,6 +158,7 @@ class RecordingExportTask(Task):
         template_formatter = TemplateFormatter(config)
         context = {
             'export_uuid': task_uuid,
+            'tenant_uuid': tenant_uuid,
             'token': token_uuid,
             **connection_info,
         }
