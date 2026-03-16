@@ -7,6 +7,7 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from .exceptions import TranscriptionNotFoundException
 from .schemas import TranscriptionSchema
 
 if TYPE_CHECKING:
@@ -46,4 +47,9 @@ class TranscriptionEventHandler:
         logger.debug(
             'Received voicemail message deleted event for message %s', message_id
         )
-        self.service.delete_transcription(message_id)
+        try:
+            self.service.delete_transcription(message_id)
+        except TranscriptionNotFoundException:
+            logger.debug(
+                'No transcription found for deleted voicemail message %s', message_id
+            )
