@@ -1,8 +1,6 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import assert_that, equal_to, has_length, has_properties, none, not_none
-
 from wazo_call_logd.database.models import VoicemailTranscription
 
 from .helpers.base import DBIntegrationTest
@@ -22,7 +20,9 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
             'duration': 10.5,
         }
         result = self.dao.voicemail_transcription.create(body)
-        assert_that(result, has_properties(uuid=not_none(), **body))
+        assert result.uuid is not None
+        for key, value in body.items():
+            assert getattr(result, key) == value
 
         self.session.query(VoicemailTranscription).delete()
         self.session.commit()
@@ -34,18 +34,13 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.get_by_message_id(
             '0000000002-0000000001'
         )
-        assert_that(
-            result,
-            has_properties(
-                message_id='0000000002-0000000001',
-            ),
-        )
+        assert result.message_id == '0000000002-0000000001'
 
     def test_get_by_message_id_not_found(self):
         result = self.dao.voicemail_transcription.get_by_message_id(
             '9999999999-9999999999'
         )
-        assert_that(result, none())
+        assert result is None
 
     @voicemail_transcription(
         message_id='0000000003-0000000001',
@@ -55,12 +50,12 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.get_by_message_id(
             '0000000003-0000000001', tenant_uuids=[MASTER_TENANT]
         )
-        assert_that(result, not_none())
+        assert result is not None
 
         result = self.dao.voicemail_transcription.get_by_message_id(
             '0000000003-0000000001', tenant_uuids=[OTHER_TENANT]
         )
-        assert_that(result, none())
+        assert result is None
 
     @voicemail_transcription(
         message_id='0000000005-0000000001',
@@ -76,8 +71,8 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
     )
     def test_find_all(self, _, __, ___):
         result = self.dao.voicemail_transcription.find_all(tenant_uuids=[MASTER_TENANT])
-        assert_that(result['total'], equal_to(3))
-        assert_that(result['items'], has_length(3))
+        assert result['total'] == 3
+        assert len(result['items']) == 3
 
     @voicemail_transcription(
         message_id='0000000006-0000000003',
@@ -93,11 +88,8 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.find_all(
             tenant_uuids=[MASTER_TENANT], voicemail_id=[100]
         )
-        assert_that(result['total'], equal_to(1))
-        assert_that(
-            result['items'][0],
-            has_properties(message_id='0000000006-0000000003'),
-        )
+        assert result['total'] == 1
+        assert result['items'][0].message_id == '0000000006-0000000003'
 
     @voicemail_transcription(
         message_id='0000000007-0000000001',
@@ -111,11 +103,8 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.find_all(
             tenant_uuids=[MASTER_TENANT], search_text='invoice'
         )
-        assert_that(result['total'], equal_to(1))
-        assert_that(
-            result['items'][0],
-            has_properties(message_id='0000000007-0000000001'),
-        )
+        assert result['total'] == 1
+        assert result['items'][0].message_id == '0000000007-0000000001'
 
     @voicemail_transcription(
         message_id='0000000008-0000000001',
@@ -133,13 +122,13 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.find_all(
             tenant_uuids=[MASTER_TENANT], limit=2, offset=0
         )
-        assert_that(result['total'], equal_to(3))
-        assert_that(result['items'], has_length(2))
+        assert result['total'] == 3
+        assert len(result['items']) == 2
 
         result = self.dao.voicemail_transcription.find_all(
             tenant_uuids=[MASTER_TENANT], limit=2, offset=2
         )
-        assert_that(result['items'], has_length(1))
+        assert len(result['items']) == 1
 
     @voicemail_transcription(
         message_id='0000000009-0000000001',
@@ -148,18 +137,18 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.delete_by_message_id(
             '0000000009-0000000001'
         )
-        assert_that(result, equal_to(True))
+        assert result is True
 
         result = self.dao.voicemail_transcription.get_by_message_id(
             '0000000009-0000000001'
         )
-        assert_that(result, none())
+        assert result is None
 
     def test_delete_by_message_id_not_found(self):
         result = self.dao.voicemail_transcription.delete_by_message_id(
             '9999999999-9999999999'
         )
-        assert_that(result, equal_to(False))
+        assert result is False
 
     @voicemail_transcription(
         message_id='0000000010-0000000001',
@@ -169,9 +158,9 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.delete_by_message_id(
             '0000000010-0000000001', tenant_uuids=[OTHER_TENANT]
         )
-        assert_that(result, equal_to(False))
+        assert result is False
 
         result = self.dao.voicemail_transcription.delete_by_message_id(
             '0000000010-0000000001', tenant_uuids=[MASTER_TENANT]
         )
-        assert_that(result, equal_to(True))
+        assert result is True

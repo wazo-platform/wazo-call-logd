@@ -1,18 +1,8 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    calling,
-    equal_to,
-    has_entries,
-    has_items,
-    has_key,
-    has_properties,
-    not_,
-)
+import pytest
 from wazo_call_logd_client.exceptions import CallLogdError
-from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import MASTER_TOKEN, USERS_TENANT
@@ -49,13 +39,9 @@ class TestInputParameters(IntegrationTest):
             {'until': '2017-042-10'},
         ]
         for body in erroneous_bodies:
-            assert_that(
-                calling(
-                    self.call_logd.voicemail_transcription.list_transcriptions
-                ).with_args(**body),
-                raises(CallLogdError).matching(has_properties(status_code=400)),
-                body,
-            )
+            with pytest.raises(CallLogdError) as exc_info:
+                self.call_logd.voicemail_transcription.list_transcriptions(**body)
+            assert exc_info.value.status_code == 400, body
 
 
 class TestVoicemailTranscription(IntegrationTest):
@@ -72,14 +58,10 @@ class TestVoicemailTranscription(IntegrationTest):
     def test_list_transcriptions_as_admin(self, _, __):
         self.call_logd.set_token(MASTER_TOKEN)
         result = self.call_logd.voicemail_transcription.list_transcriptions()
-        assert_that(result['total'], equal_to(2))
-        assert_that(
-            result['items'],
-            has_items(
-                has_entries(message_id='1234567890-0000000050'),
-                has_entries(message_id='1234567890-0000000051'),
-            ),
-        )
+        assert result['total'] == 2
+        message_ids = {item['message_id'] for item in result['items']}
+        assert '1234567890-0000000050' in message_ids
+        assert '1234567890-0000000051' in message_ids
 
     @voicemail_transcription(
         message_id='1234567890-0000000040',
@@ -90,16 +72,16 @@ class TestVoicemailTranscription(IntegrationTest):
         self.call_logd.set_token(MASTER_TOKEN)
         result = self.call_logd.voicemail_transcription.list_transcriptions()
         item = result['items'][0]
-        assert_that(item, not_(has_key('uuid')))
-        assert_that(item, not_(has_key('status')))
-        assert_that(item, not_(has_key('user_uuid')))
-        assert_that(item, has_key('message_id'))
-        assert_that(item, has_key('voicemail_id'))
-        assert_that(item, has_key('provider_id'))
-        assert_that(item, has_key('transcription_text'))
-        assert_that(item, has_key('language'))
-        assert_that(item, has_key('duration'))
-        assert_that(item, has_key('created_at'))
+        assert 'uuid' not in item
+        assert 'status' not in item
+        assert 'user_uuid' not in item
+        assert 'message_id' in item
+        assert 'voicemail_id' in item
+        assert 'provider_id' in item
+        assert 'transcription_text' in item
+        assert 'language' in item
+        assert 'duration' in item
+        assert 'created_at' in item
 
     @voicemail_transcription(
         message_id='1234567890-0000000060',
@@ -126,23 +108,19 @@ class TestVoicemailTranscription(IntegrationTest):
         result = self.call_logd.voicemail_transcription.list_transcriptions(
             voicemail_id=100,
         )
-        assert_that(result['total'], equal_to(2))
-        assert_that(
-            result['items'],
-            has_items(
-                has_entries(message_id='1234567890-0000000060'),
-                has_entries(message_id='1234567890-0000000062'),
-            ),
-        )
+        assert result['total'] == 2
+        message_ids = {item['message_id'] for item in result['items']}
+        assert '1234567890-0000000060' in message_ids
+        assert '1234567890-0000000062' in message_ids
 
         # Filter by multiple voicemail_id (comma-separated)
         result = self.call_logd.voicemail_transcription.list_transcriptions(
             voicemail_id='100,200',
         )
-        assert_that(result['total'], equal_to(3))
+        assert result['total'] == 3
 
         # Filter with no match
         result = self.call_logd.voicemail_transcription.list_transcriptions(
             voicemail_id=999,
         )
-        assert_that(result['total'], equal_to(0))
+        assert result['total'] == 0

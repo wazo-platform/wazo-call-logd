@@ -1,15 +1,6 @@
 # Copyright 2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    contains_exactly,
-    has_entries,
-    has_properties,
-    is_,
-    none,
-    not_none,
-)
 from wazo_test_helpers import until
 
 from .helpers.base import IntegrationTest
@@ -40,18 +31,16 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 transcription = queries.find_voicemail_transcription_by_message_id(
                     message_id
                 )
-                assert_that(transcription, not_none())
-                assert_that(
-                    transcription,
-                    has_properties(
-                        message_id=message_id,
-                        tenant_uuid=USERS_TENANT,
-                        voicemail_id=42,
-                        transcription_text='Hello, this is a test voicemail.',
-                        provider_id='openai/whisper-1',
-                        language='en',
-                    ),
+                assert transcription is not None
+                assert transcription.message_id == message_id
+                assert transcription.tenant_uuid == USERS_TENANT
+                assert transcription.voicemail_id == 42
+                assert (
+                    transcription.transcription_text
+                    == 'Hello, this is a test voicemail.'
                 )
+                assert transcription.provider_id == 'openai/whisper-1'
+                assert transcription.language == 'en'
 
         until.assert_(transcription_created, tries=10, interval=1)
 
@@ -77,18 +66,13 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 transcription = queries.find_voicemail_transcription_by_message_id(
                     message_id
                 )
-                assert_that(transcription, not_none())
-                assert_that(
-                    transcription,
-                    has_properties(
-                        message_id=message_id,
-                        tenant_uuid=USERS_TENANT,
-                        transcription_text='Minimal transcription.',
-                        voicemail_id=none(),
-                        provider_id=none(),
-                        language=none(),
-                    ),
-                )
+                assert transcription is not None
+                assert transcription.message_id == message_id
+                assert transcription.tenant_uuid == USERS_TENANT
+                assert transcription.transcription_text == 'Minimal transcription.'
+                assert transcription.voicemail_id is None
+                assert transcription.provider_id is None
+                assert transcription.language is None
 
         until.assert_(transcription_created, tries=10, interval=1)
 
@@ -115,7 +99,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 transcription = queries.find_voicemail_transcription_by_message_id(
                     message_id
                 )
-                assert_that(transcription, not_none())
+                assert transcription is not None
 
         until.assert_(transcription_created, tries=10, interval=1)
 
@@ -129,14 +113,9 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 transcription = queries.find_voicemail_transcription_by_message_id(
                     message_id
                 )
-                assert_that(transcription, not_none())
-                assert_that(
-                    transcription,
-                    has_properties(
-                        transcription_text='Updated transcription.',
-                        language='fr',
-                    ),
-                )
+                assert transcription is not None
+                assert transcription.transcription_text == 'Updated transcription.'
+                assert transcription.language == 'fr'
 
         until.assert_(transcription_updated, tries=10, interval=1)
 
@@ -160,7 +139,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
         def transcription_deleted():
             with self.database.queries() as queries:
                 result = queries.find_voicemail_transcription_by_message_id(message_id)
-                assert_that(result, is_(none()))
+                assert result is None
 
         until.assert_(transcription_deleted, tries=10, interval=1)
 
@@ -181,7 +160,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
         def transcription_deleted():
             with self.database.queries() as queries:
                 result = queries.find_voicemail_transcription_by_message_id(message_id)
-                assert_that(result, is_(none()))
+                assert result is None
 
         until.assert_(transcription_deleted, tries=10, interval=1)
 
@@ -200,7 +179,7 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 transcription = queries.find_voicemail_transcription_by_message_id(
                     message_id
                 )
-                assert_that(transcription, not_none())
+                assert transcription is not None
 
         until.assert_(transcription_created, tries=10, interval=1)
 
@@ -230,26 +209,19 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 transcription = queries.find_voicemail_transcription_by_message_id(
                     message_id
                 )
-                assert_that(transcription, not_none())
+                assert transcription is not None
 
         until.assert_(transcription_created, tries=10, interval=1)
 
         def event_received():
             events = accumulator.accumulate(with_headers=True)
-            assert_that(
-                events,
-                contains_exactly(
-                    has_entries(
-                        message=has_entries(
-                            data=has_entries(message_id=message_id),
-                        ),
-                        headers=has_entries(
-                            name='call_logd_voicemail_transcription_created',
-                            tenant_uuid=str(USERS_TENANT),
-                        ),
-                    ),
-                ),
+            assert len(events) == 1
+            event = events[0]
+            assert event['message']['data']['message_id'] == message_id
+            assert (
+                event['headers']['name'] == 'call_logd_voicemail_transcription_created'
             )
+            assert event['headers']['tenant_uuid'] == str(USERS_TENANT)
 
         until.assert_(event_received, tries=10, interval=1)
 
