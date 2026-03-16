@@ -44,8 +44,9 @@ class TestTranscriptionService(TestCase):
     def test_create_transcription_duplicate_updates(self):
         existing = Mock(uuid='existing-uuid', message_id='msg-123')
         updated = Mock(message_id='msg-123')
+        orig = Mock(pgcode='23505')
         self.dao.voicemail_transcription.create.side_effect = IntegrityError(
-            'duplicate', {}, None
+            'duplicate', {}, orig
         )
         self.dao.voicemail_transcription.get_by_message_id.return_value = existing
         self.dao.voicemail_transcription.update.return_value = updated
@@ -62,6 +63,21 @@ class TestTranscriptionService(TestCase):
         self.dao.voicemail_transcription.update.assert_called_once()
         self.notifier.created.assert_called_once_with(updated)
         assert_that(result, is_(updated))
+
+    def test_create_transcription_non_unique_integrity_error_raises(self):
+        orig = Mock(pgcode='23503')
+        self.dao.voicemail_transcription.create.side_effect = IntegrityError(
+            'foreign key violation', {}, orig
+        )
+
+        assert_that(
+            calling(self.service.create_transcription).with_args(
+                message_id='msg-123',
+                tenant_uuid=TENANT_UUID,
+                transcription_text='Hello world',
+            ),
+            raises(IntegrityError),
+        )
 
     def test_get_transcription_found(self):
         expected = Mock(message_id='msg-123')

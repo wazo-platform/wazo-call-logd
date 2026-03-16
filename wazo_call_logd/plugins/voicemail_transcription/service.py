@@ -39,7 +39,9 @@ class TranscriptionService:
         }
         try:
             transcription = self._dao.voicemail_transcription.create(attributes)
-        except IntegrityError:
+        except IntegrityError as e:
+            if not _is_unique_violation(e):
+                raise
             logger.info(
                 'Transcription for message %s already exists, updating',
                 message_id,
@@ -77,3 +79,7 @@ class TranscriptionService:
             logger.debug('Transcription deleted for message %s', message_id)
             self._notifier.deleted(message_id, transcription.tenant_uuid)
         return deleted
+
+
+def _is_unique_violation(exc):
+    return getattr(exc.orig, 'pgcode', None) == '23505'
