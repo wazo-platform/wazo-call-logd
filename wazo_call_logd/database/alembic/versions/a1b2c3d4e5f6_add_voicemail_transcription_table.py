@@ -50,11 +50,6 @@ def upgrade():
         ),
     )
     op.create_index(
-        'call_logd_voicemail_transcription__idx__message_id',
-        'call_logd_voicemail_transcription',
-        ['message_id'],
-    )
-    op.create_index(
         'call_logd_voicemail_transcription__idx__tenant_uuid',
         'call_logd_voicemail_transcription',
         ['tenant_uuid'],
