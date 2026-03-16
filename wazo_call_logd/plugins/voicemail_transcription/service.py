@@ -69,7 +69,7 @@ class TranscriptionService:
             message_id, tenant_uuids=tenant_uuids
         )
         if not transcription:
-            return False
+            raise TranscriptionNotFoundException(message_id)
         deleted = self._dao.voicemail_transcription.delete_by_message_id(
             message_id, tenant_uuids=tenant_uuids
         )

@@ -121,7 +121,8 @@ class TestTranscriptionService(TestCase):
     def test_delete_transcription_not_found(self):
         self.dao.voicemail_transcription.get_by_message_id.return_value = None
 
-        result = self.service.delete_transcription('msg-999')
-
-        assert_that(result, is_(False))
+        assert_that(
+            calling(self.service.delete_transcription).with_args('msg-999'),
+            raises(TranscriptionNotFoundException),
+        )
         self.notifier.deleted.assert_not_called()
