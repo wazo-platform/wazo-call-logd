@@ -165,6 +165,22 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert len(result['items']) == 1
 
     @voicemail_transcription(
+        message_id='0000000007-0000000007',
+        transcription_text='path is C:\\Users\\admin',
+    )
+    @voicemail_transcription(
+        message_id='0000000007-0000000008',
+        transcription_text='path is C:XUsersXadmin',
+    )
+    def test_find_all_search_with_backslash(self, _, __):
+        result = self.dao.voicemail_transcription.find_all(
+            tenant_uuids=[MASTER_TENANT], search_text='C:\\Users'
+        )
+        assert result['total'] == 2
+        assert result['filtered'] == 1
+        assert result['items'][0].message_id == '0000000007-0000000007'
+
+    @voicemail_transcription(
         message_id='0000000008-0000000004',
         transcription_text='D',
     )
