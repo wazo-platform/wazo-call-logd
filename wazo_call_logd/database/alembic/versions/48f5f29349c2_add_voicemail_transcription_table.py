@@ -3,7 +3,7 @@
 
 """add voicemail transcription table
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: 48f5f29349c2
 Revises: 332b72b38735
 Create Date: 2026-03-10
 """
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy_utils import UUIDType
 
 # revision identifiers, used by Alembic.
-revision = 'a1b2c3d4e5f6'
+revision = '48f5f29349c2'
 down_revision = '332b72b38735'
 
 
