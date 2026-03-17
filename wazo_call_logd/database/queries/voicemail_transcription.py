@@ -84,9 +84,9 @@ class VoicemailTranscriptionDAO(BaseDAO):
             else:
                 query = query.order_by(order_field.asc())
 
-            if params.get('offset'):
+            if params.get('offset') is not None:
                 query = query.offset(params['offset'])
-            if params.get('limit'):
+            if params.get('limit') is not None:
                 query = query.limit(params['limit'])
 
             items = query.all()

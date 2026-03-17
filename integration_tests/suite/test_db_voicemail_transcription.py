@@ -163,6 +163,36 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert len(result['items']) == 1
 
     @voicemail_transcription(
+        message_id='0000000008-0000000004',
+        transcription_text='D',
+    )
+    @voicemail_transcription(
+        message_id='0000000008-0000000005',
+        transcription_text='E',
+    )
+    def test_find_all_pagination_limit_zero(self, _, __):
+        result = self.dao.voicemail_transcription.find_all(
+            tenant_uuids=[MASTER_TENANT], limit=0
+        )
+        assert result['total'] == 2
+        assert len(result['items']) == 0
+
+    @voicemail_transcription(
+        message_id='0000000008-0000000006',
+        transcription_text='F',
+    )
+    @voicemail_transcription(
+        message_id='0000000008-0000000007',
+        transcription_text='G',
+    )
+    def test_find_all_pagination_offset_zero(self, _, __):
+        result = self.dao.voicemail_transcription.find_all(
+            tenant_uuids=[MASTER_TENANT], offset=0
+        )
+        assert result['total'] == 2
+        assert len(result['items']) == 2
+
+    @voicemail_transcription(
         message_id='0000000009-0000000001',
     )
     def test_delete_by_message_id(self, _):
