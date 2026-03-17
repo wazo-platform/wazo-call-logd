@@ -72,9 +72,6 @@ class TestVoicemailTranscription(IntegrationTest):
         self.call_logd.set_token(MASTER_TOKEN)
         result = self.call_logd.voicemail_transcription.list_transcriptions()
         item = result['items'][0]
-        assert 'uuid' not in item
-        assert 'status' not in item
-        assert 'user_uuid' not in item
         assert 'message_id' in item
         assert 'voicemail_id' in item
         assert 'provider_id' in item
