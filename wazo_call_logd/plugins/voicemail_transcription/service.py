@@ -53,14 +53,6 @@ class TranscriptionService:
         self._notifier.created(transcription)
         return transcription
 
-    def get_transcription(self, message_id, tenant_uuids=None):
-        transcription = self._dao.voicemail_transcription.get_by_message_id(
-            message_id, tenant_uuids=tenant_uuids
-        )
-        if not transcription:
-            raise TranscriptionNotFoundException(message_id)
-        return transcription
-
     def list_transcriptions(self, tenant_uuids=None, **params):
         return self._dao.voicemail_transcription.find_all(
             tenant_uuids=tenant_uuids, **params

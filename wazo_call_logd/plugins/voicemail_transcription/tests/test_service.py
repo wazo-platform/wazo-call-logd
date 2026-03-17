@@ -79,35 +79,6 @@ class TestTranscriptionService(TestCase):
             raises(IntegrityError),
         )
 
-    def test_get_transcription_found(self):
-        expected = Mock(message_id='msg-123')
-        self.dao.voicemail_transcription.get_by_message_id.return_value = expected
-
-        result = self.service.get_transcription('msg-123', tenant_uuids=[TENANT_UUID])
-
-        self.dao.voicemail_transcription.get_by_message_id.assert_called_once_with(
-            'msg-123', tenant_uuids=[TENANT_UUID]
-        )
-        assert_that(result, equal_to(expected))
-
-    def test_get_transcription_not_found(self):
-        self.dao.voicemail_transcription.get_by_message_id.return_value = None
-
-        assert_that(
-            calling(self.service.get_transcription).with_args('msg-123'),
-            raises(TranscriptionNotFoundException),
-        )
-
-    def test_get_transcription_wrong_tenant(self):
-        self.dao.voicemail_transcription.get_by_message_id.return_value = None
-
-        assert_that(
-            calling(self.service.get_transcription).with_args(
-                'msg-123', tenant_uuids=['other-tenant']
-            ),
-            raises(TranscriptionNotFoundException),
-        )
-
     def test_list_transcriptions(self):
         expected = {'items': [], 'total': 0, 'filtered': 0}
         self.dao.voicemail_transcription.find_all.return_value = expected
