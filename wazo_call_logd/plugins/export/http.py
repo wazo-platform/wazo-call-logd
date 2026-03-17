@@ -1,4 +1,4 @@
-# Copyright 2021-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -72,7 +72,7 @@ class ExportDownloadResource(ExportAuthResource):
         extract_token_id=extract_token_id_from_query_or_header,
     )
     def get(self, export_uuid):
-        tenant_uuids = self.query_or_header_visible_tenants(recurse=True)
+        tenant_uuids = self.query_or_header_visible_tenants(recurse=False)
         export = self.service.get(export_uuid, tenant_uuids)
 
         if not export:

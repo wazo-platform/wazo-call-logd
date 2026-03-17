@@ -2,6 +2,10 @@
 
 ## 26.04
 
+* The `GET /exports/<uuid>/download` endpoint now requires an explicit tenant
+  (via `tenant` query parameter or `Wazo-Tenant` header) instead of
+  recursively resolving visible tenants from the token.
+
 * New endpoint for voicemail transcriptions:
 
   * `GET /voicemails/transcriptions`
