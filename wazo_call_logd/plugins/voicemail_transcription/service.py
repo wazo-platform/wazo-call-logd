@@ -46,7 +46,9 @@ class TranscriptionService:
                 'Transcription for message %s already exists, updating',
                 message_id,
             )
-            existing = self._dao.voicemail_transcription.get_by_message_id(message_id)
+            existing = self._dao.voicemail_transcription.get_by_message_id(
+                message_id, tenant_uuids=[tenant_uuid]
+            )
             transcription = self._dao.voicemail_transcription.update(
                 existing.uuid, attributes
             )

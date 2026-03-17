@@ -58,7 +58,7 @@ class TestTranscriptionService(TestCase):
         )
 
         self.dao.voicemail_transcription.get_by_message_id.assert_called_once_with(
-            'msg-123'
+            'msg-123', tenant_uuids=[TENANT_UUID]
         )
         self.dao.voicemail_transcription.update.assert_called_once()
         self.notifier.created.assert_called_once_with(updated)
