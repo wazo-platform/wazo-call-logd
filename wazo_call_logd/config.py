@@ -83,6 +83,7 @@ DEFAULT_CONFIG = {
         'status': True,
         'support_center': True,
         'tenant': True,
+        'voicemail_transcription': True,
     },
     'smtp': {
         'host': 'localhost',

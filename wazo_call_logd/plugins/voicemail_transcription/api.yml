@@ -1,0 +1,122 @@
+paths:
+  /voicemails/transcriptions:
+    get:
+      summary: List voicemail transcriptions
+      description: '**Required ACL:** `call-logd.voicemails.transcriptions.read`'
+      operationId: list_voicemail_transcriptions
+      tags:
+        - voicemail_transcriptions
+      parameters:
+        - $ref: '#/parameters/from'
+        - $ref: '#/parameters/until'
+        - $ref: '#/parameters/voicemail_id'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/order'
+        - $ref: '#/parameters/direction'
+        - $ref: '#/parameters/search_text'
+      responses:
+        '200':
+          description: List of voicemail transcriptions
+          schema:
+            $ref: '#/definitions/TranscriptionList'
+        '401':
+          $ref: '#/responses/Unauthorized'
+
+parameters:
+  voicemail_id:
+    name: voicemail_id
+    in: query
+    type: array
+    collectionFormat: csv
+    description: The voicemail ID of the message
+    items:
+      type: integer
+  from:
+    name: from
+    in: query
+    type: string
+    description: Filter transcriptions created after this date
+  until:
+    name: until
+    in: query
+    type: string
+    description: Filter transcriptions created before this date
+  limit:
+    name: limit
+    in: query
+    type: integer
+    description: Maximum number of items to return
+  offset:
+    name: offset
+    in: query
+    type: integer
+    description: Number of items to skip
+  order:
+    name: order
+    in: query
+    type: string
+    description: Name of the field to order by
+    enum:
+      - created_at
+      - message_id
+  direction:
+    name: direction
+    in: query
+    type: string
+    description: Sort order direction
+    enum:
+      - asc
+      - desc
+  search_text:
+    name: search_text
+    in: query
+    type: string
+    description: Full-text search in transcript content
+
+definitions:
+  Transcription:
+    type: object
+    properties:
+      message_id:
+        type: string
+        description: The voicemail message ID
+      tenant_uuid:
+        type: string
+        format: uuid
+      voicemail_id:
+        type: integer
+        description: The voicemail ID (mailbox number)
+      transcription_text:
+        type: string
+        description: The transcription text
+      provider_id:
+        type: string
+        description: Transcription provider/model identifier
+      language:
+        type: string
+        description: Detected language code (ISO 639-1)
+      duration:
+        type: number
+        format: float
+        description: Voicemail duration in seconds
+      created_at:
+        type: string
+        format: date-time
+  TranscriptionList:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/Transcription'
+      total:
+        type: integer
+      filtered:
+        type: integer
+
+responses:
+  Unauthorized:
+    description: Unauthorized
+  NotFoundError:
+    description: Resource not found

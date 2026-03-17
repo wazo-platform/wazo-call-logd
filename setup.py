@@ -37,6 +37,7 @@ setup(
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
             'support_center = wazo_call_logd.plugins.support_center.plugin:Plugin',
             'tenant = wazo_call_logd.plugins.tenant.plugin:Plugin',
+            'voicemail_transcription = wazo_call_logd.plugins.voicemail_transcription.plugin:Plugin',  # noqa: E501
         ],
         'wazo_purge_db.purgers': [
             'call-logs = wazo_call_logd.purger:CallLogsPurger',

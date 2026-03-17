@@ -1,4 +1,4 @@
-# Copyright 2021-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.schema import CheckConstraint, Column, ForeignKey, Index
 from sqlalchemy.sql import and_, case, select, text
-from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String, Text
+from sqlalchemy.types import Boolean, DateTime, Enum, Float, Integer, String, Text
 from sqlalchemy_utils import UUIDType, generic_repr
 
 Base = declarative_base()
@@ -372,5 +372,45 @@ class Export(Base):
         CheckConstraint(
             status.in_(['pending', 'processing', 'finished', 'deleted', 'error']),
             name='call_logd_export_status_check',
+        ),
+    )
+
+
+@generic_repr
+class VoicemailTranscription(Base):
+    __tablename__ = 'call_logd_voicemail_transcription'
+
+    uuid = Column(
+        UUIDType,
+        server_default=text('uuid_generate_v4()'),
+        primary_key=True,
+    )
+    message_id = Column(String(255), nullable=False, unique=True)
+    tenant_uuid = Column(
+        UUIDType,
+        ForeignKey(
+            'call_logd_tenant.uuid',
+            name='call_logd_voicemail_transcription_tenant_uuid_fkey',
+            ondelete='CASCADE',
+        ),
+        nullable=False,
+    )
+    voicemail_id = Column(Integer)
+    transcription_text = Column(Text, nullable=False)
+    provider_id = Column(Text)
+    language = Column(String(8))
+    duration = Column(Float)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=text('now()')
+    )
+
+    __table_args__ = (
+        Index(
+            'call_logd_voicemail_transcription__idx__tenant_uuid',
+            'tenant_uuid',
+        ),
+        Index(
+            'call_logd_voicemail_transcription__idx__voicemail_id',
+            'voicemail_id',
         ),
     )
