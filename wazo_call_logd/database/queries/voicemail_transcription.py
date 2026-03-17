@@ -52,6 +52,9 @@ class VoicemailTranscriptionDAO(BaseDAO):
                 query = query.filter(
                     VoicemailTranscription.tenant_uuid.in_(tenant_uuids)
                 )
+
+            total = query.count()
+
             if params.get('voicemail_id') is not None:
                 query = query.filter(
                     VoicemailTranscription.voicemail_id.in_(params['voicemail_id'])
@@ -69,7 +72,7 @@ class VoicemailTranscriptionDAO(BaseDAO):
                     )
                 )
 
-            total = query.count()
+            filtered = query.count()
 
             order_field = getattr(
                 VoicemailTranscription, params.get('order', 'created_at')
@@ -79,8 +82,6 @@ class VoicemailTranscriptionDAO(BaseDAO):
                 query = query.order_by(order_field.desc())
             else:
                 query = query.order_by(order_field.asc())
-
-            filtered = total
 
             if params.get('offset'):
                 query = query.offset(params['offset'])

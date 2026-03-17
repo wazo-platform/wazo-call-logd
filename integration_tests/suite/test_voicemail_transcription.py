@@ -105,7 +105,8 @@ class TestVoicemailTranscription(IntegrationTest):
         result = self.call_logd.voicemail_transcription.list_transcriptions(
             voicemail_id=100,
         )
-        assert result['total'] == 2
+        assert result['total'] == 3
+        assert result['filtered'] == 2
         message_ids = {item['message_id'] for item in result['items']}
         assert '1234567890-0000000060' in message_ids
         assert '1234567890-0000000062' in message_ids
@@ -115,9 +116,11 @@ class TestVoicemailTranscription(IntegrationTest):
             voicemail_id='100,200',
         )
         assert result['total'] == 3
+        assert result['filtered'] == 3
 
         # Filter with no match
         result = self.call_logd.voicemail_transcription.list_transcriptions(
             voicemail_id=999,
         )
-        assert result['total'] == 0
+        assert result['total'] == 3
+        assert result['filtered'] == 0
