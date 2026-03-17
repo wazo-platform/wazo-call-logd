@@ -109,6 +109,36 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         assert result['items'][0].message_id == '0000000007-0000000001'
 
     @voicemail_transcription(
+        message_id='0000000007-0000000003',
+        transcription_text='50% discount available',
+    )
+    @voicemail_transcription(
+        message_id='0000000007-0000000004',
+        transcription_text='50 dollars discount available',
+    )
+    def test_find_all_search_with_percent(self, _, __):
+        result = self.dao.voicemail_transcription.find_all(
+            tenant_uuids=[MASTER_TENANT], search_text='50%'
+        )
+        assert result['total'] == 1
+        assert result['items'][0].message_id == '0000000007-0000000003'
+
+    @voicemail_transcription(
+        message_id='0000000007-0000000005',
+        transcription_text='use snake_case naming',
+    )
+    @voicemail_transcription(
+        message_id='0000000007-0000000006',
+        transcription_text='use snakeXcase naming',
+    )
+    def test_find_all_search_with_underscore(self, _, __):
+        result = self.dao.voicemail_transcription.find_all(
+            tenant_uuids=[MASTER_TENANT], search_text='snake_case'
+        )
+        assert result['total'] == 1
+        assert result['items'][0].message_id == '0000000007-0000000005'
+
+    @voicemail_transcription(
         message_id='0000000008-0000000001',
         transcription_text='A',
     )

@@ -66,9 +66,10 @@ class VoicemailTranscriptionDAO(BaseDAO):
             if params.get('end'):
                 query = query.filter(VoicemailTranscription.created_at < params['end'])
             if params.get('search_text'):
+                escaped = params['search_text'].replace('%', '\\%').replace('_', '\\_')
                 query = query.filter(
                     VoicemailTranscription.transcription_text.ilike(
-                        f'%{params["search_text"]}%'
+                        f'%{escaped}%', escape='\\'
                     )
                 )
 
