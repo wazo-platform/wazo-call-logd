@@ -120,7 +120,8 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.find_all(
             tenant_uuids=[MASTER_TENANT], search_text='50%'
         )
-        assert result['total'] == 1
+        assert result['total'] == 2
+        assert result['filtered'] == 1
         assert result['items'][0].message_id == '0000000007-0000000003'
 
     @voicemail_transcription(
@@ -135,7 +136,8 @@ class TestDBVoicemailTranscription(DBIntegrationTest):
         result = self.dao.voicemail_transcription.find_all(
             tenant_uuids=[MASTER_TENANT], search_text='snake_case'
         )
-        assert result['total'] == 1
+        assert result['total'] == 2
+        assert result['filtered'] == 1
         assert result['items'][0].message_id == '0000000007-0000000005'
 
     @voicemail_transcription(
