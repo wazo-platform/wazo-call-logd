@@ -825,6 +825,17 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             call.bridges[bridge.id] = bridge
 
         call.raw_participants[cel.channame].update(answered=True)
+
+        # Fallback: caller BRIDGE_ENTER may be suppressed by Asterisk's move-swap
+        # bridge optimization. Use the callee's answer time as the next best proxy.
+        if (
+            not call.date_answer
+            and bridge
+            and bridge.technology != 'holding_bridge'
+            and not cel.channame.lower().startswith('local/')
+        ):
+            call.date_answer = parse_eventtime(cel.eventtime)
+
         # only consider the first bridge_enter for destination identity info
         if call.interpret_callee_bridge_enter and (
             not call.authoritative_destination_info or call.was_forwarded

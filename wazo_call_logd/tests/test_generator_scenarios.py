@@ -1053,3 +1053,48 @@ class TestCallLogGenerationScenarios(TestCase):
                 ),
             ),
         )
+
+    @raw_cels(
+        '''
+        eventtype    | eventtime                     | cid_name | cid_num      | cid_ani | exten | context   | channame                        | linkedid     | uniqueid     | extra
+        -------------+-------------------------------+----------+--------------+---------+-------+-----------+---------------------------------+--------------+--------------+-----------------------------------------------
+        CHAN_START   | 2024-01-01 10:00:00.000000+00 | Caller   | +15551234567 |         | 1000  | from-pstn | PJSIP/trunk-00000001            | 1704103200.1 | 1704103200.1 |
+        XIVO_INCALL  | 2024-01-01 10:00:00.100000+00 | Caller   | +15551234567 |         | s     | did       | PJSIP/trunk-00000001            | 1704103200.1 | 1704103200.1 | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        ANSWER       | 2024-01-01 10:00:00.200000+00 | Caller   | +15551234567 |         | s     | from-pstn | PJSIP/trunk-00000001            | 1704103200.1 | 1704103200.1 |
+        CHAN_START   | 2024-01-01 10:00:01.000000+00 |          |              |         | s     | queue     | Local/d729503f@queue-000000f0;1 | 1704103200.1 | 1704103201.2 |
+        CHAN_START   | 2024-01-01 10:00:01.001000+00 |          |              |         | s     | queue     | Local/d729503f@queue-000000f0;2 | 1704103200.1 | 1704103201.3 |
+        CHAN_START   | 2024-01-01 10:00:06.000000+00 | Agent    | 8001         |         | s     | internal  | PJSIP/agent-00000002            | 1704103200.1 | 1704103206.4 |
+        ANSWER       | 2024-01-01 10:00:07.000000+00 | Agent    | 8001         |         | s     | internal  | PJSIP/agent-00000002            | 1704103200.1 | 1704103206.4 |
+        BRIDGE_ENTER | 2024-01-01 10:00:07.100000+00 | Agent    | 8001         |         | s     | internal  | PJSIP/agent-00000002            | 1704103200.1 | 1704103206.4 | {"bridge_id":"74eb7e46-0000-0000-0000-000000000001","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER | 2024-01-01 10:00:07.110000+00 |          |              |         | s     | queue     | Local/d729503f@queue-000000f0;2 | 1704103200.1 | 1704103201.3 | {"bridge_id":"74eb7e46-0000-0000-0000-000000000001","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT  | 2024-01-01 10:00:07.200000+00 |          |              |         | s     | queue     | Local/d729503f@queue-000000f0;2 | 1704103200.1 | 1704103201.3 | {"bridge_id":"74eb7e46-0000-0000-0000-000000000001","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT  | 2024-01-01 10:00:07.210000+00 | Agent    | 8001         |         | s     | internal  | PJSIP/agent-00000002            | 1704103200.1 | 1704103206.4 | {"bridge_id":"74eb7e46-0000-0000-0000-000000000001","bridge_technology":"simple_bridge"}
+        HANGUP       | 2024-01-01 10:00:07.220000+00 |          |              |         | s     | queue     | Local/d729503f@queue-000000f0;1 | 1704103200.1 | 1704103201.2 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END     | 2024-01-01 10:00:07.220000+00 |          |              |         | s     | queue     | Local/d729503f@queue-000000f0;1 | 1704103200.1 | 1704103201.2 |
+        HANGUP       | 2024-01-01 10:00:07.230000+00 |          |              |         | s     | queue     | Local/d729503f@queue-000000f0;2 | 1704103200.1 | 1704103201.3 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END     | 2024-01-01 10:00:07.230000+00 |          |              |         | s     | queue     | Local/d729503f@queue-000000f0;2 | 1704103200.1 | 1704103201.3 |
+        HANGUP       | 2024-01-01 10:00:17.000000+00 | Agent    | 8001         |         | s     | internal  | PJSIP/agent-00000002            | 1704103200.1 | 1704103206.4 | {"hangupcause":16,"hangupsource":"PJSIP/agent-00000002","dialstatus":""}
+        CHAN_END     | 2024-01-01 10:00:17.000000+00 | Agent    | 8001         |         | s     | internal  | PJSIP/agent-00000002            | 1704103200.1 | 1704103206.4 |
+        HANGUP       | 2024-01-01 10:00:17.100000+00 | Caller   | +15551234567 |         | s     | from-pstn | PJSIP/trunk-00000001            | 1704103200.1 | 1704103200.1 | {"hangupcause":16,"hangupsource":"PJSIP/agent-00000002","dialstatus":"ANSWER"}
+        CHAN_END     | 2024-01-01 10:00:17.100000+00 | Caller   | +15551234567 |         | s     | from-pstn | PJSIP/trunk-00000001            | 1704103200.1 | 1704103200.1 |
+        LINKEDID_END | 2024-01-01 10:00:17.100000+00 | Caller   | +15551234567 |         | s     | from-pstn | PJSIP/trunk-00000001            | 1704103200.1 | 1704103200.1 |
+        '''
+    )
+    def test_queue_call_answered_via_move_swap_optimization(self, cels: list[CEL]):
+        """
+        Asterisk's bridge move-swap optimization eliminates Local channel pairs by directly
+        swapping the real callee into the caller's bridge, bypassing the normal bridge path.
+        This suppresses the BRIDGE_ENTER CEL event that would set date_answer on the caller
+        channel. The fallback in CalleeCELInterpretor.interpret_bridge_enter must fire instead.
+        """
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert call_logs
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                direction='inbound',
+                date_answer=datetime_close_to('2024-01-01T10:00:07.1+00:00'),
+            ),
+        )
