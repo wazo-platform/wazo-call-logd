@@ -4,10 +4,12 @@
 from unittest import TestCase
 from unittest.mock import Mock
 
+import pytest
 from hamcrest import assert_that, calling, equal_to, is_, raises
 from sqlalchemy.exc import IntegrityError
 
 from wazo_call_logd.plugins.voicemail_transcription.exceptions import (
+    TranscriptionCreationFailedException,
     TranscriptionNotFoundException,
 )
 from wazo_call_logd.plugins.voicemail_transcription.service import TranscriptionService
@@ -64,20 +66,36 @@ class TestTranscriptionService(TestCase):
         self.notifier.created.assert_called_once_with(updated)
         assert_that(result, is_(updated))
 
-    def test_create_transcription_non_unique_integrity_error_raises(self):
+    def test_create_transcription_non_unique_integrity_error_raises_creation_error(
+        self,
+    ):
         orig = Mock(pgcode='23503')
         self.dao.voicemail_transcription.create.side_effect = IntegrityError(
             'foreign key violation', {}, orig
         )
 
-        assert_that(
-            calling(self.service.create_transcription).with_args(
+        with pytest.raises(TranscriptionCreationFailedException) as exc_info:
+            self.service.create_transcription(
                 message_id='msg-123',
                 tenant_uuid=TENANT_UUID,
                 transcription_text='Hello world',
-            ),
-            raises(IntegrityError),
-        )
+            )
+
+        assert exc_info.value.message_id == 'msg-123'
+        assert isinstance(exc_info.value.__cause__, IntegrityError)
+
+    def test_create_transcription_dao_error_raises_creation_error(self):
+        self.dao.voicemail_transcription.create.side_effect = RuntimeError('db gone')
+
+        with pytest.raises(TranscriptionCreationFailedException) as exc_info:
+            self.service.create_transcription(
+                message_id='msg-456',
+                tenant_uuid=TENANT_UUID,
+                transcription_text='Hello world',
+            )
+
+        assert exc_info.value.message_id == 'msg-456'
+        assert isinstance(exc_info.value.__cause__, RuntimeError)
 
     def test_list_transcriptions(self):
         expected = {'items': [], 'total': 0, 'filtered': 0}

@@ -12,3 +12,11 @@ class TranscriptionNotFoundException(APIException):
             error_id='transcription-not-found',
             details={'message_id': str(message_id)},
         )
+
+
+class TranscriptionCreationFailedException(Exception):
+    def __init__(self, message_id: str):
+        self.message_id = message_id
+        super().__init__(
+            f'Failed to create transcription for voicemail message {message_id}'
+        )

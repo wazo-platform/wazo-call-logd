@@ -7,7 +7,10 @@ import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .exceptions import TranscriptionNotFoundException
+from .exceptions import (
+    TranscriptionCreationFailedException,
+    TranscriptionNotFoundException,
+)
 
 if TYPE_CHECKING:
     from wazo_bus.resources.webhookd.types import VoicemailTranscriptionCompletedPayload
@@ -43,7 +46,14 @@ class TranscriptionEventHandler:
             'Received transcription completed event for message %s',
             message_id,
         )
-        self.service.create_transcription(**event)
+        try:
+            self.service.create_transcription(**event)
+        except TranscriptionCreationFailedException as ex:
+            logger.exception(
+                "Failed to create transcription for voicemail message %s: %s",
+                message_id,
+                str(ex),
+            )
 
     def _on_voicemail_message_deleted(self, event):
         message_id = event['message_id']
