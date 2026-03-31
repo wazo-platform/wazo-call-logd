@@ -7,7 +7,10 @@ from sqlalchemy.exc import IntegrityError
 
 from wazo_call_logd.database.queries import DAO
 
-from .exceptions import TranscriptionNotFoundException
+from .exceptions import (
+    TranscriptionCreationFailedException,
+    TranscriptionNotFoundException,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,20 +41,23 @@ class TranscriptionService:
             'duration': duration,
         }
         try:
-            transcription = self._dao.voicemail_transcription.create(attributes)
-        except IntegrityError as e:
-            if not _is_unique_violation(e):
-                raise
-            logger.info(
-                'Transcription for message %s already exists, updating',
-                message_id,
-            )
-            existing = self._dao.voicemail_transcription.get_by_message_id(
-                message_id, tenant_uuids=[tenant_uuid]
-            )
-            transcription = self._dao.voicemail_transcription.update(
-                existing.uuid, attributes
-            )
+            try:
+                transcription = self._dao.voicemail_transcription.create(attributes)
+            except IntegrityError as e:
+                if not _is_unique_violation(e):
+                    raise
+                logger.info(
+                    'Transcription for message %s already exists, updating',
+                    message_id,
+                )
+                existing = self._dao.voicemail_transcription.get_by_message_id(
+                    message_id, tenant_uuids=[tenant_uuid]
+                )
+                transcription = self._dao.voicemail_transcription.update(
+                    existing.uuid, attributes
+                )
+        except Exception as e:
+            raise TranscriptionCreationFailedException(message_id) from e
         self._notifier.created(transcription)
         return transcription
 
