@@ -130,10 +130,14 @@ class TestBusVoicemailTranscription(IntegrationTest):
         message_id='bus-test-msg-004',
         tenant_uuid=USERS_TENANT,
         transcription_text='To be deleted.',
+        voicemail_id=42,
     )
     def test_voicemail_message_deleted_removes_transcription(self, transcription):
         message_id = transcription['message_id']
 
+        accumulator = self.bus.accumulator(
+            headers={'name': 'call_logd_voicemail_transcription_deleted'}
+        )
         self.bus.send_voicemail_message_deleted(message_id)
 
         def transcription_deleted():
@@ -143,16 +147,35 @@ class TestBusVoicemailTranscription(IntegrationTest):
 
         until.assert_(transcription_deleted, tries=10, interval=1)
 
+        def event_received():
+            events = accumulator.accumulate(with_headers=True)
+            assert len(events) == 1
+            event = events[0]
+            payload = event['message']['data']
+            assert payload['message_id'] == message_id
+            assert payload['voicemail_id'] == 42
+            assert payload['transcription_text'] == 'To be deleted.'
+            assert (
+                event['headers']['name'] == 'call_logd_voicemail_transcription_deleted'
+            )
+            assert event['headers']['tenant_uuid'] == str(USERS_TENANT)
+
+        until.assert_(event_received, tries=10, interval=1)
+
     @voicemail_transcription(
         message_id='bus-test-msg-005',
         tenant_uuid=USERS_TENANT,
         transcription_text='To be deleted via global event.',
+        voicemail_id=55,
     )
     def test_global_voicemail_message_deleted_removes_transcription(
         self, transcription
     ):
         message_id = transcription['message_id']
 
+        accumulator = self.bus.accumulator(
+            headers={'name': 'call_logd_voicemail_transcription_deleted'}
+        )
         self.bus.send_voicemail_message_deleted(
             message_id, event_name='global_voicemail_message_deleted'
         )
@@ -163,6 +186,21 @@ class TestBusVoicemailTranscription(IntegrationTest):
                 assert result is None
 
         until.assert_(transcription_deleted, tries=10, interval=1)
+
+        def event_received():
+            events = accumulator.accumulate(with_headers=True)
+            assert len(events) == 1
+            event = events[0]
+            payload = event['message']['data']
+            assert payload['message_id'] == message_id
+            assert payload['voicemail_id'] == 55
+            assert payload['transcription_text'] == 'To be deleted via global event.'
+            assert (
+                event['headers']['name'] == 'call_logd_voicemail_transcription_deleted'
+            )
+            assert event['headers']['tenant_uuid'] == str(USERS_TENANT)
+
+        until.assert_(event_received, tries=10, interval=1)
 
     def test_voicemail_message_deleted_nonexistent_is_noop(self):
         self.bus.send_voicemail_message_deleted('nonexistent-msg-id')

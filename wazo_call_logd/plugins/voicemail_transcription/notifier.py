@@ -20,7 +20,9 @@ class TranscriptionNotifier:
         )
         self._bus.publish(event)
 
-    def deleted(self, message_id, tenant_uuid):
-        payload = {'message_id': message_id}
-        event = VoicemailTranscriptionDeletedEvent(payload, str(tenant_uuid))
+    def deleted(self, transcription):
+        payload = TranscriptionSchema().dump(transcription)
+        event = VoicemailTranscriptionDeletedEvent(
+            payload, str(transcription.tenant_uuid)
+        )
         self._bus.publish(event)

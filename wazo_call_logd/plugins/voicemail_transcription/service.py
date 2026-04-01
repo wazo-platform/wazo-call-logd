@@ -77,7 +77,7 @@ class TranscriptionService:
         )
         if deleted:
             logger.debug('Transcription deleted for message %s', message_id)
-            self._notifier.deleted(message_id, transcription.tenant_uuid)
+            self._notifier.deleted(transcription)
         return deleted
 
 
