@@ -120,7 +120,7 @@ class TestTranscriptionService(TestCase):
         self.dao.voicemail_transcription.delete_by_message_id.assert_called_once_with(
             'msg-123', tenant_uuids=None
         )
-        self.notifier.deleted.assert_called_once_with('msg-123', TENANT_UUID)
+        self.notifier.deleted.assert_called_once_with(transcription)
         assert_that(result, is_(True))
 
     def test_delete_transcription_not_found(self):
