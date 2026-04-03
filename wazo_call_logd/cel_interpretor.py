@@ -1,4 +1,4 @@
-# Copyright 2022-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -404,6 +404,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         for recording in call.recordings:
             if recording.mixmonitor_id == extra['mixmonitor_id']:
                 recording.end_time = parse_eventtime(cel.eventtime)
+                recording.end_time_is_final = True
         return call
 
     def interpret_xivo_from_s(self, cel, call):
@@ -772,9 +773,11 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             return True
 
     def interpret_chan_end(self, cel, call):
+        event_time = parse_eventtime(cel.eventtime)
         for recording in call.recordings:
-            if not recording.end_time:
-                recording.end_time = parse_eventtime(cel.eventtime)
+            is_later = not recording.end_time or recording.end_time < event_time
+            if not recording.end_time_is_final and is_later:
+                recording.end_time = event_time
         return call
 
     def interpret_bridge_enter(self, cel: CEL, call: RawCallLog):
@@ -872,6 +875,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         for recording in call.recordings:
             if recording.mixmonitor_id == extra['mixmonitor_id']:
                 recording.end_time = parse_eventtime(cel.eventtime)
+                recording.end_time_is_final = True
         return call
 
     def interpret_requested_internal(self, cel, call: RawCallLog):
@@ -966,6 +970,7 @@ class LocalOriginateCELInterpretor:
             for recording in call.recordings:
                 if recording.mixmonitor_id == extra['mixmonitor_id']:
                     recording.end_time = parse_eventtime(cel.eventtime)
+                    recording.end_time_is_final = True
 
         # End of recording when not stopped manually
         for recording in call.recordings:

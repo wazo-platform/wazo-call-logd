@@ -288,6 +288,8 @@ class Recording(Base):
     def __init__(self, mixmonitor_id=None, *args, **kwargs):
         # NOTE(fblackburn): Used to track recording on generation
         self.mixmonitor_id = mixmonitor_id
+        # NOTE: Marks end_time as set by mixmonitor_stop (not a fallback from chan_end)
+        self.end_time_is_final = False
         super().__init__(*args, **kwargs)
 
     @property
