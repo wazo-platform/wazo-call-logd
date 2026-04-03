@@ -1,4 +1,4 @@
-# Copyright 2021-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import uuid
@@ -15,6 +15,24 @@ from .helpers.wait_strategy import CallLogdEverythingUpWaitStrategy
 class TestRecordingGeneration(RawCelIntegrationTest):
     asset = 'base'
     wait_strategy = CallLogdEverythingUpWaitStrategy()
+
+    def _get_last_call_log_generated(self):
+        with self.database.queries() as queries:
+
+            def call_log_generated():
+                return queries.find_last_call_log() is not None
+
+            until.true(call_log_generated, tries=5)
+            return queries.find_last_call_log().id
+
+    def _assert_last_recordings_match(self, linkedid, *expected):
+        with self.no_recordings(), self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+            call_log_id = self._get_last_call_log_generated()
+
+            with self.database.queries() as queries:
+                recordings = queries.find_all_recordings(call_log_id=call_log_id)
+                assert_that(recordings, contains_inanyorder(*expected))
 
     @raw_cels(
         '''\
@@ -308,20 +326,34 @@ LINKEDID_END     | 2021-01-01 00:00:00.18 | SIP/aaaaaa-00000001 | 1000000000.01 
             ),
         )
 
-    def _get_last_call_log_generated(self):
-        with self.database.queries() as queries:
-
-            def call_log_generated():
-                return queries.find_last_call_log() is not None
-
-            until.true(call_log_generated, tries=5)
-            return queries.find_last_call_log().id
-
-    def _assert_last_recordings_match(self, linkedid, *expected):
-        with self.no_recordings(), self.no_call_logs():
-            self.bus.send_linkedid_end(linkedid)
-            call_log_id = self._get_last_call_log_generated()
-
-            with self.database.queries() as queries:
-                recordings = queries.find_all_recordings(call_log_id=call_log_id)
-                assert_that(recordings, contains_inanyorder(*expected))
+    @raw_cels(
+        '''\
+eventtype        | eventtime              | channame            | uniqueid      | linkedid     | extra
+-----------------+------------------------+---------------------+---------------+--------------+---------------------------------------------------------------
+CHAN_START       | 2026-04-03 00:00:00.01 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+APP_START        | 2026-04-03 00:00:00.02 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+CHAN_START       | 2026-04-03 00:00:00.03 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+MIXMONITOR_START | 2026-04-03 00:00:00.04 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/record.wav","mixmonitor_id":"0x000000000001"}
+ANSWER           | 2026-04-03 00:00:00.05 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+BRIDGE_ENTER     | 2026-04-03 00:00:00.06 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+CHAN_START       | 2026-04-03 00:00:00.07 | SIP/mobile-00000003 | 1000000000.03 | 1000000000.1 |
+HANGUP           | 2026-04-03 00:00:00.08 | SIP/mobile-00000003 | 1000000000.03 | 1000000000.1 |
+CHAN_END         | 2026-04-03 00:00:00.08 | SIP/mobile-00000003 | 1000000000.03 | 1000000000.1 |
+BRIDGE_EXIT      | 2026-04-03 00:00:00.10 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+HANGUP           | 2026-04-03 00:00:00.11 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+CHAN_END         | 2026-04-03 00:00:00.12 | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+BRIDGE_EXIT      | 2026-04-03 00:00:00.13 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+HANGUP           | 2026-04-03 00:00:00.14 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+CHAN_END         | 2026-04-03 00:00:00.15 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+LINKEDID_END     | 2026-04-03 00:00:00.16 | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+    '''
+    )
+    def test_recording_end_time_uses_latest_chan_end_when_no_mixmonitor_stop(self):
+        self._assert_last_recordings_match(
+            '1000000000.1',
+            has_properties(
+                start_time=dt.fromisoformat('2026-04-03 00:00:00.040000+00:00'),
+                end_time=dt.fromisoformat('2026-04-03 00:00:00.120000+00:00'),
+                path='/tmp/record.wav',
+            ),
+        )

@@ -1,7 +1,8 @@
-# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import urllib.parse
+from datetime import datetime, timezone
 from unittest import TestCase
 from unittest.mock import Mock, create_autospec, sentinel
 
@@ -22,6 +23,7 @@ from wazo_call_logd.exceptions import CELInterpretationError, InvalidCallLogExce
 
 from ..cel_interpretor import (
     AbstractCELInterpretor,
+    CalleeCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
     _extract_user_missed_call_variables,
@@ -34,6 +36,7 @@ from ..cel_interpretor import (
     parse_key_pair_sequence,
 )
 from ..database.cel_event_type import CELEventType
+from ..database.models import Recording
 from ..raw_call_log import RawCallLog
 
 
@@ -686,3 +689,41 @@ class TestExtractCallLogDestinationVariables(TestCase):
 
         with raises(InvalidCallLogException):
             extract_key_value_pairs_as_dict({'extra': 'not a valid extra'})
+
+
+class TestCalleeCELInterpretor(TestCase):
+    def setUp(self):
+        self.interpretor = CalleeCELInterpretor()
+
+    def test_interpret_chan_end_uses_latest_event_time(self):
+        call_start = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+        non_answering_mobile_chan_end = datetime(
+            2026, 1, 1, 10, 0, 1, tzinfo=timezone.utc
+        )
+        real_callee_chan_end = datetime(2026, 1, 1, 10, 5, 0, tzinfo=timezone.utc)
+        recording = Recording(start_time=call_start)
+        call = RawCallLog()
+        call.recordings = [recording]
+
+        self.interpretor.interpret_chan_end(
+            Mock(eventtime=non_answering_mobile_chan_end), call
+        )
+        self.interpretor.interpret_chan_end(Mock(eventtime=real_callee_chan_end), call)
+
+        assert_that(recording.end_time, equal_to(real_callee_chan_end))
+
+    def test_interpret_chan_end_does_not_override_mixmonitor_stop(self):
+        call_start = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+        mixmonitor_stop_time = datetime(2026, 1, 1, 10, 3, 0, tzinfo=timezone.utc)
+        chan_end_time = datetime(2026, 1, 1, 10, 5, 0, tzinfo=timezone.utc)
+        recording = Recording(mixmonitor_id='0x01', start_time=call_start)
+        call = RawCallLog()
+        call.recordings = [recording]
+
+        self.interpretor.interpret_mixmonitor_stop(
+            Mock(extra='{"mixmonitor_id": "0x01"}', eventtime=mixmonitor_stop_time),
+            call,
+        )
+        self.interpretor.interpret_chan_end(Mock(eventtime=chan_end_time), call)
+
+        assert_that(recording.end_time, equal_to(mixmonitor_stop_time))
