@@ -1,4 +1,4 @@
-# Copyright 2022-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -356,7 +356,7 @@ class CallLogsGenerator:
             if not extension:
                 continue
 
-            if not (
+            if destination_participant.get('answered') or not (
                 call_log.destination_internal_exten
                 and call_log.destination_internal_context
             ):

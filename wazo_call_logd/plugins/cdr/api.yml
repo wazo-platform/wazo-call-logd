@@ -510,10 +510,10 @@ definitions:
         description: extension of the party that answered the call
       destination_internal_extension:
         type: string
-        description: internal extension of first line to ring if unanswered
+        description: internal extension of the line that answered the call, or the first line to ring if unanswered
       destination_internal_context:
         type: string
-        description: internal context of the first line to ring if unanswered
+        description: internal context of the line that answered the call, or the first line to ring if unanswered
       destination_internal_tenant_uuid:
         type: string
       destination_user_uuid:
