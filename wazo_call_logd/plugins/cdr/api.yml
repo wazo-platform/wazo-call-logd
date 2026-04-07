@@ -480,33 +480,40 @@ definitions:
         type: integer
       requested_name:
         type: string
+        description: name of the intended recipient as dialed
       requested_extension:
         type: string
+        description: extension dialed by the caller
       requested_context:
         type: string
+        description: dialplan context of the dialed extension
       requested_tenant_uuid:
         type: string
       requested_internal_extension:
         type: string
-        description: the internal extension of the first line to ring
+        description: internal extension of the first line to ring
       requested_internal_context:
         type: string
+        description: internal context of the first line to ring
       requested_internal_tenant_uuid:
         type: string
       requested_user_uuid:
         type: string
       destination_details:
         type: object
-        description: Contains the `type` of the called destination; which can be either `user`, `conference`, `meeting`, or `unknown` by default. Also contains useful information about the destination (`id` and `name`).
+        description: Contains the `type` of the called destination; which can be either `user`, `conference`, `meeting`, `group` or `unknown` by default. Also contains useful information about the destination (`id` and `name`).
       destination_name:
         type: string
+        description: name of the party that answered the call
       destination_extension:
         type: string
+        description: extension of the party that answered the call
       destination_internal_extension:
         type: string
-        description: the internal extension of the line that answers
+        description: internal extension of first line to ring if unanswered
       destination_internal_context:
         type: string
+        description: internal context of the first line to ring if unanswered
       destination_internal_tenant_uuid:
         type: string
       destination_user_uuid:
