@@ -1,4 +1,4 @@
-# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from hamcrest import (
     has_properties,
     has_property,
     is_,
+    none,
     raises,
 )
 from xivo_dao.alchemy.cel import CEL
@@ -483,3 +484,50 @@ class TestGroupCelsBySharedChannels(TestCase):
                 ),
             ),
         )
+
+
+class TestFillExtensionsFromParticipants(TestCase):
+    def setUp(self):
+        self.generator = CallLogsGenerator(Mock(), [Mock()])
+
+    def _make_participant(self, exten, context, answered=False):
+        return {
+            'role': 'destination',
+            'answered': answered,
+            'main_extension': {'exten': exten, 'context': context},
+        }
+
+    def test_destination_internal_uses_answered_participant(self):
+        call_log = RawCallLog()
+        call_log.raw_participants = {
+            'chan1': self._make_participant('101', 'default', answered=False),
+            'chan2': self._make_participant('102', 'default', answered=True),
+        }
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_internal_exten, equal_to('102'))
+        assert_that(call_log.destination_internal_context, equal_to('default'))
+
+    def test_destination_internal_falls_back_to_first_when_unanswered(self):
+        call_log = RawCallLog()
+        call_log.raw_participants = {
+            'chan1': self._make_participant('101', 'default', answered=False),
+            'chan2': self._make_participant('102', 'default', answered=False),
+        }
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_internal_exten, equal_to('101'))
+        assert_that(call_log.destination_internal_context, equal_to('default'))
+
+    def test_destination_internal_not_set_when_no_main_extension(self):
+        call_log = RawCallLog()
+        call_log.raw_participants = {
+            'chan1': {'role': 'destination', 'answered': True},
+        }
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_internal_exten, none())
+        assert_that(call_log.destination_internal_context, none())
