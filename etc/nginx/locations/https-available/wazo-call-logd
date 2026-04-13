@@ -1,8 +1,16 @@
+location ^~ /api/call-logd/1.0/cdr {
+    proxy_pass http://127.0.0.1:9298/1.0/cdr;
+    proxy_read_timeout 300s;
+    include /etc/nginx/wazo-call-logd-shared.conf;
+}
+
+location ^~ /api/call-logd/1.0/users/me/cdr {
+    proxy_pass http://127.0.0.1:9298/1.0/users/me/cdr;
+    proxy_read_timeout 300s;
+    include /etc/nginx/wazo-call-logd-shared.conf;
+}
+
 location ^~ /api/call-logd/ {
     proxy_pass http://127.0.0.1:9298/;
-
-    proxy_set_header    Host                $http_host;
-    proxy_set_header    X-Script-Name       /api/call-logd;
-    proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
-    proxy_set_header    X-Forwarded-Proto   $scheme;
+    include /etc/nginx/wazo-call-logd-shared.conf;
 }
