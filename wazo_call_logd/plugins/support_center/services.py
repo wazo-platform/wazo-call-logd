@@ -146,6 +146,17 @@ class AgentStatisticsService(_StatisticsService):
                 )
                 interval_stats = interval_stats or {}
                 interval_stats.update(interval_timeframe)
+                interval_stats['queues'] = self._dao.get_per_queue_intervals_for_agent(
+                    tenant_uuids,
+                    agent_id=agent_id,
+                    from_=start,
+                    until=end,
+                    start_time=start_time,
+                    end_time=end_time,
+                    week_days=week_days,
+                    timezone=timezone,
+                    **kwargs,
+                )
                 agent_stats.append(interval_stats)
 
         period_timeframe = {
@@ -168,6 +179,17 @@ class AgentStatisticsService(_StatisticsService):
         )
         period_stats = period_stats or {}
         period_stats.update(period_timeframe)
+        period_stats['queues'] = self._dao.get_per_queue_intervals_for_agent(
+            tenant_uuids,
+            agent_id=agent_id,
+            from_=from_,
+            until=until,
+            start_time=start_time,
+            end_time=end_time,
+            week_days=week_days,
+            timezone=timezone,
+            **kwargs,
+        )
 
         agent_stats.append(period_stats)
 
@@ -209,6 +231,14 @@ class AgentStatisticsService(_StatisticsService):
                     'agent_number': stat_agent['number'],
                     'tenant_uuid': stat_agent['tenant_uuid'],
                 }
+            )
+            agent_stats_item['queues'] = self._dao.get_per_queue_intervals_for_agent(
+                tenant_uuids,
+                agent_id=agent_id,
+                timezone=timezone,
+                from_=from_,
+                until=until,
+                **kwargs,
             )
             agent_stats_items.append(agent_stats_item)
 

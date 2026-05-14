@@ -1,4 +1,4 @@
-# Copyright 2020-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2020-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import Schema, fields
@@ -6,6 +6,7 @@ from sqlalchemy import func, text
 from xivo_dao.alchemy.stat_agent import StatAgent
 from xivo_dao.alchemy.stat_agent_periodic import StatAgentPeriodic
 from xivo_dao.alchemy.stat_call_on_queue import StatCallOnQueue
+from xivo_dao.alchemy.stat_queue import StatQueue
 
 from .base import BaseDAO
 
@@ -25,6 +26,14 @@ class StatRow(Schema):
     conversation_time = fields.Integer()
     login_time = IntervalAsSeconds()
     pause_time = IntervalAsSeconds()
+    wrapup_time = IntervalAsSeconds()
+
+
+class AgentQueueStatRow(Schema):
+    queue_id = fields.Integer()
+    answered = fields.Integer()
+    conversation_time = fields.Integer()
+    login_time = IntervalAsSeconds()
     wrapup_time = IntervalAsSeconds()
 
 
@@ -103,6 +112,32 @@ class AgentStatDAO(BaseDAO):
                 result = {**basic_stats, **extra_stats}
         return result
 
+    def get_per_queue_intervals_for_agent(self, tenant_uuids, agent_id, **filters):
+        with self.new_session() as session:
+            query = self._agent_queue_stat_query(
+                session, tenant_uuids=tenant_uuids, **filters
+            )
+            query = query.filter(StatAgent.agent_id == agent_id)
+            rows = query.all()
+
+            answered_by_queue = self._get_answered_and_talk_time_per_queue(
+                session, agent_id, **filters
+            )
+
+            results = []
+            schema = AgentQueueStatRow()
+            for row in rows:
+                base = schema.dump(row._mapping)
+                answered, talktime = answered_by_queue.get(base['queue_id'], (0, 0))
+                results.append(
+                    {
+                        **base,
+                        'answered': answered,
+                        'conversation_time': talktime,
+                    }
+                )
+        return results
+
     def _extract_timezone_to_postgres_format(self, from_):
         tz_offset = from_.strftime('%z') or '+0000'
         return f'{tz_offset[0:3]}:{tz_offset[3:]}'
@@ -121,8 +156,26 @@ class AgentStatDAO(BaseDAO):
             )
             .select_from(StatAgent)
             .filter(StatAgent.deleted.is_(False))
+            .filter(StatAgentPeriodic.stat_queue_id.is_(None))
             .join(StatAgentPeriodic)
             .group_by(StatAgentPeriodic.stat_agent_id)
+        )
+        query = self._add_interval_query(StatAgentPeriodic, query, **filters)
+        return query
+
+    def _agent_queue_stat_query(self, session, **filters):
+        query = (
+            session.query(
+                StatQueue.queue_id.label('queue_id'),
+                func.sum(StatAgentPeriodic.login_time).label('login_time'),
+                func.sum(StatAgentPeriodic.wrapup_time).label('wrapup_time'),
+            )
+            .select_from(StatAgent)
+            .filter(StatAgent.deleted.is_(False))
+            .filter(StatAgentPeriodic.stat_queue_id.isnot(None))
+            .join(StatAgentPeriodic)
+            .join(StatQueue, StatQueue.id == StatAgentPeriodic.stat_queue_id)
+            .group_by(StatQueue.queue_id)
         )
         query = self._add_interval_query(StatAgentPeriodic, query, **filters)
         return query
@@ -194,3 +247,19 @@ class AgentStatDAO(BaseDAO):
         )
         query = self._add_interval_query(StatCallOnQueue, query, **filters)
         return query.first() or (0, 0)
+
+    def _get_answered_and_talk_time_per_queue(self, session, agent_id, **filters):
+        query = (
+            session.query(
+                StatQueue.queue_id.label('queue_id'),
+                func.count(StatCallOnQueue.id).label('answered'),
+                func.coalesce(func.sum(StatCallOnQueue.talktime), 0).label('talktime'),
+            )
+            .filter(StatAgent.agent_id == agent_id)
+            .filter(StatCallOnQueue.status == 'answered')
+            .join(StatAgent)
+            .join(StatQueue, StatQueue.id == StatCallOnQueue.stat_queue_id)
+            .group_by(StatQueue.queue_id)
+        )
+        query = self._add_interval_query(StatCallOnQueue, query, **filters)
+        return {row.queue_id: (row.answered, row.talktime) for row in query.all()}

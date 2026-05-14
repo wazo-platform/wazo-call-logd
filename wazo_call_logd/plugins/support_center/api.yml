@@ -285,6 +285,9 @@ definitions:
       agent_number:
         type: string
         description: The number of this agent
+      answered:
+        type: integer
+        description: The number of answered calls
       conversation_time:
         type: integer
         description: The time spent in conversation in seconds
@@ -297,6 +300,29 @@ definitions:
       wrapup_time:
         type: integer
         description: The time spent in wrapup in seconds
+      queues:
+        type: array
+        description: Per-queue breakdown of agent activity over this interval
+        items:
+          $ref: '#/definitions/AgentQueueStatistic'
+  AgentQueueStatistic:
+    type: object
+    properties:
+      queue_id:
+        type: integer
+        description: ID of the queue.
+      answered:
+        type: integer
+        description: Number of calls this agent answered on this queue
+      conversation_time:
+        type: integer
+        description: Time this agent spent in conversation on this queue, in seconds
+      login_time:
+        type: integer
+        description: Time this agent was logged in to this queue, in seconds
+      wrapup_time:
+        type: integer
+        description: Time this agent spent in wrap-up after calls on this queue, in seconds
   QueuesStatistics:
     type: object
     properties:
