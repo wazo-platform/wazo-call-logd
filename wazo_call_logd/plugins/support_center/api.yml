@@ -320,6 +320,9 @@ definitions:
       login_time:
         type: integer
         description: Time this agent was logged in to this queue, in seconds
+      pause_time:
+        type: integer
+        description: Time this agent spent in pause on this queue, in seconds
       wrapup_time:
         type: integer
         description: Time this agent spent in wrap-up after calls on this queue, in seconds

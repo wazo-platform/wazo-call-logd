@@ -37,6 +37,7 @@ class AgentQueueStatisticsSchema(Schema):
     answered = fields.Integer(dump_default=0)
     conversation_time = fields.Integer(dump_default=0)
     login_time = fields.Integer(dump_default=0)
+    pause_time = fields.Integer(dump_default=0)
     wrapup_time = fields.Integer(dump_default=0)
 
 

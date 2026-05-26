@@ -34,6 +34,7 @@ class AgentQueueStatRow(Schema):
     answered = fields.Integer()
     conversation_time = fields.Integer()
     login_time = IntervalAsSeconds()
+    pause_time = IntervalAsSeconds()
     wrapup_time = IntervalAsSeconds()
 
 
@@ -168,6 +169,7 @@ class AgentStatDAO(BaseDAO):
             session.query(
                 StatQueue.queue_id.label('queue_id'),
                 func.sum(StatAgentPeriodic.login_time).label('login_time'),
+                func.sum(StatAgentPeriodic.pause_time).label('pause_time'),
                 func.sum(StatAgentPeriodic.wrapup_time).label('wrapup_time'),
             )
             .select_from(StatAgent)
