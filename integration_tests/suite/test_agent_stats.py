@@ -11,6 +11,7 @@ from hamcrest import (
     equal_to,
     has_entries,
     has_items,
+    has_length,
     has_properties,
 )
 from wazo_call_logd_client.exceptions import CallLogdError
@@ -18,7 +19,12 @@ from wazo_test_helpers.hamcrest.raises import raises
 
 from .helpers.base import IntegrationTest
 from .helpers.constants import MASTER_TENANT
-from .helpers.database import stat_agent, stat_agent_periodic, stat_call_on_queue
+from .helpers.database import (
+    stat_agent,
+    stat_agent_periodic,
+    stat_call_on_queue,
+    stat_queue,
+)
 from .helpers.hamcrest.contains_string_ignoring_case import (
     contains_string_ignoring_case,
 )
@@ -1101,3 +1107,138 @@ class TestStatistics(IntegrationTest):
                 ),
             ),
         )
+
+
+class TestAgentStatisticsQueues(IntegrationTest):
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
+    @stat_queue({'id': 11, 'queue_id': 11, 'name': 'queue_b'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
+    # fmt: on
+    def test_get_agent_statistics_includes_queues_breakdown(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-07 00:00:00',
+        )
+        assert_that(results, has_entries(total=equal_to(1)))
+        item = results['items'][0]
+        assert_that(
+            item,
+            has_entries(
+                agent_id=42,
+                login_time=timedelta(hours=1).total_seconds(),
+                queues=has_items(
+                    has_entries(
+                        queue_id=10,
+                        login_time=timedelta(minutes=30).total_seconds(),
+                    ),
+                    has_entries(
+                        queue_id=11,
+                        login_time=timedelta(minutes=30).total_seconds(),
+                    ),
+                ),
+            ),
+        )
+        assert_that(item['queues'], has_length(2))
+        per_queue_total = sum(q['login_time'] for q in item['queues'])
+        assert_that(per_queue_total, equal_to(item['login_time']))
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
+    @stat_queue({'id': 11, 'queue_id': 11, 'name': 'queue_b'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:10:00', 'wrapup_time': '00:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:10:00', 'wrapup_time': '00:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
+    # fmt: on
+    def test_get_agent_statistics_per_queue_pause(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-07 00:00:00',
+        )
+        item = results['items'][0]
+        assert_that(
+            item,
+            has_entries(
+                pause_time=timedelta(minutes=10).total_seconds(),
+                queues=has_items(
+                    has_entries(
+                        queue_id=10,
+                        pause_time=timedelta(minutes=10).total_seconds(),
+                    ),
+                    has_entries(
+                        queue_id=11,
+                        pause_time=0,
+                    ),
+                ),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:08:00', 'wrapup_time': '00:10:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00', 'pause_time': '00:04:00', 'wrapup_time': '00:05:00'})
+    # fmt: on
+    def test_get_agent_statistics_top_level_excludes_per_queue_rows(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-07 00:00:00',
+        )
+        item = results['items'][0]
+        assert_that(
+            item,
+            has_entries(
+                login_time=timedelta(hours=1).total_seconds(),
+                pause_time=timedelta(minutes=8).total_seconds(),
+                wrapup_time=timedelta(minutes=10).total_seconds(),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:45:00', 'pause_time': '00:00:00', 'wrapup_time': '00:00:00'})
+    # fmt: on
+    def test_list_agent_statistics_includes_queues(self):
+        results = self.call_logd.agent_statistics.list(
+            from_='2020-10-06 00:00:00',
+            until='2020-10-07 00:00:00',
+        )
+        assert_that(
+            results,
+            has_entries(
+                items=has_items(
+                    has_entries(
+                        agent_id=42,
+                        login_time=timedelta(hours=1).total_seconds(),
+                        queues=has_items(
+                            has_entries(
+                                queue_id=10,
+                                login_time=timedelta(minutes=45).total_seconds(),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
+    # fmt: on
+    def test_get_agent_statistics_no_queues_when_no_per_queue_rows(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-07 00:00:00',
+        )
+        item = results['items'][0]
+        assert_that(item, has_entries(queues=empty()))
