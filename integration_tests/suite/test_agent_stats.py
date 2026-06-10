@@ -1568,6 +1568,35 @@ class TestAgentStatisticsQueues(IntegrationTest):
 
     # fmt: off
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_call_on_queue({'agent_id': 1, 'queue_id': 12, 'time': '2020-10-06 13:05:00', 'talktime': 9, 'status': 'answered'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
+    # fmt: on
+    def test_get_agent_statistics_queues_with_answered_calls_only(self):
+        # Historical data: stat_call_on_queue has always carried the queue
+        # dimension, while per-queue periodic rows only exist going forward.
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-07 00:00:00',
+        )
+
+        item = results['items'][0]
+        assert_that(
+            item['queues'],
+            contains_exactly(
+                has_entries(
+                    queue_id=12,
+                    answered=1,
+                    conversation_time=9,
+                    login_time=0,
+                    pause_time=0,
+                    wrapup_time=0,
+                ),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
     @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00'})

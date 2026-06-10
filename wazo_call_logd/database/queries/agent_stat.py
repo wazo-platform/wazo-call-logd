@@ -137,6 +137,21 @@ class AgentStatDAO(BaseDAO):
                         'conversation_time': talktime,
                     }
                 )
+
+            covered_queue_ids = {item['queue_id'] for item in results}
+            for queue_id, (answered, talktime) in answered_by_queue.items():
+                if queue_id in covered_queue_ids:
+                    continue
+                results.append(
+                    {
+                        'queue_id': queue_id,
+                        'answered': answered,
+                        'conversation_time': talktime,
+                        'login_time': 0,
+                        'pause_time': 0,
+                        'wrapup_time': 0,
+                    }
+                )
         return results
 
     def _extract_timezone_to_postgres_format(self, from_):

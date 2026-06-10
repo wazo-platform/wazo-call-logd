@@ -5,7 +5,7 @@
 * Agent statistics now include a per-queue breakdown:
 
   * Items returned by `GET /agents/statistics` and `GET /agents/{agent_id}/statistics` contain a
-    new `queues` array listing, for each queue the agent was a member of, the `queue_id`,
+    new `queues` array listing, for each queue the agent was a member of or answered calls on, the `queue_id`,
     `answered`, `conversation_time`, `login_time`, `pause_time` and `wrapup_time` over the same
     period and filters.
   * For the data to be available, `wazo_stat fill_db` needs to be ran over the wanted period.
