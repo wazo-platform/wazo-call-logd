@@ -1543,6 +1543,32 @@ class TestAgentStatisticsQueues(IntegrationTest):
     # fmt: off
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
+    @stat_queue({'id': 11, 'queue_id': 11, 'name': 'queue_b_deleted', 'deleted': True})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00'})
+    # fmt: on
+    def test_get_agent_statistics_queues_excludes_deleted_queues(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-07 00:00:00',
+        )
+
+        item = results['items'][0]
+        assert_that(
+            item['queues'],
+            contains_exactly(
+                has_entries(
+                    queue_id=10,
+                    login_time=timedelta(minutes=30).total_seconds(),
+                ),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
     @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00'})
     @stat_agent({'id': 2, 'name': 'Agent/2001', 'agent_id': 43, 'tenant_uuid': USERS_TENANT})
