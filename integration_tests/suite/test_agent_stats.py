@@ -1242,3 +1242,180 @@ class TestAgentStatisticsQueues(IntegrationTest):
         )
         item = results['items'][0]
         assert_that(item, has_entries(queues=empty()))
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
+    @stat_queue({'id': 11, 'queue_id': 11, 'name': 'queue_b'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:40:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-06 13:00:00', 'login_time': '00:20:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-07 13:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-07 13:00:00', 'login_time': '00:30:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-07 13:00:00', 'login_time': '00:30:00'})
+    # fmt: on
+    def test_get_agent_statistics_with_day_interval_includes_queues_breakdown(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06 00:00:00',
+            until='2020-10-08 00:00:00',
+            interval='day',
+        )
+
+        # 2 day intervals + the overall period
+        assert_that(results, has_entries(total=equal_to(3)))
+        assert_that(
+            results['items'],
+            has_items(
+                has_entries(
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-07T00:00:00+00:00',
+                    login_time=timedelta(hours=1).total_seconds(),
+                    queues=has_items(
+                        has_entries(
+                            queue_id=10,
+                            login_time=timedelta(minutes=40).total_seconds(),
+                        ),
+                        has_entries(
+                            queue_id=11,
+                            login_time=timedelta(minutes=20).total_seconds(),
+                        ),
+                    ),
+                ),
+                has_entries(
+                    **{'from': '2020-10-07T00:00:00+00:00'},
+                    until='2020-10-08T00:00:00+00:00',
+                    login_time=timedelta(hours=1).total_seconds(),
+                    queues=has_items(
+                        has_entries(
+                            queue_id=10,
+                            login_time=timedelta(minutes=30).total_seconds(),
+                        ),
+                        has_entries(
+                            queue_id=11,
+                            login_time=timedelta(minutes=30).total_seconds(),
+                        ),
+                    ),
+                ),
+                # overall period keeps a breakdown too
+                has_entries(
+                    **{'from': '2020-10-06T00:00:00+00:00'},
+                    until='2020-10-08T00:00:00+00:00',
+                    queues=has_length(2),
+                ),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
+    @stat_queue({'id': 11, 'queue_id': 11, 'name': 'queue_b'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:40:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-06 13:00:00', 'login_time': '00:20:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 14:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 14:00:00', 'login_time': '00:30:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-06 14:00:00', 'login_time': '00:30:00'})
+    # fmt: on
+    def test_get_agent_statistics_with_hour_interval_includes_queues_breakdown(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-06 13:00:00',
+            until='2020-10-06 15:00:00',
+            interval='hour',
+        )
+
+        # 2 hour intervals + the overall period
+        assert_that(results, has_entries(total=equal_to(3)))
+        assert_that(
+            results['items'],
+            has_items(
+                has_entries(
+                    **{'from': '2020-10-06T13:00:00+00:00'},
+                    until='2020-10-06T14:00:00+00:00',
+                    login_time=timedelta(hours=1).total_seconds(),
+                    queues=has_items(
+                        has_entries(
+                            queue_id=10,
+                            login_time=timedelta(minutes=40).total_seconds(),
+                        ),
+                        has_entries(
+                            queue_id=11,
+                            login_time=timedelta(minutes=20).total_seconds(),
+                        ),
+                    ),
+                ),
+                has_entries(
+                    **{'from': '2020-10-06T14:00:00+00:00'},
+                    until='2020-10-06T15:00:00+00:00',
+                    login_time=timedelta(hours=1).total_seconds(),
+                    queues=has_items(
+                        has_entries(
+                            queue_id=10,
+                            login_time=timedelta(minutes=30).total_seconds(),
+                        ),
+                        has_entries(
+                            queue_id=11,
+                            login_time=timedelta(minutes=30).total_seconds(),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+    # fmt: off
+    @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
+    @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
+    @stat_queue({'id': 11, 'queue_id': 11, 'name': 'queue_b'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-15 13:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-15 13:00:00', 'login_time': '00:40:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-15 13:00:00', 'login_time': '00:20:00'})
+    @stat_agent_periodic({'agent_id': 1, 'time': '2020-11-15 13:00:00', 'login_time': '01:00:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-11-15 13:00:00', 'login_time': '00:25:00'})
+    @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-11-15 13:00:00', 'login_time': '00:35:00'})
+    # fmt: on
+    def test_get_agent_statistics_with_month_interval_includes_queues_breakdown(self):
+        results = self.call_logd.agent_statistics.get_by_id(
+            agent_id=42,
+            from_='2020-10-01 00:00:00',
+            until='2020-12-01 00:00:00',
+            interval='month',
+        )
+
+        # 2 month intervals + the overall period
+        assert_that(results, has_entries(total=equal_to(3)))
+        assert_that(
+            results['items'],
+            has_items(
+                has_entries(
+                    **{'from': '2020-10-01T00:00:00+00:00'},
+                    until='2020-11-01T00:00:00+00:00',
+                    login_time=timedelta(hours=1).total_seconds(),
+                    queues=has_items(
+                        has_entries(
+                            queue_id=10,
+                            login_time=timedelta(minutes=40).total_seconds(),
+                        ),
+                        has_entries(
+                            queue_id=11,
+                            login_time=timedelta(minutes=20).total_seconds(),
+                        ),
+                    ),
+                ),
+                has_entries(
+                    **{'from': '2020-11-01T00:00:00+00:00'},
+                    until='2020-12-01T00:00:00+00:00',
+                    login_time=timedelta(hours=1).total_seconds(),
+                    queues=has_items(
+                        has_entries(
+                            queue_id=10,
+                            login_time=timedelta(minutes=25).total_seconds(),
+                        ),
+                        has_entries(
+                            queue_id=11,
+                            login_time=timedelta(minutes=35).total_seconds(),
+                        ),
+                    ),
+                ),
+            ),
+        )
