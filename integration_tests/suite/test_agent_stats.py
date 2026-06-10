@@ -1547,6 +1547,7 @@ class TestAgentStatisticsQueues(IntegrationTest):
     @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00'})
     @stat_agent({'id': 2, 'name': 'Agent/2001', 'agent_id': 43, 'tenant_uuid': USERS_TENANT})
     @stat_queue({'id': 11, 'queue_id': 11, 'name': 'queue_b', 'tenant_uuid': USERS_TENANT})
+    @stat_call_on_queue({'agent_id': 2, 'queue_id': 11, 'tenant_uuid': USERS_TENANT, 'time': '2020-10-06 13:10:00', 'talktime': 7, 'status': 'answered'})
     @stat_agent_periodic({'agent_id': 2, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
     @stat_agent_periodic({'agent_id': 2, 'stat_queue_id': 11, 'time': '2020-10-06 13:00:00', 'login_time': '00:45:00'})
     # fmt: on
@@ -1568,6 +1569,8 @@ class TestAgentStatisticsQueues(IntegrationTest):
                         has_entries(
                             queue_id=11,
                             login_time=timedelta(minutes=45).total_seconds(),
+                            answered=1,
+                            conversation_time=7,
                         ),
                     ),
                 ),

@@ -122,7 +122,7 @@ class AgentStatDAO(BaseDAO):
             rows = query.all()
 
             answered_by_queue = self._get_answered_and_talk_time_per_queue(
-                session, agent_id, **filters
+                session, agent_id, tenant_uuids=tenant_uuids, **filters
             )
 
             results = []
