@@ -207,7 +207,7 @@ class AgentStatisticsService(_StatisticsService):
                 tenant_uuids, timezone=timezone, from_=from_, until=until, **kwargs
             )
         }
-        until = until or self._get_tomorrow(timezone)
+        display_until = until or self._get_tomorrow(timezone)
 
         agent_stats_items = []
         for agent_id, stat_agent in stat_agents.items():
@@ -226,7 +226,7 @@ class AgentStatisticsService(_StatisticsService):
             agent_stats_item.update(
                 {
                     'from': from_date,
-                    'until': until,
+                    'until': display_until,
                     'agent_id': stat_agent['agent_id'],
                     'agent_number': stat_agent['number'],
                     'tenant_uuid': stat_agent['tenant_uuid'],
