@@ -8,6 +8,7 @@ from hamcrest import (
     assert_that,
     calling,
     contains_exactly,
+    contains_inanyorder,
     empty,
     equal_to,
     has_entries,
@@ -1544,11 +1545,14 @@ class TestAgentStatisticsQueues(IntegrationTest):
     @stat_agent({'id': 1, 'name': 'Agent/1001', 'agent_id': 42})
     @stat_queue({'id': 10, 'queue_id': 10, 'name': 'queue_a'})
     @stat_queue({'id': 11, 'queue_id': 11, 'name': 'queue_b_deleted', 'deleted': True})
+    @stat_call_on_queue({'agent_id': 1, 'queue_id': 10, 'time': '2020-10-06 13:05:00', 'talktime': 11, 'status': 'answered'})
+    @stat_call_on_queue({'agent_id': 1, 'queue_id': 10, 'time': '2020-10-06 13:20:00', 'talktime': 12, 'status': 'answered'})
+    @stat_call_on_queue({'agent_id': 1, 'queue_id': 11, 'time': '2020-10-06 13:30:00', 'talktime': 5, 'status': 'answered'})
     @stat_agent_periodic({'agent_id': 1, 'time': '2020-10-06 13:00:00', 'login_time': '01:00:00'})
     @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 10, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00'})
     @stat_agent_periodic({'agent_id': 1, 'stat_queue_id': 11, 'time': '2020-10-06 13:00:00', 'login_time': '00:30:00'})
     # fmt: on
-    def test_get_agent_statistics_queues_excludes_deleted_queues(self):
+    def test_get_agent_statistics_queues_includes_deleted_queues(self):
         results = self.call_logd.agent_statistics.get_by_id(
             agent_id=42,
             from_='2020-10-06 00:00:00',
@@ -1557,11 +1561,23 @@ class TestAgentStatisticsQueues(IntegrationTest):
 
         item = results['items'][0]
         assert_that(
-            item['queues'],
-            contains_exactly(
-                has_entries(
-                    queue_id=10,
-                    login_time=timedelta(minutes=30).total_seconds(),
+            item,
+            has_entries(
+                answered=3,
+                conversation_time=11 + 12 + 5,
+                queues=contains_inanyorder(
+                    has_entries(
+                        queue_id=10,
+                        answered=2,
+                        conversation_time=11 + 12,
+                        login_time=timedelta(minutes=30).total_seconds(),
+                    ),
+                    has_entries(
+                        queue_id=11,
+                        answered=1,
+                        conversation_time=5,
+                        login_time=timedelta(minutes=30).total_seconds(),
+                    ),
                 ),
             ),
         )
