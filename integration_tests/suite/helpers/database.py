@@ -359,6 +359,7 @@ class StatAgentPeriodicData(TypedDict, total=False):
     pause_time: timedelta
     wrapup_time: timedelta
     stat_agent_id: int
+    stat_queue_id: int
 
 
 @contextmanager

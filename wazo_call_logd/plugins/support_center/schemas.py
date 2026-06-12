@@ -32,6 +32,15 @@ class _StatisticsPeriodSchema(Schema):
         return data
 
 
+class AgentQueueStatisticsSchema(Schema):
+    queue_id = fields.Integer(dump_default=None)
+    answered = fields.Integer(dump_default=0)
+    conversation_time = fields.Integer(dump_default=0)
+    login_time = fields.Integer(dump_default=0)
+    pause_time = fields.Integer(dump_default=0)
+    wrapup_time = fields.Integer(dump_default=0)
+
+
 class AgentStatisticsSchema(_StatisticsPeriodSchema):
     agent_id = fields.Integer(dump_default=None)
     agent_number = fields.String(dump_default=None)
@@ -40,6 +49,7 @@ class AgentStatisticsSchema(_StatisticsPeriodSchema):
     login_time = fields.Integer(dump_default=0)
     pause_time = fields.Integer(dump_default=0)
     wrapup_time = fields.Integer(dump_default=0)
+    queues = fields.List(fields.Nested(AgentQueueStatisticsSchema), dump_default=list)
 
 
 class AgentStatisticsSchemaList(Schema):
