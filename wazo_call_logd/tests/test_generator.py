@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import itertools
 from collections import defaultdict
+from datetime import datetime
 from unittest import TestCase
 from unittest.mock import ANY, Mock, create_autospec, patch
 
@@ -28,6 +29,7 @@ from hamcrest import (
 from xivo_dao.alchemy.cel import CEL
 
 from wazo_call_logd.database.cel_event_type import CELEventType
+from wazo_call_logd.database.models import Recording
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.generator import (
     CallLogsGenerator,
@@ -45,6 +47,7 @@ def mock_call():
         recordings=[],
         participants=[],
         participants_info=[],
+        date_answer=None,
     )
 
 
@@ -531,3 +534,52 @@ class TestFillExtensionsFromParticipants(TestCase):
 
         assert_that(call_log.destination_internal_exten, none())
         assert_that(call_log.destination_internal_context, none())
+
+
+class TestRemoveRecordingsForUnansweredCalls(TestCase):
+    def setUp(self):
+        self.generator = CallLogsGenerator(Mock(), [Mock()])
+
+    def _recording(self):
+        return Recording(
+            start_time=datetime.fromisoformat('2021-01-01 00:00:00+00:00'),
+            end_time=datetime.fromisoformat('2021-01-01 00:00:05+00:00'),
+        )
+
+    def test_recordings_dropped_when_call_was_not_answered(self):
+        call_log = RawCallLog()
+        call_log.date_answer = None
+        call_log.raw_participants = {
+            'SIP/caller-00000001': {'role': 'source', 'answered': False},
+            'SIP/callee-00000002': {'role': 'destination', 'answered': False},
+        }
+        call_log.recordings = [self._recording()]
+
+        self.generator._remove_recordings_for_unanswered_calls(call_log)
+
+        assert_that(call_log.recordings, empty())
+
+    def test_recordings_kept_when_call_was_answered(self):
+        call_log = RawCallLog()
+        call_log.date_answer = datetime.fromisoformat('2021-01-01 00:00:01+00:00')
+        recording = self._recording()
+        call_log.recordings = [recording]
+
+        self.generator._remove_recordings_for_unanswered_calls(call_log)
+
+        assert_that(call_log.recordings, contains_exactly(recording))
+
+    def test_recordings_kept_when_a_participant_answered_without_date_answer(self):
+        # Some bridged scenarios (e.g. a mobile callee answering without a caller
+        # ANSWER cel) leave date_answer None even though the call was answered.
+        call_log = RawCallLog()
+        call_log.date_answer = None
+        call_log.raw_participants = {
+            'SIP/callee-00000002': {'role': 'destination', 'answered': True},
+        }
+        recording = self._recording()
+        call_log.recordings = [recording]
+
+        self.generator._remove_recordings_for_unanswered_calls(call_log)
+
+        assert_that(call_log.recordings, contains_exactly(recording))

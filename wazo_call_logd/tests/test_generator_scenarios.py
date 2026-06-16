@@ -1,4 +1,4 @@
-# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -301,6 +301,44 @@ class TestCallLogGenerationScenarios(TestCase):
                         destination_details_key='user_name',
                         destination_details_value=user_name,
                     ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''
+        eventtype        | eventtime              | cid_name | cid_num | exten | context   | channame            | uniqueid      | linkedid     | extra
+        -----------------+------------------------+----------+---------+-------+-----------+---------------------+---------------+--------------+----------------------------------------------------------------
+        CHAN_START       | 2026-04-03 00:00:00.01 | Alice    | 1001    | 1002  | mycontext | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+        APP_START        | 2026-04-03 00:00:00.02 | Alice    | 1001    | s     | mycontext | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+        CHAN_START       | 2026-04-03 00:00:00.03 | Bob      | 1002    | s     | mycontext | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+        MIXMONITOR_START | 2026-04-03 00:00:00.04 | Bob      | 1002    | s     | mycontext | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 | {"filename":"/tmp/record.wav","mixmonitor_id":"0x000000000001"}
+        ANSWER           | 2026-04-03 00:00:00.05 | Bob      | 1002    | s     | mycontext | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+        BRIDGE_ENTER     | 2026-04-03 00:00:00.06 | Bob      | 1002    | s     | mycontext | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+        CHAN_START       | 2026-04-03 00:00:00.07 | Bob      | 1002    | s     | mycontext | SIP/mobile-00000003 | 1000000000.03 | 1000000000.1 |
+        HANGUP           | 2026-04-03 00:00:00.08 | Bob      | 1002    | s     | mycontext | SIP/mobile-00000003 | 1000000000.03 | 1000000000.1 |
+        CHAN_END         | 2026-04-03 00:00:00.08 | Bob      | 1002    | s     | mycontext | SIP/mobile-00000003 | 1000000000.03 | 1000000000.1 |
+        BRIDGE_EXIT      | 2026-04-03 00:00:00.10 | Bob      | 1002    | s     | mycontext | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+        HANGUP           | 2026-04-03 00:00:00.11 | Bob      | 1002    | s     | mycontext | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+        CHAN_END         | 2026-04-03 00:00:00.12 | Bob      | 1002    | s     | mycontext | SIP/bbbbbb-00000002 | 1000000000.02 | 1000000000.1 |
+        BRIDGE_EXIT      | 2026-04-03 00:00:00.13 | Alice    | 1001    | 1002  | mycontext | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+        HANGUP           | 2026-04-03 00:00:00.14 | Alice    | 1001    | 1002  | mycontext | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+        CHAN_END         | 2026-04-03 00:00:00.15 | Alice    | 1001    | 1002  | mycontext | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+        LINKEDID_END     | 2026-04-03 00:00:00.16 | Alice    | 1001    | 1002  | mycontext | SIP/aaaaaa-00000001 | 1000000000.01 | 1000000000.1 |
+        '''
+    )
+    def test_recording_kept_when_callee_answered_without_caller_answer(self, cels):
+        # The callee answers and bridges but the caller has no ANSWER/BRIDGE_ENTER
+        # cel, so date_answer stays None. The recording must still be kept because
+        # the call was in fact answered.
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+        assert_that(
+            call_logs[0],
+            has_properties(
+                date_answer=None,
+                recordings=contains_inanyorder(
+                    has_properties(path='/tmp/record.wav'),
                 ),
             ),
         )

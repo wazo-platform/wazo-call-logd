@@ -257,6 +257,7 @@ class CallLogsGenerator:
                 self._ensure_tenant_uuid_is_set(call_log)
                 self._fill_extensions_from_participants(call_log)
                 self._remove_incomplete_recordings(call_log)
+                self._remove_recordings_for_unanswered_calls(call_log)
                 self._handle_recording_pauses(call_log)
 
                 try:
@@ -388,6 +389,25 @@ class CallLogsGenerator:
                 continue
             new_recordings.append(recording)
         call_log.recordings = new_recordings
+
+    def _remove_recordings_for_unanswered_calls(self, call_log: RawCallLog):
+        # An unanswered call (no-answer, busy, rejected, blocked) has no
+        # connected conversation, so any recording started while it was ringing
+        # is an empty/meaningless file. Dropping it here keeps these phantom
+        # recordings out of the CDR.
+        if not call_log.recordings:
+            return
+        # date_answer alone is not enough: in some bridged scenarios (e.g. a
+        # mobile callee that answers without a caller ANSWER cel) date_answer
+        # stays None even though the call was answered. Treat the call as
+        # answered if any participant entered a bridge.
+        call_was_answered = call_log.date_answer is not None or any(
+            participant.get('answered')
+            for participant in call_log.raw_participants.values()
+        )
+        if not call_was_answered:
+            logger.debug('Discarding recordings of unanswered call')
+            call_log.recordings = []
 
     def _handle_recording_pauses(self, call_log: RawCallLog):
         recordings_seen = {}
