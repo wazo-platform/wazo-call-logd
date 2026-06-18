@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -80,8 +80,15 @@ class CallLogDAO(BaseDAO):
                     order_field = CallLog.date_answer
                 elif params['order'] == 'marshmallow_call_status':
                     order_field = case(
-                        (CallLog.date_answer.isnot(None), 3),
                         (CallLog.blocked.is_(True), 2),
+                        (
+                            and_(
+                                CallLog.reached_voicemail.is_(True),
+                                CallLog.date_answer.is_(None),
+                            ),
+                            3,
+                        ),
+                        (CallLog.date_answer.isnot(None), 4),
                         else_=1,
                     )
                 else:
@@ -287,6 +294,8 @@ class CallLogDAO(BaseDAO):
                 query = query.filter(CallLog.date_answer != None)  # noqa
             elif call_status == CallStatus.BLOCKED:
                 query = query.filter(CallLog.blocked == True)  # noqa
+            elif call_status == CallStatus.VOICEMAIL:
+                query = query.filter(CallLog.reached_voicemail == True)  # noqa
             elif call_status == DEFAULT_CALL_STATUS:
                 query = query.filter(
                     sql.or_(CallLog.blocked == False, CallLog.blocked == None)  # noqa

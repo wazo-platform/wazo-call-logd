@@ -188,13 +188,25 @@ def mock_context(id: int, name: str, tenant_uuid: str) -> dict[str, int | str]:
     return mock_dict({'id': id, 'name': name, 'tenant_uuid': tenant_uuid})
 
 
+def mock_voicemail(
+    id: int, name: str, number: str, context: str
+) -> dict[str, int | str]:
+    return mock_dict({'id': id, 'name': name, 'number': number, 'context': context})
+
+
 def mock_confd_client(
     lines: list[dict] = None,
     users: list[dict] = None,
     contexts: list[dict] = None,
+    voicemails: list[dict] = None,
 ) -> ConfdClient:
     confd_client = create_autospec(
-        ConfdClient, instance=True, lines=Mock(), users=Mock(), contexts=Mock()
+        ConfdClient,
+        instance=True,
+        lines=Mock(),
+        users=Mock(),
+        contexts=Mock(),
+        voicemails=Mock(),
     )
 
     def list_lines(name=None, **kwargs):
@@ -228,6 +240,20 @@ def mock_confd_client(
         return {'items': filtered_contexts}
 
     confd_client.contexts.list.side_effect = list_contexts
+
+    def list_voicemails(number=None, context=None, **kwargs):
+        if voicemails is None:
+            filtered_voicemails = []
+        else:
+            filtered_voicemails = [
+                voicemail
+                for voicemail in voicemails
+                if (number is None or voicemail['number'] == number)
+                and (context is None or voicemail['context'] == context)
+            ]
+        return {'items': filtered_voicemails}
+
+    confd_client.voicemails.list.side_effect = list_voicemails
     return confd_client
 
 
@@ -246,6 +272,121 @@ class TestCallLogGenerationScenarios(TestCase):
             self.confd_client,
             default_interpretors(),
         )
+
+    @raw_cels(
+        '''
+        eventtype    | eventtime                     | cid_name      | cid_num       | exten | context     | channame                | appname         | appdata                                          | linkedid     | uniqueid     | extra
+        CHAN_START   | 2024-05-07 20:00:00.000000+00 | +12345678910  | +12345678910  | 1001  | from-extern | PJSIP/2c70p24m-00000001 |                 |                                                  | 1715000000.1 | 1715000000.1 |
+        XIVO_INCALL  | 2024-05-07 20:00:00.500000+00 | 0012345678910 | 0012345678910 | s     | did         | PJSIP/2c70p24m-00000001 | CELGenUserEvent | XIVO_INCALL,54eb71f8-1f4b-4ae4-8730-638062fbe521 | 1715000000.1 | 1715000000.1 | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        APP_START    | 2024-05-07 20:00:01.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000001 | Voicemail       | 1001@default,u                                   | 1715000000.1 | 1715000000.1 |
+        HANGUP       | 2024-05-07 20:00:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000001 |                 |                                                  | 1715000000.1 | 1715000000.1 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END     | 2024-05-07 20:00:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000001 |                 |                                                  | 1715000000.1 | 1715000000.1 |
+        LINKEDID_END | 2024-05-07 20:00:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000001 |                 |                                                  | 1715000000.1 | 1715000000.1 |
+        '''
+    )
+    def test_incoming_call_directly_to_voicemail(self, cels):
+        self.generator.confd = mock_confd_client(
+            voicemails=[
+                mock_voicemail(id=42, name='Bob VM', number='1001', context='default')
+            ],
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                reached_voicemail=True,
+                date_answer=None,
+                # destination_name is left as interpreted, not the voicemail name
+                destination_name=None,
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='voicemail',
+                    ),
+                    has_properties(
+                        destination_details_key='voicemail_id',
+                        destination_details_value='42',
+                    ),
+                    has_properties(
+                        destination_details_key='voicemail_name',
+                        destination_details_value='Bob VM',
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''
+        eventtype                 | eventtime                     | cid_name      | cid_num       | exten | context     | channame                | appname         | appdata                                                              | linkedid     | uniqueid     | extra
+        CHAN_START                | 2024-05-07 20:01:00.000000+00 | +12345678910  | +12345678910  | 1006  | from-extern | PJSIP/2c70p24m-00000002 |                 |                                                                      | 1715000100.2 | 1715000100.2 |
+        XIVO_INCALL               | 2024-05-07 20:01:00.500000+00 | 0012345678910 | 0012345678910 | s     | did         | PJSIP/2c70p24m-00000002 | CELGenUserEvent | XIVO_INCALL,54eb71f8-1f4b-4ae4-8730-638062fbe521                     | 1715000100.2 | 1715000100.2 | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        WAZO_CALL_LOG_DESTINATION | 2024-05-07 20:01:00.700000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000002 | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: user,uuid: cb79,name: Harry Potter   | 1715000100.2 | 1715000100.2 | {"extra":"type: user,uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,name: Harry Potter"}
+        XIVO_USER_FWD             | 2024-05-07 20:01:02.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000002 | CELGenUserEvent | XIVO_USER_FWD,NUM: 1006,CONTEXT: internal,NAME: Harry Potter         | 1715000100.2 | 1715000100.2 | {"extra":"NUM: 1006, CONTEXT: internal, NAME: Harry Potter"}
+        APP_START                 | 2024-05-07 20:01:02.500000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000002 | VoiceMail       | 1006@default,u                                                      | 1715000100.2 | 1715000100.2 |
+        HANGUP                    | 2024-05-07 20:01:08.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000002 |                 |                                                                      | 1715000100.2 | 1715000100.2 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 2024-05-07 20:01:08.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000002 |                 |                                                                      | 1715000100.2 | 1715000100.2 |
+        LINKEDID_END              | 2024-05-07 20:01:08.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000002 |                 |                                                                      | 1715000100.2 | 1715000100.2 |
+        '''
+    )
+    def test_incoming_call_to_user_no_answer_then_voicemail(self, cels):
+        tenant_uuid = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
+        user_uuid = 'cb79f29b-f69a-4b93-85c2-49dcce119a9f'
+        self.generator.confd = mock_confd_client(
+            users=[mock_user(uuid=user_uuid, tenant_uuid=tenant_uuid)],
+            voicemails=[
+                mock_voicemail(id=7, name='Harry VM', number='1006', context='default')
+            ],
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        # Reaching the voicemail supersedes the authoritative user
+        # destination_details set by WAZO_CALL_LOG_DESTINATION (even though the
+        # call was forwarded), but destination_name is left as interpreted.
+        assert_that(
+            call_logs[0],
+            has_properties(
+                reached_voicemail=True,
+                date_answer=None,
+                destination_name='Harry Potter',
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='voicemail',
+                    ),
+                    has_properties(
+                        destination_details_key='voicemail_id',
+                        destination_details_value='7',
+                    ),
+                    has_properties(
+                        destination_details_key='voicemail_name',
+                        destination_details_value='Harry VM',
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''
+        eventtype    | eventtime                     | cid_name      | cid_num       | exten | context     | channame                | appname         | appdata                                          | linkedid     | uniqueid     | extra
+        CHAN_START   | 2024-05-07 20:02:00.000000+00 | +12345678910  | +12345678910  | 1001  | from-extern | PJSIP/2c70p24m-00000003 |                 |                                                  | 1715000200.3 | 1715000200.3 |
+        XIVO_INCALL  | 2024-05-07 20:02:00.500000+00 | 0012345678910 | 0012345678910 | s     | did         | PJSIP/2c70p24m-00000003 | CELGenUserEvent | XIVO_INCALL,54eb71f8-1f4b-4ae4-8730-638062fbe521 | 1715000200.3 | 1715000200.3 | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        APP_START    | 2024-05-07 20:02:01.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000003 | VoiceMailMain   | 1001@default                                     | 1715000200.3 | 1715000200.3 |
+        HANGUP       | 2024-05-07 20:02:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000003 |                 |                                                  | 1715000200.3 | 1715000200.3 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END     | 2024-05-07 20:02:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000003 |                 |                                                  | 1715000200.3 | 1715000200.3 |
+        LINKEDID_END | 2024-05-07 20:02:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000003 |                 |                                                  | 1715000200.3 | 1715000200.3 |
+        '''
+    )
+    def test_voicemail_main_does_not_count_as_voicemail_redirection(self, cels):
+        # VoiceMailMain() is message retrieval, not a redirection to voicemail.
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(call_logs[0], has_properties(reached_voicemail=False))
 
     @raw_cels(
         '''

@@ -426,6 +426,7 @@ parameters:
     enum:
       - answered
       - blocked
+      - voicemail
     in: query
 definitions:
   call_status:
@@ -433,6 +434,7 @@ definitions:
     enum:
       - answered
       - blocked
+      - voicemail
       - unknown
   CDRList:
     type: object

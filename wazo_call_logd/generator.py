@@ -9,6 +9,7 @@ from collections.abc import Iterator
 from itertools import groupby
 from operator import attrgetter
 
+import requests.exceptions
 from wazo_confd_client import Client as ConfdClient
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo_dao.alchemy.cel import CEL
@@ -18,7 +19,7 @@ from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
 
-from .database.models import CallLog, CallLogParticipant
+from .database.models import CallLog, CallLogParticipant, Destination
 from .participant import ParticipantInfo, find_participant, find_participant_by_uuid
 
 logger = logging.getLogger(__name__)
@@ -256,6 +257,7 @@ class CallLogsGenerator:
                 self._fetch_participants(call_log)
                 self._ensure_tenant_uuid_is_set(call_log)
                 self._fill_extensions_from_participants(call_log)
+                self._resolve_voicemail_destination(call_log)
                 self._remove_incomplete_recordings(call_log)
                 self._remove_recordings_for_unanswered_calls(call_log)
                 self._handle_recording_pauses(call_log)
@@ -380,6 +382,51 @@ class CallLogsGenerator:
                     call_log.requested_internal_exten,
                     call_log.requested_internal_context,
                 )
+
+    def _resolve_voicemail_destination(self, call_log: RawCallLog):
+        if not call_log.reached_voicemail:
+            return
+
+        destination_details = {'type': 'voicemail'}
+        voicemail = self._find_voicemail(
+            call_log.voicemail_number, call_log.voicemail_context
+        )
+        if voicemail is not None:
+            destination_details['voicemail_id'] = str(voicemail['id'])
+            destination_details['voicemail_name'] = voicemail['name']
+
+        # Only destination_details is superseded by the voicemail (the final
+        # destination of the call); the other destination_* fields are left as
+        # interpreted (e.g. the unanswered user from WAZO_CALL_LOG_DESTINATION).
+        call_log.destination_details = [
+            Destination(
+                destination_details_key=key,
+                destination_details_value=value,
+            )
+            for key, value in destination_details.items()
+        ]
+
+    def _find_voicemail(self, number, context):
+        if not number:
+            return None
+        # The "reached voicemail" fact comes from the CEL alone; resolving the
+        # voicemail name/id is best-effort enrichment and must not drop the
+        # call log if confd is unreachable or lacks the endpoint.
+        try:
+            voicemails = self.confd.voicemails.list(
+                number=number,
+                context=context,
+                recurse=True,
+            )['items']
+        except requests.exceptions.HTTPError as e:
+            logger.error(
+                'Failed to fetch voicemail %s@%s from confd: %s', number, context, e
+            )
+            return None
+        if not voicemails:
+            logger.debug('No voicemail found for %s@%s', number, context)
+            return None
+        return voicemails[0]
 
     def _remove_incomplete_recordings(self, call_log: RawCallLog):
         new_recordings = []

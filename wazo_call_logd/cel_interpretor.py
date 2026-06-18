@@ -316,6 +316,26 @@ class CallerCELInterpretor(AbstractCELInterpretor):
     def interpret_app_start(self, cel, call):
         call.user_field = cel.userfield
 
+        # The native VoiceMail() application is the single entry point of every
+        # "leave a message" dialplan path (user no-answer, direct vmbox, vmbox
+        # feature). VoiceMailMain() (message retrieval) is deliberately excluded.
+        # This must run before the was_forwarded early-return below, since the
+        # user no-answer path sets was_forwarded via XIVO_USER_FWD.
+        # NOTE: requires `voicemail` in cel.conf `apps=` for Asterisk to emit the
+        # APP_START; the dialplan uses both `Voicemail(` and `VoiceMail(` casings.
+        if cel.appname.lower() == 'voicemail':
+            mailbox = cel.appdata.split(',', 1)[0]
+            number, _, context = mailbox.partition('@')
+            call.reached_voicemail = True
+            call.voicemail_number = number or None
+            call.voicemail_context = context or None
+            logger.debug(
+                'Identified voicemail redirection from app_start event '
+                '(id=%s, mailbox=%s)',
+                cel.id,
+                mailbox,
+            )
+
         if call.was_forwarded:
             return call
 

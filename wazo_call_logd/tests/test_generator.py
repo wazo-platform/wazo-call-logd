@@ -48,6 +48,7 @@ def mock_call():
         participants=[],
         participants_info=[],
         date_answer=None,
+        reached_voicemail=False,
     )
 
 
@@ -210,6 +211,7 @@ class TestCallLogsGenerator(TestCase):
         sequence_2 = self._generate_cels_for_call('123456789.1')
         sequence_2[0].uniqueid = sequence_1[0].uniqueid
 
+        call_log_constructor.return_value.reached_voicemail = False
         self.interpretor.interpret_cels.side_effect = lambda cels, call: call
         call_logs = self.generator.call_logs_from_cel(sequence_1 + sequence_2)
         assert call_logs
@@ -222,6 +224,7 @@ class TestCallLogsGenerator(TestCase):
         sequence_1 = self._generate_cels_for_call('123456789.0')
         sequence_2 = self._generate_cels_for_call('123456789.1')
 
+        call_log_constructor.return_value.reached_voicemail = False
         self.interpretor.interpret_cels.side_effect = lambda cels, call: call
         call_logs = self.generator.call_logs_from_cel(sequence_1 + sequence_2)
         assert call_logs

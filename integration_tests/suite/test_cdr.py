@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -2582,6 +2582,31 @@ class TestListCDR(IntegrationTest):
                         ),
                     ),
                 )
+            ),
+        )
+
+    @call_log(**{'id': 1}, reached_voicemail=True)
+    @call_log(**{'id': 2}, blocked=False)
+    def test_list_by_call_status_voicemail(self):
+        # a voicemail redirection is surfaced and listed by default (not hidden)
+        assert_that(
+            self.call_logd.cdr.list(),
+            has_entries(
+                items=has_items(
+                    has_entries(id=1, call_status='voicemail'),
+                    has_entries(id=2, call_status='unknown'),
+                ),
+                filtered=2,
+                total=2,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list(call_status='voicemail'),
+            has_entries(
+                items=contains_exactly(has_entries(id=1, call_status='voicemail')),
+                filtered=1,
+                total=2,
             ),
         )
 
