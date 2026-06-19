@@ -418,7 +418,9 @@ class CallLogsGenerator:
                 context=context,
                 recurse=True,
             )['items']
-        except requests.exceptions.HTTPError as e:
+        except requests.exceptions.RequestException as e:
+            # Catch any confd request failure (HTTP error, timeout, connection
+            # error): the lookup is best-effort and must not drop the call log.
             logger.error(
                 'Failed to fetch voicemail %s@%s from confd: %s', number, context, e
             )

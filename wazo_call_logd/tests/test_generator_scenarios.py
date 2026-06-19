@@ -12,6 +12,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock, Mock, create_autospec
 from uuid import uuid4
 
+import requests
 from hamcrest import assert_that, contains_inanyorder, has_properties
 from requests import HTTPError
 
@@ -387,6 +388,42 @@ class TestCallLogGenerationScenarios(TestCase):
         assert len(call_logs) == 1
 
         assert_that(call_logs[0], has_properties(reached_voicemail=False))
+
+    @raw_cels(
+        '''
+        eventtype    | eventtime                     | cid_name      | cid_num       | exten | context     | channame                | appname         | appdata                                          | linkedid     | uniqueid     | extra
+        CHAN_START   | 2024-05-07 20:03:00.000000+00 | +12345678910  | +12345678910  | 1004  | from-extern | PJSIP/2c70p24m-00000004 |                 |                                                  | 1715000300.4 | 1715000300.4 |
+        XIVO_INCALL  | 2024-05-07 20:03:00.500000+00 | 0012345678910 | 0012345678910 | s     | did         | PJSIP/2c70p24m-00000004 | CELGenUserEvent | XIVO_INCALL,54eb71f8-1f4b-4ae4-8730-638062fbe521 | 1715000300.4 | 1715000300.4 | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        APP_START    | 2024-05-07 20:03:01.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000004 | Voicemail       | 1004@default,u                                   | 1715000300.4 | 1715000300.4 |
+        HANGUP       | 2024-05-07 20:03:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000004 |                 |                                                  | 1715000300.4 | 1715000300.4 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END     | 2024-05-07 20:03:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000004 |                 |                                                  | 1715000300.4 | 1715000300.4 |
+        LINKEDID_END | 2024-05-07 20:03:05.000000+00 | 0012345678910 | 0012345678910 | s     | user        | PJSIP/2c70p24m-00000004 |                 |                                                  | 1715000300.4 | 1715000300.4 |
+        '''
+    )
+    def test_voicemail_destination_resolution_survives_confd_failure(self, cels):
+        # A confd outage (connection error, not an HTTP error) during voicemail
+        # resolution must not drop the whole CDR: the CEL-derived voicemail state
+        # is kept, only the id/name enrichment is skipped.
+        self.generator.confd = mock_confd_client()
+        self.generator.confd.voicemails.list.side_effect = (
+            requests.exceptions.ConnectionError('confd unreachable')
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                reached_voicemail=True,
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='voicemail',
+                    ),
+                ),
+            ),
+        )
 
     @raw_cels(
         '''
