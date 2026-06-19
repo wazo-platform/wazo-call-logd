@@ -295,7 +295,13 @@ class CallLogDAO(BaseDAO):
             elif call_status == CallStatus.BLOCKED:
                 query = query.filter(CallLog.blocked == True)  # noqa
             elif call_status == CallStatus.VOICEMAIL:
-                query = query.filter(CallLog.reached_voicemail == True)  # noqa
+                # Mirror the computed call_status (CDRSchema._compute_fields):
+                # voicemail only when the call is unanswered and not blocked.
+                query = query.filter(
+                    CallLog.reached_voicemail == True,  # noqa
+                    CallLog.date_answer == None,  # noqa
+                    sql.or_(CallLog.blocked == False, CallLog.blocked == None),  # noqa
+                )
             elif call_status == DEFAULT_CALL_STATUS:
                 query = query.filter(
                     sql.or_(CallLog.blocked == False, CallLog.blocked == None)  # noqa
