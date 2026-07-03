@@ -389,7 +389,9 @@ class CallLogsGenerator:
 
         destination_details = {'type': 'voicemail'}
         voicemail = self._find_voicemail(
-            call_log.voicemail_number, call_log.voicemail_context
+            call_log.voicemail_number,
+            call_log.voicemail_context,
+            call_log.tenant_uuid,
         )
         if voicemail is not None:
             destination_details['voicemail_id'] = str(voicemail['id'])
@@ -406,17 +408,18 @@ class CallLogsGenerator:
             for key, value in destination_details.items()
         ]
 
-    def _find_voicemail(self, number, context):
+    def _find_voicemail(self, number, context, tenant_uuid):
         if not number:
             return None
-        # The "reached voicemail" fact comes from the CEL alone; resolving the
-        # voicemail name/id is best-effort enrichment and must not drop the
-        # call log if confd is unreachable or lacks the endpoint.
+        # Best-effort enrichment: never drop the call log if confd fails.
+        # Scope to the call log's tenant, else recurse=True spans every tenant
+        # and a context-less number could leak another tenant's voicemail.
         try:
             voicemails = self.confd.voicemails.list(
                 number=number,
                 context=context,
                 recurse=True,
+                tenant_uuid=tenant_uuid,
             )['items']
         except requests.exceptions.RequestException as e:
             # Catch any confd request failure (HTTP error, timeout, connection
