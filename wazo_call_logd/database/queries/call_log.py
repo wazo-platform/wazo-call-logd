@@ -302,6 +302,17 @@ class CallLogDAO(BaseDAO):
                     CallLog.date_answer == None,  # noqa
                     sql.or_(CallLog.blocked == False, CallLog.blocked == None),  # noqa
                 )
+            elif call_status == CallStatus.UNKNOWN:
+                # Mirror the computed call_status (CDRSchema._compute_fields):
+                # unknown only when neither answered, voicemail, nor blocked.
+                query = query.filter(
+                    CallLog.date_answer == None,  # noqa
+                    sql.or_(
+                        CallLog.reached_voicemail == False,  # noqa
+                        CallLog.reached_voicemail == None,  # noqa
+                    ),
+                    sql.or_(CallLog.blocked == False, CallLog.blocked == None),  # noqa
+                )
             elif call_status == DEFAULT_CALL_STATUS:
                 query = query.filter(
                     sql.or_(CallLog.blocked == False, CallLog.blocked == None)  # noqa

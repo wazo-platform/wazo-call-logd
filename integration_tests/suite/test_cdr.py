@@ -2623,6 +2623,17 @@ class TestListCDR(IntegrationTest):
             ),
         )
 
+        # unknown = neither answered, voicemail, nor blocked; must not leak
+        # blocked rows (id=4).
+        assert_that(
+            self.call_logd.cdr.list(call_status='unknown'),
+            has_entries(
+                items=contains_exactly(has_entries(id=2, call_status='unknown')),
+                filtered=1,
+                total=4,
+            ),
+        )
+
     @call_log(
         **{'id': 10},
         date='2017-03-23 00:00:00',
