@@ -28,7 +28,8 @@ OLD_KEYS = (
     'group_label',
     'group_id',
 )
-NEW_KEYS = OLD_KEYS + ('voicemail_id', 'voicemail_name')
+VOICEMAIL_KEYS = ('voicemail_id', 'voicemail_name')
+NEW_KEYS = OLD_KEYS + VOICEMAIL_KEYS
 
 
 def _key_in(keys):
@@ -48,6 +49,10 @@ def upgrade():
 
 def downgrade():
     op.drop_constraint(DESTINATION_KEY_CHECK, DESTINATION_TABLE, type_='check')
+    # Postgres validates the narrowed constraint against existing rows, so drop
+    # the voicemail rows this revision allowed before recreating OLD_KEYS.
+    destination = sa.table(DESTINATION_TABLE, sa.column('destination_details_key'))
+    op.execute(destination.delete().where(_key_in(VOICEMAIL_KEYS)))
     op.create_check_constraint(
         DESTINATION_KEY_CHECK, DESTINATION_TABLE, _key_in(OLD_KEYS)
     )
