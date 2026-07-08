@@ -711,6 +711,53 @@ class TestResolveVoicemailDestination(TestCase):
         )
 
 
+class TestRemoveDuplicateParticipants(TestCase):
+    def setUp(self):
+        self.generator = CallLogsGenerator(Mock(), [Mock()])
+
+    def test_channels_from_distinct_lines_are_kept(self):
+        call_log = RawCallLog()
+        call_log.raw_participants = {
+            'PJSIP/line-a-00000001': {'role': 'destination'},
+            'PJSIP/line-b-00000002': {'role': 'destination'},
+        }
+
+        self.generator._remove_duplicate_participants(call_log)
+
+        assert_that(
+            sorted(call_log.raw_participants.keys()),
+            equal_to(['PJSIP/line-a-00000001', 'PJSIP/line-b-00000002']),
+        )
+
+    def test_last_channel_kept_when_no_duplicate_answered(self):
+        call_log = RawCallLog()
+        call_log.raw_participants = {
+            'PJSIP/line-a-00000001': {'role': 'destination'},
+            'PJSIP/line-a-00000002': {'role': 'destination'},
+        }
+
+        self.generator._remove_duplicate_participants(call_log)
+
+        assert_that(
+            list(call_log.raw_participants.keys()),
+            equal_to(['PJSIP/line-a-00000002']),
+        )
+
+    def test_answered_channel_kept_over_later_duplicate(self):
+        call_log = RawCallLog()
+        call_log.raw_participants = {
+            'PJSIP/line-a-00000001': {'role': 'destination', 'answered': True},
+            'PJSIP/line-a-00000002': {'role': 'destination'},
+        }
+
+        self.generator._remove_duplicate_participants(call_log)
+
+        assert_that(
+            list(call_log.raw_participants.keys()),
+            equal_to(['PJSIP/line-a-00000001']),
+        )
+
+
 class TestRemoveRecordingsForUnansweredCalls(TestCase):
     def setUp(self):
         self.generator = CallLogsGenerator(Mock(), [Mock()])

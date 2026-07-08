@@ -297,9 +297,22 @@ class CallLogsGenerator:
         for _, line_channel_names in groupby(
             channel_names, protocol_interface_from_channel
         ):
-            duplicate_channel_names = tuple(line_channel_names)[:-1]
-            for duplicate_channel_name in duplicate_channel_names:
-                call_log.raw_participants.pop(duplicate_channel_name, None)
+            line_channel_names = tuple(line_channel_names)
+            # a line can generate multiple channels for the same call, e.g. a
+            # second dial once the mobile app registers after a push
+            # notification; keep the answered channel over the others
+            answered_channel_names = tuple(
+                channel_name
+                for channel_name in line_channel_names
+                if call_log.raw_participants[channel_name].get('answered')
+            )
+            if answered_channel_names:
+                kept_channel_name = answered_channel_names[-1]
+            else:
+                kept_channel_name = line_channel_names[-1]
+            for channel_name in line_channel_names:
+                if channel_name != kept_channel_name:
+                    call_log.raw_participants.pop(channel_name, None)
 
     def _fetch_participants(self, call_log: RawCallLog):
         participant_processor = _ParticipantsProcessor(self.confd)
