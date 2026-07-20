@@ -373,6 +373,76 @@ class TestCallLogGenerationScenarios(TestCase):
 
     @raw_cels(
         '''
+        eventtype                 | eventtime                     | cid_name       | cid_num  | exten             | context                    | channame                                             | appname         | appdata                                              | linkedid     | uniqueid     | extra
+        CHAN_START                | 2026-07-20 19:45:15.345995+00 | 123            | eg8otwpk | 1234              | from-extern                | PJSIP/eg8otwpk-00000000                              |                 |                                                      | 1784576715.0 | 1784576715.0 |
+        XIVO_INCALL               | 2026-07-20 19:45:16.263404+00 | 123            | eg8otwpk | s                 | did                        | PJSIP/eg8otwpk-00000000                              | CELGenUserEvent | XIVO_INCALL,bebbeda2-ab4a-43af-a5e8-ab859ed2f40b     | 1784576715.0 | 1784576715.0 | {"extra":"bebbeda2-ab4a-43af-a5e8-ab859ed2f40b"}
+        WAZO_CALL_LOG_DESTINATION | 2026-07-20 19:45:16.386789+00 | 123            | eg8otwpk | s                 | user                       | PJSIP/eg8otwpk-00000000                              | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: user               | 1784576715.0 | 1784576715.0 | {"extra":"type: user,uuid: f6cb32d4-3364-424a-a7b2-d09c7df891ff,name: Paul Telephone"}
+        APP_START                 | 2026-07-20 19:45:16.427070+00 | 123            | eg8otwpk | s                 | user                       | PJSIP/eg8otwpk-00000000                              | Dial            | Local/G4rk8xzR@wazo_wait_for_registration&PJSIP     | 1784576715.0 | 1784576715.0 |
+        CHAN_START                | 2026-07-20 19:45:16.427468+00 |                |          | G4rk8xzR          | wazo_wait_for_registration | Local/G4rk8xzR@wazo_wait_for_registration-00000000;1 |                 |                                                      | 1784576715.0 | 1784576716.1 |
+        CHAN_START                | 2026-07-20 19:45:16.427494+00 |                |          | G4rk8xzR          | wazo_wait_for_registration | Local/G4rk8xzR@wazo_wait_for_registration-00000000;2 |                 |                                                      | 1784576715.0 | 1784576716.2 |
+        CHAN_START                | 2026-07-20 19:45:16.428090+00 | Paul Telephone | 1002     | s                 | internal                   | PJSIP/w6hpvj79-00000001                              |                 |                                                      | 1784576715.0 | 1784576716.3 |
+        HANGUP                    | 2026-07-20 19:45:18.543791+00 | Paul Telephone | 1002     | s                 | internal                   | PJSIP/w6hpvj79-00000001                              | AppDial         | (Outgoing Line)                                      | 1784576715.0 | 1784576716.3 | {"hangupcause":17,"hangupsource":"PJSIP/w6hpvj79-00000001","dialstatus":""}
+        CHAN_END                  | 2026-07-20 19:45:18.543791+00 | Paul Telephone | 1002     | s                 | internal                   | PJSIP/w6hpvj79-00000001                              | AppDial         | (Outgoing Line)                                      | 1784576715.0 | 1784576716.3 |
+        HANGUP                    | 2026-07-20 19:45:46.461119+00 | Paul Telephone | s        | s                 | wazo_wait_for_registration | Local/G4rk8xzR@wazo_wait_for_registration-00000000;1 | AppDial         | (Outgoing Line)                                      | 1784576715.0 | 1784576716.1 | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 2026-07-20 19:45:46.461119+00 | Paul Telephone | s        | s                 | wazo_wait_for_registration | Local/G4rk8xzR@wazo_wait_for_registration-00000000;1 | AppDial         | (Outgoing Line)                                      | 1784576715.0 | 1784576716.1 |
+        HANGUP                    | 2026-07-20 19:45:46.462248+00 | 123            | eg8otwpk | G4rk8xzR          | wazo_wait_for_registration | Local/G4rk8xzR@wazo_wait_for_registration-00000000;2 |                 |                                                      | 1784576715.0 | 1784576716.2 | {"hangupcause":0,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 2026-07-20 19:45:46.462248+00 | 123            | eg8otwpk | G4rk8xzR          | wazo_wait_for_registration | Local/G4rk8xzR@wazo_wait_for_registration-00000000;2 |                 |                                                      | 1784576715.0 | 1784576716.2 |
+        XIVO_USER_FWD             | 2026-07-20 19:45:46.462933+00 | 123            | eg8otwpk | forward_voicemail | user                       | PJSIP/eg8otwpk-00000000                              | CELGenUserEvent | XIVO_USER_FWD,NUM:1002                              | 1784576715.0 | 1784576715.0 | {"extra":"NUM:1002,CONTEXT:ucengine-key8477-internal,NAME:Paul Telephone"}
+        WAZO_USER_MISSED_CALL     | 2026-07-20 19:45:46.463095+00 | 123            | eg8otwpk | forward_voicemail | user                       | PJSIP/eg8otwpk-00000000                              | CELGenUserEvent | WAZO_USER_MISSED_CALL                              | 1784576715.0 | 1784576715.0 | {"extra":"wazo_tenant_uuid: bebbeda2-ab4a-43af-a5e8-ab859ed2f40b,source_user_uuid: ,destination_user_uuid: f6cb32d4-3364-424a-a7b2-d09c7df891ff,destination_exten: 1234,source_name: 123,destination_name: Paul%20Telephone"}
+        APP_START                 | 2026-07-20 19:45:46.468070+00 | 123            | eg8otwpk | voicemail         | user                       | PJSIP/eg8otwpk-00000000                              | VoiceMail       | 1002@ucengine-key8477-internal,u                    | 1784576715.0 | 1784576715.0 |
+        ANSWER                    | 2026-07-20 19:45:46.468124+00 | 123            | eg8otwpk | voicemail         | user                       | PJSIP/eg8otwpk-00000000                              | VoiceMail       | 1002@ucengine-key8477-internal,u                    | 1784576715.0 | 1784576715.0 |
+        HANGUP                    | 2026-07-20 19:46:20.000000+00 | 123            | eg8otwpk | voicemail         | user                       | PJSIP/eg8otwpk-00000000                              |                 |                                                      | 1784576715.0 | 1784576715.0 | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 2026-07-20 19:46:20.000000+00 | 123            | eg8otwpk | voicemail         | user                       | PJSIP/eg8otwpk-00000000                              |                 |                                                      | 1784576715.0 | 1784576715.0 |
+        LINKEDID_END              | 2026-07-20 19:46:20.000000+00 | 123            | eg8otwpk | voicemail         | user                       | PJSIP/eg8otwpk-00000000                              |                 |                                                      | 1784576715.0 | 1784576715.0 |
+        '''
+    )
+    def test_incoming_call_to_user_voicemail_via_local_registration(self, cels):
+        # Real production topology: an incall Dials the user through a
+        # Local/wazo_wait_for_registration pair; the line does not answer and
+        # the caller channel runs VoiceMail(). The VoiceMail APP_START is on the
+        # caller channel, so reached_voicemail must be set and the CDR surfaced
+        # as call_status=voicemail (unanswered).
+        tenant_uuid = 'bebbeda2-ab4a-43af-a5e8-ab859ed2f40b'
+        user_uuid = 'f6cb32d4-3364-424a-a7b2-d09c7df891ff'
+        self.generator.confd = mock_confd_client(
+            users=[mock_user(uuid=user_uuid, tenant_uuid=tenant_uuid)],
+            voicemails=[
+                mock_voicemail(
+                    id=12,
+                    name='Paul VM',
+                    number='1002',
+                    context='ucengine-key8477-internal',
+                )
+            ],
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                reached_voicemail=True,
+                date_answer=None,
+                destination_details=contains_inanyorder(
+                    has_properties(
+                        destination_details_key='type',
+                        destination_details_value='voicemail',
+                    ),
+                    has_properties(
+                        destination_details_key='voicemail_id',
+                        destination_details_value='12',
+                    ),
+                    has_properties(
+                        destination_details_key='voicemail_name',
+                        destination_details_value='Paul VM',
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''
         eventtype    | eventtime                     | cid_name      | cid_num       | exten | context     | channame                | appname         | appdata                                          | linkedid     | uniqueid     | extra
         CHAN_START   | 2024-05-07 20:02:00.000000+00 | +12345678910  | +12345678910  | 1001  | from-extern | PJSIP/2c70p24m-00000003 |                 |                                                  | 1715000200.3 | 1715000200.3 |
         XIVO_INCALL  | 2024-05-07 20:02:00.500000+00 | 0012345678910 | 0012345678910 | s     | did         | PJSIP/2c70p24m-00000003 | CELGenUserEvent | XIVO_INCALL,54eb71f8-1f4b-4ae4-8730-638062fbe521 | 1715000200.3 | 1715000200.3 | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
