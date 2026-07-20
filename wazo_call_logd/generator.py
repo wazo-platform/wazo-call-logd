@@ -220,6 +220,7 @@ class CallLogsGenerator:
 
     def call_logs_from_cel(self, cels: list[CEL]) -> list[CallLog]:
         result = []
+        voicemail_cache: dict = {}
         for linkedids, cels_by_call in _group_cels_by_shared_channels(cels):
             logger.debug(
                 'interpreting %d cels from correlated linkedids(%s)',
@@ -257,7 +258,7 @@ class CallLogsGenerator:
                 self._fetch_participants(call_log)
                 self._ensure_tenant_uuid_is_set(call_log)
                 self._fill_extensions_from_participants(call_log)
-                self._resolve_voicemail_destination(call_log)
+                self._resolve_voicemail_destination(call_log, voicemail_cache)
                 self._remove_incomplete_recordings(call_log)
                 self._remove_recordings_for_unanswered_calls(call_log)
                 self._handle_recording_pauses(call_log)
@@ -383,7 +384,7 @@ class CallLogsGenerator:
                     call_log.requested_internal_context,
                 )
 
-    def _resolve_voicemail_destination(self, call_log: RawCallLog):
+    def _resolve_voicemail_destination(self, call_log: RawCallLog, cache=None):
         # Voicemail is the destination only when unanswered (mirrors the
         # computed call_status); answered calls keep their interpreted details.
         if not call_log.reached_voicemail or call_log.date_answer:
@@ -393,6 +394,7 @@ class CallLogsGenerator:
             call_log.voicemail_number,
             call_log.voicemail_context,
             call_log.tenant_uuid,
+            cache,
         )
         if voicemail is None:
             # Unresolved (confd down, unknown mailbox): keep the interpreted
@@ -415,9 +417,14 @@ class CallLogsGenerator:
             for key, value in destination_details.items()
         ]
 
-    def _find_voicemail(self, number, context, tenant_uuid):
+    def _find_voicemail(self, number, context, tenant_uuid, cache=None):
         if not number:
             return None
+        # Memoize per batch: a run regenerating many calls to the same mailbox
+        # would otherwise issue one identical confd request per call log.
+        key = (number, context, tenant_uuid)
+        if cache is not None and key in cache:
+            return cache[key]
         # Best-effort enrichment: never drop the call log if confd fails.
         # Scope to the call log's tenant, else recurse=True spans every tenant
         # and a context-less number could leak another tenant's voicemail.
@@ -431,14 +438,17 @@ class CallLogsGenerator:
         except requests.exceptions.RequestException as e:
             # Catch any confd request failure (HTTP error, timeout, connection
             # error): the lookup is best-effort and must not drop the call log.
+            # Not cached: a transient failure must not poison later lookups.
             logger.error(
                 'Failed to fetch voicemail %s@%s from confd: %s', number, context, e
             )
             return None
-        if not voicemails:
+        voicemail = voicemails[0] if voicemails else None
+        if voicemail is None:
             logger.debug('No voicemail found for %s@%s', number, context)
-            return None
-        return voicemails[0]
+        if cache is not None:
+            cache[key] = voicemail
+        return voicemail
 
     def _remove_incomplete_recordings(self, call_log: RawCallLog):
         new_recordings = []

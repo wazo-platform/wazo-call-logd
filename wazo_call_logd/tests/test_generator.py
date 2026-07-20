@@ -638,6 +638,54 @@ class TestResolveVoicemailDestination(TestCase):
             ),
         )
 
+    def test_cache_collapses_repeated_lookups_into_one_confd_call(self):
+        # A batch of call logs hitting the same mailbox must issue a single
+        # confd request, not one per call log.
+        self.confd.voicemails.list.return_value = {
+            'items': [{'id': 7, 'name': 'Harry VM'}]
+        }
+        cache: dict = {}
+
+        for _ in range(3):
+            self.generator._resolve_voicemail_destination(
+                self._voicemail_call_log(), cache
+            )
+
+        self.confd.voicemails.list.assert_called_once()
+
+    def test_transient_confd_failure_is_not_cached(self):
+        # A request failure must not poison the cache: a later call to the same
+        # mailbox retries confd.
+        self.confd.voicemails.list.side_effect = [
+            requests.exceptions.ConnectionError('confd unreachable'),
+            {'items': [{'id': 7, 'name': 'Harry VM'}]},
+        ]
+        cache: dict = {}
+
+        first = self._voicemail_call_log()
+        self.generator._resolve_voicemail_destination(first, cache)
+        second = self._voicemail_call_log()
+        self.generator._resolve_voicemail_destination(second, cache)
+
+        assert_that(self.confd.voicemails.list.call_count, equal_to(2))
+        assert_that(
+            second.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='voicemail',
+                ),
+                has_properties(
+                    destination_details_key='voicemail_id',
+                    destination_details_value='7',
+                ),
+                has_properties(
+                    destination_details_key='voicemail_name',
+                    destination_details_value='Harry VM',
+                ),
+            ),
+        )
+
     def test_answered_call_keeps_interpreted_destination_details(self):
         # A call that reached voicemail but was ultimately answered (voicemail
         # escape then operator) has computed call_status 'answered', so its
