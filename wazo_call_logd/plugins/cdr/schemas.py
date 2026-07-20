@@ -170,6 +170,9 @@ class CDRSchema(Schema):
         if data.date_answer and data.date_end:
             data.marshmallow_duration = data.date_end - data.date_answer
 
+        # Canonical call_status definition. The SQL predicates in
+        # database/queries/call_log.py mirror this for filtering and ordering;
+        # keep them in sync. Precedence: blocked > voicemail > answered.
         data.marshmallow_call_status = CallStatus.UNKNOWN.value
         if data.marshmallow_answered:
             data.marshmallow_call_status = CallStatus.ANSWERED.value
