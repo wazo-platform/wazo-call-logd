@@ -26,6 +26,7 @@ from ..cel_interpretor import (
     CalleeCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
+    LocalOriginateCELInterpretor,
     _extract_user_missed_call_variables,
     _parse_wazo_originate_all_lines_extra,
     bridge_info,
@@ -755,3 +756,46 @@ class TestCalleeCELInterpretor(TestCase):
         self.interpretor.interpret_cel(cel, call)
 
         assert_that(call.reached_voicemail, equal_to(False))
+
+
+class TestLocalOriginateCELInterpretor(TestCase):
+    def setUp(self):
+        self.interpretor = LocalOriginateCELInterpretor()
+
+    def _cel(self, eventtype, uniqueid, **kwargs):
+        when = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+        defaults = {
+            'eventtype': eventtype,
+            'uniqueid': uniqueid,
+            'eventtime': when,
+            'cid_name': '',
+            'cid_num': '',
+            'channame': f'PJSIP/{uniqueid}-00000001',
+        }
+        defaults.update(kwargs)
+        return Mock(**defaults)
+
+    def test_originated_call_to_voicemail_sets_reached_voicemail(self):
+        # A click-to-call/API-originated call (local channel pair + source +
+        # destination) that ends in voicemail runs VoiceMail() on one of its
+        # channels; it must be detected like the caller/callee paths.
+        cels = [
+            self._cel('CHAN_START', 'local1', channame='Local/1@a-00000001;1'),
+            self._cel('CHAN_START', 'local2', channame='Local/1@a-00000001;2'),
+            self._cel('CHAN_START', 'source', cid_name='Bob', cid_num='1006'),
+            self._cel('ANSWER', 'source', cid_name='Bob', cid_num='1006'),
+            self._cel('ANSWER', 'local2', cid_num='1006'),
+            self._cel(
+                'APP_START', 'dest', appname='VoiceMail', appdata='1006@default,u'
+            ),
+            self._cel('CHAN_END', 'source'),
+        ]
+        call = RawCallLog()
+
+        self.interpretor.interpret_cels(cels, call)
+
+        assert_that(call.reached_voicemail, equal_to(True))
+        assert_that(call.voicemail_number, equal_to('1006'))
+        assert_that(call.voicemail_context, equal_to('default'))
+        # no destination answered, so the call stays unanswered (voicemail)
+        assert_that(call.date_answer, equal_to(None))
