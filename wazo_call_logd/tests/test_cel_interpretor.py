@@ -757,6 +757,23 @@ class TestCalleeCELInterpretor(TestCase):
 
         assert_that(call.reached_voicemail, equal_to(False))
 
+    def test_interpret_app_start_multi_mailbox_uses_first(self):
+        # A custom dialplan may pass Asterisk's "&"-separated multi-mailbox
+        # syntax; the CDR is attributed to the first mailbox, not a garbage
+        # context.
+        cel = Mock(
+            eventtype=CELEventType.app_start,
+            appname='VoiceMail',
+            appdata='1001@default&1002@other,u',
+        )
+        call = RawCallLog()
+
+        self.interpretor.interpret_cel(cel, call)
+
+        assert_that(call.reached_voicemail, equal_to(True))
+        assert_that(call.voicemail_number, equal_to('1001'))
+        assert_that(call.voicemail_context, equal_to('default'))
+
 
 class TestLocalOriginateCELInterpretor(TestCase):
     def setUp(self):

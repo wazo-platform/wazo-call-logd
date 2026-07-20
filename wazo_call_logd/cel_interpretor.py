@@ -220,7 +220,9 @@ def interpret_voicemail_app_start(cel, call):
     # excluded. Requires `voicemail` in cel.conf `apps=` so Asterisk emits
     # APP_START.
     if cel.appname.lower() == 'voicemail':
-        mailbox = cel.appdata.split(',', 1)[0]
+        # appdata is "mailbox[,options]"; a custom dialplan may pass an Asterisk
+        # "&"-separated multi-mailbox list, so attribute the CDR to the first.
+        mailbox = cel.appdata.split(',', 1)[0].split('&', 1)[0]
         number, _, context = mailbox.partition('@')
         call.reached_voicemail = True
         call.voicemail_number = number or None
