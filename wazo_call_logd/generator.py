@@ -384,7 +384,9 @@ class CallLogsGenerator:
                 )
 
     def _resolve_voicemail_destination(self, call_log: RawCallLog):
-        if not call_log.reached_voicemail:
+        # Voicemail is the destination only when unanswered (mirrors the
+        # computed call_status); answered calls keep their interpreted details.
+        if not call_log.reached_voicemail or call_log.date_answer:
             return
 
         destination_details = {'type': 'voicemail'}
