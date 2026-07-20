@@ -727,3 +727,31 @@ class TestCalleeCELInterpretor(TestCase):
         self.interpretor.interpret_chan_end(Mock(eventtime=chan_end_time), call)
 
         assert_that(recording.end_time, equal_to(mixmonitor_stop_time))
+
+    def test_interpret_app_start_voicemail_sets_reached_voicemail(self):
+        # A VoiceMail() on the callee channel (e.g. blind transfer to voicemail)
+        # must be detected, since it is dispatched to the callee interpretor.
+        cel = Mock(
+            eventtype=CELEventType.app_start,
+            appname='VoiceMail',
+            appdata='1006@default,u',
+        )
+        call = RawCallLog()
+
+        self.interpretor.interpret_cel(cel, call)
+
+        assert_that(call.reached_voicemail, equal_to(True))
+        assert_that(call.voicemail_number, equal_to('1006'))
+        assert_that(call.voicemail_context, equal_to('default'))
+
+    def test_interpret_app_start_voicemailmain_not_a_redirection(self):
+        cel = Mock(
+            eventtype=CELEventType.app_start,
+            appname='VoiceMailMain',
+            appdata='1006@default',
+        )
+        call = RawCallLog()
+
+        self.interpretor.interpret_cel(cel, call)
+
+        assert_that(call.reached_voicemail, equal_to(False))
