@@ -389,19 +389,24 @@ class CallLogsGenerator:
         if not call_log.reached_voicemail or call_log.date_answer:
             return
 
-        destination_details = {'type': 'voicemail'}
         voicemail = self._find_voicemail(
             call_log.voicemail_number,
             call_log.voicemail_context,
             call_log.tenant_uuid,
         )
-        if voicemail is not None:
-            destination_details['voicemail_id'] = str(voicemail['id'])
-            destination_details['voicemail_name'] = voicemail['name']
+        if voicemail is None:
+            # Unresolved (confd down, unknown mailbox): keep the interpreted
+            # details rather than dropping user attribution for a bare entry.
+            # The redirection is still surfaced by reached_voicemail/call_status.
+            return
 
-        # Only destination_details is superseded by the voicemail (the final
-        # destination of the call); the other destination_* fields are left as
-        # interpreted (e.g. the unanswered user from WAZO_CALL_LOG_DESTINATION).
+        # Supersede destination_details with the resolved voicemail; other
+        # destination_* fields are left as interpreted.
+        destination_details = {
+            'type': 'voicemail',
+            'voicemail_id': str(voicemail['id']),
+            'voicemail_name': voicemail['name'],
+        }
         call_log.destination_details = [
             Destination(
                 destination_details_key=key,

@@ -593,6 +593,51 @@ class TestResolveVoicemailDestination(TestCase):
             ),
         )
 
+    def test_confd_failure_keeps_interpreted_destination_details(self):
+        # confd unreachable: keep the interpreted user destination_details
+        # instead of overwriting the only user attribution with a bare entry.
+        self.confd.voicemails.list.side_effect = requests.exceptions.ConnectionError(
+            'confd unreachable'
+        )
+        call_log = self._voicemail_call_log()
+
+        self.generator._resolve_voicemail_destination(call_log)
+
+        assert_that(
+            call_log.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value=self.USER_UUID,
+                ),
+            ),
+        )
+
+    def test_unknown_mailbox_keeps_interpreted_destination_details(self):
+        # confd reachable but the mailbox is unknown: same preservation.
+        self.confd.voicemails.list.return_value = {'items': []}
+        call_log = self._voicemail_call_log()
+
+        self.generator._resolve_voicemail_destination(call_log)
+
+        assert_that(
+            call_log.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value=self.USER_UUID,
+                ),
+            ),
+        )
+
     def test_answered_call_keeps_interpreted_destination_details(self):
         # A call that reached voicemail but was ultimately answered (voicemail
         # escape then operator) has computed call_status 'answered', so its

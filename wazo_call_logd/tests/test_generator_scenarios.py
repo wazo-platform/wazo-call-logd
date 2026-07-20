@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, Mock, create_autospec
 from uuid import uuid4
 
 import requests
-from hamcrest import assert_that, contains_inanyorder, has_properties
+from hamcrest import assert_that, contains_inanyorder, empty, has_properties
 from requests import HTTPError
 
 # from xivo_dao.alchemy.cel import CEL
@@ -401,9 +401,9 @@ class TestCallLogGenerationScenarios(TestCase):
         '''
     )
     def test_voicemail_destination_resolution_survives_confd_failure(self, cels):
-        # A confd outage (connection error, not an HTTP error) during voicemail
-        # resolution must not drop the whole CDR: the CEL-derived voicemail state
-        # is kept, only the id/name enrichment is skipped.
+        # A confd outage during voicemail resolution must not drop the whole
+        # CDR: the CEL-derived voicemail state is kept. With no interpreted
+        # destination to preserve, no identity-less voicemail entry is written.
         self.generator.confd = mock_confd_client()
         self.generator.confd.voicemails.list.side_effect = (
             requests.exceptions.ConnectionError('confd unreachable')
@@ -416,12 +416,7 @@ class TestCallLogGenerationScenarios(TestCase):
             call_logs[0],
             has_properties(
                 reached_voicemail=True,
-                destination_details=contains_inanyorder(
-                    has_properties(
-                        destination_details_key='type',
-                        destination_details_value='voicemail',
-                    ),
-                ),
+                destination_details=empty(),
             ),
         )
 
