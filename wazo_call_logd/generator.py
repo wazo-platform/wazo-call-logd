@@ -425,9 +425,6 @@ class CallLogsGenerator:
         key = (number, context, tenant_uuid)
         if cache is not None and key in cache:
             return cache[key]
-        # Best-effort enrichment: never drop the call log if confd fails.
-        # Scope to the call log's tenant, else recurse=True spans every tenant
-        # and a context-less number could leak another tenant's voicemail.
         try:
             voicemails = self.confd.voicemails.list(
                 number=number,
@@ -436,10 +433,7 @@ class CallLogsGenerator:
                 tenant_uuid=tenant_uuid,
             )['items']
         except requests.exceptions.RequestException as e:
-            # Catch any confd request failure (HTTP error, timeout, connection
-            # error): the lookup is best-effort and must not drop the call log.
-            # Not cached: a transient failure must not poison later lookups.
-            logger.error(
+            logger.exception(
                 'Failed to fetch voicemail %s@%s from confd: %s', number, context, e
             )
             return None
