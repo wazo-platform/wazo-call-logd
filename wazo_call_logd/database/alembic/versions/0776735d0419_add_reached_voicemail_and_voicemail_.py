@@ -49,10 +49,24 @@ def upgrade():
 
 def downgrade():
     op.drop_constraint(DESTINATION_KEY_CHECK, DESTINATION_TABLE, type_='check')
-    # Postgres validates the narrowed constraint against existing rows, so drop
-    # the voicemail rows this revision allowed before recreating OLD_KEYS.
-    destination = sa.table(DESTINATION_TABLE, sa.column('destination_details_key'))
-    op.execute(destination.delete().where(_key_in(VOICEMAIL_KEYS)))
+    # Drop the whole voicemail destination group: a surviving type='voicemail'
+    # row passes OLD_KEYS but makes rolled-back code KeyError on serialization.
+    # Must run before recreating OLD_KEYS, which Postgres validates against rows.
+    destination = sa.table(
+        DESTINATION_TABLE,
+        sa.column('call_log_id'),
+        sa.column('destination_details_key'),
+        sa.column('destination_details_value'),
+    )
+    voicemail_call_logs = sa.select(destination.c.call_log_id).where(
+        sa.and_(
+            destination.c.destination_details_key == 'type',
+            destination.c.destination_details_value == 'voicemail',
+        )
+    )
+    op.execute(
+        destination.delete().where(destination.c.call_log_id.in_(voicemail_call_logs))
+    )
     op.create_check_constraint(
         DESTINATION_KEY_CHECK, DESTINATION_TABLE, _key_in(OLD_KEYS)
     )
