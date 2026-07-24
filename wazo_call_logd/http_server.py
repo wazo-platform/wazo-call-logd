@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -41,10 +41,11 @@ class HTTPServer:
         bind_addr = (self.config['listen'], self.config['port'])
 
         wsgi_app = ReverseProxied(ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': app})))
-        self.server = wsgi.WSGIServer(
+        self.server = wsgi.DynamicWSGIServer(
             bind_addr=bind_addr,
             wsgi_app=wsgi_app,
-            numthreads=self.config['max_threads'],
+            numthreads=self.config['min_threads'],
+            max=self.config['max_threads'],
         )
         if self.config['certificate'] and self.config['private_key']:
             logger.warning(
