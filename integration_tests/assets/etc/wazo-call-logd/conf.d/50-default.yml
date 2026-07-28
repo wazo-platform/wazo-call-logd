@@ -5,6 +5,8 @@ db_uri: postgresql://wazo-call-logd:Secr7t@postgres/wazo-call-logd
 cel_db_uri: postgresql://asterisk:proformatique@cel-postgres/asterisk
 auth:
   host: auth
+  port: 9497
+  prefix: null
   username: wazo-call-logd
   password: opensesame
   key_file: null

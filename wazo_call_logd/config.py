@@ -68,8 +68,7 @@ DEFAULT_CONFIG = {
     },
     'auth': {
         'host': 'localhost',
-        'port': 9497,
-        'prefix': None,
+        'port': 80,
         'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-call-logd-key.yml',
         'master_tenant_uuid': None,
