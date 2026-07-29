@@ -437,6 +437,16 @@ class CallLogsGenerator:
                 'Failed to fetch voicemail %s@%s from confd: %s', number, context, e
             )
             return None
+        if len(voicemails) > 1:
+            # Only reachable when the CEL mailbox had no @context.
+            logger.warning(
+                'Found %s voicemails matching %s@%s (ids=%s), '
+                'attributing the call to the first one',
+                len(voicemails),
+                number,
+                context,
+                [candidate['id'] for candidate in voicemails],
+            )
         voicemail = voicemails[0] if voicemails else None
         if voicemail is None:
             logger.debug('No voicemail found for %s@%s', number, context)
