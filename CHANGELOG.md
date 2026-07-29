@@ -6,6 +6,23 @@
   `max_threads` is now a ceiling the pool grows to under load, not a fixed
   thread count.
 
+* Calls redirected to a voicemail are now surfaced in CDRs:
+
+  * The `call_status` field of a CDR can take the new value `voicemail`, meaning the call was
+    redirected to a voicemail and was not answered elsewhere. Statuses are mutually exclusive and
+    resolved in this order: `blocked`, `voicemail`, `answered`, `unknown`.
+  * `call_status=voicemail` is accepted as a filter on `GET /cdr` and `GET /users/me/cdr`.
+  * `destination_details` can take the new `type` `voicemail`, carrying `voicemail_id` and
+    `voicemail_name`.
+
+* The `destination_details` of a CDR whose call reached a voicemail now reports `type` `voicemail`
+  instead of `type` `user`. Consumers reading `destination_details.user_uuid` on those CDRs must
+  read the top-level `destination_user_uuid` field instead, which is unchanged.
+
+* The `call_status=unknown` filter on `GET /cdr` and `GET /users/me/cdr` now returns only the CDRs
+  whose `call_status` is `unknown`. It was previously accepted but ignored, returning every CDR
+  including blocked ones.
+
 ## 26.07
 
 * Agent statistics now include a per-queue breakdown:
