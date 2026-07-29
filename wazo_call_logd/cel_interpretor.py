@@ -214,7 +214,7 @@ def parse_eventtime(eventtime: str | datetime) -> datetime:
 EventInterpretor = Callable[[CEL, RawCallLog], RawCallLog]
 
 
-def interpret_voicemail_app_start(cel, call):
+def interpret_voicemail_app_start(cel: CEL, call: RawCallLog) -> RawCallLog:
     # VoiceMail() marks a "leave a message" redirection on whichever channel
     # runs it (caller, transferred callee, or originated); VoiceMailMain() is
     # excluded. Requires `voicemail` in cel.conf `apps=` so Asterisk emits
