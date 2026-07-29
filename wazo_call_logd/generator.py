@@ -433,7 +433,7 @@ class CallLogsGenerator:
                 tenant_uuid=tenant_uuid,
             )['items']
         except requests.exceptions.RequestException as e:
-            logger.exception(
+            logger.error(
                 'Failed to fetch voicemail %s@%s from confd: %s', number, context, e
             )
             return None
