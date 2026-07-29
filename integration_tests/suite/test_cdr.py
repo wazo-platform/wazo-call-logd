@@ -2635,6 +2635,41 @@ class TestListCDR(IntegrationTest):
         )
 
     @call_log(
+        **{'id': 1},
+        blocked=True,
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:00',
+    )
+    @call_log(
+        **{'id': 2},
+        blocked=False,
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:00',
+    )
+    def test_list_by_call_status_blocked_supersedes_answered(self):
+        # id=1 is both blocked and answered; blocked wins when computing
+        # call_status, so the answered filter must not return it.
+        assert_that(
+            self.call_logd.cdr.list(call_status='answered'),
+            has_entries(
+                items=contains_exactly(has_entries(id=2, call_status='answered')),
+                filtered=1,
+                total=2,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list(call_status='blocked'),
+            has_entries(
+                items=contains_exactly(has_entries(id=1, call_status='blocked')),
+                filtered=1,
+                total=2,
+            ),
+        )
+
+    @call_log(
         **{'id': 10},
         date='2017-03-23 00:00:00',
         date_answer='2017-03-23 00:01:00',

@@ -32,7 +32,7 @@ def _status_blocked():
 
 
 def _status_answered():
-    return CallLog.date_answer.isnot(None)
+    return and_(CallLog.date_answer.isnot(None), _not_blocked())
 
 
 def _status_voicemail():
