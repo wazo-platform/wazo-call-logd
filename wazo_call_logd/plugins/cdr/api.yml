@@ -427,6 +427,7 @@ parameters:
       - answered
       - blocked
       - voicemail
+      - unknown
     in: query
 definitions:
   call_status:
@@ -503,7 +504,7 @@ definitions:
         type: string
       destination_details:
         type: object
-        description: Contains the `type` of the called destination; which can be either `user`, `conference`, `meeting`, `group` or `unknown` by default. Also contains useful information about the destination (`id` and `name`).
+        description: Contains the `type` of the called destination; which can be either `user`, `conference`, `meeting`, `group`, `voicemail` or `unknown` by default. Also contains useful information about the destination (`id` and `name`). A call that was redirected to a voicemail and not answered reports `type` `voicemail`, even when the call was originally placed to a user; the user remains available in `destination_user_uuid`.
       destination_name:
         type: string
         description: name of the party that answered the call
