@@ -573,7 +573,7 @@ class TestResolveVoicemailDestination(TestCase):
         }
         call_log = self._voicemail_call_log()
 
-        self.generator._resolve_voicemail_destination(call_log)
+        self.generator._resolve_voicemail_destination(call_log, {})
 
         assert_that(
             call_log.destination_details,
@@ -601,7 +601,7 @@ class TestResolveVoicemailDestination(TestCase):
         )
         call_log = self._voicemail_call_log()
 
-        self.generator._resolve_voicemail_destination(call_log)
+        self.generator._resolve_voicemail_destination(call_log, {})
 
         assert_that(
             call_log.destination_details,
@@ -622,7 +622,7 @@ class TestResolveVoicemailDestination(TestCase):
         self.confd.voicemails.list.return_value = {'items': []}
         call_log = self._voicemail_call_log()
 
-        self.generator._resolve_voicemail_destination(call_log)
+        self.generator._resolve_voicemail_destination(call_log, {})
 
         assert_that(
             call_log.destination_details,
@@ -693,7 +693,7 @@ class TestResolveVoicemailDestination(TestCase):
         call_log = self._voicemail_call_log()
         call_log.date_answer = datetime.fromisoformat('2024-05-07 20:01:05+00:00')
 
-        self.generator._resolve_voicemail_destination(call_log)
+        self.generator._resolve_voicemail_destination(call_log, {})
 
         self.confd.voicemails.list.assert_not_called()
         assert_that(

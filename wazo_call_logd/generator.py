@@ -384,7 +384,7 @@ class CallLogsGenerator:
                     call_log.requested_internal_context,
                 )
 
-    def _resolve_voicemail_destination(self, call_log: RawCallLog, cache=None):
+    def _resolve_voicemail_destination(self, call_log: RawCallLog, cache: dict):
         # Voicemail is the destination only when unanswered (mirrors the
         # computed call_status); answered calls keep their interpreted details.
         if not call_log.reached_voicemail or call_log.date_answer:
@@ -417,13 +417,13 @@ class CallLogsGenerator:
             for key, value in destination_details.items()
         ]
 
-    def _find_voicemail(self, number, context, tenant_uuid, cache=None):
+    def _find_voicemail(self, number, context, tenant_uuid, cache: dict):
         if not number:
             return None
         # Memoize per batch: a run regenerating many calls to the same mailbox
         # would otherwise issue one identical confd request per call log.
         key = (number, context, tenant_uuid)
-        if cache is not None and key in cache:
+        if key in cache:
             return cache[key]
         try:
             voicemails = self.confd.voicemails.list(
@@ -440,8 +440,7 @@ class CallLogsGenerator:
         voicemail = voicemails[0] if voicemails else None
         if voicemail is None:
             logger.debug('No voicemail found for %s@%s', number, context)
-        if cache is not None:
-            cache[key] = voicemail
+        cache[key] = voicemail
         return voicemail
 
     def _remove_incomplete_recordings(self, call_log: RawCallLog):
