@@ -1,4 +1,4 @@
-# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -70,6 +70,9 @@ class RawCallLog:
         self.destination_details: list = []
         self.was_forwarded: bool = False
         self.blocked: bool = False
+        self.reached_voicemail: bool = False
+        self.voicemail_number: str | None = None
+        self.voicemail_context: str | None = None
 
     @property
     def tenant_uuid(self) -> str:
@@ -117,6 +120,7 @@ class RawCallLog:
             destination_details=self.destination_details,
             conversation_id=self.conversation_id,
             blocked=self.blocked,
+            reached_voicemail=self.reached_voicemail,
         )
         result.participants = self.participants
         result.cel_ids = self.cel_ids

@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -17,6 +17,41 @@ from ..models import CallLog, CallLogParticipant, Recording
 from .base import BaseDAO
 
 DEFAULT_CALL_STATUS = '__default_call_status'
+
+
+# SQL mirror of the call_status computed by CDRSchema._compute_fields, so the
+# list filter and the order-by ranking below stay consistent with the value
+# actually serialized. Precedence there: blocked > voicemail > answered >
+# unknown.
+def _not_blocked():
+    return sql.or_(CallLog.blocked.is_(False), CallLog.blocked.is_(None))
+
+
+def _status_blocked():
+    return CallLog.blocked.is_(True)
+
+
+def _status_answered():
+    return and_(CallLog.date_answer.isnot(None), _not_blocked())
+
+
+def _status_voicemail():
+    return and_(
+        CallLog.reached_voicemail.is_(True),
+        CallLog.date_answer.is_(None),
+        _not_blocked(),
+    )
+
+
+def _status_unknown():
+    return and_(
+        CallLog.date_answer.is_(None),
+        sql.or_(
+            CallLog.reached_voicemail.is_(False),
+            CallLog.reached_voicemail.is_(None),
+        ),
+        _not_blocked(),
+    )
 
 
 class ListParams(TypedDict, total=False):
@@ -80,8 +115,9 @@ class CallLogDAO(BaseDAO):
                     order_field = CallLog.date_answer
                 elif params['order'] == 'marshmallow_call_status':
                     order_field = case(
-                        (CallLog.date_answer.isnot(None), 3),
-                        (CallLog.blocked.is_(True), 2),
+                        (_status_blocked(), 2),
+                        (_status_voicemail(), 3),
+                        (_status_answered(), 4),
                         else_=1,
                     )
                 else:
@@ -284,13 +320,15 @@ class CallLogDAO(BaseDAO):
 
         if call_status := params.get('call_status'):
             if call_status == CallStatus.ANSWERED:
-                query = query.filter(CallLog.date_answer != None)  # noqa
+                query = query.filter(_status_answered())
             elif call_status == CallStatus.BLOCKED:
-                query = query.filter(CallLog.blocked == True)  # noqa
+                query = query.filter(_status_blocked())
+            elif call_status == CallStatus.VOICEMAIL:
+                query = query.filter(_status_voicemail())
+            elif call_status == CallStatus.UNKNOWN:
+                query = query.filter(_status_unknown())
             elif call_status == DEFAULT_CALL_STATUS:
-                query = query.filter(
-                    sql.or_(CallLog.blocked == False, CallLog.blocked == None)  # noqa
-                )
+                query = query.filter(_not_blocked())
 
         return query
 

@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import EXCLUDE, post_dump, post_load, pre_dump, pre_load
@@ -89,6 +89,11 @@ class DestinationGroupDetails(BaseDestinationDetailsSchema):
     group_id = fields.Integer()
 
 
+class DestinationVoicemailDetails(BaseDestinationDetailsSchema):
+    voicemail_id = fields.Integer()
+    voicemail_name = fields.String()
+
+
 class DestinationDetailsField(fields.Nested):
     destination_details_schemas = {
         'conference': DestinationConferenceDetails,
@@ -96,6 +101,7 @@ class DestinationDetailsField(fields.Nested):
         'user': DestinationUserDetails,
         'unknown': DestinationUnknownDetails,
         'group': DestinationGroupDetails,
+        'voicemail': DestinationVoicemailDetails,
     }
 
     def __init__(self, *args, **kwargs):
@@ -164,9 +170,14 @@ class CDRSchema(Schema):
         if data.date_answer and data.date_end:
             data.marshmallow_duration = data.date_end - data.date_answer
 
+        # Canonical call_status definition. The SQL predicates in
+        # database/queries/call_log.py mirror this for filtering and ordering;
+        # keep them in sync. Precedence: blocked > voicemail > answered.
         data.marshmallow_call_status = CallStatus.UNKNOWN.value
         if data.marshmallow_answered:
             data.marshmallow_call_status = CallStatus.ANSWERED.value
+        if data.reached_voicemail and not data.marshmallow_answered:
+            data.marshmallow_call_status = CallStatus.VOICEMAIL.value
         if data.blocked:
             data.marshmallow_call_status = CallStatus.BLOCKED.value
         return data

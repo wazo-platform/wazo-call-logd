@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import csv
@@ -2582,6 +2582,90 @@ class TestListCDR(IntegrationTest):
                         ),
                     ),
                 )
+            ),
+        )
+
+    @call_log(**{'id': 1}, reached_voicemail=True)
+    @call_log(**{'id': 2}, blocked=False)
+    @call_log(
+        **{'id': 3},
+        reached_voicemail=True,
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:00',
+    )
+    @call_log(**{'id': 4}, reached_voicemail=True, blocked=True)
+    def test_list_by_call_status_voicemail(self):
+        # a voicemail redirection is surfaced and listed by default (blocked hidden).
+        # id=3 reached voicemail but was answered -> status answered, not voicemail.
+        assert_that(
+            self.call_logd.cdr.list(),
+            has_entries(
+                items=has_items(
+                    has_entries(id=1, call_status='voicemail'),
+                    has_entries(id=2, call_status='unknown'),
+                    has_entries(id=3, call_status='answered'),
+                ),
+                filtered=3,
+                total=4,
+            ),
+        )
+
+        # the voicemail filter must match only rows whose computed status is
+        # voicemail (unanswered and not blocked), not answered/blocked rows that
+        # also carry reached_voicemail (id=3, id=4).
+        assert_that(
+            self.call_logd.cdr.list(call_status='voicemail'),
+            has_entries(
+                items=contains_exactly(has_entries(id=1, call_status='voicemail')),
+                filtered=1,
+                total=4,
+            ),
+        )
+
+        # unknown = neither answered, voicemail, nor blocked; must not leak
+        # blocked rows (id=4).
+        assert_that(
+            self.call_logd.cdr.list(call_status='unknown'),
+            has_entries(
+                items=contains_exactly(has_entries(id=2, call_status='unknown')),
+                filtered=1,
+                total=4,
+            ),
+        )
+
+    @call_log(
+        **{'id': 1},
+        blocked=True,
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:00',
+    )
+    @call_log(
+        **{'id': 2},
+        blocked=False,
+        date='2017-03-23 00:00:00',
+        date_answer='2017-03-23 00:01:00',
+        date_end='2017-03-23 00:02:00',
+    )
+    def test_list_by_call_status_blocked_supersedes_answered(self):
+        # id=1 is both blocked and answered; blocked wins when computing
+        # call_status, so the answered filter must not return it.
+        assert_that(
+            self.call_logd.cdr.list(call_status='answered'),
+            has_entries(
+                items=contains_exactly(has_entries(id=2, call_status='answered')),
+                filtered=1,
+                total=2,
+            ),
+        )
+
+        assert_that(
+            self.call_logd.cdr.list(call_status='blocked'),
+            has_entries(
+                items=contains_exactly(has_entries(id=1, call_status='blocked')),
+                filtered=1,
+                total=2,
             ),
         )
 

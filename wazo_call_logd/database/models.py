@@ -60,6 +60,7 @@ class CallLog(Base):
     destination_internal_context = Column(Text)
     destination_line_identity = Column(String(255))
     blocked = Column(Boolean)
+    reached_voicemail = Column(Boolean)
     direction = Column(String(255))
     user_field = Column(String(255))
     conversation_id = Column(String(255))
@@ -182,6 +183,8 @@ class Destination(Base):
                     'conference_id',
                     'group_label',
                     'group_id',
+                    'voicemail_id',
+                    'voicemail_name',
                 ]
             ),
             name='call_logd_call_log_destination_details_key_check',

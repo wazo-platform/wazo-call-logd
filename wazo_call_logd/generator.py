@@ -9,6 +9,7 @@ from collections.abc import Iterator
 from itertools import groupby
 from operator import attrgetter
 
+import requests.exceptions
 from wazo_confd_client import Client as ConfdClient
 from xivo.asterisk.protocol_interface import protocol_interface_from_channel
 from xivo_dao.alchemy.cel import CEL
@@ -18,7 +19,7 @@ from wazo_call_logd.database.cel_event_type import CELEventType
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
 
-from .database.models import CallLog, CallLogParticipant
+from .database.models import CallLog, CallLogParticipant, Destination
 from .participant import ParticipantInfo, find_participant, find_participant_by_uuid
 
 logger = logging.getLogger(__name__)
@@ -219,6 +220,7 @@ class CallLogsGenerator:
 
     def call_logs_from_cel(self, cels: list[CEL]) -> list[CallLog]:
         result = []
+        voicemail_cache: dict = {}
         for linkedids, cels_by_call in _group_cels_by_shared_channels(cels):
             logger.debug(
                 'interpreting %d cels from correlated linkedids(%s)',
@@ -256,6 +258,7 @@ class CallLogsGenerator:
                 self._fetch_participants(call_log)
                 self._ensure_tenant_uuid_is_set(call_log)
                 self._fill_extensions_from_participants(call_log)
+                self._resolve_voicemail_destination(call_log, voicemail_cache)
                 self._remove_incomplete_recordings(call_log)
                 self._remove_recordings_for_unanswered_calls(call_log)
                 self._handle_recording_pauses(call_log)
@@ -380,6 +383,75 @@ class CallLogsGenerator:
                     call_log.requested_internal_exten,
                     call_log.requested_internal_context,
                 )
+
+    def _resolve_voicemail_destination(self, call_log: RawCallLog, cache: dict):
+        # Voicemail is the destination only when unanswered (mirrors the
+        # computed call_status); answered calls keep their interpreted details.
+        if not call_log.reached_voicemail or call_log.date_answer:
+            return
+
+        voicemail = self._find_voicemail(
+            call_log.voicemail_number,
+            call_log.voicemail_context,
+            call_log.tenant_uuid,
+            cache,
+        )
+        if voicemail is None:
+            # Unresolved (confd down, unknown mailbox): keep the interpreted
+            # details rather than dropping user attribution for a bare entry.
+            # The redirection is still surfaced by reached_voicemail/call_status.
+            return
+
+        # Supersede destination_details with the resolved voicemail; other
+        # destination_* fields are left as interpreted.
+        destination_details = {
+            'type': 'voicemail',
+            'voicemail_id': str(voicemail['id']),
+            'voicemail_name': voicemail['name'],
+        }
+        call_log.destination_details = [
+            Destination(
+                destination_details_key=key,
+                destination_details_value=value,
+            )
+            for key, value in destination_details.items()
+        ]
+
+    def _find_voicemail(self, number, context, tenant_uuid, cache: dict):
+        if not number:
+            return None
+        # Memoize per batch: a run regenerating many calls to the same mailbox
+        # would otherwise issue one identical confd request per call log.
+        key = (number, context, tenant_uuid)
+        if key in cache:
+            return cache[key]
+        try:
+            voicemails = self.confd.voicemails.list(
+                number=number,
+                context=context,
+                recurse=True,
+                tenant_uuid=tenant_uuid,
+            )['items']
+        except requests.exceptions.RequestException as e:
+            logger.error(
+                'Failed to fetch voicemail %s@%s from confd: %s', number, context, e
+            )
+            return None
+        if len(voicemails) > 1:
+            # Only reachable when the CEL mailbox had no @context.
+            logger.warning(
+                'Found %s voicemails matching %s@%s (ids=%s), '
+                'attributing the call to the first one',
+                len(voicemails),
+                number,
+                context,
+                [candidate['id'] for candidate in voicemails],
+            )
+        voicemail = voicemails[0] if voicemails else None
+        if voicemail is None:
+            logger.debug('No voicemail found for %s@%s', number, context)
+        cache[key] = voicemail
+        return voicemail
 
     def _remove_incomplete_recordings(self, call_log: RawCallLog):
         new_recordings = []

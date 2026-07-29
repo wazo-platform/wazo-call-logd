@@ -1,4 +1,4 @@
-# Copyright 2023-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2023-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 """
 Type definitions and data wrappers
@@ -14,4 +14,5 @@ OrderDirection = Literal['asc', 'desc']
 class CallStatus(Enum):
     ANSWERED = 'answered'
     BLOCKED = 'blocked'
+    VOICEMAIL = 'voicemail'
     UNKNOWN = 'unknown'

@@ -214,6 +214,28 @@ def parse_eventtime(eventtime: str | datetime) -> datetime:
 EventInterpretor = Callable[[CEL, RawCallLog], RawCallLog]
 
 
+def interpret_voicemail_app_start(cel: CEL, call: RawCallLog) -> RawCallLog:
+    # VoiceMail() marks a "leave a message" redirection on whichever channel
+    # runs it (caller, transferred callee, or originated); VoiceMailMain() is
+    # excluded. Requires `voicemail` in cel.conf `apps=` so Asterisk emits
+    # APP_START.
+    if cel.appname.lower() == 'voicemail':
+        # appdata is "mailbox[,options]"; a custom dialplan may pass an Asterisk
+        # "&"-separated multi-mailbox list, so attribute the CDR to the first.
+        mailbox = cel.appdata.split(',', 1)[0].split('&', 1)[0]
+        number, _, context = mailbox.partition('@')
+        call.reached_voicemail = True
+        call.voicemail_number = number or None
+        call.voicemail_context = context or None
+        logger.debug(
+            'Identified voicemail redirection from app_start event '
+            '(id=%s, mailbox=%s)',
+            cel.id,
+            mailbox,
+        )
+    return call
+
+
 class AbstractCELInterpretor:
     eventtype_map: dict[str, EventInterpretor] = {}
 
@@ -315,6 +337,10 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_app_start(self, cel, call):
         call.user_field = cel.userfield
+
+        # Must run before the was_forwarded early-return below, since the user
+        # no-answer path sets was_forwarded via XIVO_USER_FWD.
+        interpret_voicemail_app_start(cel, call)
 
         if call.was_forwarded:
             return call
@@ -707,6 +733,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         self.eventtype_map = {
             CELEventType.chan_start: self.interpret_chan_start,
             CELEventType.chan_end: self.interpret_chan_end,
+            CELEventType.app_start: interpret_voicemail_app_start,
             CELEventType.bridge_enter: self.interpret_bridge_enter,
             CELEventType.bridge_start: self.interpret_bridge_enter,
             CELEventType.mixmonitor_start: self.interpret_mixmonitor_start,
@@ -987,6 +1014,11 @@ class LocalOriginateCELInterpretor:
         )
         if local_channel1_app_start:
             call.user_field = local_channel1_app_start.userfield
+
+        # An originated call that ends in the destination's voicemail runs
+        # VoiceMail() on one of its channels; detect it like the other paths.
+        for app_start in (cel for cel in cels if cel.eventtype == 'APP_START'):
+            interpret_voicemail_app_start(app_start, call)
 
         other_channels_start = [
             cel

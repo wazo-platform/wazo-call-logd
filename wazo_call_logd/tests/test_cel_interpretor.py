@@ -26,6 +26,7 @@ from ..cel_interpretor import (
     CalleeCELInterpretor,
     CallerCELInterpretor,
     DispatchCELInterpretor,
+    LocalOriginateCELInterpretor,
     _extract_user_missed_call_variables,
     _parse_wazo_originate_all_lines_extra,
     bridge_info,
@@ -727,3 +728,91 @@ class TestCalleeCELInterpretor(TestCase):
         self.interpretor.interpret_chan_end(Mock(eventtime=chan_end_time), call)
 
         assert_that(recording.end_time, equal_to(mixmonitor_stop_time))
+
+    def test_interpret_app_start_voicemail_sets_reached_voicemail(self):
+        # A VoiceMail() on the callee channel (e.g. blind transfer to voicemail)
+        # must be detected, since it is dispatched to the callee interpretor.
+        cel = Mock(
+            eventtype=CELEventType.app_start,
+            appname='VoiceMail',
+            appdata='1006@default,u',
+        )
+        call = RawCallLog()
+
+        self.interpretor.interpret_cel(cel, call)
+
+        assert_that(call.reached_voicemail, equal_to(True))
+        assert_that(call.voicemail_number, equal_to('1006'))
+        assert_that(call.voicemail_context, equal_to('default'))
+
+    def test_interpret_app_start_voicemailmain_not_a_redirection(self):
+        cel = Mock(
+            eventtype=CELEventType.app_start,
+            appname='VoiceMailMain',
+            appdata='1006@default',
+        )
+        call = RawCallLog()
+
+        self.interpretor.interpret_cel(cel, call)
+
+        assert_that(call.reached_voicemail, equal_to(False))
+
+    def test_interpret_app_start_multi_mailbox_uses_first(self):
+        # A custom dialplan may pass Asterisk's "&"-separated multi-mailbox
+        # syntax; the CDR is attributed to the first mailbox, not a garbage
+        # context.
+        cel = Mock(
+            eventtype=CELEventType.app_start,
+            appname='VoiceMail',
+            appdata='1001@default&1002@other,u',
+        )
+        call = RawCallLog()
+
+        self.interpretor.interpret_cel(cel, call)
+
+        assert_that(call.reached_voicemail, equal_to(True))
+        assert_that(call.voicemail_number, equal_to('1001'))
+        assert_that(call.voicemail_context, equal_to('default'))
+
+
+class TestLocalOriginateCELInterpretor(TestCase):
+    def setUp(self):
+        self.interpretor = LocalOriginateCELInterpretor()
+
+    def _cel(self, eventtype, uniqueid, **kwargs):
+        when = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+        defaults = {
+            'eventtype': eventtype,
+            'uniqueid': uniqueid,
+            'eventtime': when,
+            'cid_name': '',
+            'cid_num': '',
+            'channame': f'PJSIP/{uniqueid}-00000001',
+        }
+        defaults.update(kwargs)
+        return Mock(**defaults)
+
+    def test_originated_call_to_voicemail_sets_reached_voicemail(self):
+        # A click-to-call/API-originated call (local channel pair + source +
+        # destination) that ends in voicemail runs VoiceMail() on one of its
+        # channels; it must be detected like the caller/callee paths.
+        cels = [
+            self._cel('CHAN_START', 'local1', channame='Local/1@a-00000001;1'),
+            self._cel('CHAN_START', 'local2', channame='Local/1@a-00000001;2'),
+            self._cel('CHAN_START', 'source', cid_name='Bob', cid_num='1006'),
+            self._cel('ANSWER', 'source', cid_name='Bob', cid_num='1006'),
+            self._cel('ANSWER', 'local2', cid_num='1006'),
+            self._cel(
+                'APP_START', 'dest', appname='VoiceMail', appdata='1006@default,u'
+            ),
+            self._cel('CHAN_END', 'source'),
+        ]
+        call = RawCallLog()
+
+        self.interpretor.interpret_cels(cels, call)
+
+        assert_that(call.reached_voicemail, equal_to(True))
+        assert_that(call.voicemail_number, equal_to('1006'))
+        assert_that(call.voicemail_context, equal_to('default'))
+        # no destination answered, so the call stays unanswered (voicemail)
+        assert_that(call.date_answer, equal_to(None))

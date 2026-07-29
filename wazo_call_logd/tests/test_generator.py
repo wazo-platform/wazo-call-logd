@@ -29,7 +29,7 @@ from hamcrest import (
 from xivo_dao.alchemy.cel import CEL
 
 from wazo_call_logd.database.cel_event_type import CELEventType
-from wazo_call_logd.database.models import Recording
+from wazo_call_logd.database.models import Destination, Recording
 from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.generator import (
     CallLogsGenerator,
@@ -48,6 +48,7 @@ def mock_call():
         participants=[],
         participants_info=[],
         date_answer=None,
+        reached_voicemail=False,
     )
 
 
@@ -210,6 +211,7 @@ class TestCallLogsGenerator(TestCase):
         sequence_2 = self._generate_cels_for_call('123456789.1')
         sequence_2[0].uniqueid = sequence_1[0].uniqueid
 
+        call_log_constructor.return_value.reached_voicemail = False
         self.interpretor.interpret_cels.side_effect = lambda cels, call: call
         call_logs = self.generator.call_logs_from_cel(sequence_1 + sequence_2)
         assert call_logs
@@ -222,6 +224,7 @@ class TestCallLogsGenerator(TestCase):
         sequence_1 = self._generate_cels_for_call('123456789.0')
         sequence_2 = self._generate_cels_for_call('123456789.1')
 
+        call_log_constructor.return_value.reached_voicemail = False
         self.interpretor.interpret_cels.side_effect = lambda cels, call: call
         call_logs = self.generator.call_logs_from_cel(sequence_1 + sequence_2)
         assert call_logs
@@ -534,6 +537,178 @@ class TestFillExtensionsFromParticipants(TestCase):
 
         assert_that(call_log.destination_internal_exten, none())
         assert_that(call_log.destination_internal_context, none())
+
+
+class TestResolveVoicemailDestination(TestCase):
+    TENANT_UUID = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
+    USER_UUID = 'cb79f29b-f69a-4b93-85c2-49dcce119a9f'
+
+    def setUp(self):
+        self.confd = Mock()
+        self.generator = CallLogsGenerator(self.confd, [Mock()])
+
+    def _user_destination(self):
+        return [
+            Destination(
+                destination_details_key='type', destination_details_value='user'
+            ),
+            Destination(
+                destination_details_key='user_uuid',
+                destination_details_value=self.USER_UUID,
+            ),
+        ]
+
+    def _voicemail_call_log(self):
+        call_log = RawCallLog()
+        call_log.set_tenant_uuid(self.TENANT_UUID)
+        call_log.reached_voicemail = True
+        call_log.voicemail_number = '1006'
+        call_log.voicemail_context = 'default'
+        call_log.destination_details = self._user_destination()
+        return call_log
+
+    def test_unanswered_voicemail_supersedes_destination_details(self):
+        self.confd.voicemails.list.return_value = {
+            'items': [{'id': 7, 'name': 'Harry VM'}]
+        }
+        call_log = self._voicemail_call_log()
+
+        self.generator._resolve_voicemail_destination(call_log, {})
+
+        assert_that(
+            call_log.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='voicemail',
+                ),
+                has_properties(
+                    destination_details_key='voicemail_id',
+                    destination_details_value='7',
+                ),
+                has_properties(
+                    destination_details_key='voicemail_name',
+                    destination_details_value='Harry VM',
+                ),
+            ),
+        )
+
+    def test_confd_failure_keeps_interpreted_destination_details(self):
+        # confd unreachable: keep the interpreted user destination_details
+        # instead of overwriting the only user attribution with a bare entry.
+        self.confd.voicemails.list.side_effect = requests.exceptions.ConnectionError(
+            'confd unreachable'
+        )
+        call_log = self._voicemail_call_log()
+
+        self.generator._resolve_voicemail_destination(call_log, {})
+
+        assert_that(
+            call_log.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value=self.USER_UUID,
+                ),
+            ),
+        )
+
+    def test_unknown_mailbox_keeps_interpreted_destination_details(self):
+        # confd reachable but the mailbox is unknown: same preservation.
+        self.confd.voicemails.list.return_value = {'items': []}
+        call_log = self._voicemail_call_log()
+
+        self.generator._resolve_voicemail_destination(call_log, {})
+
+        assert_that(
+            call_log.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value=self.USER_UUID,
+                ),
+            ),
+        )
+
+    def test_cache_collapses_repeated_lookups_into_one_confd_call(self):
+        # A batch of call logs hitting the same mailbox must issue a single
+        # confd request, not one per call log.
+        self.confd.voicemails.list.return_value = {
+            'items': [{'id': 7, 'name': 'Harry VM'}]
+        }
+        cache: dict = {}
+
+        for _ in range(3):
+            self.generator._resolve_voicemail_destination(
+                self._voicemail_call_log(), cache
+            )
+
+        self.confd.voicemails.list.assert_called_once()
+
+    def test_transient_confd_failure_is_not_cached(self):
+        # A request failure must not poison the cache: a later call to the same
+        # mailbox retries confd.
+        self.confd.voicemails.list.side_effect = [
+            requests.exceptions.ConnectionError('confd unreachable'),
+            {'items': [{'id': 7, 'name': 'Harry VM'}]},
+        ]
+        cache: dict = {}
+
+        first = self._voicemail_call_log()
+        self.generator._resolve_voicemail_destination(first, cache)
+        second = self._voicemail_call_log()
+        self.generator._resolve_voicemail_destination(second, cache)
+
+        assert_that(self.confd.voicemails.list.call_count, equal_to(2))
+        assert_that(
+            second.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='voicemail',
+                ),
+                has_properties(
+                    destination_details_key='voicemail_id',
+                    destination_details_value='7',
+                ),
+                has_properties(
+                    destination_details_key='voicemail_name',
+                    destination_details_value='Harry VM',
+                ),
+            ),
+        )
+
+    def test_answered_call_keeps_interpreted_destination_details(self):
+        # A call that reached voicemail but was ultimately answered (voicemail
+        # escape then operator) has computed call_status 'answered', so its
+        # interpreted destination_details must be preserved, not overwritten.
+        call_log = self._voicemail_call_log()
+        call_log.date_answer = datetime.fromisoformat('2024-05-07 20:01:05+00:00')
+
+        self.generator._resolve_voicemail_destination(call_log, {})
+
+        self.confd.voicemails.list.assert_not_called()
+        assert_that(
+            call_log.destination_details,
+            contains_inanyorder(
+                has_properties(
+                    destination_details_key='type',
+                    destination_details_value='user',
+                ),
+                has_properties(
+                    destination_details_key='user_uuid',
+                    destination_details_value=self.USER_UUID,
+                ),
+            ),
+        )
 
 
 class TestRemoveRecordingsForUnansweredCalls(TestCase):
