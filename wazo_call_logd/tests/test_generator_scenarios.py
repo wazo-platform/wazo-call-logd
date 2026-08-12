@@ -864,6 +864,136 @@ class TestCallLogGenerationScenarios(TestCase):
 
     @raw_cels(
         '''
+                eventtype         |    uniqueid    |    linkedid    |           eventtime           |   cid_name    | cid_num       |                exten                 |            context            |                               channame                                |     appname     |                          appdata                           |                                                                   extra
+        --------------------------+----------------+----------------+-------------------------------+---------------+---------------+--------------------------------------+-------------------------------+-----------------------------------------------------------------------+-----------------+------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------
+        CHAN_START                | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:00.10+00     | +12345678910  | +12345678910  | 1006                                 | default-key-4wfgx-from-extern | PJSIP/2c70p24m-000000a3                                               |                 |                                                            |
+        XIVO_INCALL               | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:00.20+00     | 0012345678910 | 0012345678910 | s                                    | did                           | PJSIP/2c70p24m-000000a3                                               | CELGenUserEvent | XIVO_INCALL,54eb71f8-1f4b-4ae4-8730-638062fbe521           | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        WAZO_CALL_LOG_DESTINATION | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:00.30+00     | 0012345678910 | 0012345678910 | s                                    | group                         | PJSIP/2c70p24m-000000a3                                               | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: group,id: 9,label: supportgroup1 | {"extra":"type: group,id: 9,label: supportgroup1"}
+        APP_START                 | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:00.40+00     | 0012345678910 | 0012345678910 | s                                    | group                         | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e-bf72-4d71-be21-48a10377dc15,ir,,,12      |
+        CHAN_START                | 1719000000.101 | 1719000000.100 | 2026-07-01 09:01:00.50+00     |               |               | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines               | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 |                 |                                                            |
+        CHAN_START                | 1719000000.102 | 1719000000.100 | 2026-07-01 09:01:00.51+00     |               |               | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines               | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                            |
+        CHAN_START                | 1719000000.103 | 1719000000.100 | 2026-07-01 09:01:00.52+00     |               |               | 31be0853-dde6-48cd-986d-85bc708754a1 | usersharedlines               | Local/31be0853-dde6-48cd-986d-85bc708754a1@usersharedlines-000000e0;1 |                 |                                                            |
+        CHAN_START                | 1719000000.104 | 1719000000.100 | 2026-07-01 09:01:00.53+00     |               |               | 31be0853-dde6-48cd-986d-85bc708754a1 | usersharedlines               | Local/31be0853-dde6-48cd-986d-85bc708754a1@usersharedlines-000000e0;2 |                 |                                                            |
+        WAZO_ORIGINATE_ALL_LINES  | 1719000000.102 | 1719000000.100 | 2026-07-01 09:01:00.60+00     | 0012345678910 | 0012345678910 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines               | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 | CELGenUserEvent | WAZO_ORIGINATE_ALL_LINES,user_uuid:ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,tenant_uuid:54eb71f8-1f4b-4ae4-8730-638062fbe521 | {"extra":"user_uuid:ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6,tenant_uuid:54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        WAZO_ORIGINATE_ALL_LINES  | 1719000000.104 | 1719000000.100 | 2026-07-01 09:01:00.61+00     | 0012345678910 | 0012345678910 | 31be0853-dde6-48cd-986d-85bc708754a1 | usersharedlines               | Local/31be0853-dde6-48cd-986d-85bc708754a1@usersharedlines-000000e0;2 | CELGenUserEvent | WAZO_ORIGINATE_ALL_LINES,user_uuid:31be0853-dde6-48cd-986d-85bc708754a1,tenant_uuid:54eb71f8-1f4b-4ae4-8730-638062fbe521 | {"extra":"user_uuid:31be0853-dde6-48cd-986d-85bc708754a1,tenant_uuid:54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        APP_START                 | 1719000000.102 | 1719000000.100 | 2026-07-01 09:01:00.70+00     | 0012345678910 | 0012345678910 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines               | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 | Dial            | Local/9EYlfTvB@wazo_wait_for_registration                  |
+        CHAN_START                | 1719000000.105 | 1719000000.100 | 2026-07-01 09:01:00.71+00     |               |               | 9EYlfTvB                             | wazo_wait_for_registration    | Local/9EYlfTvB@wazo_wait_for_registration-000000e1;1                  |                 |                                                            |
+        CHAN_START                | 1719000000.106 | 1719000000.100 | 2026-07-01 09:01:00.72+00     |               |               | 9EYlfTvB                             | wazo_wait_for_registration    | Local/9EYlfTvB@wazo_wait_for_registration-000000e1;2                  |                 |                                                            |
+        APP_START                 | 1719000000.104 | 1719000000.100 | 2026-07-01 09:01:00.80+00     | 0012345678910 | 0012345678910 | 31be0853-dde6-48cd-986d-85bc708754a1 | usersharedlines               | Local/31be0853-dde6-48cd-986d-85bc708754a1@usersharedlines-000000e0;2 | Dial            | Local/rNXlGVeY@wazo_wait_for_registration                  |
+        CHAN_START                | 1719000000.107 | 1719000000.100 | 2026-07-01 09:01:00.81+00     |               |               | rNXlGVeY                             | wazo_wait_for_registration    | Local/rNXlGVeY@wazo_wait_for_registration-000000e2;1                  |                 |                                                            |
+        CHAN_START                | 1719000000.108 | 1719000000.100 | 2026-07-01 09:01:00.82+00     |               |               | rNXlGVeY                             | wazo_wait_for_registration    | Local/rNXlGVeY@wazo_wait_for_registration-000000e2;2                  |                 |                                                            |
+        CHAN_START                | 1719000001.109 | 1719000000.100 | 2026-07-01 09:01:01.00+00     | User 1        | 8001          | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a5                                               |                 |                                                            |
+        CHAN_START                | 1719000001.110 | 1719000000.100 | 2026-07-01 09:01:01.20+00     | User 2        | 8002          | s                                    | default-key-4wfgx-internal    | PJSIP/rNXlGVeY-000000a6                                               |                 |                                                            |
+        CHAN_START                | 1719000003.111 | 1719000000.100 | 2026-07-01 09:01:03.00+00     | User 1        | 8001          | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a7                                               |                 |                                                            |
+        ANSWER                    | 1719000001.109 | 1719000000.100 | 2026-07-01 09:01:05.00+00     | 0012345678910 | 0012345678910 | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a5                                               | AppDial2        | (Outgoing Line)                                            |
+        HANGUP                    | 1719000003.111 | 1719000000.100 | 2026-07-01 09:01:05.02+00     | 0012345678910 | 0012345678910 | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a7                                               | AppDial2        | (Outgoing Line)                                            | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1719000003.111 | 1719000000.100 | 2026-07-01 09:01:05.02+00     | 0012345678910 | 0012345678910 | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a7                                               |                 |                                                            |
+        HANGUP                    | 1719000000.103 | 1719000000.100 | 2026-07-01 09:01:05.10+00     |               | 1006          | s                                    | usersharedlines               | Local/31be0853-dde6-48cd-986d-85bc708754a1@usersharedlines-000000e0;1 | AppQueue        | (Outgoing Line)                                            | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1719000000.103 | 1719000000.100 | 2026-07-01 09:01:05.10+00     |               | 1006          | s                                    | usersharedlines               | Local/31be0853-dde6-48cd-986d-85bc708754a1@usersharedlines-000000e0;1 |                 |                                                            |
+        HANGUP                    | 1719000000.107 | 1719000000.100 | 2026-07-01 09:01:05.11+00     |               | rNXlGVeY      | rNXlGVeY                             | wazo_wait_for_registration    | Local/rNXlGVeY@wazo_wait_for_registration-000000e2;1                  | AppDial         | (Outgoing Line)                                            | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1719000000.107 | 1719000000.100 | 2026-07-01 09:01:05.11+00     |               | rNXlGVeY      | rNXlGVeY                             | wazo_wait_for_registration    | Local/rNXlGVeY@wazo_wait_for_registration-000000e2;1                  |                 |                                                            |
+        HANGUP                    | 1719000000.104 | 1719000000.100 | 2026-07-01 09:01:05.12+00     | 0012345678910 | 0012345678910 | 31be0853-dde6-48cd-986d-85bc708754a1 | usersharedlines               | Local/31be0853-dde6-48cd-986d-85bc708754a1@usersharedlines-000000e0;2 |                 |                                                            | {"hangupcause":26,"hangupsource":"","dialstatus":"CANCEL"}
+        CHAN_END                  | 1719000000.104 | 1719000000.100 | 2026-07-01 09:01:05.12+00     | 0012345678910 | 0012345678910 | 31be0853-dde6-48cd-986d-85bc708754a1 | usersharedlines               | Local/31be0853-dde6-48cd-986d-85bc708754a1@usersharedlines-000000e0;2 |                 |                                                            |
+        HANGUP                    | 1719000000.108 | 1719000000.100 | 2026-07-01 09:01:05.13+00     | 0012345678910 | 0012345678910 | rNXlGVeY                             | wazo_wait_for_registration    | Local/rNXlGVeY@wazo_wait_for_registration-000000e2;2                  |                 |                                                            | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1719000000.108 | 1719000000.100 | 2026-07-01 09:01:05.13+00     | 0012345678910 | 0012345678910 | rNXlGVeY                             | wazo_wait_for_registration    | Local/rNXlGVeY@wazo_wait_for_registration-000000e2;2                  |                 |                                                            |
+        HANGUP                    | 1719000001.110 | 1719000000.100 | 2026-07-01 09:01:05.14+00     | User 2        | 8002          | s                                    | default-key-4wfgx-internal    | PJSIP/rNXlGVeY-000000a6                                               | AppDial2        | (Outgoing Line)                                            | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1719000001.110 | 1719000000.100 | 2026-07-01 09:01:05.14+00     | User 2        | 8002          | s                                    | default-key-4wfgx-internal    | PJSIP/rNXlGVeY-000000a6                                               |                 |                                                            |
+        BRIDGE_ENTER              | 1719000001.109 | 1719000000.100 | 2026-07-01 09:01:05.20+00     | 0012345678910 | 0012345678910 | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a5                                               |                 |                                                            | {"bridge_id":"6bd0b972-a55b-4f0f-8d1e-9a49793d3961","bridge_technology":"simple_bridge"}
+        ANSWER                    | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:05.30+00     | 0012345678910 | 0012345678910 | s                                    | group                         | PJSIP/2c70p24m-000000a3                                               |                 |                                                            |
+        BRIDGE_ENTER              | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:05.31+00     | 0012345678910 | 0012345678910 | s                                    | group                         | PJSIP/2c70p24m-000000a3                                               |                 |                                                            | {"bridge_id":"6bd0b972-a55b-4f0f-8d1e-9a49793d3961","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1719000000.105 | 1719000000.100 | 2026-07-01 09:01:05.40+00     |               | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | wazo_wait_for_registration | Local/9EYlfTvB@wazo_wait_for_registration-000000e1;1     | AppDial         | (Outgoing Line)                                            | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1719000000.105 | 1719000000.100 | 2026-07-01 09:01:05.40+00     |               | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | wazo_wait_for_registration | Local/9EYlfTvB@wazo_wait_for_registration-000000e1;1     |                 |                                                            |
+        HANGUP                    | 1719000000.106 | 1719000000.100 | 2026-07-01 09:01:05.41+00     | 0012345678910 | 0012345678910 | 9EYlfTvB                             | wazo_wait_for_registration    | Local/9EYlfTvB@wazo_wait_for_registration-000000e1;2                  |                 |                                                            | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1719000000.106 | 1719000000.100 | 2026-07-01 09:01:05.41+00     | 0012345678910 | 0012345678910 | 9EYlfTvB                             | wazo_wait_for_registration    | Local/9EYlfTvB@wazo_wait_for_registration-000000e1;2                  |                 |                                                            |
+        HANGUP                    | 1719000000.101 | 1719000000.100 | 2026-07-01 09:01:05.42+00     |               | 1006          | s                                    | usersharedlines               | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 | AppQueue        | (Outgoing Line)                                            | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1719000000.101 | 1719000000.100 | 2026-07-01 09:01:05.42+00     |               | 1006          | s                                    | usersharedlines               | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 |                 |                                                            |
+        HANGUP                    | 1719000000.102 | 1719000000.100 | 2026-07-01 09:01:05.43+00     | 0012345678910 | 0012345678910 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines               | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                            | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
+        CHAN_END                  | 1719000000.102 | 1719000000.100 | 2026-07-01 09:01:05.43+00     | 0012345678910 | 0012345678910 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines               | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                            |
+        BRIDGE_EXIT               | 1719000001.109 | 1719000000.100 | 2026-07-01 09:01:10.00+00     | 0012345678910 | 0012345678910 | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a5                                               |                 |                                                            | {"bridge_id":"6bd0b972-a55b-4f0f-8d1e-9a49793d3961","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1719000001.109 | 1719000000.100 | 2026-07-01 09:01:10.01+00     | 0012345678910 | 0012345678910 | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a5                                               | AppDial2        | (Outgoing Line)                                            | {"hangupcause":16,"hangupsource":"PJSIP/9EYlfTvB-000000a5","dialstatus":""}
+        CHAN_END                  | 1719000001.109 | 1719000000.100 | 2026-07-01 09:01:10.01+00     | 0012345678910 | 0012345678910 | s                                    | default-key-4wfgx-internal    | PJSIP/9EYlfTvB-000000a5                                               |                 |                                                            |
+        BRIDGE_EXIT               | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:10.10+00     | 0012345678910 | 0012345678910 | s                                    | group                         | PJSIP/2c70p24m-000000a3                                               |                 |                                                            | {"bridge_id":"6bd0b972-a55b-4f0f-8d1e-9a49793d3961","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:10.11+00     | 0012345678910 | 0012345678910 | s                                    | group                         | PJSIP/2c70p24m-000000a3                                               |                 |                                                            | {"hangupcause":16,"hangupsource":"PJSIP/9EYlfTvB-000000a5","dialstatus":"ANSWER"}
+        CHAN_END                  | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:10.11+00     | 0012345678910 | 0012345678910 | s                                    | group                         | PJSIP/2c70p24m-000000a3                                               |                 |                                                            |
+        LINKEDID_END              | 1719000000.100 | 1719000000.100 | 2026-07-01 09:01:10.11+00     | 0012345678910 | 0012345678910 | s                                    | group                         | PJSIP/2c70p24m-000000a3                                               |                 |                                                            |
+        '''
+    )
+    def test_incoming_call_to_group_ring_all_answered_with_mobile_redial(self, cels):
+        """
+        An incoming call rings a ring-all group of two users, each dialed on all
+        their lines (usersharedlines + wazo_wait_for_registration). The answering
+        user's line rings a second channel mid-ring (mobile app registering after
+        a push notification), producing two channels for the same line. The
+        answering member's extension must be used for destination_internal, not
+        the other ringing member's.
+        """
+        tenant_uuid = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
+        user_1_uuid = 'ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6'
+        user_2_uuid = '31be0853-dde6-48cd-986d-85bc708754a1'
+        user_1 = mock_user(uuid=user_1_uuid, tenant_uuid=tenant_uuid, line_ids=[1])
+        user_2 = mock_user(uuid=user_2_uuid, tenant_uuid=tenant_uuid, line_ids=[2])
+        self.generator.confd = mock_confd_client(
+            users=[user_1, user_2],
+            lines=[
+                mock_line(
+                    id=1,
+                    tenant_uuid=tenant_uuid,
+                    users=[user_1],
+                    protocol='sip',
+                    name='9EYlfTvB',
+                    context='default-key-4wfgx-internal',
+                    extensions=[
+                        {'exten': '8001', 'context': 'default-key-4wfgx-internal'}
+                    ],
+                ),
+                mock_line(
+                    id=2,
+                    tenant_uuid=tenant_uuid,
+                    users=[user_2],
+                    protocol='sip',
+                    name='rNXlGVeY',
+                    context='default-key-4wfgx-internal',
+                    extensions=[
+                        {'exten': '8002', 'context': 'default-key-4wfgx-internal'}
+                    ],
+                ),
+            ],
+            contexts=[
+                mock_context(
+                    id=1, name='default-key-4wfgx-internal', tenant_uuid=tenant_uuid
+                )
+            ],
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert call_logs
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                direction='inbound',
+                destination_name='supportgroup1',
+                destination_exten='1006',
+                destination_internal_exten='8001',
+                destination_internal_context='default-key-4wfgx-internal',
+                destination_line_identity='pjsip/9eylftvb',
+                participants=contains_inanyorder(
+                    has_properties(
+                        user_uuid=user_1_uuid,
+                        role='destination',
+                        answered=True,
+                    ),
+                    has_properties(
+                        user_uuid=user_2_uuid,
+                        role='destination',
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(
+        '''
                  eventtype        |    uniqueid    |    linkedid    |           eventtime           |   cid_name    |               cid_num                |                exten                 |            context            |                               channame                                |     appname     |                                                                         appdata                                                                         |                                                                   extra
         --------------------------+----------------+----------------+-------------------------------+---------------+--------------------------------------+--------------------------------------+-------------------------------+-----------------------------------------------------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------
         CHAN_START                | 1715115875.647 | 1715115875.647 | 2024-05-07 21:04:35.560396+00 | +12345678910  | +12345678910                         | 1005                                 | default-key-4wfgx-from-extern | PJSIP/2c70p24m-000000aa                                               |                 |                                                                                                                                                         |
