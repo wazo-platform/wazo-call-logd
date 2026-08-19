@@ -91,8 +91,8 @@ class CallLogDAO(BaseDAO):
             query = session.query(CallLog).options(
                 joinedload(CallLog.participants),
                 joinedload(CallLog.recordings).selectinload(Recording.call_log),
-                subqueryload(CallLog.source_participant),
-                subqueryload(CallLog.destination_participant),
+                subqueryload(CallLog.source_participants),
+                subqueryload(CallLog.destination_participants),
             )
             filters = {'tenant_uuids': tenant_uuids}
             if user_uuids:
@@ -171,8 +171,8 @@ class CallLogDAO(BaseDAO):
         query = query.options(
             joinedload(CallLog.participants),
             joinedload(CallLog.recordings).selectinload(Recording.call_log),
-            subqueryload(CallLog.source_participant),
-            subqueryload(CallLog.destination_participant),
+            subqueryload(CallLog.source_participants),
+            subqueryload(CallLog.destination_participants),
         )
 
         query = self._apply_user_filter(query, params)
@@ -270,11 +270,9 @@ class CallLogDAO(BaseDAO):
             # and destination participant(first 'destination' participant to have answered)
             # NOTE(clanglois): if no participant has answered, destination participant is
             # an arbitrary 'destination' participant based on uuid ordering
-            # NOTE(clanglois): destination participant definition must be reimplemented here
-            # in order to be used for filtering because of limitation of relationship
             filters = sql.or_(
                 (
-                    CallLog.source_participant.has(
+                    CallLog.source_participants.any(
                         CallLogParticipant.user_uuid.in_(
                             str(terminal_user_uuid)
                             for terminal_user_uuid in terminal_user_uuids
@@ -282,17 +280,7 @@ class CallLogDAO(BaseDAO):
                     )
                 ),
                 (
-                    Query(CallLogParticipant.user_uuid)
-                    .filter(
-                        CallLogParticipant.role == 'destination',
-                        CallLogParticipant.call_log_id == CallLog.id,
-                    )
-                    .order_by(
-                        sql.desc(CallLogParticipant.answered),
-                        sql.desc(CallLogParticipant.user_uuid),
-                    )
-                    .limit(1)
-                    .scalar_subquery()
+                    CallLog.destination_user_uuid
                     == sql.any_(
                         sql.cast(
                             [
@@ -342,8 +330,8 @@ class CallLogDAO(BaseDAO):
                 session.flush()
                 # NOTE(fblackburn): fetch relationship before expunge_all
                 call_log.recordings
-                call_log.source_participant
-                call_log.destination_participant
+                call_log.source_participants
+                call_log.destination_participants
             session.expunge_all()
 
     def delete_from_list(self, call_log_ids):
