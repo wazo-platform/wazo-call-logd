@@ -20,7 +20,13 @@ from wazo_call_logd.exceptions import InvalidCallLogException
 from wazo_call_logd.raw_call_log import RawCallLog
 
 from .database.models import CallLog, CallLogParticipant, Destination
-from .participant import ParticipantInfo, find_participant, find_participant_by_uuid
+from .participant import (
+    ParticipantInfo,
+    fetch_user,
+    find_participant,
+    find_participant_by_uuid,
+    user_attributes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +40,7 @@ class _ParticipantsProcessor:
     def __init__(self, confd_client: ConfdClient):
         self.confd: ConfdClient = confd_client
         self.confd_participants: dict[str, ParticipantInfo] = {}
+        self.users: dict[str, dict | None] = {}
 
     def __call__(self, call_log: RawCallLog) -> RawCallLog:
         self._fetch_participants(call_log)
@@ -70,28 +77,87 @@ class _ParticipantsProcessor:
             logger.debug('Updated confd participants cache with user %s', user_uuid)
         return confd_participant
 
+    def _fetch_user(self, user_uuid: str) -> dict | None:
+        # a cached None (confd failure) also suppresses retries within the call log
+        if user_uuid in self.users:
+            return self.users[user_uuid]
+        user = fetch_user(self.confd, user_uuid)
+        self.users[user_uuid] = user
+        return user
+
+    def _build_participant_from_stamped_identity(
+        self, channel_name: str, raw_attributes: dict
+    ) -> CallLogParticipant | None:
+        user_uuid = raw_attributes['stamped_user_uuid']
+        line_id = raw_attributes.get('stamped_line_id')
+        role = raw_attributes.get('role')
+        if not role:
+            logger.debug(
+                'Channel %s has stamped identity (user %s) but no role, skipping',
+                channel_name,
+                user_uuid,
+            )
+            return None
+
+        user = self._fetch_user(user_uuid)
+        attributes = user_attributes(user, line_id) if user is not None else None
+        if attributes:
+            raw_attributes['main_extension'] = attributes.main_extension
+        participant = CallLogParticipant(
+            user_uuid=user_uuid,
+            line_id=line_id,
+            tags=attributes.tags if attributes else [],
+            role=role,
+        )
+        if 'answered' in raw_attributes:
+            participant.answered = raw_attributes['answered']
+        if raw_attributes.get('forwarded'):
+            participant.forwarded = True
+        return participant
+
+    def _build_participant_from_confd(
+        self, channel_name: str, raw_attributes: dict
+    ) -> CallLogParticipant | None:
+        # deprecated: unstamped CELs predate the stamp, remove ~1 year after release
+        confd_participant = self._fetch_participant_from_channel(channel_name)
+        if not confd_participant:
+            return None
+
+        raw_attributes.update(**confd_participant._asdict())
+        participant = CallLogParticipant(user_uuid=confd_participant.uuid)
+        participant.line_id = confd_participant.line_id
+        participant.tags = confd_participant.tags
+        participant.role = raw_attributes['role']
+        if 'answered' in raw_attributes:
+            participant.answered = raw_attributes['answered']
+        if raw_attributes.get('forwarded'):
+            participant.forwarded = True
+        return participant
+
     def _compute_participants_from_channels(
         self, call_log: RawCallLog
     ) -> list[CallLogParticipant]:
         connected_participants = []
+        call_log_is_stamped = any(
+            'stamped_user_uuid' in raw_attributes
+            for raw_attributes in call_log.raw_participants.values()
+        )
         for channel_name, raw_attributes in call_log.raw_participants.items():
             logger.debug(
                 'raw_participant info for channel %s: %s', channel_name, raw_attributes
             )
-            confd_participant = self._fetch_participant_from_channel(channel_name)
-            if not confd_participant:
+            if 'stamped_user_uuid' in raw_attributes:
+                participant = self._build_participant_from_stamped_identity(
+                    channel_name, raw_attributes
+                )
+            elif call_log_is_stamped:
                 continue
-
-            raw_attributes.update(**confd_participant._asdict())
-            participant = CallLogParticipant(user_uuid=confd_participant.uuid)
-            participant.line_id = confd_participant.line_id
-            participant.tags = confd_participant.tags
-            participant.role = raw_attributes['role']
-            if 'answered' in raw_attributes:
-                participant.answered = raw_attributes['answered']
-            if raw_attributes.get('forwarded'):
-                participant.forwarded = True
-            connected_participants.append(participant)
+            else:
+                participant = self._build_participant_from_confd(
+                    channel_name, raw_attributes
+                )
+            if participant:
+                connected_participants.append(participant)
         return connected_participants
 
     def _fetch_participants(self, call_log: RawCallLog):
@@ -383,7 +449,7 @@ class CallLogsGenerator:
         source_participants = (
             participant
             for participant in call_log.raw_participants.values()
-            if participant['role'] == 'source'
+            if participant.get('role') == 'source'
         )
         for source_participant in source_participants:
             extension = source_participant.get('main_extension')
@@ -398,7 +464,8 @@ class CallLogsGenerator:
         destination_participants = (
             participant
             for participant in call_log.raw_participants.values()
-            if participant['role'] == 'destination' and not participant.get('forwarded')
+            if participant.get('role') == 'destination'
+            and not participant.get('forwarded')
         )
         for destination_participant in destination_participants:
             extension = destination_participant.get('main_extension')

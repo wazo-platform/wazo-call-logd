@@ -1,4 +1,4 @@
-# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -24,8 +24,35 @@ class ParticipantInfo(NamedTuple):
     main_extension: str | None
 
 
+class UserAttributes(NamedTuple):
+    tags: list[str]
+    main_extension: dict | None
+
+
 def get_tags(field: str | None) -> list[str]:
     return [tag.strip() for tag in field.split(',')] if field else []
+
+
+def fetch_user(confd: ConfdClient, user_uuid: str) -> dict | None:
+    try:
+        return confd.users.get(user_uuid)
+    except requests.exceptions.RequestException as ex:
+        logger.warning(
+            'Could not fetch attributes of user %s from confd: %s', user_uuid, ex
+        )
+        return None
+
+
+def user_attributes(user: dict, line_id: int | None = None) -> UserAttributes:
+    lines = user['lines'] or []
+    line = next((line for line in lines if line['id'] == line_id), None)
+    if line is None and lines:
+        line = lines[0]
+    main_extension = line['extensions'][0] if line and line['extensions'] else None
+    return UserAttributes(
+        tags=get_tags(user['userfield']),
+        main_extension=main_extension,
+    )
 
 
 def find_participant_by_uuid(
