@@ -19,6 +19,7 @@ from hamcrest import (
     contains_inanyorder,
     empty,
     equal_to,
+    has_entries,
     has_length,
     has_properties,
     has_property,
@@ -290,6 +291,147 @@ class TestParticipantsProcessor(TestCase):
         assert_that(self.confd.mock_calls, contains_exactly(anything()))
         assert_that(call_log.participants, is_(empty()))
 
+    def test_stamped_lines_of_same_user_get_their_own_main_extension(self):
+        call_log = mock_call()
+        call_log.raw_participants = {
+            "PJSIP/rgcZLNGE-00000028": {
+                "role": "destination",
+                "stamped_user_uuid": "some-user-uuid",
+                "tenant_uuid": "some-tenant-uuid",
+                "stamped_line_id": 12,
+            },
+            "PJSIP/abcdEFGH-00000029": {
+                "role": "destination",
+                "answered": True,
+                "stamped_user_uuid": "some-user-uuid",
+                "tenant_uuid": "some-tenant-uuid",
+                "stamped_line_id": 13,
+            },
+        }
+        self.confd.users.get.return_value = mock_data_dict(
+            uuid="some-user-uuid",
+            userfield=None,
+            lines=[
+                mock_data_dict(id=12, extensions=[{"exten": "1001"}]),
+                mock_data_dict(id=13, extensions=[{"exten": "1002"}]),
+            ],
+        )
+
+        call_log = self.processor(call_log)
+
+        assert_that(self.confd.users.get.mock_calls, has_length(1))
+        assert_that(
+            call_log.raw_participants,
+            has_entries(
+                {
+                    "PJSIP/rgcZLNGE-00000028": has_entries(
+                        main_extension={"exten": "1001"}
+                    ),
+                    "PJSIP/abcdEFGH-00000029": has_entries(
+                        main_extension={"exten": "1002"}
+                    ),
+                }
+            ),
+        )
+
+    def test_unstamped_channel_ignored_when_call_log_is_stamped(self):
+        call_log = mock_call()
+        call_log.raw_participants = {
+            "PJSIP/rgcZLNGE-00000028": {
+                "role": "source",
+                "stamped_user_uuid": "some-user-uuid",
+                "tenant_uuid": "some-tenant-uuid",
+                "stamped_line_id": 12,
+            },
+            "PJSIP/trunk-00000029": {"role": "destination", "answered": True},
+        }
+        self.confd.lines.list.return_value = {"items": []}
+        self.confd.users.get.return_value = mock_data_dict(uuid="some-user-uuid")
+
+        call_log = self.processor(call_log)
+
+        self.confd.lines.list.assert_not_called()
+        assert_that(
+            call_log.participants,
+            contains_exactly(has_properties(user_uuid="some-user-uuid", role="source")),
+        )
+
+    def test_stamped_participant_kept_when_confd_404(self):
+        call_log = mock_call()
+        call_log.raw_participants = {
+            "PJSIP/rgcZLNGE-00000028": {
+                "role": "destination",
+                "answered": True,
+                "stamped_user_uuid": "some-user-uuid",
+                "tenant_uuid": "some-tenant-uuid",
+                "stamped_line_id": 12,
+            }
+        }
+        self.confd.users.get.side_effect = requests.exceptions.HTTPError(
+            response=Mock(status_code=404)
+        )
+
+        call_log = self.processor(call_log)
+
+        self.confd.lines.list.assert_not_called()
+        assert_that(
+            call_log.participants,
+            contains_exactly(
+                has_properties(
+                    user_uuid="some-user-uuid",
+                    line_id=12,
+                    role="destination",
+                    answered=True,
+                    tags=[],
+                )
+            ),
+        )
+
+    def test_stamped_participant_kept_when_confd_unreachable(self):
+        call_log = mock_call()
+        call_log.raw_participants = {
+            "PJSIP/rgcZLNGE-00000028": {
+                "role": "source",
+                "stamped_user_uuid": "some-user-uuid",
+                "tenant_uuid": "some-tenant-uuid",
+            }
+        }
+        self.confd.users.get.side_effect = requests.exceptions.ConnectionError()
+
+        call_log = self.processor(call_log)
+
+        assert_that(
+            call_log.participants,
+            contains_exactly(
+                has_properties(
+                    user_uuid="some-user-uuid", line_id=None, role="source", tags=[]
+                )
+            ),
+        )
+
+    def test_stamped_participant_confd_failure_is_not_retried(self):
+        call_log = mock_call()
+        call_log.raw_participants = {
+            "PJSIP/rgcZLNGE-00000028": {
+                "role": "source",
+                "stamped_user_uuid": "some-user-uuid",
+                "tenant_uuid": "some-tenant-uuid",
+            },
+            "PJSIP/abcdEFGH-00000029": {
+                "role": "destination",
+                "stamped_user_uuid": "some-user-uuid",
+                "tenant_uuid": "some-tenant-uuid",
+            },
+        }
+        self.confd.users.get.side_effect = requests.exceptions.HTTPError(
+            response=Mock(status_code=404)
+        )
+
+        call_log = self.processor(call_log)
+
+        assert_that(self.confd.users.get.mock_calls, has_length(1))
+        assert_that(call_log.participants, has_length(2))
+
     def test_participant_identified_from_channel(self):
         call_log = mock_call()
         channel_name = "PJSIP/rgcZLNGE-00000028"
@@ -537,6 +679,18 @@ class TestFillExtensionsFromParticipants(TestCase):
 
         assert_that(call_log.destination_internal_exten, none())
         assert_that(call_log.destination_internal_context, none())
+
+    def test_participant_without_role_is_ignored(self):
+        call_log = RawCallLog()
+        call_log.raw_participants = {
+            'chan1': {'stamped_user_uuid': 'some-user-uuid'},
+            'chan2': self._make_participant('102', 'default', answered=True),
+        }
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_internal_exten, equal_to('102'))
+        assert_that(call_log.destination_internal_context, equal_to('default'))
 
 
 class TestResolveVoicemailDestination(TestCase):

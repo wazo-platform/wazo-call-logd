@@ -1,4 +1,4 @@
-# Copyright 2022-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -34,3 +34,4 @@ class CELEventType:
     wazo_call_log_destination = 'WAZO_CALL_LOG_DESTINATION'
     wazo_call_log_requested_internal = 'WAZO_CALL_LOG_REQUESTED_INTERNAL'
     wazo_originate_all_lines = 'WAZO_ORIGINATE_ALL_LINES'
+    wazo_call_log_participant = 'WAZO_CALL_LOG_PARTICIPANT'
