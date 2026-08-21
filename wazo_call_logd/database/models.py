@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import timedelta as td
 from datetime import timezone as tz
 
@@ -15,6 +16,8 @@ from sqlalchemy.schema import CheckConstraint, Column, ForeignKey, Index
 from sqlalchemy.sql import and_, case, desc, select, text
 from sqlalchemy.types import Boolean, DateTime, Enum, Float, Integer, String, Text
 from sqlalchemy_utils import UUIDType, generic_repr
+
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -88,6 +91,8 @@ class CallLog(Base):
     # than one row.
     @property
     def source_participant(self):
+        if len(self.source_participants) > 1:
+            logger.warning('call log %s has more than one source participant', self.id)
         return self.source_participants[0] if self.source_participants else None
 
     @hybrid_property
