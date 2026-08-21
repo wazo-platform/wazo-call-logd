@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import timedelta as td
 from datetime import timezone as tz
 
@@ -12,9 +13,11 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.schema import CheckConstraint, Column, ForeignKey, Index
-from sqlalchemy.sql import and_, case, select, text
+from sqlalchemy.sql import and_, case, desc, select, text
 from sqlalchemy.types import Boolean, DateTime, Enum, Float, Integer, String, Text
 from sqlalchemy_utils import UUIDType, generic_repr
+
+logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
@@ -73,17 +76,42 @@ class CallLog(Base):
     participants = relationship('CallLogParticipant', cascade='all,delete-orphan')
     participant_user_uuids = association_proxy('participants', 'user_uuid')
 
-    source_participant = relationship(
+    source_participants = relationship(
         'CallLogParticipant',
         primaryjoin='''and_(
             CallLogParticipant.call_log_id == CallLog.id,
             CallLogParticipant.role == 'source'
         )''',
         viewonly=True,
-        uselist=False,
     )
-    source_user_uuid = association_proxy('source_participant', 'user_uuid')
-    source_line_id = association_proxy('source_participant', 'line_id')
+
+    # NOTE(afournier): a call log may hold more than one participant for a given
+    # role, so the single participant is picked in python. A scalar relationship
+    # (uselist=False) would emit a SAWarning each time the join matches more
+    # than one row.
+    @property
+    def source_participant(self):
+        if len(self.source_participants) > 1:
+            logger.warning('call log %s has more than one source participant', self.id)
+        return self.source_participants[0] if self.source_participants else None
+
+    @hybrid_property
+    def source_user_uuid(self):
+        participant = self.source_participant
+        return participant.user_uuid if participant else None
+
+    @source_user_uuid.expression
+    def source_user_uuid(cls):
+        return cls._source_participant_value(CallLogParticipant.user_uuid)
+
+    @hybrid_property
+    def source_line_id(self):
+        participant = self.source_participant
+        return participant.line_id if participant else None
+
+    @source_line_id.expression
+    def source_line_id(cls):
+        return cls._source_participant_value(CallLogParticipant.line_id)
 
     destination_details = relationship(
         'Destination',
@@ -103,7 +131,7 @@ class CallLog(Base):
             for row in self.destination_details
         }
 
-    destination_participant = relationship(
+    destination_participants = relationship(
         'CallLogParticipant',
         primaryjoin='''and_(
             CallLogParticipant.call_log_id == CallLog.id,
@@ -111,10 +139,34 @@ class CallLog(Base):
         )''',
         order_by='desc(CallLogParticipant.answered), desc(CallLogParticipant.user_uuid)',
         viewonly=True,
-        uselist=False,
     )
-    destination_user_uuid = association_proxy('destination_participant', 'user_uuid')
-    destination_line_id = association_proxy('destination_participant', 'line_id')
+
+    # NOTE(afournier): the first 'destination' participant to have answered, or
+    # an arbitrary one based on uuid ordering when none answered. See the
+    # source_participant note about picking it in python.
+    @property
+    def destination_participant(self):
+        return (
+            self.destination_participants[0] if self.destination_participants else None
+        )
+
+    @hybrid_property
+    def destination_user_uuid(self):
+        participant = self.destination_participant
+        return participant.user_uuid if participant else None
+
+    @destination_user_uuid.expression
+    def destination_user_uuid(cls):
+        return cls._destination_participant_value(CallLogParticipant.user_uuid)
+
+    @hybrid_property
+    def destination_line_id(self):
+        participant = self.destination_participant
+        return participant.line_id if participant else None
+
+    @destination_line_id.expression
+    def destination_line_id(cls):
+        return cls._destination_participant_value(CallLogParticipant.line_id)
 
     cel_ids = []
 
@@ -125,6 +177,40 @@ class CallLog(Base):
             name='call_logd_call_log_direction_check',
         ),
     )
+
+    @classmethod
+    def _source_participant_value(cls, column):
+        return (
+            select(column)
+            .where(
+                and_(
+                    CallLogParticipant.role == 'source',
+                    CallLogParticipant.call_log_id == cls.id,
+                )
+            )
+            .limit(1)
+            .scalar_subquery()
+        )
+
+    @classmethod
+    def _destination_participant_value(cls, column):
+        # NOTE(afournier): must stay in sync with the ordering of the
+        # destination_participants relationship
+        return (
+            select(column)
+            .where(
+                and_(
+                    CallLogParticipant.role == 'destination',
+                    CallLogParticipant.call_log_id == cls.id,
+                )
+            )
+            .order_by(
+                desc(CallLogParticipant.answered),
+                desc(CallLogParticipant.user_uuid),
+            )
+            .limit(1)
+            .scalar_subquery()
+        )
 
     @hybrid_property
     def requested_user_uuid(self):

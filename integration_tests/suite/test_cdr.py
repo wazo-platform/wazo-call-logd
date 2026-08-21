@@ -1199,6 +1199,80 @@ class TestListCDR(IntegrationTest):
             ),
         )
 
+    @call_log(
+        **{'id': 1},
+        date='2017-04-10',
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': 1, 'role': 'source'},
+            {
+                'user_uuid': str(USER_2_UUID),
+                'line_id': 2,
+                'role': 'destination',
+                'answered': True,
+            },
+            {'user_uuid': str(USER_3_UUID), 'line_id': 3, 'role': 'destination'},
+        ],
+    )
+    @call_log(
+        **{'id': 2},
+        date='2017-04-11',
+        participants=[
+            {'user_uuid': str(USER_2_UUID), 'line_id': 22, 'role': 'source'},
+            {'user_uuid': str(USER_3_UUID), 'line_id': 33, 'role': 'destination'},
+        ],
+    )
+    @call_log(**{'id': 3}, date='2017-04-12')
+    def test_list_cdr_sort_by_participant_field(self):
+        # those fields come from the participants of the call log, not from a
+        # column: ordering on them used to generate invalid SQL
+        for order in (
+            'source_user_uuid',
+            'source_line_id',
+            'destination_user_uuid',
+            'destination_line_id',
+        ):
+            asc = [
+                item[order]
+                for item in self.call_logd.cdr.list(order=order, direction='asc')[
+                    'items'
+                ]
+            ]
+            desc = [
+                item[order]
+                for item in self.call_logd.cdr.list(order=order, direction='desc')[
+                    'items'
+                ]
+            ]
+
+            # the call log without participant has no value for those fields
+            assert_that(asc, contains_exactly(None, *sorted(asc[1:])), order)
+            assert_that(
+                desc, contains_exactly(*sorted(desc[:-1], reverse=True), None), order
+            )
+
+    @call_log(
+        date='2017-04-10',
+        participants=[
+            {'user_uuid': str(USER_3_UUID), 'line_id': 3, 'role': 'destination'},
+            {
+                'user_uuid': str(USER_2_UUID),
+                'line_id': 2,
+                'role': 'destination',
+                'answered': True,
+            },
+        ],
+    )
+    def test_list_cdr_destination_participant_is_the_one_that_answered(self):
+        assert_that(
+            self.call_logd.cdr.list()['items'],
+            contains_exactly(
+                has_entries(
+                    destination_user_uuid=str(USER_2_UUID),
+                    destination_line_id=2,
+                )
+            ),
+        )
+
     @call_log(date='2017-04-10', date_answer=None, date_end='2017-04-10')
     @call_log(
         date='2017-04-12', date_answer='2017-04-12', date_end='2017-04-12 00:00:02'

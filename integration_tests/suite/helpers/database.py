@@ -709,8 +709,8 @@ class DatabaseQueries:
                 .order_by(CallLog.date)
                 .options(
                     selectinload(CallLog.participants),
-                    joinedload(CallLog.destination_participant),
-                    joinedload(CallLog.source_participant),
+                    joinedload(CallLog.destination_participants),
+                    joinedload(CallLog.source_participants),
                 )
                 .first()
             )
