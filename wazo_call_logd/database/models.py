@@ -82,6 +82,7 @@ class CallLog(Base):
             CallLogParticipant.call_log_id == CallLog.id,
             CallLogParticipant.role == 'source'
         )''',
+        order_by='desc(CallLogParticipant.answered), desc(CallLogParticipant.user_uuid)',
         viewonly=True,
     )
 
@@ -102,7 +103,7 @@ class CallLog(Base):
 
     @source_user_uuid.expression
     def source_user_uuid(cls):
-        return cls._source_participant_value(CallLogParticipant.user_uuid)
+        return cls._participant_value('source', CallLogParticipant.user_uuid)
 
     @hybrid_property
     def source_line_id(self):
@@ -111,7 +112,7 @@ class CallLog(Base):
 
     @source_line_id.expression
     def source_line_id(cls):
-        return cls._source_participant_value(CallLogParticipant.line_id)
+        return cls._participant_value('source', CallLogParticipant.line_id)
 
     destination_details = relationship(
         'Destination',
@@ -157,7 +158,7 @@ class CallLog(Base):
 
     @destination_user_uuid.expression
     def destination_user_uuid(cls):
-        return cls._destination_participant_value(CallLogParticipant.user_uuid)
+        return cls._participant_value('destination', CallLogParticipant.user_uuid)
 
     @hybrid_property
     def destination_line_id(self):
@@ -166,7 +167,7 @@ class CallLog(Base):
 
     @destination_line_id.expression
     def destination_line_id(cls):
-        return cls._destination_participant_value(CallLogParticipant.line_id)
+        return cls._participant_value('destination', CallLogParticipant.line_id)
 
     cel_ids = []
 
@@ -179,28 +180,14 @@ class CallLog(Base):
     )
 
     @classmethod
-    def _source_participant_value(cls, column):
+    def _participant_value(cls, role, column):
+        # NOTE: must stay in sync with the ordering of the *_participants
+        # relationships
         return (
             select(column)
             .where(
                 and_(
-                    CallLogParticipant.role == 'source',
-                    CallLogParticipant.call_log_id == cls.id,
-                )
-            )
-            .limit(1)
-            .scalar_subquery()
-        )
-
-    @classmethod
-    def _destination_participant_value(cls, column):
-        # NOTE(afournier): must stay in sync with the ordering of the
-        # destination_participants relationship
-        return (
-            select(column)
-            .where(
-                and_(
-                    CallLogParticipant.role == 'destination',
+                    CallLogParticipant.role == role,
                     CallLogParticipant.call_log_id == cls.id,
                 )
             )
