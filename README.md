@@ -1,3 +1,4 @@
+# DO NOT MERGE
 # wazo-call-logd
 
 [![Build Status](https://jenkins.wazo.community/buildStatus/icon?job=wazo-call-logd)](https://jenkins.wazo.community/job/wazo-call-logd)
