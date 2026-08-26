@@ -45,7 +45,7 @@ class TestFindParticipant(TestCase):
 
     def test_find_participants_when_no_lines(self):
         confd = confd_mock()
-        channame = 'sip/something-suffix'
+        channame = 'sip/something-00000001'
 
         result = find_participant(confd, channame)
 
@@ -54,7 +54,7 @@ class TestFindParticipant(TestCase):
     def test_find_participants_when_line_has_no_user(self):
         lines = [{'id': 12, 'users': []}]
         confd = confd_mock(lines)
-        channame = 'sip/something-suffix'
+        channame = 'sip/something-00000001'
 
         result = find_participant(confd, channame)
 
@@ -68,7 +68,7 @@ class TestFindParticipant(TestCase):
         }
         lines = [{'id': 12, 'users': [user], 'extensions': []}]
         confd = confd_mock(lines)
-        channame = 'sip/something-suffix'
+        channame = 'sip/something-00000001'
 
         result = find_participant(confd, channame)
 
