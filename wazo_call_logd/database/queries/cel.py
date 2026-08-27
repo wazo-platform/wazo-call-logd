@@ -68,6 +68,23 @@ class CELDAO(BaseDAO):
             cels = list(self._correlated_cels_by_uniqueid(session, subquery))
             return eject(session, cels)
 
+    def find_unprocessed(self, start_date=None, end_date=None):
+        with self.new_session() as session:
+            subquery = (
+                session.query(CEL.uniqueid)
+                .filter(CEL.call_log_id.is_(None))
+                .filter(CEL.channame != 'Message/ast_msg_queue')  # ignore SIP chat
+                .order_by(CEL.eventtime.desc())
+            )
+
+            if start_date:
+                subquery = subquery.filter(CEL.eventtime >= start_date)
+            if end_date:
+                subquery = subquery.filter(CEL.eventtime <= end_date)
+
+            cels = list(self._correlated_cels_by_uniqueid(session, subquery))
+            return eject(session, cels)
+
     def find_from_linked_id(self, linked_id):
         with self.new_session() as session:
             linked_cels = (
