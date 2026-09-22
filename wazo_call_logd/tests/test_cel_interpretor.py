@@ -422,6 +422,42 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result.requested_internal_exten, equal_to('100'))
         assert_that(result.requested_internal_context, equal_to('internal'))
 
+    def test_interpret_wazo_group_fwd(self):
+        self.call.was_forwarded = False
+        self.call.requested_name = None
+        cel = Mock(
+            eventtype='WAZO_GROUP_FWD',
+            extra='{"extra":"id: 9,label: supportgroup1"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_wazo_group_fwd(cel, self.call)
+
+        assert_that(result.was_forwarded, equal_to(True))
+        assert_that(result.requested_name, equal_to('supportgroup1'))
+
+    def test_interpret_wazo_group_fwd_keeps_requested_name(self):
+        self.call.was_forwarded = False
+        self.call.requested_name = 'Bob Marley'
+        cel = Mock(
+            eventtype='WAZO_GROUP_FWD',
+            extra='{"extra":"id: 9,label: supportgroup1"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_wazo_group_fwd(cel, self.call)
+
+        assert_that(result.was_forwarded, equal_to(True))
+        assert_that(result.requested_name, equal_to('Bob Marley'))
+
+    def test_interpret_wazo_group_fwd_without_payload(self):
+        self.call.was_forwarded = False
+        self.call.requested_name = None
+        cel = Mock(eventtype='WAZO_GROUP_FWD', extra='{"extra":""}')
+
+        result = self.caller_cel_interpretor.interpret_wazo_group_fwd(cel, self.call)
+
+        assert_that(result.was_forwarded, equal_to(True))
+        assert_that(result.requested_name, equal_to(None))
+
     def test_interpret_wazo_internal_call_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',

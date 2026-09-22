@@ -299,6 +299,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.xivo_incall: self.interpret_xivo_incall,
             CELEventType.xivo_outcall: self.interpret_xivo_outcall,
             CELEventType.xivo_user_fwd: self.interpret_xivo_user_fwd,
+            CELEventType.wazo_group_fwd: self.interpret_wazo_group_fwd,
             CELEventType.wazo_meeting_name: self.interpret_wazo_meeting_name,
             CELEventType.wazo_conference: self.interpret_wazo_conference,
             CELEventType.wazo_user_missed_call: self.interpret_wazo_user_missed_call,
@@ -475,6 +476,22 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 call.requested_internal_context = extra.group(2)
                 call.requested_name = extra.group(3)
             call.interpret_caller_xivo_user_fwd = False
+        return call
+
+    def interpret_wazo_group_fwd(self, cel, call: RawCallLog):
+        # A group overflow (timeout, full, empty, closed) forwards the call
+        # like a user no-answer forward does
+        call.was_forwarded = True
+
+        extra = extract_cel_extra(cel.extra)
+        if not extra:
+            return call
+
+        extra_dict = dict(parse_key_pair_sequence(extra.get('extra', '')))
+        logger.debug('wazo_group_fwd payload: %s', extra_dict)
+
+        if not call.requested_name and (label := extra_dict.get('label')):
+            call.requested_name = label
         return call
 
     def interpret_wazo_conference(self, cel, call):
