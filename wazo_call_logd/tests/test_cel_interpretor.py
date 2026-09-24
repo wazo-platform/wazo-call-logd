@@ -458,6 +458,51 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result.was_forwarded, equal_to(True))
         assert_that(result.requested_name, equal_to(None))
 
+    def test_interpret_xivo_outcall_not_forwarded(self):
+        self.call.was_forwarded = False
+        self.call.destination_exten = '5551234'
+        cel = Mock(
+            eventtype='XIVO_OUTCALL',
+            cid_name='Alice',
+            cid_num='1005',
+            extra='{"extra":"exten: 5551234"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_xivo_outcall(cel, self.call)
+
+        assert_that(result.direction, equal_to('outbound'))
+        assert_that(result.destination_exten, equal_to('5551234'))
+
+    def test_interpret_xivo_outcall_forwarded_uses_dialed_exten(self):
+        self.call.was_forwarded = True
+        self.call.destination_details = [Mock()]
+        cel = Mock(
+            eventtype='XIVO_OUTCALL',
+            cid_name='Wanna Be',
+            cid_num='1000',
+            extra='{"extra":"exten: **12123"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_xivo_outcall(cel, self.call)
+
+        assert_that(result.destination_exten, equal_to('**12123'))
+        assert_that(result.destination_name, equal_to(''))
+        assert_that(result.destination_details, equal_to([]))
+
+    def test_interpret_xivo_outcall_forwarded_without_payload(self):
+        self.call.was_forwarded = True
+        cel = Mock(
+            eventtype='XIVO_OUTCALL',
+            cid_name='8005551234',
+            cid_num='8005551234',
+            extra='{"extra":""}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_xivo_outcall(cel, self.call)
+
+        assert_that(result.destination_exten, equal_to('8005551234'))
+        assert_that(result.destination_name, equal_to('8005551234'))
+
     def test_interpret_wazo_internal_call_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
