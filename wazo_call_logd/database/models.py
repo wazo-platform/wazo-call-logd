@@ -136,14 +136,16 @@ class CallLog(Base):
         'CallLogParticipant',
         primaryjoin='''and_(
             CallLogParticipant.call_log_id == CallLog.id,
-            CallLogParticipant.role == 'destination'
+            CallLogParticipant.role == 'destination',
+            CallLogParticipant.forwarded.is_(False)
         )''',
         order_by='desc(CallLogParticipant.answered), desc(CallLogParticipant.user_uuid)',
         viewonly=True,
     )
 
     # NOTE(afournier): the first 'destination' participant to have answered, or
-    # an arbitrary one based on uuid ordering when none answered. See the
+    # an arbitrary one based on uuid ordering when none answered. Participants
+    # the call was forwarded away from are never the destination. See the
     # source_participant note about picking it in python.
     @property
     def destination_participant(self):
@@ -189,6 +191,7 @@ class CallLog(Base):
                 and_(
                     CallLogParticipant.role == role,
                     CallLogParticipant.call_log_id == cls.id,
+                    CallLogParticipant.forwarded.is_(False),
                 )
             )
             .order_by(
@@ -301,6 +304,8 @@ class CallLogParticipant(Base):
     )
     answered = Column(Boolean, nullable=False, server_default='false')
     requested = Column(Boolean, nullable=False, server_default='false')
+    # a destination that did not answer before the call was forwarded elsewhere
+    forwarded = Column(Boolean, nullable=False, server_default='false')
 
     call_log = relationship('CallLog', uselist=False, viewonly=True)
 

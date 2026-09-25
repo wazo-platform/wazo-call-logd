@@ -1349,6 +1349,10 @@ class TestCallLogGenerationScenarios(TestCase):
                 destination_name='',
                 destination_exten='**12123',
                 destination_details=empty(),
+                destination_internal_exten=None,
+                destination_internal_context=None,
+                requested_internal_exten=None,
+                requested_internal_context=None,
                 date_answer=datetime_close_to(
                     '2026-09-24 16:39:27.266625-04:00', delta=timedelta(seconds=1)
                 ),
@@ -1360,6 +1364,7 @@ class TestCallLogGenerationScenarios(TestCase):
                     has_properties(
                         user_uuid='f6cb32d4-3364-424a-a7b2-d09c7df891ff',
                         role='destination',
+                        forwarded=True,
                     ),
                 ),
             ),

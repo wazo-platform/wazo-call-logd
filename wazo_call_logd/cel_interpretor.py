@@ -470,6 +470,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
 
     def interpret_xivo_user_fwd(self, cel, call: RawCallLog):
         call.was_forwarded = True
+        call.forward_times.append(parse_eventtime(cel.eventtime))
         extra = re.match(EXTRA_USER_FWD_REGEX, cel.extra)
 
         # Replace destination_exten here because WAZO_USER_MISSED_CALL event
@@ -491,6 +492,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
         # A group overflow (timeout, full, empty, closed) forwards the call
         # like a user no-answer forward does
         call.was_forwarded = True
+        call.forward_times.append(parse_eventtime(cel.eventtime))
 
         extra = extract_cel_extra(cel.extra)
         if not extra:
@@ -676,6 +678,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 "name": destination_details['user_name'],
                 "requested": (not call.requested_type),
                 "tags": [],
+                "seen_at": parse_eventtime(cel.eventtime),
             }
 
             logger.debug(
@@ -808,7 +811,9 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 if not call.requested_name:
                     call.requested_name = cel.cid_name
 
-        call.raw_participants[cel.channame].update(role='destination')
+        call.raw_participants[cel.channame].update(
+            role='destination', started_at=parse_eventtime(cel.eventtime)
+        )
 
         return call
 
