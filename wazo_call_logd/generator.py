@@ -89,6 +89,8 @@ class _ParticipantsProcessor:
             participant.role = raw_attributes['role']
             if 'answered' in raw_attributes:
                 participant.answered = raw_attributes['answered']
+            if raw_attributes.get('forwarded'):
+                participant.forwarded = True
             connected_participants.append(participant)
         return connected_participants
 
@@ -138,6 +140,7 @@ class _ParticipantsProcessor:
                     answered=False,
                     role=user_participants_info[-1]['role'],
                     requested=user_participants_info[-1].get('requested', False),
+                    forwarded=user_participants_info[-1].get('forwarded', False),
                 )
                 unreached_participants.append(participant)
 
@@ -150,6 +153,8 @@ class _ParticipantsProcessor:
                     if 'answered' in participant_info and participant.answered is None:
                         participant.answered = participant_info['answered']
                     participant.requested = participant_info.get('requested', False)
+                    if participant_info.get('forwarded'):
+                        participant.forwarded = True
             elif user_participants_info:
                 # tricky cases where cel-based user mentions
                 # do not correspond one-to-one with opened channels
@@ -255,6 +260,7 @@ class CallLogsGenerator:
                 call_log = interpretor.interpret_cels(cels_by_call, call_log)
 
                 self._remove_duplicate_participants(call_log)
+                self._mark_forwarded_participants(call_log)
                 self._fetch_participants(call_log)
                 self._ensure_tenant_uuid_is_set(call_log)
                 self._fill_extensions_from_participants(call_log)
@@ -314,6 +320,32 @@ class CallLogsGenerator:
                 if channel_name != kept_channel_name:
                     call_log.raw_participants.pop(channel_name, None)
 
+    def _mark_forwarded_participants(self, call_log: RawCallLog):
+        # a destination that did not answer before a forward is not the
+        # destination anymore once that forward reaches a new destination (user,
+        # group, outcall, ...). A forward that reaches no new destination
+        # (voicemail, sound, hangup) keeps it as the destination.
+        destinations = [
+            (raw_attributes, raw_attributes['started_at'])
+            for raw_attributes in call_log.raw_participants.values()
+            if raw_attributes.get('role') == 'destination'
+            and raw_attributes.get('started_at')
+        ]
+        # destinations known from CEL user events, e.g. a user with no channel
+        destinations += [
+            (participant_info, participant_info['seen_at'])
+            for participant_info in call_log.participants_info
+            if participant_info.get('role') == 'destination'
+            and participant_info.get('seen_at')
+        ]
+
+        for forward_time in call_log.forward_times:
+            if not any(seen_at > forward_time for _, seen_at in destinations):
+                continue
+            for attributes, seen_at in destinations:
+                if seen_at < forward_time and not attributes.get('answered'):
+                    attributes['forwarded'] = True
+
     def _fetch_participants(self, call_log: RawCallLog):
         participant_processor = _ParticipantsProcessor(self.confd)
         call_log = participant_processor(call_log)
@@ -366,7 +398,7 @@ class CallLogsGenerator:
         destination_participants = (
             participant
             for participant in call_log.raw_participants.values()
-            if participant['role'] == 'destination'
+            if participant['role'] == 'destination' and not participant.get('forwarded')
         )
         for destination_participant in destination_participants:
             extension = destination_participant.get('main_extension')

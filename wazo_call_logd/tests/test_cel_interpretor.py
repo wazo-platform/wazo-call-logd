@@ -377,6 +377,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_xivo_user_fwd_regexp(self):
         cel = Mock(
             eventtype='XIVO_USER_FWD',
+            eventtime='2026-09-25 16:09:24.896793-04',
             extra='{"extra":"NUM:100,CONTEXT:internal,NAME:Bob Marley"}',
         )
 
@@ -389,6 +390,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_xivo_user_fwd_regexp_with_space(self):
         cel = Mock(
             eventtype='XIVO_USER_FWD',
+            eventtime='2026-09-25 16:09:24.896793-04',
             extra='{"extra":" NUM: 100 , CONTEXT: internal , NAME: Bob Marley "}',
         )
 
@@ -401,6 +403,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_xivo_user_fwd_regexp_with_value_before(self):
         cel = Mock(
             eventtype='XIVO_USER_FWD',
+            eventtime='2026-09-25 16:09:24.896793-04',
             extra='{"extra":"BEFORE:value,NUM:100,CONTEXT:internal,NAME:Bob Marley"}',
         )
 
@@ -413,6 +416,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_xivo_user_fwd_regexp_with_value_after(self):
         cel = Mock(
             eventtype='XIVO_USER_FWD',
+            eventtime='2026-09-25 16:09:24.896793-04',
             extra='{"extra":"NUM:100,CONTEXT:internal,NAME:Bob Marley,AFTER:value"}',
         )
 
@@ -427,6 +431,7 @@ class TestCallerCELInterpretor(TestCase):
         self.call.requested_name = None
         cel = Mock(
             eventtype='WAZO_GROUP_FWD',
+            eventtime='2026-09-25 16:09:24.896793-04',
             extra='{"extra":"id: 9,label: supportgroup1"}',
         )
 
@@ -440,6 +445,7 @@ class TestCallerCELInterpretor(TestCase):
         self.call.requested_name = 'Bob Marley'
         cel = Mock(
             eventtype='WAZO_GROUP_FWD',
+            eventtime='2026-09-25 16:09:24.896793-04',
             extra='{"extra":"id: 9,label: supportgroup1"}',
         )
 
@@ -451,7 +457,11 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_group_fwd_without_payload(self):
         self.call.was_forwarded = False
         self.call.requested_name = None
-        cel = Mock(eventtype='WAZO_GROUP_FWD', extra='{"extra":""}')
+        cel = Mock(
+            eventtype='WAZO_GROUP_FWD',
+            eventtime='2026-09-25 16:09:24.896793-04',
+            extra='{"extra":""}',
+        )
 
         result = self.caller_cel_interpretor.interpret_wazo_group_fwd(cel, self.call)
 
@@ -506,6 +516,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_internal_call_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
+            eventtime='2026-09-25 16:09:03.340181-04',
             extra='{"extra":"type: user,uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,'
             'name: Willy Wonka"}',
         )
@@ -535,6 +546,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_internal_call_has_requested_user_tag(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
+            eventtime='2026-09-25 16:09:03.340181-04',
             extra='{"extra":"type: user,uuid: c3f297bd-93e1-46f6-a309-79b320acb7fb,'
             'name: Willy Wonka"}',
         )
@@ -549,6 +561,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_incoming_call_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
+            eventtime='2026-09-25 16:09:03.340181-04',
             extra='{"extra":"type: user,uuid: cb79f29b-f69a-4b93-85c2-49dcce119a9f,'
             'name: Harry Potter"}',
         )
@@ -578,6 +591,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_meeting_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
+            eventtime='2026-09-25 16:09:03.340181-04',
             extra='{"extra":"type: meeting,uuid: 9195757f-c381-4f38-b684-98fef848f48b,'
             'name: Meeting with Harry Potter"}',
         )
@@ -607,6 +621,7 @@ class TestCallerCELInterpretor(TestCase):
     def test_interpret_wazo_conference_has_destination_details(self):
         cel = Mock(
             eventtype='WAZO_CALL_LOG_DESTINATION',
+            eventtime='2026-09-25 16:09:03.340181-04',
             extra='{"extra":"type: conference,id: 1"}',
         )
 
