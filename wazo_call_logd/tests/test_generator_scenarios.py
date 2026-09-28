@@ -258,6 +258,66 @@ def mock_confd_client(
     return confd_client
 
 
+# group 3001 (ring all, 2 x 15s) no-answer fallback to the external number
+# **12123 through an outcall, answered. Captured with a dialplan that
+# emitted XIVO_OUTCALL without payload.
+GROUP_NO_ANSWER_FALLBACK_TO_OUTCALL_CELS = '''
+    eventtype         |           eventtime           |   uniqueid    |    cid_name    |               cid_num                |                exten                 |                 context                 |                               channame                                |     appname     |                                                         appdata                                                          |          peer           |                                                    extra | linkedid
+    CHAN_START                | 2026-09-24 16:38:54.799315-04 | 1790282334.46 | Wanna Be       | 1000                                 | 3001                                 | ucengine-0-buster-main-key8477-internal | PJSIP/V3RqWuGi-0000000e                                               |                 |                                                                                                                          |                         | | 1790282334.46
+    WAZO_CALL_LOG_DESTINATION | 2026-09-24 16:38:54.840181-04 | 1790282334.46 | Wanna Be       | 1000                                 | s                                    | group                                   | PJSIP/V3RqWuGi-0000000e                                               | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: group,id: 7,label: Groupe1                                                               |                         | {"extra":"type: group,id: 7,label: Groupe1"} | 1790282334.46
+    APP_START                 | 2026-09-24 16:38:54.869997-04 | 1790282334.46 | Wanna Be       | 1000                                 | s                                    | group                                   | PJSIP/V3RqWuGi-0000000e                                               | Queue           | grp-Alexandreu-df2a1687-1d61-403a-8958-6c87a9bbf66a,r,,,30,,wazo-group-answered                                          |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:38:54.876195-04 | 1790282334.47 |                |                                      | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000010;1 |                 |                                                                                                                          |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:38:54.876233-04 | 1790282334.48 |                |                                      | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000010;2 |                 |                                                                                                                          |                         | | 1790282334.46
+    WAZO_ORIGINATE_ALL_LINES  | 2026-09-24 16:38:54.87712-04  | 1790282334.48 | Wanna Be       | 1000                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000010;2 | CELGenUserEvent | WAZO_ORIGINATE_ALL_LINES,user_uuid:f6cb32d4-3364-424a-a7b2-d09c7df891ff,tenant_uuid:bebbeda2-ab4a-43af-a5e8-ab859ed2f40b |                         | {"extra":"user_uuid:f6cb32d4-3364-424a-a7b2-d09c7df891ff,tenant_uuid:bebbeda2-ab4a-43af-a5e8-ab859ed2f40b"} | 1790282334.46
+    APP_START                 | 2026-09-24 16:38:54.913124-04 | 1790282334.48 | Wanna Be       | 1000                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000010;2 | Dial            | PJSIP/w6hpvj79/sip:w6hpvj79@10.34.0.31:5060&Local/G4rk8xzR@wazo_wait_for_registration,,r                                 |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:38:54.913667-04 | 1790282334.49 | Paul Telephone | 1002                                 | s                                    | ucengine-0-buster-main-key8477-internal | PJSIP/w6hpvj79-0000000f                                               |                 |                                                                                                                          |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:38:54.914254-04 | 1790282334.50 |                |                                      | G4rk8xzR                             | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000011;1                  |                 |                                                                                                                          |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:38:54.914277-04 | 1790282334.51 |                |                                      | G4rk8xzR                             | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000011;2                  |                 |                                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:09.881666-04 | 1790282334.47 |                | 3001                                 | s                                    | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000010;1 | AppQueue        | (Outgoing Line)                                                                                                          |                         | {"hangupcause":0,"hangupsource":"","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:09.881666-04 | 1790282334.47 |                | 3001                                 | s                                    | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000010;1 | AppQueue        | (Outgoing Line)                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:09.882251-04 | 1790282334.50 |                | f6cb32d4-3364-424a-a7b2-d09c7df891ff | f6cb32d4-3364-424a-a7b2-d09c7df891ff | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000011;1                  | AppDial         | (Outgoing Line)                                                                                                          |                         | {"hangupcause":16,"hangupsource":"","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:09.882251-04 | 1790282334.50 |                | f6cb32d4-3364-424a-a7b2-d09c7df891ff | f6cb32d4-3364-424a-a7b2-d09c7df891ff | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000011;1                  | AppDial         | (Outgoing Line)                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:09.882364-04 | 1790282334.48 | Wanna Be       | 1000                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000010;2 |                 |                                                                                                                          |                         | {"hangupcause":0,"hangupsource":"","dialstatus":"CANCEL"} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:09.882364-04 | 1790282334.48 | Wanna Be       | 1000                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000010;2 |                 |                                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:09.882824-04 | 1790282334.49 | Paul Telephone | 1002                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | ucengine-0-buster-main-key8477-internal | PJSIP/w6hpvj79-0000000f                                               | AppDial         | (Outgoing Line)                                                                                                          |                         | {"hangupcause":16,"hangupsource":"","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:09.882824-04 | 1790282334.49 | Paul Telephone | 1002                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | ucengine-0-buster-main-key8477-internal | PJSIP/w6hpvj79-0000000f                                               | AppDial         | (Outgoing Line)                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:09.883103-04 | 1790282334.51 | Wanna Be       | 1000                                 | G4rk8xzR                             | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000011;2                  |                 |                                                                                                                          |                         | {"hangupcause":16,"hangupsource":"","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:09.883103-04 | 1790282334.51 | Wanna Be       | 1000                                 | G4rk8xzR                             | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000011;2                  |                 |                                                                                                                          |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:39:14.881864-04 | 1790282354.52 |                |                                      | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000012;1 |                 |                                                                                                                          |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:39:14.881987-04 | 1790282354.53 |                |                                      | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000012;2 |                 |                                                                                                                          |                         | | 1790282334.46
+    WAZO_ORIGINATE_ALL_LINES  | 2026-09-24 16:39:14.88378-04  | 1790282354.53 | Wanna Be       | 1000                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000012;2 | CELGenUserEvent | WAZO_ORIGINATE_ALL_LINES,user_uuid:f6cb32d4-3364-424a-a7b2-d09c7df891ff,tenant_uuid:bebbeda2-ab4a-43af-a5e8-ab859ed2f40b |                         | {"extra":"user_uuid:f6cb32d4-3364-424a-a7b2-d09c7df891ff,tenant_uuid:bebbeda2-ab4a-43af-a5e8-ab859ed2f40b"} | 1790282334.46
+    APP_START                 | 2026-09-24 16:39:14.929463-04 | 1790282354.53 | Wanna Be       | 1000                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000012;2 | Dial            | PJSIP/w6hpvj79/sip:w6hpvj79@10.34.0.31:5060&Local/G4rk8xzR@wazo_wait_for_registration,,r                                 |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:39:14.929844-04 | 1790282354.54 | Paul Telephone | 1002                                 | s                                    | ucengine-0-buster-main-key8477-internal | PJSIP/w6hpvj79-00000010                                               |                 |                                                                                                                          |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:39:14.930462-04 | 1790282354.55 |                |                                      | G4rk8xzR                             | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000013;1                  |                 |                                                                                                                          |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:39:14.930482-04 | 1790282354.56 |                |                                      | G4rk8xzR                             | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000013;2                  |                 |                                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:24.890951-04 | 1790282354.52 |                | 3001                                 | s                                    | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000012;1 | AppQueue        | (Outgoing Line)                                                                                                          |                         | {"hangupcause":0,"hangupsource":"","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:24.890951-04 | 1790282354.52 |                | 3001                                 | s                                    | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000012;1 | AppQueue        | (Outgoing Line)                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:24.891496-04 | 1790282354.55 |                | f6cb32d4-3364-424a-a7b2-d09c7df891ff | f6cb32d4-3364-424a-a7b2-d09c7df891ff | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000013;1                  | AppDial         | (Outgoing Line)                                                                                                          |                         | {"hangupcause":16,"hangupsource":"","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:24.891496-04 | 1790282354.55 |                | f6cb32d4-3364-424a-a7b2-d09c7df891ff | f6cb32d4-3364-424a-a7b2-d09c7df891ff | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000013;1                  | AppDial         | (Outgoing Line)                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:24.891654-04 | 1790282354.53 | Wanna Be       | 1000                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000012;2 |                 |                                                                                                                          |                         | {"hangupcause":0,"hangupsource":"","dialstatus":"CANCEL"} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:24.891654-04 | 1790282354.53 | Wanna Be       | 1000                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | usersharedlines                         | Local/f6cb32d4-3364-424a-a7b2-d09c7df891ff@usersharedlines-00000012;2 |                 |                                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:24.892073-04 | 1790282354.54 | Paul Telephone | 1002                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | ucengine-0-buster-main-key8477-internal | PJSIP/w6hpvj79-00000010                                               | AppDial         | (Outgoing Line)                                                                                                          |                         | {"hangupcause":16,"hangupsource":"","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:24.892073-04 | 1790282354.54 | Paul Telephone | 1002                                 | f6cb32d4-3364-424a-a7b2-d09c7df891ff | ucengine-0-buster-main-key8477-internal | PJSIP/w6hpvj79-00000010                                               | AppDial         | (Outgoing Line)                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:24.892439-04 | 1790282354.56 | Wanna Be       | 1000                                 | G4rk8xzR                             | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000013;2                  |                 |                                                                                                                          |                         | {"hangupcause":16,"hangupsource":"","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:24.892439-04 | 1790282354.56 | Wanna Be       | 1000                                 | G4rk8xzR                             | wazo_wait_for_registration              | Local/G4rk8xzR@wazo_wait_for_registration-00000013;2                  |                 |                                                                                                                          |                         | | 1790282334.46
+    WAZO_GROUP_FWD            | 2026-09-24 16:39:24.896793-04 | 1790282334.46 | Wanna Be       | 1000                                 | forward                              | group                                   | PJSIP/V3RqWuGi-0000000e                                               | CELGenUserEvent | WAZO_GROUP_FWD,id: 7,label: Groupe1                                                                                      |                         | {"extra":"id: 7,label: Groupe1"} | 1790282334.46
+    XIVO_OUTCALL              | 2026-09-24 16:39:25.023996-04 | 1790282334.46 | Wanna Be       | 1000                                 | dial                                 | outcall                                 | PJSIP/V3RqWuGi-0000000e                                               | CELGenUserEvent | XIVO_OUTCALL                                                                                                             |                         | {"extra":""} | 1790282334.46
+    APP_START                 | 2026-09-24 16:39:25.024134-04 | 1790282334.46 | Wanna Be       | 1000                                 | dial                                 | outcall                                 | PJSIP/V3RqWuGi-0000000e                                               | Dial            | PJSIP/123@eg8otwpk,,o(**12123)U(wazo-record-answered^s^1)                                                                |                         | | 1790282334.46
+    CHAN_START                | 2026-09-24 16:39:25.025015-04 | 1790282365.57 |                |                                      | s                                    | from-extern                             | PJSIP/eg8otwpk-00000011                                               |                 |                                                                                                                          |                         | | 1790282334.46
+    ANSWER                    | 2026-09-24 16:39:27.253615-04 | 1790282365.57 |                | **12123                              | dial                                 | from-extern                             | PJSIP/eg8otwpk-00000011                                               | AppDial         | (Outgoing Line)                                                                                                          |                         | | 1790282334.46
+    ANSWER                    | 2026-09-24 16:39:27.265944-04 | 1790282334.46 | Wanna Be       | 1000                                 | dial                                 | outcall                                 | PJSIP/V3RqWuGi-0000000e                                               | Dial            | PJSIP/123@eg8otwpk,,o(**12123)U(wazo-record-answered^s^1)                                                                |                         | | 1790282334.46
+    BRIDGE_ENTER              | 2026-09-24 16:39:27.266511-04 | 1790282365.57 |                | **12123                              |                                      | from-extern                             | PJSIP/eg8otwpk-00000011                                               | AppDial         | (Outgoing Line)                                                                                                          |                         | {"bridge_id":"5acd0834-4fc2-4d32-a631-b650626a4769","bridge_technology":"simple_bridge"} | 1790282334.46
+    BRIDGE_ENTER              | 2026-09-24 16:39:27.266625-04 | 1790282334.46 | Wanna Be       | 1000                                 | dial                                 | outcall                                 | PJSIP/V3RqWuGi-0000000e                                               | Dial            | PJSIP/123@eg8otwpk,,o(**12123)U(wazo-record-answered^s^1)                                                                | PJSIP/eg8otwpk-00000011 | {"bridge_id":"5acd0834-4fc2-4d32-a631-b650626a4769","bridge_technology":"simple_bridge"} | 1790282334.46
+    BRIDGE_EXIT               | 2026-09-24 16:39:32.778933-04 | 1790282365.57 |                | **12123                              |                                      | from-extern                             | PJSIP/eg8otwpk-00000011                                               | AppDial         | (Outgoing Line)                                                                                                          | PJSIP/V3RqWuGi-0000000e | {"bridge_id":"5acd0834-4fc2-4d32-a631-b650626a4769","bridge_technology":"simple_bridge"} | 1790282334.46
+    BRIDGE_EXIT               | 2026-09-24 16:39:32.779097-04 | 1790282334.46 | Wanna Be       | 1000                                 | dial                                 | outcall                                 | PJSIP/V3RqWuGi-0000000e                                               | Dial            | PJSIP/123@eg8otwpk,,o(**12123)U(wazo-record-answered^s^1)                                                                |                         | {"bridge_id":"5acd0834-4fc2-4d32-a631-b650626a4769","bridge_technology":"simple_bridge"} | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:32.779238-04 | 1790282365.57 |                | **12123                              |                                      | from-extern                             | PJSIP/eg8otwpk-00000011                                               | AppDial         | (Outgoing Line)                                                                                                          |                         | {"hangupcause":16,"hangupsource":"PJSIP/eg8otwpk-00000011","dialstatus":""} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:32.779238-04 | 1790282365.57 |                | **12123                              |                                      | from-extern                             | PJSIP/eg8otwpk-00000011                                               | AppDial         | (Outgoing Line)                                                                                                          |                         | | 1790282334.46
+    HANGUP                    | 2026-09-24 16:39:32.779896-04 | 1790282334.46 | Wanna Be       | 1000                                 | dial                                 | outcall                                 | PJSIP/V3RqWuGi-0000000e                                               |                 |                                                                                                                          |                         | {"hangupcause":16,"hangupsource":"PJSIP/eg8otwpk-00000011","dialstatus":"ANSWER"} | 1790282334.46
+    CHAN_END                  | 2026-09-24 16:39:32.779896-04 | 1790282334.46 | Wanna Be       | 1000                                 | dial                                 | outcall                                 | PJSIP/V3RqWuGi-0000000e                                               |                 |                                                                                                                          |                         | | 1790282334.46
+    LINKEDID_END              | 2026-09-24 16:39:32.779896-04 | 1790282334.46 | Wanna Be       | 1000                                 | dial                                 | outcall                                 | PJSIP/V3RqWuGi-0000000e                                               |                 |                                                                                                                          |                         | | 1790282334.46
+'''
+
+
 class TestCallLogGenerationScenarios(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -1107,6 +1167,230 @@ class TestCallLogGenerationScenarios(TestCase):
         assert {
             prop: getattr(call_logs[0], prop) for prop in expected_properties
         } == expected_properties
+
+    @raw_cels(
+        '''
+        eventtype                 | uniqueid       | linkedid       | eventtime                  | cid_name      | cid_num     | exten                                | context                    | channame                                                              | appname         | appdata                                                     | peer                             | extra
+        CHAN_START                | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:00.00+00  | Alice         | 1005        | 2001                                 | default-key-4wfgx-internal | PJSIP/gaE9Jvrm-00000001                                               |                 |                                                             |                                  |
+        WAZO_CALL_LOG_DESTINATION | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:00.10+00  | Alice         | 1005        | s                                    | group                      | PJSIP/gaE9Jvrm-00000001                                               | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: group,id: 9,label: supportgroup1 |                             | {"extra":"type: group,id: 9,label: supportgroup1"}
+        APP_START                 | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:00.20+00  | Alice         | 1005        | s                                    | group                      | PJSIP/gaE9Jvrm-00000001                                               | Queue           | grp-test-9f16208e-bf72-4d71-be21-48a10377dc15,ir,,,15       |                                  |
+        CHAN_START                | 1726000000.101 | 1726000000.100 | 2026-09-22 10:00:00.30+00  |               |             | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines            | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-00000001;1 |                 |                                                             |                                  |
+        CHAN_START                | 1726000000.102 | 1726000000.100 | 2026-09-22 10:00:00.31+00  |               |             | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines            | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-00000001;2 |                 |                                                             |                                  |
+        CHAN_START                | 1726000000.103 | 1726000000.100 | 2026-09-22 10:00:00.40+00  | Bob           | 1101        | s                                    | default-key-4wfgx-internal | PJSIP/RqNklSdO-00000002                                               |                 |                                                             |                                  |
+        HANGUP                    | 1726000000.103 | 1726000000.100 | 2026-09-22 10:00:15.20+00  | Bob           | 1101        | s                                    | default-key-4wfgx-internal | PJSIP/RqNklSdO-00000002                                               | AppDial2        | (Outgoing Line)                                             |                                  | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1726000000.103 | 1726000000.100 | 2026-09-22 10:00:15.20+00  | Bob           | 1101        | s                                    | default-key-4wfgx-internal | PJSIP/RqNklSdO-00000002                                               |                 |                                                             |                                  |
+        HANGUP                    | 1726000000.101 | 1726000000.100 | 2026-09-22 10:00:15.21+00  |               | 2001        | s                                    | usersharedlines            | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-00000001;1 | AppQueue        | (Outgoing Line)                                             |                                  | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1726000000.101 | 1726000000.100 | 2026-09-22 10:00:15.21+00  |               | 2001        | s                                    | usersharedlines            | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-00000001;1 |                 |                                                             |                                  |
+        HANGUP                    | 1726000000.102 | 1726000000.100 | 2026-09-22 10:00:15.22+00  | Alice         | 1005        | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines            | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-00000001;2 |                 |                                                             |                                  | {"hangupcause":26,"hangupsource":"","dialstatus":"CANCEL"}
+        CHAN_END                  | 1726000000.102 | 1726000000.100 | 2026-09-22 10:00:15.22+00  | Alice         | 1005        | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines            | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-00000001;2 |                 |                                                             |                                  |
+        WAZO_GROUP_FWD            | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:15.30+00  | Alice         | 1005        | forward                              | group                      | PJSIP/gaE9Jvrm-00000001                                               | CELGenUserEvent | WAZO_GROUP_FWD,id: 9,label: supportgroup1                   |                                  | {"extra":"id: 9,label: supportgroup1"}
+        XIVO_OUTCALL              | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:15.40+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000001                                               | CELGenUserEvent | XIVO_OUTCALL                                                |                                  | {"extra":""}
+        APP_START                 | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:15.50+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000001                                               | Dial            | PJSIP/18005551234@voipms_trunk                              |                                  |
+        CHAN_START                | 1726000000.104 | 1726000000.100 | 2026-09-22 10:00:15.60+00  | wazo          |             | s                                    | outcall                    | PJSIP/voipms_trunk-00000003                                           |                 |                                                             |                                  |
+        ANSWER                    | 1726000000.104 | 1726000000.100 | 2026-09-22 10:00:20.00+00  |               | 18005551234 | 18005551234                          | outcall                    | PJSIP/voipms_trunk-00000003                                           | AppDial         | (Outgoing Line)                                             |                                  |
+        ANSWER                    | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:20.01+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000001                                               |                 |                                                             |                                  |
+        BRIDGE_ENTER              | 1726000000.104 | 1726000000.100 | 2026-09-22 10:00:20.02+00  |               | 18005551234 |                                      | outcall                    | PJSIP/voipms_trunk-00000003                                           | AppDial         | (Outgoing Line)                                             |                                  | {"bridge_id":"832143b6-4da0-40ae-834f-d3522c3db9f9","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER              | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:20.03+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000001                                               | Dial            | PJSIP/18005551234@voipms_trunk                              | PJSIP/voipms_trunk-00000003      | {"bridge_id":"832143b6-4da0-40ae-834f-d3522c3db9f9","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT               | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:30.00+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000001                                               | Dial            | PJSIP/18005551234@voipms_trunk                              | PJSIP/voipms_trunk-00000003      | {"bridge_id":"832143b6-4da0-40ae-834f-d3522c3db9f9","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:30.01+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000001                                               |                 |                                                             |                                  | {"hangupcause":16,"hangupsource":"PJSIP/gaE9Jvrm-00000001","dialstatus":"ANSWER"}
+        CHAN_END                  | 1726000000.100 | 1726000000.100 | 2026-09-22 10:00:30.01+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000001                                               |                 |                                                             |                                  |
+        BRIDGE_EXIT               | 1726000000.104 | 1726000000.100 | 2026-09-22 10:00:30.02+00  |               | 18005551234 |                                      | outcall                    | PJSIP/voipms_trunk-00000003                                           | AppDial         | (Outgoing Line)                                             |                                  | {"bridge_id":"832143b6-4da0-40ae-834f-d3522c3db9f9","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1726000000.104 | 1726000000.100 | 2026-09-22 10:00:30.03+00  |               | 18005551234 |                                      | outcall                    | PJSIP/voipms_trunk-00000003                                           | AppDial         | (Outgoing Line)                                             |                                  | {"hangupcause":16,"hangupsource":"PJSIP/gaE9Jvrm-00000001","dialstatus":""}
+        CHAN_END                  | 1726000000.104 | 1726000000.100 | 2026-09-22 10:00:30.03+00  |               | 18005551234 |                                      | outcall                    | PJSIP/voipms_trunk-00000003                                           |                 |                                                             |                                  |
+        LINKEDID_END              | 1726000000.104 | 1726000000.100 | 2026-09-22 10:00:30.03+00  |               | 18005551234 |                                      | outcall                    | PJSIP/voipms_trunk-00000003                                           |                 |                                                             |                                  |
+        '''
+    )
+    def test_internal_call_to_group_no_answer_forward_to_external_answered(self, cels):
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                source_name='Alice',
+                source_exten='1005',
+                requested_exten='2001',
+                requested_name='supportgroup1',
+                destination_exten='18005551234',
+                destination_details=empty(),
+                direction='internal',
+            ),
+        )
+
+    @raw_cels(
+        '''
+        eventtype                 | uniqueid       | linkedid       | eventtime                  | cid_name      | cid_num     | exten                                | context                    | channame                                                              | appname         | appdata                                                     | extra
+        CHAN_START                | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:00.00+00  | Alice         | 1005        | 2001                                 | default-key-4wfgx-internal | PJSIP/gaE9Jvrm-00000011                                               |                 |                                                             |
+        WAZO_CALL_LOG_DESTINATION | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:00.10+00  | Alice         | 1005        | s                                    | group                      | PJSIP/gaE9Jvrm-00000011                                               | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: group,id: 9,label: supportgroup1 | {"extra":"type: group,id: 9,label: supportgroup1"}
+        APP_START                 | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:00.20+00  | Alice         | 1005        | s                                    | group                      | PJSIP/gaE9Jvrm-00000011                                               | Queue           | grp-test-9f16208e-bf72-4d71-be21-48a10377dc15,ir,,,15       |
+        CHAN_START                | 1726000100.101 | 1726000100.100 | 2026-09-22 10:10:00.40+00  | Bob           | 1101        | s                                    | default-key-4wfgx-internal | PJSIP/RqNklSdO-00000012                                               |                 |                                                             |
+        HANGUP                    | 1726000100.101 | 1726000100.100 | 2026-09-22 10:10:15.20+00  | Bob           | 1101        | s                                    | default-key-4wfgx-internal | PJSIP/RqNklSdO-00000012                                               | AppQueue        | (Outgoing Line)                                             | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1726000100.101 | 1726000100.100 | 2026-09-22 10:10:15.20+00  | Bob           | 1101        | s                                    | default-key-4wfgx-internal | PJSIP/RqNklSdO-00000012                                               |                 |                                                             |
+        WAZO_GROUP_FWD            | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:15.30+00  | Alice         | 1005        | forward                              | group                      | PJSIP/gaE9Jvrm-00000011                                               | CELGenUserEvent | WAZO_GROUP_FWD,id: 9,label: supportgroup1                   | {"extra":"id: 9,label: supportgroup1"}
+        XIVO_OUTCALL              | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:15.40+00  | Alice         | 1005        | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000011                                               | CELGenUserEvent | XIVO_OUTCALL,exten: 8005551234                              | {"extra":"exten: 8005551234"}
+        APP_START                 | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:15.50+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000011                                               | Dial            | PJSIP/18005551234@voipms_trunk                              |
+        CHAN_START                | 1726000100.102 | 1726000100.100 | 2026-09-22 10:10:15.60+00  | wazo          |             | s                                    | outcall                    | PJSIP/voipms_trunk-00000013                                           |                 |                                                             |
+        HANGUP                    | 1726000100.102 | 1726000100.100 | 2026-09-22 10:10:18.00+00  |               | 18005551234 |                                      | outcall                    | PJSIP/voipms_trunk-00000013                                           | AppDial         | (Outgoing Line)                                             | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1726000100.102 | 1726000100.100 | 2026-09-22 10:10:18.00+00  |               | 18005551234 |                                      | outcall                    | PJSIP/voipms_trunk-00000013                                           |                 |                                                             |
+        HANGUP                    | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:18.01+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000011                                               |                 |                                                             | {"hangupcause":16,"hangupsource":"PJSIP/gaE9Jvrm-00000011","dialstatus":"CANCEL"}
+        CHAN_END                  | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:18.01+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000011                                               |                 |                                                             |
+        LINKEDID_END              | 1726000100.100 | 1726000100.100 | 2026-09-22 10:10:18.01+00  | 8005551234    | 8005551234  | dial                                 | outcall                    | PJSIP/gaE9Jvrm-00000011                                               |                 |                                                             |
+        '''
+    )
+    def test_internal_call_to_group_no_answer_forward_to_external_unanswered(
+        self, cels
+    ):
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                source_name='Alice',
+                source_exten='1005',
+                requested_exten='2001',
+                requested_name='supportgroup1',
+                destination_name='',
+                destination_exten='8005551234',
+                date_answer=None,
+                direction='internal',
+            ),
+        )
+
+    @raw_cels(
+        '''
+        eventtype                 | uniqueid       | linkedid       | eventtime                  | cid_name      | cid_num       | exten | context                       | channame                    | appname         | appdata                                                          | peer                        | extra
+        CHAN_START                | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:00.00+00  | +12345678910  | +12345678910  | 2001  | default-key-4wfgx-from-extern | PJSIP/2c70p24m-00000021     |                 |                                                                  |                             |
+        XIVO_INCALL               | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:00.10+00  | 0012345678910 | 0012345678910 | s     | did                           | PJSIP/2c70p24m-00000021     | CELGenUserEvent | XIVO_INCALL,54eb71f8-1f4b-4ae4-8730-638062fbe521                 |                             | {"extra":"54eb71f8-1f4b-4ae4-8730-638062fbe521"}
+        WAZO_CALL_LOG_DESTINATION | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:00.20+00  | 0012345678910 | 0012345678910 | s     | group                         | PJSIP/2c70p24m-00000021     | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: group,id: 9,label: supportgroup1 |                             | {"extra":"type: group,id: 9,label: supportgroup1"}
+        APP_START                 | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:00.30+00  | 0012345678910 | 0012345678910 | s     | group                         | PJSIP/2c70p24m-00000021     | Queue           | grp-test-9f16208e-bf72-4d71-be21-48a10377dc15,ir,,,15            |                             |
+        CHAN_START                | 1726000200.101 | 1726000200.100 | 2026-09-22 10:20:00.40+00  | Bob           | 1101          | s     | default-key-4wfgx-internal    | PJSIP/RqNklSdO-00000022     |                                                                  |                 |                             |
+        HANGUP                    | 1726000200.101 | 1726000200.100 | 2026-09-22 10:20:15.20+00  | Bob           | 1101          | s     | default-key-4wfgx-internal    | PJSIP/RqNklSdO-00000022     | AppQueue        | (Outgoing Line)                                                  |                             | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1726000200.101 | 1726000200.100 | 2026-09-22 10:20:15.20+00  | Bob           | 1101          | s     | default-key-4wfgx-internal    | PJSIP/RqNklSdO-00000022     |                 |                                                                  |                             |
+        WAZO_GROUP_FWD            | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:15.30+00  | 0012345678910 | 0012345678910 | forward | group                       | PJSIP/2c70p24m-00000021     | CELGenUserEvent | WAZO_GROUP_FWD,id: 9,label: supportgroup1                        |                             | {"extra":"id: 9,label: supportgroup1"}
+        XIVO_OUTCALL              | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:15.40+00  | 8005551234    | 8005551234    | dial  | outcall                       | PJSIP/2c70p24m-00000021     | CELGenUserEvent | XIVO_OUTCALL                                                     |                             | {"extra":""}
+        APP_START                 | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:15.50+00  | 8005551234    | 8005551234    | dial  | outcall                       | PJSIP/2c70p24m-00000021     | Dial            | PJSIP/18005551234@voipms_trunk                                   |                             |
+        CHAN_START                | 1726000200.102 | 1726000200.100 | 2026-09-22 10:20:15.60+00  | wazo          |               | s     | outcall                       | PJSIP/voipms_trunk-00000023 |                 |                                                                  |                             |
+        ANSWER                    | 1726000200.102 | 1726000200.100 | 2026-09-22 10:20:20.00+00  |               | 18005551234   |       | outcall                       | PJSIP/voipms_trunk-00000023 | AppDial         | (Outgoing Line)                                                  |                             |
+        BRIDGE_ENTER              | 1726000200.102 | 1726000200.100 | 2026-09-22 10:20:20.02+00  |               | 18005551234   |       | outcall                       | PJSIP/voipms_trunk-00000023 | AppDial         | (Outgoing Line)                                                  |                             | {"bridge_id":"b0e1a39e-6d1b-4f3f-9d7c-2e1c3f6a8b90","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER              | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:20.03+00  | 8005551234    | 8005551234    | dial  | outcall                       | PJSIP/2c70p24m-00000021     | Dial            | PJSIP/18005551234@voipms_trunk                                   | PJSIP/voipms_trunk-00000023 | {"bridge_id":"b0e1a39e-6d1b-4f3f-9d7c-2e1c3f6a8b90","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT               | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:30.00+00  | 8005551234    | 8005551234    | dial  | outcall                       | PJSIP/2c70p24m-00000021     | Dial            | PJSIP/18005551234@voipms_trunk                                   | PJSIP/voipms_trunk-00000023 | {"bridge_id":"b0e1a39e-6d1b-4f3f-9d7c-2e1c3f6a8b90","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:30.01+00  | 8005551234    | 8005551234    | dial  | outcall                       | PJSIP/2c70p24m-00000021     |                 |                                                                  |                             | {"hangupcause":16,"hangupsource":"PJSIP/2c70p24m-00000021","dialstatus":"ANSWER"}
+        CHAN_END                  | 1726000200.100 | 1726000200.100 | 2026-09-22 10:20:30.01+00  | 8005551234    | 8005551234    | dial  | outcall                       | PJSIP/2c70p24m-00000021     |                 |                                                                  |                             |
+        BRIDGE_EXIT               | 1726000200.102 | 1726000200.100 | 2026-09-22 10:20:30.02+00  |               | 18005551234   |       | outcall                       | PJSIP/voipms_trunk-00000023 | AppDial         | (Outgoing Line)                                                  |                             | {"bridge_id":"b0e1a39e-6d1b-4f3f-9d7c-2e1c3f6a8b90","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1726000200.102 | 1726000200.100 | 2026-09-22 10:20:30.03+00  |               | 18005551234   |       | outcall                       | PJSIP/voipms_trunk-00000023 | AppDial         | (Outgoing Line)                                                  |                             | {"hangupcause":16,"hangupsource":"PJSIP/2c70p24m-00000021","dialstatus":""}
+        CHAN_END                  | 1726000200.102 | 1726000200.100 | 2026-09-22 10:20:30.03+00  |               | 18005551234   |       | outcall                       | PJSIP/voipms_trunk-00000023 |                 |                                                                  |                             |
+        LINKEDID_END              | 1726000200.102 | 1726000200.100 | 2026-09-22 10:20:30.03+00  |               | 18005551234   |       | outcall                       | PJSIP/voipms_trunk-00000023 |                 |                                                                  |                             |
+        '''
+    )
+    def test_incoming_call_to_group_no_answer_forward_to_external_answered(self, cels):
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                source_exten='0012345678910',
+                requested_exten='2001',
+                requested_name='supportgroup1',
+                destination_exten='18005551234',
+                direction='inbound',
+            ),
+        )
+
+    def _mock_group_no_answer_fallback_confd(self):
+        tenant_uuid = 'bebbeda2-ab4a-43af-a5e8-ab859ed2f40b'
+        context = 'ucengine-0-buster-main-key8477-internal'
+        caller = mock_user(
+            uuid='24daeaeb-cd4f-4549-9609-554488e318c0',
+            tenant_uuid=tenant_uuid,
+            line_ids=[131],
+        )
+        member = mock_user(
+            uuid='f6cb32d4-3364-424a-a7b2-d09c7df891ff',
+            tenant_uuid=tenant_uuid,
+            line_ids=[4],
+        )
+        self.generator.confd = mock_confd_client(
+            users=[caller, member],
+            lines=[
+                mock_line(
+                    id=131,
+                    tenant_uuid=tenant_uuid,
+                    users=[caller],
+                    protocol='sip',
+                    name='V3RqWuGi',
+                    context=context,
+                    extensions=[{'exten': '1000', 'context': context}],
+                ),
+                mock_line(
+                    id=4,
+                    tenant_uuid=tenant_uuid,
+                    users=[member],
+                    protocol='sip',
+                    name='w6hpvj79',
+                    context=context,
+                    extensions=[{'exten': '1002', 'context': context}],
+                ),
+            ],
+            contexts=[mock_context(id=1, name=context, tenant_uuid=tenant_uuid)],
+        )
+
+    def _assert_group_no_answer_fallback_to_outcall(self, call_logs):
+        assert len(call_logs) == 1
+        assert_that(
+            call_logs[0],
+            has_properties(
+                direction='internal',
+                source_name='Wanna Be',
+                source_exten='1000',
+                requested_exten='3001',
+                requested_name='Groupe1',
+                destination_name='',
+                destination_exten='**12123',
+                destination_details=empty(),
+                destination_internal_exten=None,
+                destination_internal_context=None,
+                requested_internal_exten=None,
+                requested_internal_context=None,
+                date_answer=datetime_close_to(
+                    '2026-09-24 16:39:27.266625-04:00', delta=timedelta(seconds=1)
+                ),
+                participants=contains_inanyorder(
+                    has_properties(
+                        user_uuid='24daeaeb-cd4f-4549-9609-554488e318c0',
+                        role='source',
+                    ),
+                    has_properties(
+                        user_uuid='f6cb32d4-3364-424a-a7b2-d09c7df891ff',
+                        role='destination',
+                        forwarded=True,
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(GROUP_NO_ANSWER_FALLBACK_TO_OUTCALL_CELS)
+    def test_group_no_answer_fallback_to_outcall_answered(self, cels):
+        self._mock_group_no_answer_fallback_confd()
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+
+        self._assert_group_no_answer_fallback_to_outcall(call_logs)
+
+    @raw_cels(
+        GROUP_NO_ANSWER_FALLBACK_TO_OUTCALL_CELS.replace(
+            '{"extra":""}', '{"extra":"exten: **12123"}'
+        )
+    )
+    def test_group_no_answer_fallback_to_outcall_answered_with_outcall_exten(
+        self, cels
+    ):
+        self._mock_group_no_answer_fallback_confd()
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+
+        self._assert_group_no_answer_fallback_to_outcall(call_logs)
 
     @raw_cels(
         '''

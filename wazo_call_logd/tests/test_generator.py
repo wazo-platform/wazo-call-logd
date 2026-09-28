@@ -19,11 +19,13 @@ from hamcrest import (
     contains_inanyorder,
     empty,
     equal_to,
+    has_key,
     has_length,
     has_properties,
     has_property,
     is_,
     none,
+    not_,
     raises,
 )
 from xivo_dao.alchemy.cel import CEL
@@ -49,6 +51,7 @@ def mock_call():
         participants_info=[],
         date_answer=None,
         reached_voicemail=False,
+        forward_times=[],
     )
 
 
@@ -527,6 +530,17 @@ class TestFillExtensionsFromParticipants(TestCase):
         assert_that(call_log.destination_internal_exten, equal_to('101'))
         assert_that(call_log.destination_internal_context, equal_to('default'))
 
+    def test_forwarded_participants_are_skipped(self):
+        call_log = RawCallLog()
+        call_log.raw_participants = {
+            'chan1': dict(self._make_participant('101', 'default'), forwarded=True),
+        }
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_internal_exten, none())
+        assert_that(call_log.requested_internal_exten, none())
+
     def test_destination_internal_not_set_when_no_main_extension(self):
         call_log = RawCallLog()
         call_log.raw_participants = {
@@ -537,6 +551,110 @@ class TestFillExtensionsFromParticipants(TestCase):
 
         assert_that(call_log.destination_internal_exten, none())
         assert_that(call_log.destination_internal_context, none())
+
+
+class TestMarkForwardedParticipants(TestCase):
+    FORWARD_TIME = datetime(2026, 9, 25, 16, 9, 24)
+
+    def setUp(self):
+        self.generator = CallLogsGenerator(Mock(), [Mock()])
+        self.call_log = RawCallLog()
+        self.call_log.forward_times = [self.FORWARD_TIME]
+
+    def _destination(self, second, answered=False):
+        return {
+            'role': 'destination',
+            'answered': answered,
+            'started_at': datetime(2026, 9, 25, 16, 9, second),
+        }
+
+    def test_unanswered_destination_before_forward_to_new_destination(self):
+        self.call_log.raw_participants = {
+            'member': self._destination(3),
+            'trunk': self._destination(25),
+        }
+
+        self.generator._mark_forwarded_participants(self.call_log)
+
+        assert_that(
+            self.call_log.raw_participants['member']['forwarded'], equal_to(True)
+        )
+        assert_that(self.call_log.raw_participants['trunk'], not_(has_key('forwarded')))
+
+    def test_answered_destination_before_forward_is_not_forwarded(self):
+        self.call_log.raw_participants = {
+            'member': self._destination(3, answered=True),
+            'trunk': self._destination(25),
+        }
+
+        self.generator._mark_forwarded_participants(self.call_log)
+
+        assert_that(
+            self.call_log.raw_participants['member'], not_(has_key('forwarded'))
+        )
+
+    def test_forward_without_new_destination_keeps_destination(self):
+        # e.g. a user no-answer forward to voicemail, a sound or a hangup
+        self.call_log.raw_participants = {'user': self._destination(3)}
+
+        self.generator._mark_forwarded_participants(self.call_log)
+
+        assert_that(self.call_log.raw_participants['user'], not_(has_key('forwarded')))
+
+    def test_destination_from_cel_before_forward_to_new_destination(self):
+        # a destination user with no channel, known from WAZO_CALL_LOG_DESTINATION
+        self.call_log.raw_participants = {'trunk': self._destination(25)}
+        self.call_log.participants_info = [
+            {
+                'role': 'destination',
+                'user_uuid': 'bob',
+                'seen_at': datetime(2026, 9, 25, 16, 9, 3),
+            },
+            {
+                'role': 'destination',
+                'user_uuid': 'charlie',
+                'seen_at': datetime(2026, 9, 25, 16, 9, 25),
+            },
+        ]
+
+        self.generator._mark_forwarded_participants(self.call_log)
+
+        bob, charlie = self.call_log.participants_info
+        assert_that(bob['forwarded'], equal_to(True))
+        assert_that(charlie, not_(has_key('forwarded')))
+
+    def test_chained_forwards_keep_the_last_destination(self):
+        # bob forwards to charlie, charlie forwards to voicemail
+        self.call_log.forward_times = [
+            datetime(2026, 9, 25, 16, 9, 13),
+            datetime(2026, 9, 25, 16, 9, 18),
+        ]
+        self.call_log.raw_participants = {'bob': self._destination(3)}
+        self.call_log.participants_info = [
+            {
+                'role': 'destination',
+                'user_uuid': 'charlie',
+                'seen_at': datetime(2026, 9, 25, 16, 9, 17),
+            },
+        ]
+
+        self.generator._mark_forwarded_participants(self.call_log)
+
+        assert_that(self.call_log.raw_participants['bob']['forwarded'], equal_to(True))
+        assert_that(self.call_log.participants_info[0], not_(has_key('forwarded')))
+
+    def test_not_forwarded(self):
+        self.call_log.forward_times = []
+        self.call_log.raw_participants = {
+            'member': self._destination(3),
+            'other': self._destination(25),
+        }
+
+        self.generator._mark_forwarded_participants(self.call_log)
+
+        assert_that(
+            self.call_log.raw_participants['member'], not_(has_key('forwarded'))
+        )
 
 
 class TestResolveVoicemailDestination(TestCase):
