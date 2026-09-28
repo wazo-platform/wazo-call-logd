@@ -27,7 +27,6 @@ COPY ./templates /var/lib/wazo-call-logd/templates
 RUN true \
     && adduser --quiet --system --group --home /var/lib/wazo-call-logd wazo-call-logd \
     && mkdir -p /etc/wazo-call-logd/conf.d \
-    && install -d -o wazo-call-logd -g wazo-call-logd /run/wazo-call-logd/ \
     && install -o wazo-call-logd -g wazo-call-logd /dev/null /var/log/wazo-call-logd.log
 
 EXPOSE 9298

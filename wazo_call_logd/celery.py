@@ -1,4 +1,4 @@
-# Copyright 2021-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2021-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -63,8 +63,6 @@ def spawn_workers(config):
         f'{WORKER_NAME}@%h',
         '--autoscale',
         f"{config['celery']['worker_max']},{config['celery']['worker_min']}",
-        '--pidfile',
-        config['celery']['worker_pid_file'],
     ]
     process = multiprocessing.Process(target=start_celery, args=(argv,))
     process.start()
