@@ -1,4 +1,4 @@
-# Copyright 2013-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2013-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import annotations
@@ -30,6 +30,10 @@ class CallLogsManager:
     def generate_from_days(self, days):
         older_cel = datetime.now() - timedelta(days=days)
         cels = self.dao.cel.find_last_unprocessed(older=older_cel)
+        self._generate_from_cels(cels)
+
+    def generate_from_dates(self, start_date, end_date):
+        cels = self.dao.cel.find_unprocessed(start_date=start_date, end_date=end_date)
         self._generate_from_cels(cels)
 
     def generate_from_count(self, cel_count):
