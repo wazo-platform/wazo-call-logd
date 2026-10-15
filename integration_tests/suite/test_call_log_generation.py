@@ -2259,13 +2259,25 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
 
         self.confd.set_lines(
             MockLine(
-                1, 'gaE9Jvrm', users=[{'uuid': user1_uuid}], tenant_uuid=tenant_uuid
+                1,
+                'gaE9Jvrm',
+                users=[{'uuid': user1_uuid}],
+                extensions=[{'exten': '1005', 'context': 'default'}],
+                tenant_uuid=tenant_uuid,
             ),
             MockLine(
-                2, 'RqNklSdO', users=[{'uuid': user2_uuid}], tenant_uuid=tenant_uuid
+                2,
+                'RqNklSdO',
+                users=[{'uuid': user2_uuid}],
+                extensions=[{'exten': '1101', 'context': 'default'}],
+                tenant_uuid=tenant_uuid,
             ),
             MockLine(
-                3, 'XDMfWj7y', users=[{'uuid': user3_uuid}], tenant_uuid=tenant_uuid
+                3,
+                'XDMfWj7y',
+                users=[{'uuid': user3_uuid}],
+                extensions=[{'exten': '1002', 'context': 'default'}],
+                tenant_uuid=tenant_uuid,
             ),
         )
         self.confd.set_contexts(
@@ -2306,6 +2318,8 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 destination_user_uuid=UUID(user3_uuid),
                 destination_name='Charlie',
                 destination_exten='1002',
+                destination_internal_exten='1002',
+                destination_internal_context='default',
                 direction='internal',
             ),
         )
