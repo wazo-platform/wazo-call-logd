@@ -1,3 +1,8 @@
+# Metrics are not authenticated: only serve them on 127.0.0.1:9298
+location = /api/call-logd/1.0/metrics {
+    deny all;
+}
+
 location ^~ /api/call-logd/1.0/cdr {
     proxy_pass http://127.0.0.1:9298/1.0/cdr;
     proxy_read_timeout 300s;

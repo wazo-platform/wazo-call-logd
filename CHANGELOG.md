@@ -11,6 +11,12 @@
   still in `destination_details.group_label`. The `search` parameter no longer matches a group's
   label on the calls a member answered.
 
+* wazo-call-logd now serves Prometheus metrics itself at `GET /1.0/metrics`,
+  on its REST API port (127.0.0.1:9298). The route has no authentication and
+  is not exposed through nginx. It replaces the route added by the
+  wazo-prometheus-exporter plugin, at the same URL. Disable it with
+  `metrics.enabled: false`.
+
 ## 26.09
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx.
