@@ -69,6 +69,8 @@ class RawCallLog:
         self.bridges: dict[str, BridgeInfo] = {}
         self.destination_details: list = []
         self.was_forwarded: bool = False
+        # times of the forwards (user no-answer, group overflow, ...)
+        self.forward_times: list[datetime] = []
         self.blocked: bool = False
         self.reached_voicemail: bool = False
         self.voicemail_number: str | None = None
