@@ -94,6 +94,9 @@ DEFAULT_CONFIG = {
         'export_days': None,
         'recording_days': None,
     },
+    'metrics': {
+        'enabled': True,
+    },
 }
 
 
