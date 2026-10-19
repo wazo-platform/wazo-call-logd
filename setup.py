@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from setuptools import find_packages, setup
@@ -33,6 +33,7 @@ setup(
             'cdr = wazo_call_logd.plugins.cdr.plugin:Plugin',
             'config = wazo_call_logd.plugins.config.plugin:Plugin',
             'export = wazo_call_logd.plugins.export.plugin:Plugin',
+            'metrics = wazo_call_logd.plugins.metrics.plugin:Plugin',
             'retention = wazo_call_logd.plugins.retention.plugin:Plugin',
             'status = wazo_call_logd.plugins.status.plugin:Plugin',
             'support_center = wazo_call_logd.plugins.support_center.plugin:Plugin',

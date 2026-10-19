@@ -75,6 +75,7 @@ DEFAULT_CONFIG = {
         'cdr': True,
         'config': True,
         'export': True,
+        'metrics': False,
         'retention': True,
         'status': True,
         'support_center': True,
@@ -93,9 +94,6 @@ DEFAULT_CONFIG = {
         'cdr_days': None,
         'export_days': None,
         'recording_days': None,
-    },
-    'metrics': {
-        'enabled': True,
     },
 }
 
