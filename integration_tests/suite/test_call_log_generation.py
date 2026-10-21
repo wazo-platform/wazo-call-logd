@@ -2133,7 +2133,7 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 ),
                 requested_user_uuid=UUID(user2_uuid),
                 destination_user_uuid=None,
-                destination_name='8005555555',
+                destination_name='',
                 destination_exten='8005555555',
                 direction='internal',
             ),
