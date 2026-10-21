@@ -440,6 +440,19 @@ class TestCallerCELInterpretor(TestCase):
         assert_that(result.was_forwarded, equal_to(True))
         assert_that(result.requested_name, equal_to('supportgroup1'))
 
+    def test_interpret_wazo_group_fwd_label_with_spaces_and_dots(self):
+        self.call.was_forwarded = False
+        self.call.requested_name = None
+        cel = Mock(
+            eventtype='WAZO_GROUP_FWD',
+            eventtime='2026-09-25 16:09:24.896793-04',
+            extra='{"extra":"id: 9,label: Support Team 2.0"}',
+        )
+
+        result = self.caller_cel_interpretor.interpret_wazo_group_fwd(cel, self.call)
+
+        assert_that(result.requested_name, equal_to('Support Team 2.0'))
+
     def test_interpret_wazo_group_fwd_keeps_requested_name(self):
         self.call.was_forwarded = False
         self.call.requested_name = 'Bob Marley'
