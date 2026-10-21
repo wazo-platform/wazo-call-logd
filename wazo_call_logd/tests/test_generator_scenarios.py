@@ -258,6 +258,26 @@ def mock_confd_client(
     return confd_client
 
 
+STAMPED_INTERNAL_CALL_CELS = '''
+eventtype                  | eventtime                     | cid_name | cid_num | exten | context  | channame                | appname         | appdata                       | linkedid     | uniqueid     | extra
+CHAN_START                 | 2026-08-20 14:00:00.000000+00 | Alice    | 1001    | 1002  | internal | PJSIP/aaaaaaaa-00000001 |                 |                               | 1755698400.1 | 1755698400.1 |
+WAZO_CALL_LOG_DESTINATION  | 2026-08-20 14:00:00.200000+00 | Alice    | 1001    | s     | user     | PJSIP/aaaaaaaa-00000001 | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION     | 1755698400.1 | 1755698400.1 | {"extra":"type: user,uuid: 22222222-2222-4222-8222-222222222222,name: Bob"}
+APP_START                  | 2026-08-20 14:00:00.300000+00 | Alice    | 1001    | s     | user     | PJSIP/aaaaaaaa-00000001 | Dial            | PJSIP/bbbbbbbb                | 1755698400.1 | 1755698400.1 |
+CHAN_START                 | 2026-08-20 14:00:00.400000+00 | Bob      | 1002    | s     | internal | PJSIP/bbbbbbbb-00000002 |                 |                               | 1755698400.1 | 1755698400.2 |
+ANSWER                     | 2026-08-20 14:00:05.000000+00 | Bob      | 1002    | s     | internal | PJSIP/bbbbbbbb-00000002 | AppDial         | (Outgoing Line)               | 1755698400.1 | 1755698400.2 |
+ANSWER                     | 2026-08-20 14:00:05.000000+00 | Alice    | 1001    | 1002  | user     | PJSIP/aaaaaaaa-00000001 | Dial            | PJSIP/bbbbbbbb                | 1755698400.1 | 1755698400.1 |
+BRIDGE_ENTER               | 2026-08-20 14:00:05.100000+00 | Alice    | 1001    | 1002  | user     | PJSIP/aaaaaaaa-00000001 | Dial            | PJSIP/bbbbbbbb                | 1755698400.1 | 1755698400.1 | {"bridge_id":"b6d8fa2c-9a3f-4bd8-8b0f-0f0f0f0f0f0f","bridge_technology":"simple_bridge"}
+BRIDGE_ENTER               | 2026-08-20 14:00:05.200000+00 | Bob      | 1002    | s     | internal | PJSIP/bbbbbbbb-00000002 | AppDial         | (Outgoing Line)               | 1755698400.1 | 1755698400.2 | {"bridge_id":"b6d8fa2c-9a3f-4bd8-8b0f-0f0f0f0f0f0f","bridge_technology":"simple_bridge"}
+WAZO_CALL_LOG_PARTICIPANT  | 2026-08-20 14:00:30.000000+00 | Bob      | 1002    | s     | internal | PJSIP/bbbbbbbb-00000002 | CELGenUserEvent | WAZO_CALL_LOG_PARTICIPANT     | 1755698400.1 | 1755698400.2 | {"extra":"user_uuid: 22222222-2222-4222-8222-222222222222,tenant_uuid: 99999999-9999-4999-8999-999999999999,line_id: 2"}
+HANGUP                     | 2026-08-20 14:00:30.000000+00 | Bob      | 1002    | s     | internal | PJSIP/bbbbbbbb-00000002 | AppDial         | (Outgoing Line)               | 1755698400.1 | 1755698400.2 | {"hangupcause":16,"hangupsource":"PJSIP/aaaaaaaa-00000001","dialstatus":""}
+CHAN_END                   | 2026-08-20 14:00:30.000000+00 | Bob      | 1002    | s     | internal | PJSIP/bbbbbbbb-00000002 | AppDial         | (Outgoing Line)               | 1755698400.1 | 1755698400.2 |
+WAZO_CALL_LOG_PARTICIPANT  | 2026-08-20 14:00:30.000000+00 | Alice    | 1001    | 1002  | user     | PJSIP/aaaaaaaa-00000001 | CELGenUserEvent | WAZO_CALL_LOG_PARTICIPANT     | 1755698400.1 | 1755698400.1 | {"extra":"user_uuid: 11111111-1111-4111-8111-111111111111,tenant_uuid: 99999999-9999-4999-8999-999999999999,line_id: 1"}
+HANGUP                    | 2026-08-20 14:00:30.000000+00 | Alice    | 1001    | 1002  | user     | PJSIP/aaaaaaaa-00000001 | Dial            | PJSIP/bbbbbbbb                | 1755698400.1 | 1755698400.1 | {"hangupcause":16,"hangupsource":"PJSIP/aaaaaaaa-00000001","dialstatus":"ANSWER"}
+CHAN_END                   | 2026-08-20 14:00:30.000000+00 | Alice    | 1001    | 1002  | user     | PJSIP/aaaaaaaa-00000001 | Dial            | PJSIP/bbbbbbbb                | 1755698400.1 | 1755698400.1 |
+LINKEDID_END               | 2026-08-20 14:00:30.000000+00 | Alice    | 1001    | 1002  | user     | PJSIP/aaaaaaaa-00000001 |                 |                               | 1755698400.1 | 1755698400.1 |
+'''
+
+
 class TestCallLogGenerationScenarios(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -366,6 +386,54 @@ class TestCallLogGenerationScenarios(TestCase):
                     has_properties(
                         destination_details_key='voicemail_name',
                         destination_details_value='Harry VM',
+                    ),
+                ),
+            ),
+        )
+
+    @raw_cels(STAMPED_INTERNAL_CALL_CELS)
+    def test_internal_call_with_stamped_participant_identity(self, cels):
+        source_user_uuid = '11111111-1111-4111-8111-111111111111'
+        destination_user_uuid = '22222222-2222-4222-8222-222222222222'
+        tenant_uuid = '99999999-9999-4999-8999-999999999999'
+        self.generator.confd = mock_confd_client(
+            users=[
+                mock_user(
+                    uuid=source_user_uuid,
+                    tenant_uuid=tenant_uuid,
+                    line_ids=[1],
+                    userfield='vip,boss',
+                ),
+                mock_user(
+                    uuid=destination_user_uuid,
+                    tenant_uuid=tenant_uuid,
+                    line_ids=[2],
+                ),
+            ],
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        # identity comes from the stamp: no channel name lookup
+        self.generator.confd.lines.list.assert_not_called()
+        assert_that(
+            call_logs[0],
+            has_properties(
+                tenant_uuid=tenant_uuid,
+                participants=contains_inanyorder(
+                    has_properties(
+                        user_uuid=source_user_uuid,
+                        line_id=1,
+                        role='source',
+                        tags=['vip', 'boss'],
+                    ),
+                    has_properties(
+                        user_uuid=destination_user_uuid,
+                        line_id=2,
+                        role='destination',
+                        answered=True,
+                        requested=True,
                     ),
                 ),
             ),

@@ -1,4 +1,4 @@
-# Copyright 2022-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2022-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from datetime import datetime, timedelta
@@ -652,6 +652,68 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             until.assert_(
                 bus_event_call_log_user_created, user_events, tries=10, interval=0.25
             )
+
+    @raw_cels(
+        '''\
+eventtype                 | eventtime                  | cid_name | cid_num | exten | context | channame                | appname         | appdata                   | uniqueid      | linkedid      | extra
+CHAN_START                | 2026-08-20 14:00:00.000000 | Alice    | 101     | 102   | default | PJSIP/stamped1-00000010 |                 |                           | 1755698400.10 | 1755698400.10 |
+APP_START                 | 2026-08-20 14:00:00.200000 | Alice    | 101     | s     | user    | PJSIP/stamped1-00000010 | Dial            | PJSIP/stamped2            | 1755698400.10 | 1755698400.10 |
+CHAN_START                | 2026-08-20 14:00:00.300000 | Bob      | 102     | s     | default | PJSIP/stamped2-00000011 |                 |                           | 1755698401.11 | 1755698400.10 |
+ANSWER                    | 2026-08-20 14:00:05.000000 | Bob      | 102     | s     | default | PJSIP/stamped2-00000011 | AppDial         | (Outgoing Line)           | 1755698401.11 | 1755698400.10 |
+ANSWER                    | 2026-08-20 14:00:05.100000 | Alice    | 101     | 102   | user    | PJSIP/stamped1-00000010 | Dial            | PJSIP/stamped2            | 1755698400.10 | 1755698400.10 |
+BRIDGE_ENTER              | 2026-08-20 14:00:05.200000 | Alice    | 101     | 102   | user    | PJSIP/stamped1-00000010 | Dial            | PJSIP/stamped2            | 1755698400.10 | 1755698400.10 | {"bridge_id":"6033f0ab-6bd5-4906-a409-eb1357f4de8b","bridge_technology":"simple_bridge"}
+BRIDGE_ENTER              | 2026-08-20 14:00:05.300000 | Bob      | 102     | s     | default | PJSIP/stamped2-00000011 | AppDial         | (Outgoing Line)           | 1755698401.11 | 1755698400.10 | {"bridge_id":"6033f0ab-6bd5-4906-a409-eb1357f4de8b","bridge_technology":"simple_bridge"}
+BRIDGE_EXIT               | 2026-08-20 14:00:30.000000 | Bob      | 102     | s     | default | PJSIP/stamped2-00000011 | AppDial         | (Outgoing Line)           | 1755698401.11 | 1755698400.10 | {"bridge_id":"6033f0ab-6bd5-4906-a409-eb1357f4de8b","bridge_technology":"simple_bridge"}
+WAZO_CALL_LOG_PARTICIPANT | 2026-08-20 14:00:30.050000 | Bob      | 102     | s     | default | PJSIP/stamped2-00000011 | CELGenUserEvent | WAZO_CALL_LOG_PARTICIPANT | 1755698401.11 | 1755698400.10 | {"extra":"user_uuid: b17d9f99-fcc7-4257-8e89-3d0e36e0b48d,tenant_uuid: f0fe8e3a-2d7a-4dd7-8e93-8229d51cfe04,line_id: 2"}
+HANGUP                    | 2026-08-20 14:00:30.100000 | Bob      | 102     | s     | default | PJSIP/stamped2-00000011 | AppDial         | (Outgoing Line)           | 1755698401.11 | 1755698400.10 | {"hangupcause":16,"hangupsource":"PJSIP/stamped1-00000010","dialstatus":""}
+CHAN_END                  | 2026-08-20 14:00:30.200000 | Bob      | 102     | s     | default | PJSIP/stamped2-00000011 | AppDial         | (Outgoing Line)           | 1755698401.11 | 1755698400.10 |
+BRIDGE_EXIT               | 2026-08-20 14:00:30.300000 | Alice    | 101     | 102   | user    | PJSIP/stamped1-00000010 | Dial            | PJSIP/stamped2            | 1755698400.10 | 1755698400.10 | {"bridge_id":"6033f0ab-6bd5-4906-a409-eb1357f4de8b","bridge_technology":"simple_bridge"}
+WAZO_CALL_LOG_PARTICIPANT | 2026-08-20 14:00:30.350000 | Alice    | 101     | 102   | user    | PJSIP/stamped1-00000010 | CELGenUserEvent | WAZO_CALL_LOG_PARTICIPANT | 1755698400.10 | 1755698400.10 | {"extra":"user_uuid: 2ab10cc9-3c80-4781-b050-8481fcfc2b31,tenant_uuid: f0fe8e3a-2d7a-4dd7-8e93-8229d51cfe04,line_id: 1"}
+HANGUP                    | 2026-08-20 14:00:30.400000 | Alice    | 101     | 102   | user    | PJSIP/stamped1-00000010 | Dial            | PJSIP/stamped2            | 1755698400.10 | 1755698400.10 | {"hangupcause":16,"hangupsource":"PJSIP/stamped1-00000010","dialstatus":"ANSWER"}
+CHAN_END                  | 2026-08-20 14:00:30.500000 | Alice    | 101     | 102   | user    | PJSIP/stamped1-00000010 | Dial            | PJSIP/stamped2            | 1755698400.10 | 1755698400.10 |
+LINKEDID_END              | 2026-08-20 14:00:30.600000 | Alice    | 101     | 102   | user    | PJSIP/stamped1-00000010 |                 |                           | 1755698400.10 | 1755698400.10 |
+'''
+    )
+    def test_stamped_participant_identity_survives_confd_404(self):
+        linkedid = '1755698400.10'
+        events = self.bus.accumulator(headers={'name': 'call_log_created'})
+        with self.no_call_logs():
+            self.bus.send_linkedid_end(linkedid)
+
+            def call_log_has_both_stamped_participants():
+                with self.database.queries() as queries:
+                    call_log = queries.find_last_call_log()
+                    assert_that(
+                        call_log,
+                        has_properties(
+                            tenant_uuid=USERS_TENANT,
+                            source_user_uuid=USER_1_UUID,
+                            source_line_id=1,
+                            destination_user_uuid=USER_2_UUID,
+                            destination_line_id=2,
+                        ),
+                    )
+                    user_uuids = queries.get_call_log_user_uuids(call_log.id)
+                    assert_that(
+                        user_uuids,
+                        contains_inanyorder(USER_1_UUID, USER_2_UUID),
+                    )
+
+            def bus_event_call_log_created(accumulator):
+                assert_that(
+                    accumulator.accumulate(with_headers=True),
+                    contains_inanyorder(
+                        has_entries(
+                            headers=has_entries(
+                                name='call_log_created',
+                                tenant_uuid=str(USERS_TENANT),
+                            ),
+                        )
+                    ),
+                )
+
+            until.assert_(call_log_has_both_stamped_participants, tries=5)
+            until.assert_(bus_event_call_log_created, events, tries=10, interval=0.25)
 
     @raw_cels(
         '''\

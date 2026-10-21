@@ -10,6 +10,7 @@ from hamcrest import (
     assert_that,
     contains_exactly,
     contains_inanyorder,
+    empty,
     equal_to,
     has_entries,
     has_properties,
@@ -28,10 +29,12 @@ from ..cel_interpretor import (
     DispatchCELInterpretor,
     LocalOriginateCELInterpretor,
     _extract_user_missed_call_variables,
+    _parse_wazo_call_log_participant_extra,
     _parse_wazo_originate_all_lines_extra,
     bridge_info,
     extract_cel_extra,
     extract_key_value_pairs_as_dict,
+    interpret_wazo_call_log_participant,
     is_valid_mixmonitor_start_extra,
     is_valid_mixmonitor_stop_extra,
     parse_key_pair_sequence,
@@ -169,6 +172,123 @@ class TestParseOriginateAllLinesExtra:
         for extra in invalid_extras:
             with raises(CELInterpretationError):
                 _parse_wazo_originate_all_lines_extra(extra)
+
+
+class TestParseCallLogParticipantExtra:
+    def test_valid_payload_with_line_id(self):
+        extra = (
+            '{"extra": "user_uuid: some-user-uuid,'
+            'tenant_uuid: some-tenant-uuid,line_id: 12"}'
+        )
+        info = _parse_wazo_call_log_participant_extra(extra)
+        assert_that(
+            info,
+            has_entries(
+                user_uuid='some-user-uuid',
+                tenant_uuid='some-tenant-uuid',
+                line_id='12',
+            ),
+        )
+
+    def test_valid_payload_without_line_id(self):
+        extras = [
+            '{"extra": "user_uuid: some-user-uuid,tenant_uuid: some-tenant-uuid"}',
+            (
+                '{"extra": "user_uuid: some-user-uuid,'
+                'tenant_uuid: some-tenant-uuid,line_id: "}'
+            ),
+        ]
+        for extra in extras:
+            info = _parse_wazo_call_log_participant_extra(extra)
+            assert_that(
+                info,
+                has_entries(user_uuid='some-user-uuid', tenant_uuid='some-tenant-uuid'),
+            )
+            assert_that('line_id' in info, equal_to(False))
+
+    def test_unknown_key_is_tolerated(self):
+        extra = (
+            '{"extra": "user_uuid: some-user-uuid,'
+            'tenant_uuid: some-tenant-uuid,line_id: 12,whatsthis: x"}'
+        )
+        info = _parse_wazo_call_log_participant_extra(extra)
+        assert_that(
+            info,
+            has_entries(
+                user_uuid='some-user-uuid',
+                tenant_uuid='some-tenant-uuid',
+                line_id='12',
+            ),
+        )
+
+    def test_missing_required_key(self):
+        invalid_extras = [
+            '{"extra": "user_uuid: some-user-uuid"}',
+            '{"extra": "tenant_uuid: some-tenant-uuid,line_id: 12"}',
+            '{"extra": "user_uuid: ,tenant_uuid: some-tenant-uuid"}',
+            '{"extra": ""}',
+            '{"other": "user_uuid: some-user-uuid"}',
+        ]
+        for extra in invalid_extras:
+            with raises(CELInterpretationError):
+                _parse_wazo_call_log_participant_extra(extra)
+
+    def test_invalid_json(self):
+        with raises(CELInterpretationError):
+            _parse_wazo_call_log_participant_extra('{"extra": "user_uuid: x"')
+
+
+class TestInterpretWazoCallLogParticipant(TestCase):
+    def setUp(self):
+        self.call = RawCallLog()
+        self.channame = 'PJSIP/rgcZLNGE-00000028'
+
+    def _cel(self, extra):
+        return Mock(id=1, channame=self.channame, extra=extra)
+
+    def test_stamps_identity_on_channel(self):
+        cel = self._cel(
+            '{"extra": "user_uuid: some-user-uuid,'
+            'tenant_uuid: some-tenant-uuid,line_id: 12"}'
+        )
+        call = interpret_wazo_call_log_participant(cel, self.call)
+        assert_that(
+            call.raw_participants[self.channame],
+            has_entries(
+                stamped_user_uuid='some-user-uuid',
+                tenant_uuid='some-tenant-uuid',
+                stamped_line_id=12,
+            ),
+        )
+
+    def test_invalid_line_id_is_dropped(self):
+        cel = self._cel(
+            '{"extra": "user_uuid: some-user-uuid,'
+            'tenant_uuid: some-tenant-uuid,line_id: not-a-number"}'
+        )
+        call = interpret_wazo_call_log_participant(cel, self.call)
+        participant = call.raw_participants[self.channame]
+        assert_that(
+            participant,
+            has_entries(
+                stamped_user_uuid='some-user-uuid',
+                tenant_uuid='some-tenant-uuid',
+            ),
+        )
+        assert_that('stamped_line_id' in participant, equal_to(False))
+
+    def test_malformed_extra_leaves_call_unchanged(self):
+        cel = self._cel('{"extra": "tenant_uuid: only"}')
+        call = interpret_wazo_call_log_participant(cel, self.call)
+        assert_that(call, same_instance(self.call))
+        assert_that(self.channame in call.raw_participants, equal_to(False))
+
+    def test_registered_in_caller_and_callee_interpretors(self):
+        for interpretor in (CallerCELInterpretor(), CalleeCELInterpretor()):
+            assert_that(
+                interpretor.eventtype_map[CELEventType.wazo_call_log_participant],
+                same_instance(interpret_wazo_call_log_participant),
+            )
 
 
 class TestIsValidMixmonitorStartExtra:
@@ -816,3 +936,32 @@ class TestLocalOriginateCELInterpretor(TestCase):
         assert_that(call.voicemail_context, equal_to('default'))
         # no destination answered, so the call stays unanswered (voicemail)
         assert_that(call.date_answer, equal_to(None))
+
+    def test_stamp_applied_when_interpretation_returns_early(self):
+        cels = [
+            self._cel('CHAN_START', 'local1', channame='Local/1@a-00000001;1'),
+            self._cel('CHAN_START', 'local2', channame='Local/1@a-00000001;2'),
+            self._cel('CHAN_START', 'source', cid_name='Bob', cid_num='1006'),
+            self._cel('ANSWER', 'source', cid_name='Bob', cid_num='1006'),
+            self._cel('ANSWER', 'local2', cid_num='1006'),
+            self._cel('MIXMONITOR_START', 'source', extra='{}'),
+            self._cel(
+                CELEventType.wazo_call_log_participant,
+                'source',
+                id=1,
+                extra=(
+                    '{"extra": "user_uuid: some-user-uuid,'
+                    'tenant_uuid: some-tenant-uuid,line_id: 12"}'
+                ),
+            ),
+            self._cel('CHAN_END', 'source'),
+        ]
+        call = RawCallLog()
+
+        self.interpretor.interpret_cels(cels, call)
+
+        assert_that(call.recordings, empty())
+        assert_that(
+            call.raw_participants['PJSIP/source-00000001'],
+            has_entries(role='source', stamped_user_uuid='some-user-uuid'),
+        )
