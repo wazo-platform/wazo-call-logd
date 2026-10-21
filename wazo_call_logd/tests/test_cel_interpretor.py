@@ -501,17 +501,19 @@ class TestCallerCELInterpretor(TestCase):
 
     def test_interpret_xivo_outcall_forwarded_without_payload(self):
         self.call.was_forwarded = True
+        self.call.destination_exten = '1101'
+        self.call.destination_name = 'Bob'
         cel = Mock(
             eventtype='XIVO_OUTCALL',
-            cid_name='8005551234',
-            cid_num='8005551234',
+            cid_name='Alice',
+            cid_num='1005',
             extra='{"extra":""}',
         )
 
         result = self.caller_cel_interpretor.interpret_xivo_outcall(cel, self.call)
 
-        assert_that(result.destination_exten, equal_to('8005551234'))
-        assert_that(result.destination_name, equal_to('8005551234'))
+        assert_that(result.destination_exten, equal_to('1101'))
+        assert_that(result.destination_name, equal_to('Bob'))
 
     def test_interpret_wazo_internal_call_has_destination_details(self):
         cel = Mock(
