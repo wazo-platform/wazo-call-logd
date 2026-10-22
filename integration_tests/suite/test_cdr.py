@@ -335,6 +335,49 @@ class TestGetCDRId(IntegrationTest):
         )
 
     @call_log(
+        **{'id': 21},
+        date='2022-07-21 00:00:00',
+        date_answer='2022-07-21 00:00:20',
+        date_end='2022-07-21 00:01:00',
+        destination_exten='18005551234',
+        destination_name='',
+        direction='internal',
+        requested_name='Support',
+        requested_exten='3001',
+        source_exten='1603',
+        source_name='Harry Potter',
+        participants=[
+            {'user_uuid': str(USER_1_UUID), 'line_id': '1', 'role': 'source'},
+            {
+                'user_uuid': str(USER_2_UUID),
+                'line_id': '2',
+                'role': 'destination',
+                'answered': False,
+                'forwarded': True,
+            },
+        ],
+    )
+    def test_given_forwarded_call_answered_by_untracked_destination_then_cdr_is_answered(
+        self,
+    ):
+        result = self.call_logd.cdr.get_by_id(21)
+        assert_that(
+            result,
+            has_entries(
+                answered=True,
+                call_status='answered',
+                destination_extension='18005551234',
+                destination_name='',
+                destination_user_uuid=None,
+                destination_line_id=None,
+                requested_name='Support',
+                requested_extension='3001',
+                source_user_uuid=str(USER_1_UUID),
+                source_line_id=1,
+            ),
+        )
+
+    @call_log(
         **{'id': 12},
         date='2017-03-23 00:00:00',
         date_answer='2017-03-23 00:01:00',

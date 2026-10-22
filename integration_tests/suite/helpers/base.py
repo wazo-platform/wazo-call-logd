@@ -17,7 +17,7 @@ from typing import ClassVar
 import requests
 import yaml
 from dateutil.relativedelta import relativedelta
-from hamcrest import assert_that
+from hamcrest import assert_that, contains_exactly, contains_inanyorder, has_entries
 from requests.packages import urllib3
 from wazo_call_logd_client.client import Client as CallLogdClient
 from wazo_test_helpers import until
@@ -527,6 +527,8 @@ class RawCelIntegrationTest(_BaseIntegrationTest):
             queries.clear_recordings()
 
     def _assert_last_call_log_matches(self, linkedid, expected):
+        events = self.bus.accumulator(headers={'name': 'call_log_created'})
+        user_events = self.bus.accumulator(headers={'name': 'call_log_user_created'})
         with self.no_call_logs():
             self.bus.send_linkedid_end(linkedid)
 
@@ -539,3 +541,35 @@ class RawCelIntegrationTest(_BaseIntegrationTest):
                     assert_that(call_log, expected)
 
             until.assert_(call_log_generated, tries=5)
+            with self.database.queries() as queries:
+                call_log = queries.find_last_call_log()
+            until.assert_(
+                self._assert_call_log_events_published,
+                events,
+                user_events,
+                call_log,
+                tries=10,
+                interval=0.25,
+            )
+
+    @staticmethod
+    def _assert_call_log_events_published(events, user_events, call_log):
+        tenant_uuid = str(call_log.tenant_uuid)
+        assert_that(
+            events.accumulate(with_headers=True),
+            contains_exactly(has_entries(headers=has_entries(tenant_uuid=tenant_uuid))),
+        )
+        assert_that(
+            user_events.accumulate(with_headers=True),
+            contains_inanyorder(
+                *(
+                    has_entries(
+                        headers=has_entries(
+                            {f'user_uuid:{participant.user_uuid}': True},
+                            tenant_uuid=tenant_uuid,
+                        )
+                    )
+                    for participant in call_log.participants
+                )
+            ),
+        )
