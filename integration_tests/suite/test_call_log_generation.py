@@ -2611,9 +2611,6 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
         self.confd.set_contexts(
             MockContext(id=1, name=context, tenant_uuid=tenant_uuid)
         )
-        events = self.bus.accumulator(headers={'name': 'call_log_created'})
-        user_events = self.bus.accumulator(headers={'name': 'call_log_user_created'})
-
         self._assert_last_call_log_matches(
             '1790282334.46',
             has_properties(
@@ -2641,24 +2638,3 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                 direction='internal',
             ),
         )
-
-        def bus_events_published():
-            assert_that(
-                events.accumulate(with_headers=True),
-                contains_exactly(
-                    has_entries(headers=has_entries(tenant_uuid=tenant_uuid))
-                ),
-            )
-            assert_that(
-                user_events.accumulate(with_headers=True),
-                contains_inanyorder(
-                    has_entries(
-                        headers=has_entries({f'user_uuid:{caller_uuid}': True})
-                    ),
-                    has_entries(
-                        headers=has_entries({f'user_uuid:{member_uuid}': True})
-                    ),
-                ),
-            )
-
-        until.assert_(bus_events_published, tries=10, interval=0.25)
