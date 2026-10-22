@@ -790,8 +790,13 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                         cel.id,
                         cel.uniqueid,
                     )
-                call.destination_internal_exten = cel.cid_num
-                call.destination_internal_context = cel.context
+                # a leg that started before a forward belongs to a destination
+                # the call was forwarded away from
+                if not call.forward_times or parse_eventtime(cel.eventtime) > max(
+                    call.forward_times
+                ):
+                    call.destination_internal_exten = cel.cid_num
+                    call.destination_internal_context = cel.context
             else:
                 if not call.authoritative_destination_info:
                     call.destination_exten = cel.cid_num

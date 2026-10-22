@@ -840,6 +840,36 @@ class TestCalleeCELInterpretor(TestCase):
 
         assert_that(recording.end_time, equal_to(mixmonitor_stop_time))
 
+    def _mobile_chan_start(self, call, eventtime):
+        call.pending_wait_for_mobile_peers.add('ATVxBZ0C')
+        cel = Mock(
+            eventtime=eventtime,
+            channame='PJSIP/ATVxBZ0C-00000029',
+            cid_name='A Mctest',
+            cid_num='8001',
+            context='internal',
+        )
+        return self.interpretor.interpret_chan_start(cel, call)
+
+    def test_interpret_chan_start_mobile_leg_sets_internal_destination(self):
+        call = RawCallLog()
+
+        self._mobile_chan_start(call, '2026-10-22 15:14:42.949648+00')
+
+        assert_that(call.destination_internal_exten, equal_to('8001'))
+        assert_that(call.destination_internal_context, equal_to('internal'))
+
+    def test_interpret_chan_start_mobile_leg_before_forward_is_ignored(self):
+        call = RawCallLog()
+        call.forward_times = [
+            datetime(2026, 10, 22, 15, 14, 47, 712990, tzinfo=timezone.utc)
+        ]
+
+        self._mobile_chan_start(call, '2026-10-22 15:14:42.949648+00')
+
+        assert_that(call.destination_internal_exten, equal_to(None))
+        assert_that(call.destination_internal_context, equal_to(None))
+
     def test_interpret_app_start_voicemail_sets_reached_voicemail(self):
         # A VoiceMail() on the callee channel (e.g. blind transfer to voicemail)
         # must be detected, since it is dispatched to the callee interpretor.
