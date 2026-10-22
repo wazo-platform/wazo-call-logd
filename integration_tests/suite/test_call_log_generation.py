@@ -2652,8 +2652,12 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
             assert_that(
                 user_events.accumulate(with_headers=True),
                 contains_inanyorder(
-                    has_entries(headers=has_entries({f'user_uuid:{caller_uuid}': True})),
-                    has_entries(headers=has_entries({f'user_uuid:{member_uuid}': True})),
+                    has_entries(
+                        headers=has_entries({f'user_uuid:{caller_uuid}': True})
+                    ),
+                    has_entries(
+                        headers=has_entries({f'user_uuid:{member_uuid}': True})
+                    ),
                 ),
             )
 
