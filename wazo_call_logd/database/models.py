@@ -309,6 +309,10 @@ class CallLogParticipant(Base):
 
     call_log = relationship('CallLog', uselist=False, viewonly=True)
 
+    # fetch server defaults on INSERT: participants are expunged right after,
+    # and forwarded ones are not reloaded by the source/destination relationships
+    __mapper_args__ = {'eager_defaults': True}
+
     @hybrid_property
     def peer_exten(self):
         if self.role == 'source':
