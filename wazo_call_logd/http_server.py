@@ -25,7 +25,7 @@ class HTTPServer:
         self.config = global_config['rest_api']
         http_helpers.add_logger(app, logger)
         app.before_request(http_helpers.log_before_request)
-        app.after_request(http_helpers.log_request_hide_token)
+        app.after_request(http_helpers.log_request)
         app.secret_key = os.urandom(24)
         app.permanent_session_lifetime = timedelta(minutes=5)
         app.config['auth'] = global_config['auth']
