@@ -26,7 +26,7 @@ from wazo_test_helpers.asset_launching_test_case import (
     NoSuchPort,
     NoSuchService,
 )
-from wazo_test_helpers.auth import AuthClient, MockCredentials, MockUserToken
+from wazo_test_helpers.auth import AuthClient, MockUserToken
 from wazo_test_helpers.wait_strategy import NoWaitStrategy, WaitStrategy
 
 from wazo_call_logd.database.helpers import new_db_session
@@ -37,13 +37,8 @@ from .confd import ConfdClient
 from .constants import (
     ALICE,
     BOB,
-    CALL_LOGD_PASSWORD,
-    CALL_LOGD_USERNAME,
-    EXPORT_SERVICE_ID,
-    EXPORT_SERVICE_KEY,
     MASTER_TENANT,
     MASTER_TOKEN,
-    MASTER_USER_UUID,
     NOW,
     OTHER_TENANT,
     OTHER_USER_TOKEN,
@@ -308,17 +303,6 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
         # NOTE(sileht): This creates a tenant tree and associated users
         cls.auth.set_token(
             MockUserToken(
-                MASTER_TOKEN,
-                str(MASTER_USER_UUID),
-                str(WAZO_UUID),
-                {
-                    "tenant_uuid": str(MASTER_TENANT),
-                    "uuid": str(MASTER_USER_UUID),
-                },
-            )
-        )
-        cls.auth.set_token(
-            MockUserToken(
                 USER_1_TOKEN,
                 str(USER_1_UUID),
                 str(WAZO_UUID),
@@ -350,16 +334,6 @@ class _BaseIntegrationTest(AssetLaunchingTestCase):
                 },
             )
         )
-        cls.auth.set_valid_credentials(
-            MockCredentials(EXPORT_SERVICE_ID, EXPORT_SERVICE_KEY),
-            MASTER_TOKEN,
-        )
-
-        cls.auth.set_valid_credentials(
-            MockCredentials(CALL_LOGD_USERNAME, CALL_LOGD_PASSWORD),
-            MASTER_TOKEN,
-        )
-
         cls.auth.set_tenants(
             {
                 'uuid': str(MASTER_TENANT),

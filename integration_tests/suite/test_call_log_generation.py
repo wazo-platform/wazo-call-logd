@@ -26,7 +26,7 @@ from wazo_test_helpers import until
 from .helpers.base import RawCelIntegrationTest, raw_cels
 from .helpers.confd import MockContext, MockLine, MockUser
 from .helpers.constants import (
-    SERVICE_TENANT,
+    MASTER_TENANT,
     USER_1_UUID,
     USER_2_UUID,
     USER_3_UUID,
@@ -510,11 +510,11 @@ LINKEDID_END | 2015-06-18 14:09:02.272325 | SIP/as2mkq-0000001f | 1434650936.31 
                     contains_inanyorder(
                         has_entries(
                             message=has_entries(
-                                data=has_entries(tenant_uuid=str(SERVICE_TENANT))
+                                data=has_entries(tenant_uuid=str(MASTER_TENANT))
                             ),
                             headers=has_entries(
                                 name='call_log_created',
-                                tenant_uuid=str(SERVICE_TENANT),
+                                tenant_uuid=str(MASTER_TENANT),
                             ),
                         )
                     ),

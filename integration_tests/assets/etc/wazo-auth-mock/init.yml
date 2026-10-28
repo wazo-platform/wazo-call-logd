@@ -1,0 +1,15 @@
+tokens:
+  - token: cfe6dd71-5d0e-41c8-9178-0ce6578b5a71
+    auth_id: 5b6e5030-0f23-499a-8030-4a390392aad2
+    xivo_uuid: 613747fd-f7e7-4329-b115-3869e44a05d2
+    metadata:
+      uuid: 5b6e5030-0f23-499a-8030-4a390392aad2
+      tenant_uuid: 4eb57648-b914-446b-a69f-58643ae08dd4
+
+valid_credentials:
+  - username: wazo-call-logd
+    password: opensesame
+    token: cfe6dd71-5d0e-41c8-9178-0ce6578b5a71
+  - username: export-service-id
+    password: export-service-key
+    token: cfe6dd71-5d0e-41c8-9178-0ce6578b5a71

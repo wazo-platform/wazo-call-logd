@@ -1,13 +1,8 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import datetime
 from uuid import UUID
-
-EXPORT_SERVICE_ID = 'export-service-id'
-EXPORT_SERVICE_KEY = 'export-service-key'
-CALL_LOGD_USERNAME = 'wazo-call-logd'
-CALL_LOGD_PASSWORD = 'opensesame'
 
 NON_USER_TOKEN = 'non-user-token'
 
@@ -18,7 +13,6 @@ WAZO_UUID = UUID('613747fd-f7e7-4329-b115-3869e44a05d2')
 SERVICE_TENANT = UUID('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1')
 
 MASTER_TENANT = UUID('4eb57648-b914-446b-a69f-58643ae08dd4')
-MASTER_USER_UUID = UUID('5b6e5030-0f23-499a-8030-4a390392aad2')
 
 USERS_TENANT = UUID('f0fe8e3a-2d7a-4dd7-8e93-8229d51cfe04')
 
