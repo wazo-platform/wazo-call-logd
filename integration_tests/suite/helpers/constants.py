@@ -10,7 +10,7 @@ UNKNOWN_UUID = UUID('00000000-0000-4000-8000-000000000000')
 
 WAZO_UUID = UUID('613747fd-f7e7-4329-b115-3869e44a05d2')
 
-SERVICE_TENANT = UUID('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1')
+SERVICE_TENANT = UUID('eeeeeeee-eeee-4eee-aeee-eeeeeeeeeee1')
 
 MASTER_TENANT = UUID('4eb57648-b914-446b-a69f-58643ae08dd4')
 
