@@ -11,7 +11,7 @@ import uuid
 from collections.abc import Callable
 from datetime import datetime
 from itertools import zip_longest
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 import dateutil
 from xivo.asterisk.line_identity import identity_from_channel
@@ -192,6 +192,44 @@ def _parse_wazo_originate_all_lines_extra(extra: str) -> OriginateAllLinesInfo:
     return info
 
 
+class CallLogParticipantInfo(TypedDict):
+    user_uuid: str
+    tenant_uuid: str
+    line_id: NotRequired[str]
+
+
+def _extract_call_log_participant_variables(
+    extra: dict,
+) -> CallLogParticipantInfo | None:
+    if 'extra' not in extra:
+        logger.error('Missing expected \'extra\' key in CEL extra payload')
+        return None
+    key_pairs = parse_key_pair_sequence(extra['extra'])
+    required_keys = {'user_uuid', 'tenant_uuid'}
+    expected_keys = required_keys | {'line_id'}
+    unexpected_keys = {key for key, _ in key_pairs} - expected_keys
+    if unexpected_keys:
+        logger.warning('Unexpected keys(%s) in event data payload', unexpected_keys)
+    info = {key: value for key, value in key_pairs if key in expected_keys and value}
+    if not required_keys <= info.keys():
+        return None
+    return info
+
+
+def _parse_wazo_call_log_participant_extra(extra: str) -> CallLogParticipantInfo:
+    wrapper = extract_cel_extra(extra)
+    if not wrapper:
+        raise CELInterpretationError(
+            event_name=CELEventType.wazo_call_log_participant, raw_data=extra
+        )
+    info = _extract_call_log_participant_variables(wrapper)
+    if not info:
+        raise CELInterpretationError(
+            event_name=CELEventType.wazo_call_log_participant, raw_data=extra
+        )
+    return info
+
+
 def bridge_info(details: dict) -> BridgeInfo | None:
     expected_keys = {'bridge_id', 'bridge_technology'}
     if not (expected_keys <= set(details)):
@@ -233,6 +271,39 @@ def interpret_voicemail_app_start(cel: CEL, call: RawCallLog) -> RawCallLog:
             cel.id,
             mailbox,
         )
+    return call
+
+
+def interpret_wazo_call_log_participant(cel: CEL, call: RawCallLog) -> RawCallLog:
+    try:
+        info = _parse_wazo_call_log_participant_extra(cel.extra)
+    except CELInterpretationError:
+        logger.exception(
+            'Failed to interpret %s payload for CEL id %s',
+            CELEventType.wazo_call_log_participant,
+            cel.id,
+        )
+        return call
+
+    stamped = {
+        'stamped_user_uuid': info['user_uuid'],
+        # not stamped_-prefixed: _ensure_tenant_uuid_is_set assigns the call log tenant from it
+        'tenant_uuid': info['tenant_uuid'],
+    }
+    if raw_line_id := info.get('line_id'):
+        try:
+            stamped['stamped_line_id'] = int(raw_line_id)
+        except ValueError:
+            logger.warning(
+                'Invalid line_id %r in %s payload (CEL id %s)',
+                raw_line_id,
+                CELEventType.wazo_call_log_participant,
+                cel.id,
+            )
+    call.raw_participants[cel.channame].update(stamped)
+    logger.debug(
+        'Stamped participant identity on channel %s: %s', cel.channame, stamped
+    )
     return call
 
 
@@ -308,6 +379,7 @@ class CallerCELInterpretor(AbstractCELInterpretor):
             CELEventType.wazo_call_log_requested_internal: (
                 self.interpret_wazo_call_log_requested_internal
             ),
+            CELEventType.wazo_call_log_participant: interpret_wazo_call_log_participant,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -764,6 +836,7 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             CELEventType.mixmonitor_start: self.interpret_mixmonitor_start,
             CELEventType.mixmonitor_stop: self.interpret_mixmonitor_stop,
             CELEventType.wazo_call_log_requested_internal: self.interpret_requested_internal,
+            CELEventType.wazo_call_log_participant: interpret_wazo_call_log_participant,
         }
 
     def interpret_chan_start(self, cel, call):
@@ -958,6 +1031,10 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
 class LocalOriginateCELInterpretor:
     def interpret_cels(self, cels, call: RawCallLog):
+        for cel in cels:
+            if cel.eventtype == CELEventType.wazo_call_log_participant:
+                call = interpret_wazo_call_log_participant(cel, call)
+
         uniqueids = [cel.uniqueid for cel in cels if cel.eventtype == 'CHAN_START']
         try:
             (
