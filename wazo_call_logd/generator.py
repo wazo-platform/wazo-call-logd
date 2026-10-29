@@ -118,7 +118,7 @@ class _ParticipantsProcessor:
     def _build_participant_from_confd(
         self, channel_name: str, raw_attributes: dict
     ) -> CallLogParticipant | None:
-        # deprecated: unstamped CELs predate the stamp, remove ~1 year after release
+        # deprecated(26.11): unstamped CELs predate the stamp, remove end 2027
         confd_participant = self._fetch_participant_from_channel(channel_name)
         if not confd_participant:
             return None
@@ -151,6 +151,9 @@ class _ParticipantsProcessor:
                     channel_name, raw_attributes
                 )
             elif call_log_is_stamped:
+                logger.debug(
+                    'skipping unstamped channel %s in stamped call log', channel_name
+                )
                 continue
             else:
                 participant = self._build_participant_from_confd(

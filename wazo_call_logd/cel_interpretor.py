@@ -287,7 +287,7 @@ def interpret_wazo_call_log_participant(cel: CEL, call: RawCallLog) -> RawCallLo
 
     stamped = {
         'stamped_user_uuid': info['user_uuid'],
-        # unprefixed on purpose: _ensure_tenant_uuid_is_set reads this key
+        # not stamped_-prefixed: _ensure_tenant_uuid_is_set assigns the call log tenant from it
         'tenant_uuid': info['tenant_uuid'],
     }
     if raw_line_id := info.get('line_id'):
