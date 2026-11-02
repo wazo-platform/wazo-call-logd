@@ -863,6 +863,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                         cel.id,
                         cel.uniqueid,
                     )
+                if not call.requested_name:
+                    call.requested_name = cel.cid_name
                 # a leg that started before a forward belongs to a destination
                 # the call was forwarded away from
                 if not call.forward_times or parse_eventtime(cel.eventtime) > max(
