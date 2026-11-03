@@ -53,6 +53,7 @@ def mock_call():
         date_answer=None,
         reached_voicemail=False,
         forward_times=[],
+        destination_details=[],
     )
 
 
@@ -705,6 +706,55 @@ class TestFillExtensionsFromParticipants(TestCase):
 
         assert_that(call_log.destination_internal_exten, equal_to('102'))
         assert_that(call_log.destination_internal_context, equal_to('default'))
+
+    def _group_call_log(self, *participants):
+        call_log = RawCallLog()
+        call_log.destination_name = 'group1'
+        call_log.destination_details = [
+            Destination(
+                destination_details_key='type', destination_details_value='group'
+            ),
+        ]
+        call_log.raw_participants = {
+            f'chan{i}': participant for i, participant in enumerate(participants)
+        }
+        return call_log
+
+    def test_group_destination_name_is_answering_member(self):
+        call_log = self._group_call_log(
+            dict(self._make_participant('101', 'default'), name='Ringing Member'),
+            dict(
+                self._make_participant('102', 'default', answered=True),
+                name='Answering Member',
+            ),
+        )
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('Answering Member'))
+
+    def test_group_destination_name_kept_when_no_member_answered(self):
+        call_log = self._group_call_log(
+            dict(self._make_participant('101', 'default'), name='Ringing Member'),
+        )
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('group1'))
+
+    def test_non_group_destination_name_not_replaced(self):
+        call_log = RawCallLog()
+        call_log.destination_name = 'Caller ID Name'
+        call_log.raw_participants = {
+            'chan1': dict(
+                self._make_participant('102', 'default', answered=True),
+                name='Confd Name',
+            ),
+        }
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('Caller ID Name'))
 
 
 class TestMarkForwardedParticipants(TestCase):

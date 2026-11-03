@@ -143,11 +143,15 @@ def mock_user(
     line_ids: list[str] | None = None,
     mobile: str | None = None,
     userfield: str | None = None,
+    firstname: str | None = None,
+    lastname: str | None = None,
 ) -> dict[str, any]:
     return mock_dict(
         {
             'uuid': uuid,
             'tenant_uuid': tenant_uuid,
+            'firstname': firstname,
+            'lastname': lastname,
             'lines': (
                 [{'id': line_id, 'extensions': [], 'name': ''} for line_id in line_ids]
                 if line_ids
@@ -1051,14 +1055,26 @@ class TestCallLogGenerationScenarios(TestCase):
         their lines (usersharedlines + wazo_wait_for_registration). The answering
         user's line rings a second channel mid-ring (mobile app registering after
         a push notification), producing two channels for the same line. The
-        answering member's extension must be used for destination_internal, not
-        the other ringing member's.
+        answering member's extension and name must be used for destination_internal
+        and destination_name, not the other ringing member's.
         """
         tenant_uuid = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
         user_1_uuid = 'ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6'
         user_2_uuid = '31be0853-dde6-48cd-986d-85bc708754a1'
-        user_1 = mock_user(uuid=user_1_uuid, tenant_uuid=tenant_uuid, line_ids=[1])
-        user_2 = mock_user(uuid=user_2_uuid, tenant_uuid=tenant_uuid, line_ids=[2])
+        user_1 = mock_user(
+            uuid=user_1_uuid,
+            tenant_uuid=tenant_uuid,
+            line_ids=[1],
+            firstname='Answering',
+            lastname='Member',
+        )
+        user_2 = mock_user(
+            uuid=user_2_uuid,
+            tenant_uuid=tenant_uuid,
+            line_ids=[2],
+            firstname='Ringing',
+            lastname='Member',
+        )
         self.generator.confd = mock_confd_client(
             users=[user_1, user_2],
             lines=[
@@ -1100,7 +1116,8 @@ class TestCallLogGenerationScenarios(TestCase):
             call_logs[0],
             has_properties(
                 direction='inbound',
-                destination_name='supportgroup1',
+                requested_name='supportgroup1',
+                destination_name='Answering Member',
                 destination_exten='1006',
                 destination_internal_exten='8001',
                 destination_internal_context='default-key-4wfgx-internal',

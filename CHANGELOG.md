@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.11
+
+* In CDRs of calls to a group (`GET /cdr`, `GET /users/me/cdr`), `requested_name` is now the
+  group's label and `destination_name` the name of the member who answered. A group call that
+  no member answered keeps the group's label in `destination_name`.
+
 ## 26.09
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx.

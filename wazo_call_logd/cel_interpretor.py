@@ -776,6 +776,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'group_id': extra_dict['id'],
                 'group_label': extra_dict['label'],
             }
+            if not call.requested_type:
+                call.requested_name = destination_details['group_label']
+            # replaced by the answering member's name once participants are known
             call.destination_name = destination_details['group_label']
             logger.debug(
                 'Setting destination name %s '

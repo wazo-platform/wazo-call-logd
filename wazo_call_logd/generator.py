@@ -103,6 +103,7 @@ class _ParticipantsProcessor:
         attributes = user_attributes(user, line_id) if user is not None else None
         if attributes:
             raw_attributes['main_extension'] = attributes.main_extension
+            raw_attributes['name'] = attributes.name
         participant = CallLogParticipant(
             user_uuid=user_uuid,
             line_id=line_id,
@@ -470,7 +471,20 @@ class CallLogsGenerator:
             if participant.get('role') == 'destination'
             and not participant.get('forwarded')
         )
+        is_group_call = any(
+            detail.destination_details_key == 'type'
+            and detail.destination_details_value == 'group'
+            for detail in call_log.destination_details
+        )
         for destination_participant in destination_participants:
+            # channel caller IDs do not reliably name the member who answered
+            if (
+                is_group_call
+                and destination_participant.get('answered')
+                and destination_participant.get('name')
+            ):
+                call_log.destination_name = destination_participant['name']
+
             extension = destination_participant.get('main_extension')
             if not extension:
                 continue
