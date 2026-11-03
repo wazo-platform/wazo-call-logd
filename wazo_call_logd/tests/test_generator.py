@@ -733,6 +733,24 @@ class TestFillExtensionsFromParticipants(TestCase):
 
         assert_that(call_log.destination_name, equal_to('Answering Member'))
 
+    def test_group_destination_name_is_first_member_to_answer(self):
+        call_log = self._group_call_log(
+            dict(
+                self._make_participant('102', 'default', answered=True),
+                name='Transferred To',
+                answered_at=datetime(2026, 11, 3, 10, 0, 30),
+            ),
+            dict(
+                self._make_participant('101', 'default', answered=True),
+                name='First Answerer',
+                answered_at=datetime(2026, 11, 3, 10, 0, 5),
+            ),
+        )
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('First Answerer'))
+
     def test_group_destination_name_kept_when_no_member_answered(self):
         call_log = self._group_call_log(
             dict(self._make_participant('101', 'default'), name='Ringing Member'),

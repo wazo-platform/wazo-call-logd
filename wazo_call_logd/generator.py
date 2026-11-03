@@ -465,26 +465,33 @@ class CallLogsGenerator:
                 call_log.source_internal_exten = extension['exten']
                 call_log.source_internal_context = extension['context']
 
-        destination_participants = (
+        destination_participants = [
             participant
             for participant in call_log.raw_participants.values()
             if participant.get('role') == 'destination'
             and not participant.get('forwarded')
-        )
+        ]
         is_group_call = any(
             detail.destination_details_key == 'type'
             and detail.destination_details_value == 'group'
             for detail in call_log.destination_details
         )
-        for destination_participant in destination_participants:
+        named_answerers = [
+            participant
+            for participant in destination_participants
+            if participant.get('answered') and participant.get('name')
+        ]
+        if is_group_call and named_answerers:
             # channel caller IDs do not reliably name the member who answered
-            if (
-                is_group_call
-                and destination_participant.get('answered')
-                and destination_participant.get('name')
-            ):
-                call_log.destination_name = destination_participant['name']
+            timed = [p for p in named_answerers if p.get('answered_at')]
+            first_answerer = (
+                min(timed, key=lambda p: p['answered_at'])
+                if timed
+                else named_answerers[0]
+            )
+            call_log.destination_name = first_answerer['name']
 
+        for destination_participant in destination_participants:
             extension = destination_participant.get('main_extension')
             if not extension:
                 continue

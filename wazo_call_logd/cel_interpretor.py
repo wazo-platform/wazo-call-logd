@@ -933,6 +933,9 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             call.bridges[bridge.id] = bridge
 
         call.raw_participants[cel.channame].update(answered=True)
+        call.raw_participants[cel.channame].setdefault(
+            'answered_at', parse_eventtime(cel.eventtime)
+        )
         # only consider the first bridge_enter for destination identity info
         if call.interpret_callee_bridge_enter and (
             not call.authoritative_destination_info or call.was_forwarded
@@ -963,6 +966,9 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 if peer not in call.raw_participants:
                     continue
                 call.raw_participants[peer].update(answered=True)
+                call.raw_participants[peer].setdefault(
+                    'answered_at', parse_eventtime(cel.eventtime)
+                )
             if not call.authoritative_destination_info:
                 cid_name, cid_number = call.caller_id_by_channels[cel.channame]
                 if cid_name:
@@ -1027,7 +1033,9 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         if context := extra_dict.get('context'):
             call.requested_internal_context = context
 
-        call.requested_name = cel.cid_name
+        # a group call keeps the group label, not the member who answered
+        if call.requested_type != 'group':
+            call.requested_name = cel.cid_name
 
         return call
 
