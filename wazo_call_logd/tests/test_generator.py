@@ -710,6 +710,7 @@ class TestFillExtensionsFromParticipants(TestCase):
 
     def _group_call_log(self, *participants):
         call_log = RawCallLog()
+        call_log.requested_name = 'group1'
         call_log.destination_name = 'group1'
         call_log.destination_details = [
             Destination(
@@ -733,6 +734,7 @@ class TestFillExtensionsFromParticipants(TestCase):
         self.generator._fill_extensions_from_participants(call_log)
 
         assert_that(call_log.destination_name, equal_to('Answering Member'))
+        assert_that(call_log.requested_name, equal_to('group1'))
 
     def test_group_destination_name_is_first_member_to_answer(self):
         call_log = self._group_call_log(
@@ -771,6 +773,7 @@ class TestFillExtensionsFromParticipants(TestCase):
         self.generator._fill_extensions_from_participants(call_log)
 
         assert_that(call_log.destination_name, equal_to('External Member'))
+        assert_that(call_log.requested_name, equal_to('group1'))
 
     def test_group_destination_name_prefers_user_over_non_user_answerer(self):
         call_log = self._group_call_log(

@@ -885,6 +885,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                         cel.id,
                         cel.uniqueid,
                     )
+                # FIXME: cid_name is the ringing callee, not the requested target;
+                # without a routing event requested_name should stay empty
                 if not call.requested_name:
                     call.requested_name = cel.cid_name
 

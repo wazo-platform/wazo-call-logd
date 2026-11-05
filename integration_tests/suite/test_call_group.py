@@ -336,6 +336,7 @@ LINKEDID_END              | 2026-04-07 17:22:07.886926+00 | Answer Member | 1201
                 requested_exten='2002',
                 destination_internal_exten='1201',
                 destination_internal_context='internal',
+                requested_name='group2',
                 destination_name='group2',
                 destination_participant=has_properties(
                     user_uuid=UUID(answer_member_uuid),
