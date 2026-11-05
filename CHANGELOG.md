@@ -1,5 +1,16 @@
 # Changelog
 
+## 26.11
+
+* In CDRs of calls to a group (`GET /cdr`, `GET /users/me/cdr`), `requested_name` is now the
+  group's label and `destination_name` the name of the member who answered, as documented, or
+  the number dialed when that member is an external number.
+  `destination_internal_extension` and `destination_internal_context` are those of the same
+  member, and empty when that member is not a Wazo user. A
+  group call that no member answered keeps the group's label in `destination_name`. The label is
+  still in `destination_details.group_label`. The `search` parameter no longer matches a group's
+  label on the calls a member answered.
+
 ## 26.09
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx.

@@ -776,6 +776,9 @@ class CallerCELInterpretor(AbstractCELInterpretor):
                 'group_id': extra_dict['id'],
                 'group_label': extra_dict['label'],
             }
+            if not call.requested_type:
+                call.requested_name = destination_details['group_label']
+            # replaced by the answering member's name once participants are known
             call.destination_name = destination_details['group_label']
             logger.debug(
                 'Setting destination name %s '
@@ -882,6 +885,8 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                         cel.id,
                         cel.uniqueid,
                     )
+                # FIXME: cid_name is the ringing callee, not the requested target;
+                # without a routing event requested_name should stay empty
                 if not call.requested_name:
                     call.requested_name = cel.cid_name
 
@@ -930,6 +935,9 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
             call.bridges[bridge.id] = bridge
 
         call.raw_participants[cel.channame].update(answered=True)
+        call.raw_participants[cel.channame].setdefault(
+            'answered_at', parse_eventtime(cel.eventtime)
+        )
         # only consider the first bridge_enter for destination identity info
         if call.interpret_callee_bridge_enter and (
             not call.authoritative_destination_info or call.was_forwarded
@@ -960,6 +968,9 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
                 if peer not in call.raw_participants:
                     continue
                 call.raw_participants[peer].update(answered=True)
+                call.raw_participants[peer].setdefault(
+                    'answered_at', parse_eventtime(cel.eventtime)
+                )
             if not call.authoritative_destination_info:
                 cid_name, cid_number = call.caller_id_by_channels[cel.channame]
                 if cid_name:
@@ -1023,8 +1034,6 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
 
         if context := extra_dict.get('context'):
             call.requested_internal_context = context
-
-        call.requested_name = cel.cid_name
 
         return call
 

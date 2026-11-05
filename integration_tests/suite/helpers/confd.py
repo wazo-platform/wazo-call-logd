@@ -89,15 +89,28 @@ class MockUserData(TypedDict):
     lines: list[UserLineData]
     mobile_phone_number: str | None
     userfield: str | None
+    firstname: str | None
+    lastname: str | None
 
 
 class MockUser:
-    def __init__(self, uuid, tenant_uuid, line_ids=None, mobile=None, userfield=None):
+    def __init__(
+        self,
+        uuid,
+        tenant_uuid,
+        line_ids=None,
+        mobile=None,
+        userfield=None,
+        firstname=None,
+        lastname=None,
+    ):
         self._uuid = str(uuid)
         self._tenant_uuid = str(tenant_uuid)
         self._line_ids = line_ids or []
         self._mobile = mobile
         self._userfield = userfield
+        self._firstname = firstname
+        self._lastname = lastname
 
     def uuid(self):
         return self._uuid
@@ -112,6 +125,8 @@ class MockUser:
             ],
             'mobile_phone_number': self._mobile,
             'userfield': self._userfield,
+            'firstname': self._firstname,
+            'lastname': self._lastname,
         }
 
 

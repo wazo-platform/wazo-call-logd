@@ -143,11 +143,15 @@ def mock_user(
     line_ids: list[str] | None = None,
     mobile: str | None = None,
     userfield: str | None = None,
+    firstname: str | None = None,
+    lastname: str | None = None,
 ) -> dict[str, any]:
     return mock_dict(
         {
             'uuid': uuid,
             'tenant_uuid': tenant_uuid,
+            'firstname': firstname,
+            'lastname': lastname,
             'lines': (
                 [{'id': line_id, 'extensions': [], 'name': ''} for line_id in line_ids]
                 if line_ids
@@ -980,6 +984,7 @@ class TestCallLogGenerationScenarios(TestCase):
             source_name='0012345678910',
             source_exten='0012345678910',
             requested_exten='1006',
+            requested_name='supportgroup1',
             destination_exten='1006',
             destination_name='supportgroup1',
             direction='inbound',
@@ -1051,14 +1056,26 @@ class TestCallLogGenerationScenarios(TestCase):
         their lines (usersharedlines + wazo_wait_for_registration). The answering
         user's line rings a second channel mid-ring (mobile app registering after
         a push notification), producing two channels for the same line. The
-        answering member's extension must be used for destination_internal, not
-        the other ringing member's.
+        answering member's extension and name must be used for destination_internal
+        and destination_name, not the other ringing member's.
         """
         tenant_uuid = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
         user_1_uuid = 'ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6'
         user_2_uuid = '31be0853-dde6-48cd-986d-85bc708754a1'
-        user_1 = mock_user(uuid=user_1_uuid, tenant_uuid=tenant_uuid, line_ids=[1])
-        user_2 = mock_user(uuid=user_2_uuid, tenant_uuid=tenant_uuid, line_ids=[2])
+        user_1 = mock_user(
+            uuid=user_1_uuid,
+            tenant_uuid=tenant_uuid,
+            line_ids=[1],
+            firstname='Answering',
+            lastname='Member',
+        )
+        user_2 = mock_user(
+            uuid=user_2_uuid,
+            tenant_uuid=tenant_uuid,
+            line_ids=[2],
+            firstname='Ringing',
+            lastname='Member',
+        )
         self.generator.confd = mock_confd_client(
             users=[user_1, user_2],
             lines=[
@@ -1100,7 +1117,8 @@ class TestCallLogGenerationScenarios(TestCase):
             call_logs[0],
             has_properties(
                 direction='inbound',
-                destination_name='supportgroup1',
+                requested_name='supportgroup1',
+                destination_name='Answering Member',
                 destination_exten='1006',
                 destination_internal_exten='8001',
                 destination_internal_context='default-key-4wfgx-internal',
@@ -1116,6 +1134,90 @@ class TestCallLogGenerationScenarios(TestCase):
                         role='destination',
                     ),
                 ),
+            ),
+        )
+
+    @raw_cels(
+        '''
+        eventtype                 | uniqueid       | linkedid       | eventtime                 | cid_name     | cid_num      | exten                                | context         | channame                                                              | appname         | appdata                                                          | peer                                 | extra
+        --------------------------+----------------+----------------+---------------------------+--------------+--------------+--------------------------------------+-----------------+-----------------------------------------------------------------------+-----------------+------------------------------------------------------------------+--------------------------------------+-----------------------------------------------------------
+        CHAN_START                | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:00.10+00 | +12345678910 | +12345678910 | 1006                                 | from-extern     | PJSIP/2c70p24m-000000a3                                               |                 |                                                                  |                                      |
+        WAZO_CALL_LOG_DESTINATION | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:00.20+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: group,id: 9,label: supportgroup1 |                                      | {"extra":"type: group,id: 9,label: supportgroup1"}
+        APP_START                 | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:00.30+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e,ir,,,15                                        |                                      |
+        CHAN_START                | 1720000000.101 | 1720000000.100 | 2026-07-02 09:00:00.40+00 |              |              | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 |                 |                                                                  |                                      |
+        CHAN_START                | 1720000000.102 | 1720000000.100 | 2026-07-02 09:00:00.41+00 |              |              | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                                  |                                      |
+        CHAN_START                | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:00.42+00 |              |              | 0612345678                           | internal        | Local/0612345678@internal-000000e0;1                                  |                 |                                                                  |                                      |
+        CHAN_START                | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:00.43+00 |              |              | 0612345678                           | internal        | Local/0612345678@internal-000000e0;2                                  |                 |                                                                  |                                      |
+        CHAN_START                | 1720000000.105 | 1720000000.100 | 2026-07-02 09:00:00.50+00 | User Member  | 8001         | s                                    | internal        | PJSIP/9EYlfTvB-000000a5                                               |                 |                                                                  |                                      |
+        XIVO_OUTCALL              | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:00.60+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  | CELGenUserEvent | XIVO_OUTCALL,exten: 0612345678                                   |                                      | {"extra":"exten: 0612345678"}
+        CHAN_START                | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:00.70+00 |              |              | s                                    | from-extern     | PJSIP/trunk0001-000000a6                                              |                 |                                                                  |                                      |
+        ANSWER                    | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:05.00+00 |              | 0612345678   | dial                                 | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      |
+        ANSWER                    | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:05.01+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  | Dial            | PJSIP/0612345678@trunk0001                                       |                                      |
+        BRIDGE_ENTER              | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:05.02+00 |              | 0612345678   |                                      | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      | {"bridge_id":"b1","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER              | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:05.03+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  | Dial            | PJSIP/0612345678@trunk0001                                       | PJSIP/trunk0001-000000a6             | {"bridge_id":"b1","bridge_technology":"simple_bridge"}
+        ANSWER                    | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:05.04+00 |              | 0612345678   | s                                    | internal        | Local/0612345678@internal-000000e0;1                                  | AppQueue        | (Outgoing Line)                                                  |                                      |
+        HANGUP                    | 1720000000.105 | 1720000000.100 | 2026-07-02 09:00:05.05+00 | User Member  | 8001         | s                                    | internal        | PJSIP/9EYlfTvB-000000a5                                               | AppDial         | (Outgoing Line)                                                  |                                      | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1720000000.105 | 1720000000.100 | 2026-07-02 09:00:05.05+00 | User Member  | 8001         | s                                    | internal        | PJSIP/9EYlfTvB-000000a5                                               | AppDial         | (Outgoing Line)                                                  |                                      |
+        HANGUP                    | 1720000000.101 | 1720000000.100 | 2026-07-02 09:00:05.06+00 |              | 1006         | s                                    | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 | AppQueue        | (Outgoing Line)                                                  |                                      | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1720000000.101 | 1720000000.100 | 2026-07-02 09:00:05.06+00 |              | 1006         | s                                    | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 | AppQueue        | (Outgoing Line)                                                  |                                      |
+        HANGUP                    | 1720000000.102 | 1720000000.100 | 2026-07-02 09:00:05.07+00 | +12345678910 | +12345678910 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                                  |                                      | {"hangupcause":26,"hangupsource":"","dialstatus":"CANCEL"}
+        CHAN_END                  | 1720000000.102 | 1720000000.100 | 2026-07-02 09:00:05.07+00 | +12345678910 | +12345678910 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                                  |                                      |
+        BRIDGE_ENTER              | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:05.10+00 |              | 0612345678   | s                                    | internal        | Local/0612345678@internal-000000e0;1                                  | AppQueue        | (Outgoing Line)                                                  |                                      | {"bridge_id":"b2","bridge_technology":"simple_bridge"}
+        ANSWER                    | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:05.11+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e,ir,,,15                                        |                                      |
+        BRIDGE_ENTER              | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:05.12+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e,ir,,,15                                        | Local/0612345678@internal-000000e0;1 | {"bridge_id":"b2","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT               | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:30.00+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e,ir,,,15                                        |                                      | {"bridge_id":"b2","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:30.01+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               |                 |                                                                  |                                      | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
+        CHAN_END                  | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:30.01+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               |                 |                                                                  |                                      |
+        HANGUP                    | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:30.02+00 |              | 0612345678   | s                                    | internal        | Local/0612345678@internal-000000e0;1                                  | AppQueue        | (Outgoing Line)                                                  |                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:30.02+00 |              | 0612345678   | s                                    | internal        | Local/0612345678@internal-000000e0;1                                  | AppQueue        | (Outgoing Line)                                                  |                                      |
+        HANGUP                    | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:30.03+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  |                 |                                                                  |                                      | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
+        CHAN_END                  | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:30.03+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  |                 |                                                                  |                                      |
+        HANGUP                    | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:30.04+00 |              | 0612345678   |                                      | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:30.04+00 |              | 0612345678   |                                      | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      |
+        LINKEDID_END              | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:30.05+00 |              | 0612345678   |                                      | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      |
+        '''
+    )
+    def test_incoming_call_to_group_answered_by_external_number(self, cels):
+        """
+        A ring-all group rings a user member and an external number member,
+        dialed as Local/<number>@<context> then through a trunk. The external
+        number answers: it names the call, not the group or the ringing user.
+        """
+        tenant_uuid = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
+        user_uuid = 'ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6'
+        user = mock_user(
+            uuid=user_uuid,
+            tenant_uuid=tenant_uuid,
+            line_ids=[1],
+            firstname='User',
+            lastname='Member',
+        )
+        self.generator.confd = mock_confd_client(
+            users=[user],
+            lines=[
+                mock_line(
+                    id=1,
+                    tenant_uuid=tenant_uuid,
+                    users=[user],
+                    protocol='sip',
+                    name='9EYlfTvB',
+                    context='internal',
+                    extensions=[{'exten': '8001', 'context': 'internal'}],
+                ),
+            ],
+            contexts=[mock_context(id=1, name='internal', tenant_uuid=tenant_uuid)],
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                requested_name='supportgroup1',
+                destination_name='0612345678',
+                destination_internal_exten=None,
+                destination_internal_context=None,
             ),
         )
 
@@ -1226,6 +1328,7 @@ class TestCallLogGenerationScenarios(TestCase):
             source_name='0012345678910',
             source_exten='0012345678910',
             requested_exten='1005',
+            requested_name='supportgroup1',
             destination_exten='1005',
             destination_name='supportgroup1',
             direction='inbound',

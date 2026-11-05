@@ -22,15 +22,22 @@ class ParticipantInfo(NamedTuple):
     line_id: int | None
     tags: list[str]
     main_extension: str | None
+    name: str | None = None
 
 
 class UserAttributes(NamedTuple):
     tags: list[str]
     main_extension: dict | None
+    name: str | None = None
 
 
 def get_tags(field: str | None) -> list[str]:
     return [tag.strip() for tag in field.split(',')] if field else []
+
+
+def user_name(user: dict) -> str | None:
+    parts = (user['firstname'], user['lastname'])
+    return ' '.join(part for part in parts if part) or None
 
 
 def fetch_user(confd: ConfdClient, user_uuid: str) -> dict | None:
@@ -52,6 +59,7 @@ def user_attributes(user: dict, line_id: int | None = None) -> UserAttributes:
     return UserAttributes(
         tags=get_tags(user['userfield']),
         main_extension=main_extension,
+        name=user_name(user),
     )
 
 
@@ -90,6 +98,7 @@ def find_participant_by_uuid(
         line_id=main_line_id,
         tags=tags,
         main_extension=main_extension,
+        name=user_name(user),
     )
 
 
@@ -156,4 +165,5 @@ def find_participant(confd: ConfdClient, channame: str) -> ParticipantInfo | Non
         line_id=line['id'],
         tags=tags,
         main_extension=main_extension,
+        name=user_name(user),
     )

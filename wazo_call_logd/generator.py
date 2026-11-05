@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from collections import namedtuple
 from collections.abc import Iterator
 from itertools import groupby
@@ -29,6 +30,8 @@ from .participant import (
 )
 
 logger = logging.getLogger(__name__)
+
+GROUP_MEMBER_NUMBER_REGEX = re.compile(r'^Local/(\+?[0-9*#]+)@[^;]+;[12]$')
 
 
 CallLogsCreation = namedtuple(
@@ -103,6 +106,7 @@ class _ParticipantsProcessor:
         attributes = user_attributes(user, line_id) if user is not None else None
         if attributes:
             raw_attributes['main_extension'] = attributes.main_extension
+            raw_attributes['name'] = attributes.name
         participant = CallLogParticipant(
             user_uuid=user_uuid,
             line_id=line_id,
@@ -464,20 +468,30 @@ class CallLogsGenerator:
                 call_log.source_internal_exten = extension['exten']
                 call_log.source_internal_context = extension['context']
 
-        destination_participants = (
+        destination_participants = [
             participant
             for participant in call_log.raw_participants.values()
             if participant.get('role') == 'destination'
             and not participant.get('forwarded')
+        ]
+        is_group_call = any(
+            detail.destination_details_key == 'type'
+            and detail.destination_details_value == 'group'
+            for detail in call_log.destination_details
         )
+        group_answered = is_group_call and self._fill_group_answerer(call_log)
+
         for destination_participant in destination_participants:
             extension = destination_participant.get('main_extension')
             if not extension:
                 continue
 
-            if destination_participant.get('answered') or not (
-                call_log.destination_internal_exten
-                and call_log.destination_internal_context
+            if not group_answered and (
+                destination_participant.get('answered')
+                or not (
+                    call_log.destination_internal_exten
+                    and call_log.destination_internal_context
+                )
             ):
                 call_log.destination_internal_exten = extension['exten']
                 call_log.destination_internal_context = extension['context']
@@ -498,6 +512,52 @@ class CallLogsGenerator:
                     call_log.requested_internal_exten,
                     call_log.requested_internal_context,
                 )
+
+    def _fill_group_answerer(self, call_log) -> bool:
+        answerers = [
+            (channel_name, participant)
+            for channel_name, participant in call_log.raw_participants.items()
+            if participant.get('role') == 'destination'
+            and participant.get('answered')
+            and not participant.get('forwarded')
+        ]
+        if not answerers:
+            return False
+
+        def first_to_answer(candidates):
+            timed = [c for c in candidates if c[1].get('answered_at')]
+            if timed:
+                return min(timed, key=lambda c: c[1]['answered_at'])
+            return candidates[0]
+
+        user_answerers = [
+            (participant.get('name'), participant)
+            for _, participant in answerers
+            if 'uuid' in participant or 'stamped_user_uuid' in participant
+        ]
+        if user_answerers:
+            # users are named from confd: channel caller IDs do not reliably name them
+            name, answerer = first_to_answer(user_answerers)
+            extension = answerer.get('main_extension') or {}
+        elif call_log.was_forwarded:
+            # the forward target is already described by the CEL interpretation
+            return True
+        else:
+            # an external number member is dialed as Local/<number>@<context>
+            number_answerers = [
+                (match.group(1), participant)
+                for channel_name, participant in answerers
+                if (match := GROUP_MEMBER_NUMBER_REGEX.match(channel_name))
+            ]
+            name = first_to_answer(number_answerers)[0] if number_answerers else None
+            # no internal line answered the call
+            extension = {}
+
+        if name:
+            call_log.destination_name = name
+        call_log.destination_internal_exten = extension.get('exten')
+        call_log.destination_internal_context = extension.get('context')
+        return True
 
     def _resolve_voicemail_destination(self, call_log: RawCallLog, cache: dict):
         # Voicemail is the destination only when unanswered (mirrors the

@@ -2582,7 +2582,7 @@ LINKEDID_END              | 2026-08-20 14:00:30.600000 | Alice    | 101     | 10
         self._assert_last_call_log_matches(
             '1761315615.217',
             has_properties(
-                requested_name='Freddie Mercury',
+                requested_name='TestGroup',
                 requested_internal_exten='1008',
                 requested_internal_context='default',
             ),

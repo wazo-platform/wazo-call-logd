@@ -65,6 +65,8 @@ class TestFindParticipant(TestCase):
             'uuid': 'user_uuid',
             'tenant_uuid': 'tenant_uuid',
             'userfield': 'user_userfield, toto',
+            'firstname': 'Alice',
+            'lastname': 'Smith',
         }
         lines = [{'id': 12, 'users': [user], 'extensions': []}]
         confd = confd_mock(lines)
@@ -79,6 +81,7 @@ class TestFindParticipant(TestCase):
                 tenant_uuid='tenant_uuid',
                 line_id=12,
                 tags=['user_userfield', 'toto'],
+                name='Alice Smith',
             ),
         )
 
@@ -87,6 +90,8 @@ class TestFindParticipant(TestCase):
             'uuid': 'user_uuid',
             'tenant_uuid': 'tenant_uuid',
             'userfield': 'user_userfield, toto',
+            'firstname': 'Alice',
+            'lastname': 'Smith',
         }
         lines = [{'id': 12, 'users': [user], 'extensions': []}]
         user_uuid = user["uuid"]
@@ -102,6 +107,7 @@ class TestFindParticipant(TestCase):
                 line_id=12,
                 main_extension=None,
                 tags=['user_userfield', 'toto'],
+                name='Alice Smith',
             ),
         )
 

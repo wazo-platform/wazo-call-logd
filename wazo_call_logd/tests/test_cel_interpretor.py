@@ -1035,6 +1035,47 @@ class TestCalleeCELInterpretor(TestCase):
         assert_that(call.voicemail_number, equal_to('1001'))
         assert_that(call.voicemail_context, equal_to('default'))
 
+    def _requested_internal(self, call, cid_name):
+        cel = Mock(
+            cid_name=cid_name,
+            extra='{"extra": "type: user,number: 1201,context: internal"}',
+        )
+        self.interpretor.interpret_requested_internal(cel, call)
+
+    def test_interpret_requested_internal_group_call_keeps_group_label(self):
+        call = RawCallLog()
+        call.requested_type = 'group'
+        call.requested_name = 'Sales'
+
+        self._requested_internal(call, 'Answer Member')
+
+        assert_that(
+            call,
+            has_properties(
+                requested_name='Sales',
+                requested_internal_exten='1201',
+                requested_internal_context='internal',
+            ),
+        )
+
+    def test_interpret_requested_internal_forwarded_user_call_keeps_requested_name(
+        self,
+    ):
+        call = RawCallLog()
+        call.requested_type = 'user'
+        call.requested_name = 'Alice'
+
+        self._requested_internal(call, 'Answer Member')
+
+        assert_that(
+            call,
+            has_properties(
+                requested_name='Alice',
+                requested_internal_exten='1201',
+                requested_internal_context='internal',
+            ),
+        )
+
 
 class TestLocalOriginateCELInterpretor(TestCase):
     def setUp(self):
