@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from collections import namedtuple
 from collections.abc import Iterator
 from itertools import groupby
@@ -29,6 +30,8 @@ from .participant import (
 )
 
 logger = logging.getLogger(__name__)
+
+GROUP_MEMBER_NUMBER_REGEX = re.compile(r'^Local/(\+?[0-9*#]+)@[^;]+;[12]$')
 
 
 CallLogsCreation = namedtuple(
@@ -540,15 +543,13 @@ class CallLogsGenerator:
             # the forward target is already described by the CEL interpretation
             return True
         else:
-            # members that are not Wazo users, e.g. an external number
-            caller_id_answerers = [
-                (call_log.caller_id_by_channels.get(channel_name, ('', ''))[0], p)
-                for channel_name, p in answerers
+            # an external number member is dialed as Local/<number>@<context>
+            number_answerers = [
+                (match.group(1), participant)
+                for channel_name, participant in answerers
+                if (match := GROUP_MEMBER_NUMBER_REGEX.match(channel_name))
             ]
-            caller_id_answerers = [c for c in caller_id_answerers if c[0]]
-            name = (
-                first_to_answer(caller_id_answerers)[0] if caller_id_answerers else None
-            )
+            name = first_to_answer(number_answerers)[0] if number_answerers else None
             # no internal line answered the call
             extension = {}
 

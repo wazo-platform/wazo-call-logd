@@ -722,6 +722,11 @@ class TestFillExtensionsFromParticipants(TestCase):
         }
         return call_log
 
+    def _group_call_log_by_channel(self, participants_by_channel):
+        call_log = self._group_call_log()
+        call_log.raw_participants = participants_by_channel
+        return call_log
+
     def test_group_destination_name_is_answering_member(self):
         call_log = self._group_call_log(
             dict(self._make_participant('101', 'default'), name='Ringing Member'),
@@ -763,42 +768,78 @@ class TestFillExtensionsFromParticipants(TestCase):
 
         assert_that(call_log.destination_name, equal_to('group1'))
 
-    def test_group_destination_name_is_caller_id_of_non_user_answerer(self):
-        call_log = self._group_call_log(
-            dict(self._make_participant('101', 'default'), name='Ringing Member'),
-            {'role': 'destination', 'answered': True},
+    def test_group_destination_name_is_number_of_external_answerer(self):
+        answered = {'role': 'destination', 'answered': True}
+        call_log = self._group_call_log_by_channel(
+            {
+                'PJSIP/abcdefgh-00000002': dict(
+                    self._make_participant('101', 'default'), name='Ringing Member'
+                ),
+                'Local/0612345678@internal-0000000c;1': dict(answered),
+                'Local/0612345678@internal-0000000c;2': dict(answered),
+                'PJSIP/trunk1-00000003': dict(answered),
+            }
         )
-        call_log.caller_id_by_channels = {'chan1': ('External Member', '5551234')}
+        call_log.caller_id_by_channels = {'PJSIP/trunk1-00000003': ('ACME', '0123')}
 
         self.generator._fill_extensions_from_participants(call_log)
 
-        assert_that(call_log.destination_name, equal_to('External Member'))
+        assert_that(call_log.destination_name, equal_to('0612345678'))
         assert_that(call_log.requested_name, equal_to('group1'))
 
-    def test_group_destination_name_prefers_user_over_non_user_answerer(self):
-        call_log = self._group_call_log(
+    def test_group_destination_name_is_first_external_number_to_answer(self):
+        call_log = self._group_call_log_by_channel(
             {
-                'role': 'destination',
-                'answered': True,
-                'answered_at': datetime(2026, 11, 3, 10, 0, 5),
-            },
-            dict(
-                self._make_participant('102', 'default', answered=True),
-                name='Answering Member',
-                answered_at=datetime(2026, 11, 3, 10, 0, 6),
-            ),
+                'Local/+15551230000@internal-0000000c;1': {
+                    'role': 'destination',
+                    'answered': True,
+                    'answered_at': datetime(2026, 11, 3, 10, 0, 30),
+                },
+                'Local/+15559870000@internal-0000000d;1': {
+                    'role': 'destination',
+                    'answered': True,
+                    'answered_at': datetime(2026, 11, 3, 10, 0, 5),
+                },
+            }
         )
-        call_log.caller_id_by_channels = {'chan0': ('Endpoint Caller ID', '201')}
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('+15559870000'))
+
+    def test_group_destination_name_prefers_user_over_external_answerer(self):
+        call_log = self._group_call_log_by_channel(
+            {
+                'Local/0612345678@internal-0000000c;1': {
+                    'role': 'destination',
+                    'answered': True,
+                    'answered_at': datetime(2026, 11, 3, 10, 0, 5),
+                },
+                'PJSIP/abcdefgh-00000002': dict(
+                    self._make_participant('102', 'default', answered=True),
+                    name='Answering Member',
+                    answered_at=datetime(2026, 11, 3, 10, 0, 6),
+                ),
+            }
+        )
 
         self.generator._fill_extensions_from_participants(call_log)
 
         assert_that(call_log.destination_name, equal_to('Answering Member'))
 
-    def test_group_destination_name_kept_when_non_user_answerer_has_no_caller_id(
+    def test_group_destination_name_kept_when_non_user_answerer_has_no_number(
         self,
     ):
-        call_log = self._group_call_log({'role': 'destination', 'answered': True})
-        call_log.caller_id_by_channels = {'chan0': ('', '5551234')}
+        answered = {'role': 'destination', 'answered': True}
+        call_log = self._group_call_log_by_channel(
+            {
+                'Local/TokxAXWb@wazo_wait_for_registration-0000000e;1': dict(answered),
+                'PJSIP/trunk1-00000003': dict(answered),
+            }
+        )
+        call_log.caller_id_by_channels = {
+            'PJSIP/trunk1-00000003': ('Trunk Caller ID', '0123')
+        }
 
         self.generator._fill_extensions_from_participants(call_log)
 
@@ -857,18 +898,24 @@ class TestFillExtensionsFromParticipants(TestCase):
         )
 
     def test_group_destination_internal_empty_when_non_user_answered(self):
-        call_log = self._group_call_log(
-            dict(self._make_participant('101', 'default'), name='Ringing Member'),
-            {'role': 'destination', 'answered': True},
+        call_log = self._group_call_log_by_channel(
+            {
+                'PJSIP/abcdefgh-00000002': dict(
+                    self._make_participant('101', 'default'), name='Ringing Member'
+                ),
+                'Local/0612345678@internal-0000000c;1': {
+                    'role': 'destination',
+                    'answered': True,
+                },
+            }
         )
-        call_log.caller_id_by_channels = {'chan1': ('External Member', '5551234')}
 
         self.generator._fill_extensions_from_participants(call_log)
 
         assert_that(
             call_log,
             has_properties(
-                destination_name='External Member',
+                destination_name='0612345678',
                 destination_internal_exten=None,
                 destination_internal_context=None,
             ),
@@ -892,12 +939,18 @@ class TestFillExtensionsFromParticipants(TestCase):
         )
 
     def test_forwarded_group_keeps_name_of_non_user_answerer(self):
-        call_log = self._group_call_log({'role': 'destination', 'answered': True})
+        call_log = self._group_call_log_by_channel(
+            {
+                'Local/5551234@outcall-0000000c;1': {
+                    'role': 'destination',
+                    'answered': True,
+                }
+            }
+        )
         call_log.destination_name = 'Forward Target'
         call_log.was_forwarded = True
         call_log.destination_internal_exten = '5551234'
         call_log.destination_internal_context = 'outcall'
-        call_log.caller_id_by_channels = {'chan0': ('Trunk Caller ID', '5551234')}
 
         self.generator._fill_extensions_from_participants(call_log)
 

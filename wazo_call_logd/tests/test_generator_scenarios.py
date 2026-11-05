@@ -1139,6 +1139,90 @@ class TestCallLogGenerationScenarios(TestCase):
 
     @raw_cels(
         '''
+        eventtype                 | uniqueid       | linkedid       | eventtime                 | cid_name     | cid_num      | exten                                | context         | channame                                                              | appname         | appdata                                                          | peer                                 | extra
+        --------------------------+----------------+----------------+---------------------------+--------------+--------------+--------------------------------------+-----------------+-----------------------------------------------------------------------+-----------------+------------------------------------------------------------------+--------------------------------------+-----------------------------------------------------------
+        CHAN_START                | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:00.10+00 | +12345678910 | +12345678910 | 1006                                 | from-extern     | PJSIP/2c70p24m-000000a3                                               |                 |                                                                  |                                      |
+        WAZO_CALL_LOG_DESTINATION | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:00.20+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | CELGenUserEvent | WAZO_CALL_LOG_DESTINATION,type: group,id: 9,label: supportgroup1 |                                      | {"extra":"type: group,id: 9,label: supportgroup1"}
+        APP_START                 | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:00.30+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e,ir,,,15                                        |                                      |
+        CHAN_START                | 1720000000.101 | 1720000000.100 | 2026-07-02 09:00:00.40+00 |              |              | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 |                 |                                                                  |                                      |
+        CHAN_START                | 1720000000.102 | 1720000000.100 | 2026-07-02 09:00:00.41+00 |              |              | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                                  |                                      |
+        CHAN_START                | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:00.42+00 |              |              | 0612345678                           | internal        | Local/0612345678@internal-000000e0;1                                  |                 |                                                                  |                                      |
+        CHAN_START                | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:00.43+00 |              |              | 0612345678                           | internal        | Local/0612345678@internal-000000e0;2                                  |                 |                                                                  |                                      |
+        CHAN_START                | 1720000000.105 | 1720000000.100 | 2026-07-02 09:00:00.50+00 | User Member  | 8001         | s                                    | internal        | PJSIP/9EYlfTvB-000000a5                                               |                 |                                                                  |                                      |
+        XIVO_OUTCALL              | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:00.60+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  | CELGenUserEvent | XIVO_OUTCALL,exten: 0612345678                                   |                                      | {"extra":"exten: 0612345678"}
+        CHAN_START                | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:00.70+00 |              |              | s                                    | from-extern     | PJSIP/trunk0001-000000a6                                              |                 |                                                                  |                                      |
+        ANSWER                    | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:05.00+00 |              | 0612345678   | dial                                 | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      |
+        ANSWER                    | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:05.01+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  | Dial            | PJSIP/0612345678@trunk0001                                       |                                      |
+        BRIDGE_ENTER              | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:05.02+00 |              | 0612345678   |                                      | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      | {"bridge_id":"b1","bridge_technology":"simple_bridge"}
+        BRIDGE_ENTER              | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:05.03+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  | Dial            | PJSIP/0612345678@trunk0001                                       | PJSIP/trunk0001-000000a6             | {"bridge_id":"b1","bridge_technology":"simple_bridge"}
+        ANSWER                    | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:05.04+00 |              | 0612345678   | s                                    | internal        | Local/0612345678@internal-000000e0;1                                  | AppQueue        | (Outgoing Line)                                                  |                                      |
+        HANGUP                    | 1720000000.105 | 1720000000.100 | 2026-07-02 09:00:05.05+00 | User Member  | 8001         | s                                    | internal        | PJSIP/9EYlfTvB-000000a5                                               | AppDial         | (Outgoing Line)                                                  |                                      | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1720000000.105 | 1720000000.100 | 2026-07-02 09:00:05.05+00 | User Member  | 8001         | s                                    | internal        | PJSIP/9EYlfTvB-000000a5                                               | AppDial         | (Outgoing Line)                                                  |                                      |
+        HANGUP                    | 1720000000.101 | 1720000000.100 | 2026-07-02 09:00:05.06+00 |              | 1006         | s                                    | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 | AppQueue        | (Outgoing Line)                                                  |                                      | {"hangupcause":26,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1720000000.101 | 1720000000.100 | 2026-07-02 09:00:05.06+00 |              | 1006         | s                                    | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;1 | AppQueue        | (Outgoing Line)                                                  |                                      |
+        HANGUP                    | 1720000000.102 | 1720000000.100 | 2026-07-02 09:00:05.07+00 | +12345678910 | +12345678910 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                                  |                                      | {"hangupcause":26,"hangupsource":"","dialstatus":"CANCEL"}
+        CHAN_END                  | 1720000000.102 | 1720000000.100 | 2026-07-02 09:00:05.07+00 | +12345678910 | +12345678910 | ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6 | usersharedlines | Local/ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6@usersharedlines-000000df;2 |                 |                                                                  |                                      |
+        BRIDGE_ENTER              | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:05.10+00 |              | 0612345678   | s                                    | internal        | Local/0612345678@internal-000000e0;1                                  | AppQueue        | (Outgoing Line)                                                  |                                      | {"bridge_id":"b2","bridge_technology":"simple_bridge"}
+        ANSWER                    | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:05.11+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e,ir,,,15                                        |                                      |
+        BRIDGE_ENTER              | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:05.12+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e,ir,,,15                                        | Local/0612345678@internal-000000e0;1 | {"bridge_id":"b2","bridge_technology":"simple_bridge"}
+        BRIDGE_EXIT               | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:30.00+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               | Queue           | grp-test-9f16208e,ir,,,15                                        |                                      | {"bridge_id":"b2","bridge_technology":"simple_bridge"}
+        HANGUP                    | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:30.01+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               |                 |                                                                  |                                      | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
+        CHAN_END                  | 1720000000.100 | 1720000000.100 | 2026-07-02 09:00:30.01+00 | +12345678910 | +12345678910 | s                                    | group           | PJSIP/2c70p24m-000000a3                                               |                 |                                                                  |                                      |
+        HANGUP                    | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:30.02+00 |              | 0612345678   | s                                    | internal        | Local/0612345678@internal-000000e0;1                                  | AppQueue        | (Outgoing Line)                                                  |                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1720000000.103 | 1720000000.100 | 2026-07-02 09:00:30.02+00 |              | 0612345678   | s                                    | internal        | Local/0612345678@internal-000000e0;1                                  | AppQueue        | (Outgoing Line)                                                  |                                      |
+        HANGUP                    | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:30.03+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  |                 |                                                                  |                                      | {"hangupcause":16,"hangupsource":"","dialstatus":"ANSWER"}
+        CHAN_END                  | 1720000000.104 | 1720000000.100 | 2026-07-02 09:00:30.03+00 | +12345678910 | +12345678910 | dial                                 | outcall         | Local/0612345678@internal-000000e0;2                                  |                 |                                                                  |                                      |
+        HANGUP                    | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:30.04+00 |              | 0612345678   |                                      | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      | {"hangupcause":16,"hangupsource":"","dialstatus":""}
+        CHAN_END                  | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:30.04+00 |              | 0612345678   |                                      | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      |
+        LINKEDID_END              | 1720000000.106 | 1720000000.100 | 2026-07-02 09:00:30.05+00 |              | 0612345678   |                                      | from-extern     | PJSIP/trunk0001-000000a6                                              | AppDial         | (Outgoing Line)                                                  |                                      |
+        '''
+    )
+    def test_incoming_call_to_group_answered_by_external_number(self, cels):
+        """
+        A ring-all group rings a user member and an external number member,
+        dialed as Local/<number>@<context> then through a trunk. The external
+        number answers: it names the call, not the group or the ringing user.
+        """
+        tenant_uuid = '54eb71f8-1f4b-4ae4-8730-638062fbe521'
+        user_uuid = 'ad5b78cf-6e15-45c7-9ef3-bec36e07e8d6'
+        user = mock_user(
+            uuid=user_uuid,
+            tenant_uuid=tenant_uuid,
+            line_ids=[1],
+            firstname='User',
+            lastname='Member',
+        )
+        self.generator.confd = mock_confd_client(
+            users=[user],
+            lines=[
+                mock_line(
+                    id=1,
+                    tenant_uuid=tenant_uuid,
+                    users=[user],
+                    protocol='sip',
+                    name='9EYlfTvB',
+                    context='internal',
+                    extensions=[{'exten': '8001', 'context': 'internal'}],
+                ),
+            ],
+            contexts=[mock_context(id=1, name='internal', tenant_uuid=tenant_uuid)],
+        )
+
+        call_logs = self.generator.call_logs_from_cel(cels)
+        assert len(call_logs) == 1
+
+        assert_that(
+            call_logs[0],
+            has_properties(
+                requested_name='supportgroup1',
+                destination_name='0612345678',
+                destination_internal_exten=None,
+                destination_internal_context=None,
+            ),
+        )
+
+    @raw_cels(
+        '''
                  eventtype        |    uniqueid    |    linkedid    |           eventtime           |   cid_name    |               cid_num                |                exten                 |            context            |                               channame                                |     appname     |                                                                         appdata                                                                         |                                                                   extra
         --------------------------+----------------+----------------+-------------------------------+---------------+--------------------------------------+--------------------------------------+-------------------------------+-----------------------------------------------------------------------+-----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------
         CHAN_START                | 1715115875.647 | 1715115875.647 | 2024-05-07 21:04:35.560396+00 | +12345678910  | +12345678910                         | 1005                                 | default-key-4wfgx-from-extern | PJSIP/2c70p24m-000000aa                                               |                 |                                                                                                                                                         |
