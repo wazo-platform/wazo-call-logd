@@ -644,6 +644,7 @@ class TestFillExtensionsFromParticipants(TestCase):
 
     def _make_participant(self, exten, context, answered=False):
         return {
+            'uuid': f'user-{exten}',
             'role': 'destination',
             'answered': answered,
             'main_extension': {'exten': exten, 'context': context},
@@ -809,6 +810,102 @@ class TestFillExtensionsFromParticipants(TestCase):
         self.generator._fill_extensions_from_participants(call_log)
 
         assert_that(call_log.destination_name, equal_to('group1'))
+
+    def test_group_destination_internal_is_first_member_to_answer(self):
+        call_log = self._group_call_log(
+            dict(
+                self._make_participant('101', 'default', answered=True),
+                name='First Answerer',
+                answered_at=datetime(2026, 11, 3, 10, 0, 5),
+            ),
+            dict(
+                self._make_participant('102', 'default', answered=True),
+                name='Transferred To',
+                answered_at=datetime(2026, 11, 3, 10, 0, 30),
+            ),
+        )
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(
+            call_log,
+            has_properties(
+                destination_name='First Answerer',
+                destination_internal_exten='101',
+                destination_internal_context='default',
+            ),
+        )
+
+    def test_group_destination_internal_of_unnamed_user_answerer(self):
+        call_log = self._group_call_log(
+            self._make_participant('101', 'default'),
+            self._make_participant('102', 'default', answered=True),
+        )
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(
+            call_log,
+            has_properties(
+                destination_name='group1',
+                destination_internal_exten='102',
+                destination_internal_context='default',
+            ),
+        )
+
+    def test_group_destination_internal_empty_when_non_user_answered(self):
+        call_log = self._group_call_log(
+            dict(self._make_participant('101', 'default'), name='Ringing Member'),
+            {'role': 'destination', 'answered': True},
+        )
+        call_log.caller_id_by_channels = {'chan1': ('External Member', '5551234')}
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(
+            call_log,
+            has_properties(
+                destination_name='External Member',
+                destination_internal_exten=None,
+                destination_internal_context=None,
+            ),
+        )
+
+    def test_group_destination_internal_is_first_to_ring_when_unanswered(self):
+        call_log = self._group_call_log(
+            dict(self._make_participant('101', 'default'), name='First Ringing'),
+            dict(self._make_participant('102', 'default'), name='Second Ringing'),
+        )
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(
+            call_log,
+            has_properties(
+                destination_name='group1',
+                destination_internal_exten='101',
+                destination_internal_context='default',
+            ),
+        )
+
+    def test_forwarded_group_keeps_name_of_non_user_answerer(self):
+        call_log = self._group_call_log({'role': 'destination', 'answered': True})
+        call_log.destination_name = 'Forward Target'
+        call_log.was_forwarded = True
+        call_log.destination_internal_exten = '5551234'
+        call_log.destination_internal_context = 'outcall'
+        call_log.caller_id_by_channels = {'chan0': ('Trunk Caller ID', '5551234')}
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(
+            call_log,
+            has_properties(
+                destination_name='Forward Target',
+                destination_internal_exten='5551234',
+                destination_internal_context='outcall',
+            ),
+        )
 
     def test_non_group_destination_name_not_replaced(self):
         call_log = RawCallLog()

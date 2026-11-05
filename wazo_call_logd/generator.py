@@ -476,17 +476,19 @@ class CallLogsGenerator:
             and detail.destination_details_value == 'group'
             for detail in call_log.destination_details
         )
-        if is_group_call:
-            self._name_group_answerer(call_log)
+        group_answered = is_group_call and self._fill_group_answerer(call_log)
 
         for destination_participant in destination_participants:
             extension = destination_participant.get('main_extension')
             if not extension:
                 continue
 
-            if destination_participant.get('answered') or not (
-                call_log.destination_internal_exten
-                and call_log.destination_internal_context
+            if not group_answered and (
+                destination_participant.get('answered')
+                or not (
+                    call_log.destination_internal_exten
+                    and call_log.destination_internal_context
+                )
             ):
                 call_log.destination_internal_exten = extension['exten']
                 call_log.destination_internal_context = extension['context']
@@ -508,7 +510,7 @@ class CallLogsGenerator:
                     call_log.requested_internal_context,
                 )
 
-    def _name_group_answerer(self, call_log):
+    def _fill_group_answerer(self, call_log) -> bool:
         answerers = [
             (channel_name, participant)
             for channel_name, participant in call_log.raw_participants.items()
@@ -516,33 +518,45 @@ class CallLogsGenerator:
             and participant.get('answered')
             and not participant.get('forwarded')
         ]
-        # users are named from confd: channel caller IDs do not reliably name them
-        named_answerers = [
-            (participant['name'], participant)
-            for _, participant in answerers
-            if participant.get('name')
-        ]
-        if not named_answerers:
-            # members that are not Wazo users, e.g. an external number
-            named_answerers = [
-                (call_log.caller_id_by_channels[channel_name][0], participant)
-                for channel_name, participant in answerers
-                if 'uuid' not in participant
-                and 'stamped_user_uuid' not in participant
-                and call_log.caller_id_by_channels.get(channel_name, ('', ''))[0]
-            ]
-        if not named_answerers:
-            return
+        if not answerers:
+            return False
 
-        timed = [
-            answerer for answerer in named_answerers if answerer[1].get('answered_at')
+        def first_to_answer(candidates):
+            timed = [c for c in candidates if c[1].get('answered_at')]
+            if timed:
+                return min(timed, key=lambda c: c[1]['answered_at'])
+            return candidates[0]
+
+        user_answerers = [
+            (participant.get('name'), participant)
+            for _, participant in answerers
+            if 'uuid' in participant or 'stamped_user_uuid' in participant
         ]
-        name, _ = (
-            min(timed, key=lambda answerer: answerer[1]['answered_at'])
-            if timed
-            else named_answerers[0]
-        )
-        call_log.destination_name = name
+        if user_answerers:
+            # users are named from confd: channel caller IDs do not reliably name them
+            name, answerer = first_to_answer(user_answerers)
+            extension = answerer.get('main_extension') or {}
+        elif call_log.was_forwarded:
+            # the forward target is already described by the CEL interpretation
+            return True
+        else:
+            # members that are not Wazo users, e.g. an external number
+            caller_id_answerers = [
+                (call_log.caller_id_by_channels.get(channel_name, ('', ''))[0], p)
+                for channel_name, p in answerers
+            ]
+            caller_id_answerers = [c for c in caller_id_answerers if c[0]]
+            name = (
+                first_to_answer(caller_id_answerers)[0] if caller_id_answerers else None
+            )
+            # no internal line answered the call
+            extension = {}
+
+        if name:
+            call_log.destination_name = name
+        call_log.destination_internal_exten = extension.get('exten')
+        call_log.destination_internal_context = extension.get('context')
+        return True
 
     def _resolve_voicemail_destination(self, call_log: RawCallLog, cache: dict):
         # Voicemail is the destination only when unanswered (mirrors the
