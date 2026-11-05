@@ -305,8 +305,20 @@ LINKEDID_END              | 2026-04-07 17:22:07.886926+00 | Answer Member | 1201
         other_member_uuid = '64f7ec70-71b7-4430-8446-74d8dc563d33'
         answer_member_uuid = '203bcf07-d355-44e8-8217-f6f532737bf1'
         self.confd.set_users(
-            MockUser(other_member_uuid, USERS_TENANT, line_ids=[1]),
-            MockUser(answer_member_uuid, USERS_TENANT, line_ids=[2]),
+            MockUser(
+                other_member_uuid,
+                USERS_TENANT,
+                line_ids=[1],
+                firstname='Other',
+                lastname='Member',
+            ),
+            MockUser(
+                answer_member_uuid,
+                USERS_TENANT,
+                line_ids=[2],
+                firstname='Answer',
+                lastname='Member',
+            ),
         )
         self.confd.set_lines(
             MockLine(
@@ -337,7 +349,7 @@ LINKEDID_END              | 2026-04-07 17:22:07.886926+00 | Answer Member | 1201
                 destination_internal_exten='1201',
                 destination_internal_context='internal',
                 requested_name='group2',
-                destination_name='group2',
+                destination_name='Answer Member',
                 destination_participant=has_properties(
                     user_uuid=UUID(answer_member_uuid),
                 ),
