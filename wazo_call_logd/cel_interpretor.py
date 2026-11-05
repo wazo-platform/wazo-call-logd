@@ -1033,10 +1033,6 @@ class CalleeCELInterpretor(AbstractCELInterpretor):
         if context := extra_dict.get('context'):
             call.requested_internal_context = context
 
-        # a group call keeps the group label, not the member who answered
-        if call.requested_type != 'group':
-            call.requested_name = cel.cid_name
-
         return call
 
 

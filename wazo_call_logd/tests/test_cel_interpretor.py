@@ -1058,13 +1058,23 @@ class TestCalleeCELInterpretor(TestCase):
             ),
         )
 
-    def test_interpret_requested_internal_user_call_sets_requested_name(self):
+    def test_interpret_requested_internal_forwarded_user_call_keeps_requested_name(
+        self,
+    ):
         call = RawCallLog()
         call.requested_type = 'user'
+        call.requested_name = 'Alice'
 
-        self._requested_internal(call, 'Alice Phone')
+        self._requested_internal(call, 'Answer Member')
 
-        assert_that(call.requested_name, equal_to('Alice Phone'))
+        assert_that(
+            call,
+            has_properties(
+                requested_name='Alice',
+                requested_internal_exten='1201',
+                requested_internal_context='internal',
+            ),
+        )
 
 
 class TestLocalOriginateCELInterpretor(TestCase):
