@@ -476,20 +476,8 @@ class CallLogsGenerator:
             and detail.destination_details_value == 'group'
             for detail in call_log.destination_details
         )
-        named_answerers = [
-            participant
-            for participant in destination_participants
-            if participant.get('answered') and participant.get('name')
-        ]
-        if is_group_call and named_answerers:
-            # channel caller IDs do not reliably name the member who answered
-            timed = [p for p in named_answerers if p.get('answered_at')]
-            first_answerer = (
-                min(timed, key=lambda p: p['answered_at'])
-                if timed
-                else named_answerers[0]
-            )
-            call_log.destination_name = first_answerer['name']
+        if is_group_call:
+            self._name_group_answerer(call_log)
 
         for destination_participant in destination_participants:
             extension = destination_participant.get('main_extension')
@@ -519,6 +507,42 @@ class CallLogsGenerator:
                     call_log.requested_internal_exten,
                     call_log.requested_internal_context,
                 )
+
+    def _name_group_answerer(self, call_log):
+        answerers = [
+            (channel_name, participant)
+            for channel_name, participant in call_log.raw_participants.items()
+            if participant.get('role') == 'destination'
+            and participant.get('answered')
+            and not participant.get('forwarded')
+        ]
+        # users are named from confd: channel caller IDs do not reliably name them
+        named_answerers = [
+            (participant['name'], participant)
+            for _, participant in answerers
+            if participant.get('name')
+        ]
+        if not named_answerers:
+            # members that are not Wazo users, e.g. an external number
+            named_answerers = [
+                (call_log.caller_id_by_channels[channel_name][0], participant)
+                for channel_name, participant in answerers
+                if 'uuid' not in participant
+                and 'stamped_user_uuid' not in participant
+                and call_log.caller_id_by_channels.get(channel_name, ('', ''))[0]
+            ]
+        if not named_answerers:
+            return
+
+        timed = [
+            answerer for answerer in named_answerers if answerer[1].get('answered_at')
+        ]
+        name, _ = (
+            min(timed, key=lambda answerer: answerer[1]['answered_at'])
+            if timed
+            else named_answerers[0]
+        )
+        call_log.destination_name = name
 
     def _resolve_voicemail_destination(self, call_log: RawCallLog, cache: dict):
         # Voicemail is the destination only when unanswered (mirrors the

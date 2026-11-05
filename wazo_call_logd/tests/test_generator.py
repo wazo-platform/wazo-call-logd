@@ -760,6 +760,56 @@ class TestFillExtensionsFromParticipants(TestCase):
 
         assert_that(call_log.destination_name, equal_to('group1'))
 
+    def test_group_destination_name_is_caller_id_of_non_user_answerer(self):
+        call_log = self._group_call_log(
+            dict(self._make_participant('101', 'default'), name='Ringing Member'),
+            {'role': 'destination', 'answered': True},
+        )
+        call_log.caller_id_by_channels = {'chan1': ('External Member', '5551234')}
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('External Member'))
+
+    def test_group_destination_name_prefers_user_over_non_user_answerer(self):
+        call_log = self._group_call_log(
+            {
+                'role': 'destination',
+                'answered': True,
+                'answered_at': datetime(2026, 11, 3, 10, 0, 5),
+            },
+            dict(
+                self._make_participant('102', 'default', answered=True),
+                name='Answering Member',
+                answered_at=datetime(2026, 11, 3, 10, 0, 6),
+            ),
+        )
+        call_log.caller_id_by_channels = {'chan0': ('Endpoint Caller ID', '201')}
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('Answering Member'))
+
+    def test_group_destination_name_kept_when_non_user_answerer_has_no_caller_id(
+        self,
+    ):
+        call_log = self._group_call_log({'role': 'destination', 'answered': True})
+        call_log.caller_id_by_channels = {'chan0': ('', '5551234')}
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('group1'))
+
+    def test_group_destination_name_ignores_caller_id_of_user_answerer(self):
+        call_log = self._group_call_log(
+            dict(self._make_participant('102', 'default', answered=True), uuid='u1'),
+        )
+        call_log.caller_id_by_channels = {'chan0': ('Endpoint Caller ID', '201')}
+
+        self.generator._fill_extensions_from_participants(call_log)
+
+        assert_that(call_log.destination_name, equal_to('group1'))
+
     def test_non_group_destination_name_not_replaced(self):
         call_log = RawCallLog()
         call_log.destination_name = 'Caller ID Name'

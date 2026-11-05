@@ -3,7 +3,8 @@
 ## 26.11
 
 * In CDRs of calls to a group (`GET /cdr`, `GET /users/me/cdr`), `requested_name` is now the
-  group's label and `destination_name` the name of the member who answered, as documented. A
+  group's label and `destination_name` the name of the member who answered, as documented, or
+  its caller ID name for a member who is not a Wazo user (e.g. an external number). A
   group call that no member answered keeps the group's label in `destination_name`. The label is
   still in `destination_details.group_label`. The `search` parameter no longer matches a group's
   label on the calls a member answered.
