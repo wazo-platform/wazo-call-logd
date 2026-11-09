@@ -11,6 +11,10 @@
   still in `destination_details.group_label`. The `search` parameter no longer matches a group's
   label on the calls a member answered.
 
+* New endpoint `GET /1.0/metrics`: Prometheus metrics, without authentication.
+  It is served by the `metrics` plugin, disabled by default; enable it with
+  `enabled_plugins: {metrics: true}`.
+
 ## 26.09
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx.
