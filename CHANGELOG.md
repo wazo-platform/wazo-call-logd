@@ -11,16 +11,14 @@
   still in `destination_details.group_label`. The `search` parameter no longer matches a group's
   label on the calls a member answered.
 
-* In CDRs of forwarded calls (`GET /cdr`, `GET /users/me/cdr`):
-  * A call that a group forwards to an external number (no answer, full, empty or closed group)
-    keeps its caller as source, its direction and the group's label in `requested_name`. Before,
-    the caller was replaced by the external number, the direction was `outbound` and
-    `requested_name` was empty.
-  * A forward to an external number that nobody answers has the dialed number as destination.
-    Before, the destination was the caller's outgoing caller ID.
-  * A user or group member who only rang before the forward is no longer the destination
-    (`destination_user_uuid`, `destination_internal_extension`) when the forward reaches someone
-    else.
+* CDRs of forwarded calls (`GET /cdr`, `GET /users/me/cdr`):
+  * Group forward to an external number: `source_*` stay the caller's (was the external
+    number), `direction` is no longer `outbound`, and `requested_name` is the group's label
+    (was empty).
+  * Unanswered forward to an external number: `destination_extension` is the number dialed
+    (was the caller's outgoing caller ID).
+  * `destination_user_uuid` and `destination_internal_extension` are those of whoever answered
+    after the forward, not of the user or member who only rang before it.
 
 ## 26.09
 
