@@ -1,4 +1,7 @@
 services:
+  call-logd:
+    volumes:
+      - "./etc/wazo-call-logd/conf.d/60-metrics.yml:/etc/wazo-call-logd/conf.d/60-metrics.yml"
   sync:
     depends_on:
       - auth

@@ -75,6 +75,7 @@ DEFAULT_CONFIG = {
         'cdr': True,
         'config': True,
         'export': True,
+        'metrics': False,
         'retention': True,
         'status': True,
         'support_center': True,
