@@ -1,5 +1,11 @@
 # Changelog
 
+## 26.12
+
+* New endpoint `GET /1.0/metrics`: Prometheus metrics, without authentication.
+  It is served by the `metrics` plugin, disabled by default; enable it with
+  `enabled_plugins: {metrics: true}`.
+
 ## 26.11
 
 * In CDRs of calls to a group (`GET /cdr`, `GET /users/me/cdr`), `requested_name` is now the
@@ -10,10 +16,6 @@
   group call that no member answered keeps the group's label in `destination_name`. The label is
   still in `destination_details.group_label`. The `search` parameter no longer matches a group's
   label on the calls a member answered.
-
-* New endpoint `GET /1.0/metrics`: Prometheus metrics, without authentication.
-  It is served by the `metrics` plugin, disabled by default; enable it with
-  `enabled_plugins: {metrics: true}`.
 
 ## 26.09
 
